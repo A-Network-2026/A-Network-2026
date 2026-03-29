@@ -1,143 +1,139 @@
-<!DOCTYPE html>
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=0,24,12,18&height=200&section=header&text=Reverse%20Mining%20Protocol%20(RMP)&fontSize=42&fontAlignY=40&desc=WEB4%20SYSTEM%20|%20Reverse%20Mining%20Engine%20ACTIVE&descFontSize=18&fontColor=FFFFFF&stroke=FFFFFF&strokeWidth=2"/>
+  <img src="https://user-images.githubusercontent.com/74038190/212284115-f47cd8ff-2ffb-4b04-b5bf-4d1c14c0247f.gif" width="100%" />
+</div>
 
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reverse Mining Protocol (RMP)</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #ffffff;
-      color: #111;
-      line-height: 1.6;
-    }
+---
 
-```
-header {
-  text-align: center;
-  padding: 40px 20px;
-  border-bottom: 1px solid #eee;
-}
+### Core System Initialization
 
-header img {
-  width: 80px;
-  margin-bottom: 15px;
-}
+<div align="center">
 
-h1 {
-  margin: 10px 0;
-  font-size: 28px;
-}
-
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 30px 20px;
-}
-
-h2 {
-  margin-top: 40px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 5px;
-}
-
-p {
-  margin: 15px 0;
-}
-
-ul {
-  margin: 10px 0 20px 20px;
-}
-
-footer {
-  text-align: center;
-  padding: 30px;
-  border-top: 1px solid #eee;
-  margin-top: 40px;
-  font-size: 14px;
-  color: #555;
-}
-```
-
-  </style>
-</head>
-<body>
-
-<header>
-  <!-- Replace logo.png with your actual logo -->
-  <img src="logo.png" alt="RMP Logo">
-  <h1>Reverse Mining Protocol (RMP)</h1>
-  <p>Official Whitepaper</p>
-</header>
-
-<div class="container">
-
-<h2>Abstract</h2>
-<p>
-Reverse Mining Protocol (RMP) introduces a new token distribution model that reverses traditional mining. Instead of starting with high rewards, the system begins with minimal rewards and evolves through controlled scarcity.
-</p>
-
-<h2>Vision</h2>
-<p>
-RMP aims to move beyond Web3 into Web4, where users benefit directly from network growth. The focus is long-term sustainability and fairness.
-</p>
-
-<h2>Problem</h2>
-<ul>
-  <li>Mining is expensive and centralized</li>
-  <li>Early adopters dominate supply</li>
-  <li>Mobile mining lacks real systems</li>
-</ul>
-
-<h2>Solution: Reverse Mining</h2>
-<ul>
-  <li>Low starting rewards</li>
-  <li>Halving every 210,000 users</li>
-  <li>6-hour mining cycle</li>
-  <li>Off-chain computation</li>
-</ul>
-
-<h2>Tokenomics</h2>
-<ul>
-  <li>Max Supply: 21,000,000</li>
-  <li>Mining Allocation: 70%</li>
-  <li>Ecosystem: 15%</li>
-  <li>Marketing: 10%</li>
-  <li>Reserve: 5%</li>
-</ul>
-
-<h2>Mining Mechanics</h2>
-<p>
-Users activate mining sessions every 6 hours. Rewards are calculated on a secure backend with anti-cheat protection.
-</p>
-
-<h2>Revenue Model</h2>
-<ul>
-  <li>Google AdMob ads</li>
-  <li>Boost system</li>
-  <li>Optional premium features</li>
-</ul>
-
-<h2>Roadmap</h2>
-<ul>
-  <li>Phase 1: MVP launch</li>
-  <li>Phase 2: Growth and ads</li>
-  <li>Phase 3: Token launch</li>
-  <li>Phase 4: DAO and Web4 expansion</li>
-</ul>
-
-<h2>Conclusion</h2>
-<p>
-RMP creates a fair, scalable, and accessible mining system that bridges Web2 monetization with Web3 ownership.
-</p>
+<pre>
+> Booting Reverse Mining Engine...
+> Loading Web4 Architecture... [COMPLETE]
+> Connecting User-Based Halving Model... [ACTIVE]
+> Initializing Off-Chain Reward System... [RUNNING]
+> Mission: Build fair, scalable, and user-powered mining infrastructure
+</pre>
 
 </div>
 
-<footer>
-  © 2026 Reverse Mining Protocol. All rights reserved.
-</footer>
+---
 
-</body>
-</html>
+### Primary System: Reverse Mining
+
+<div align="center">
+
+<pre>
+> System Type   : Web4 Mining Protocol
+> Core Focus    : Fair Distribution & Scalable Growth
+> Mining Cycle  : 6 Hours
+> Halving Rule  : Every 210,000 Users
+> Status        : ACTIVE DEVELOPMENT
+</pre>
+
+</div>
+
+Reverse Mining Protocol redefines traditional mining by starting with **low rewards**  
+and scaling through **controlled user growth**, preventing early dominance and ensuring fairness.
+
+---
+
+### Live Network Status
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Mining%20Engine-ONLINE-00c6ff?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/User%20Growth-ACTIVE-0072ff?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Halving-USER%20BASED-00ff87?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/System%20Mode-SCALING-60efff?style=for-the-badge" />
+</p>
+
+<div align="center">
+
+<pre>
+> Node Status        : OPERATIONAL
+> Reward Engine      : OFF-CHAIN
+> Anti-Cheat Layer   : ENABLED
+> Activity State     : CONTINUOUS MINING
+</pre>
+
+</div>
+
+---
+
+### Tokenomics Engine
+
+<div align="center">
+
+<pre>
+> Max Supply     : 21,000,000
+> Mining Share   : 70%
+> Ecosystem      : 15%
+> Marketing      : 10%
+> Reserve        : 5%
+</pre>
+
+</div>
+
+---
+
+### System Modules
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BLOCKCHAIN-Future_Layer-black?style=flat-square&logo=bitcoin&logoColor=white" />
+  <img src="https://img.shields.io/badge/ENGINE-Reverse_Mining-black?style=flat-square&logo=databricks&logoColor=white" />
+  <img src="https://img.shields.io/badge/NETWORK-User_Driven-black?style=flat-square&logo=cloudflare&logoColor=white" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/BACKEND-Node.js-black?style=flat-square&logo=node.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/DATABASE-MongoDB-black?style=flat-square&logo=mongodb&logoColor=white" />
+  <img src="https://img.shields.io/badge/APP-FlutterFlow-black?style=flat-square&logo=flutter&logoColor=white" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/ADS-AdMob-black?style=flat-square&logo=googleads&logoColor=white" />
+  <img src="https://img.shields.io/badge/SYSTEM-Anti_Cheat-black?style=flat-square&logo=shield&logoColor=white" />
+  <img src="https://img.shields.io/badge/VERSION-Git-black?style=flat-square&logo=git&logoColor=white" />
+</p>
+
+---
+
+### Revenue Layer
+
+<div align="center">
+
+<pre>
+> Ad System       : Google AdMob Integration
+> Boost Feature   : Reward Multiplier via Ads
+> Premium Layer   : Optional Upgrades
+</pre>
+
+</div>
+
+---
+
+### AI + Web4 Integration
+
+<div align="center">
+
+<pre>
+> Development Mode : AI-Augmented System Design
+> Goal             : Sustainable & Scalable Web4 Ecosystem
+> Strategy         : Combine Web2 Monetization + Web3 Ownership
+</pre>
+
+</div>
+
+AI accelerates execution while maintaining strong backend logic and system integrity.
+
+---
+
+### Final Transmission
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=12,20,24,30&height=60&section=footer&text=RMP_SYSTEM_ACTIVE&fontSize=16&fontColor=FFFFFF&stroke=FFFFFF&strokeWidth=1"/>
+
+</div>
