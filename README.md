@@ -95,11 +95,11 @@ It does not provide real cryptocurrency, financial services, or investment oppor
 ---
 
 ### Privacy Policy
-
-https://a-network.net/privacy.html> Mission: Build fair, scalable, and user-powered mining infrastructure
-</pre>
-
-</div>
+<p>
+<a href="https://a-network.net/privacy.html">
+https://a-network.net/privacy
+</a>
+</p>
 
 ---
 
