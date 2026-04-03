@@ -1,6 +1,5 @@
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=0,24,12,18&height=200&section=header&text=Reverse%20Mining%20Protocol%20(RMP)&fontSize=42&fontAlignY=40&desc=WEB4%20SYSTEM%20|%20Reverse%20Mining%20Engine%20ACTIVE&descFontSize=18&fontColor=FFFFFF&stroke=FFFFFF&strokeWidth=2"/>
-  <img src="https://user-images.githubusercontent.com/74038190/212284115-f47cd8ff-2ffb-4b04-b5bf-4d1c14c0247f.gif" width="100%" />
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=0,24,12,18&height=200&section=header&text=A%20Network&fontSize=42&fontAlignY=40&desc=Simulation-Based%20Mining%20System&descFontSize=18&fontColor=FFFFFF"/>
 </div>
 
 ---
@@ -10,11 +9,94 @@
 <div align="center">
 
 <pre>
-> Booting Reverse Mining Engine...
-> Loading Web4 Architecture... [COMPLETE]
-> Connecting User-Based Halving Model... [ACTIVE]
-> Initializing Off-Chain Reward System... [RUNNING]
-> Mission: Build fair, scalable, and user-powered mining infrastructure
+> Booting Mining Simulation...
+> Loading Application Interface... [COMPLETE]
+> Connecting User System... [ACTIVE]
+> Initializing Reward Engine... [RUNNING]
+> Mission: Provide an engaging and interactive experience
+</pre>
+
+</div>
+
+---
+
+### Primary System
+
+<div align="center">
+
+<pre>
+> System Type   : Simulation-Based Application
+> Core Focus    : User Engagement & Activity
+> Mining Cycle  : 6 Hours
+> Status        : ACTIVE
+</pre>
+
+</div>
+
+This application provides a structured, time-based activity system where users can interact with a simulated mining experience and receive in-app rewards.
+
+---
+
+### Live System Status
+
+<p align="center">
+  <img src="https://img.shields.io/badge/System-ONLINE-00c6ff?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Users-ACTIVE-0072ff?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Engine-RUNNING-00ff87?style=for-the-badge" />
+</p>
+
+<div align="center">
+
+<pre>
+> App Status        : OPERATIONAL
+> Reward Engine     : ACTIVE
+> Security Layer    : ENABLED
+> Activity State    : CONTINUOUS
+</pre>
+
+</div>
+
+---
+
+### App Features
+
+<div align="center">
+
+<pre>
+> Time-Based Sessions
+> Reward System
+> Optional Ad Boost
+> Clean Mobile Interface
+</pre>
+
+</div>
+
+---
+
+### Monetization
+
+<div align="center">
+
+<pre>
+> Ad System       : Google AdMob Integration
+> Boost Feature   : Optional Reward Multiplier
+</pre>
+
+</div>
+
+---
+
+### Disclaimer
+
+This application is a simulation-based system designed for entertainment purposes only.
+
+It does not provide real cryptocurrency, financial services, or investment opportunities. All rewards are virtual and have no real-world monetary value.
+
+---
+
+### Privacy Policy
+
+https://a-network.net/privacy.html> Mission: Build fair, scalable, and user-powered mining infrastructure
 </pre>
 
 </div>
