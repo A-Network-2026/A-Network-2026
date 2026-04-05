@@ -167,11 +167,13 @@ canvas.height = window.innerHeight;
 let angle = 0;
 
 function drawGlobe(x,y,r,offset){
+  // outer globe
   ctx.beginPath();
   ctx.arc(x,y,r,0,Math.PI*2);
   ctx.strokeStyle = '#00c3ff';
   ctx.stroke();
 
+  // orbiting nodes
   for(let i=0;i<10;i++){
     let a = angle + i + offset;
     let px = x + Math.cos(a)*r;
@@ -182,6 +184,25 @@ function drawGlobe(x,y,r,offset){
     ctx.fillStyle='#00c3ff';
     ctx.fill();
   }
+
+  // orbiting "A" inside circle
+  let orbitRadius = r * 0.6;
+  let ax = x + Math.cos(angle + offset) * orbitRadius;
+  let ay = y + Math.sin(angle + offset) * orbitRadius;
+
+  // circle around A
+  ctx.beginPath();
+  ctx.arc(ax, ay, 14, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(0,195,255,0.8)';
+  ctx.stroke();
+
+  // letter A
+  ctx.fillStyle = '#00c3ff';
+  ctx.font = 'bold 14px Orbitron';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('A', ax, ay);
+}
 }
 
 function connect(x1,y1,x2,y2){
