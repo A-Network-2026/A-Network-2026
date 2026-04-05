@@ -166,14 +166,32 @@ canvas.height = window.innerHeight;
 
 let angle = 0;
 
-function drawGlobe(x,y,r,offset){
-  // outer globe
+// trail storage
+let trails = {
+  g1: [],
+  g2: []
+};
+
+function drawTrail(trail){
+  for(let i=0;i<trail.length;i++){
+    let p = trail[i];
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(0,195,255,${p.alpha})`;
+    ctx.fill();
+    p.alpha *= 0.92; // fade
+  }
+  // remove very faded points
+  trail = trail.filter(p => p.alpha > 0.05);
+  return trail;
+}
+
+function drawGlobe(x,y,r,offset,trailKey){
   ctx.beginPath();
   ctx.arc(x,y,r,0,Math.PI*2);
   ctx.strokeStyle = '#00c3ff';
   ctx.stroke();
 
-  // orbiting nodes
   for(let i=0;i<10;i++){
     let a = angle + i + offset;
     let px = x + Math.cos(a)*r;
@@ -185,10 +203,15 @@ function drawGlobe(x,y,r,offset){
     ctx.fill();
   }
 
-  // orbiting "A" inside circle
   let orbitRadius = r * 0.6;
   let ax = x + Math.cos(angle + offset) * orbitRadius;
   let ay = y + Math.sin(angle + offset) * orbitRadius;
+
+  // add to trail
+  trails[trailKey].push({x:ax, y:ay, alpha:1});
+
+  // draw trail
+  trails[trailKey] = drawTrail(trails[trailKey]);
 
   // circle around A
   ctx.beginPath();
@@ -203,7 +226,6 @@ function drawGlobe(x,y,r,offset){
   ctx.textBaseline = 'middle';
   ctx.fillText('A', ax, ay);
 }
-}
 
 function connect(x1,y1,x2,y2){
   ctx.beginPath();
@@ -214,7 +236,9 @@ function connect(x1,y1,x2,y2){
 }
 
 function animate(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // slight fade instead of full clear (gives smoother trail feel)
+  ctx.fillStyle = 'rgba(0,8,20,0.25)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 
   let x1 = canvas.width*0.3;
   let y1 = canvas.height*0.5;
@@ -222,8 +246,8 @@ function animate(){
   let x2 = canvas.width*0.7;
   let y2 = canvas.height*0.5;
 
-  drawGlobe(x1,y1,80,0);
-  drawGlobe(x2,y2,80,2);
+  drawGlobe(x1,y1,80,0,'g1');
+  drawGlobe(x2,y2,80,2,'g2');
 
   connect(x1,y1,x2,y2);
 
