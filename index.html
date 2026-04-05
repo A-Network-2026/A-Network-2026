@@ -4,71 +4,166 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>A Network</title>
+
 <link rel="icon" type="image/png" href="logo.png" />
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Orbitron',sans-serif;background:#000814;color:#fff;overflow:hidden}
-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
-header,.hero{position:relative;z-index:1}
-header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;background:rgba(0,0,0,.6);backdrop-filter:blur(10px);border-bottom:1px solid rgba(0,150,255,.3)}
+body{font-family:'Orbitron',sans-serif;background:#000814;color:#fff;overflow-x:hidden}
+
+/* BACKGROUND */
+canvas{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  z-index:0;
+}
+
+/* UI LAYER */
+header,.hero,.section,footer{position:relative;z-index:1}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 40px;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(0,150,255,.3);
+}
+
 header img{width:50px}
-nav a{margin-left:25px;color:#00c3ff;text-decoration:none}
-.hero{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
-.hero img{width:180px;filter:drop-shadow(0 0 25px #00c3ff)}
-.hero h1{font-size:48px}
-.btn{margin-top:20px;padding:12px 30px;border:none;border-radius:30px;background:linear-gradient(90deg,#00c3ff,#0066ff);color:#fff}
+
+nav a{
+  margin-left:25px;
+  color:#00c3ff;
+  text-decoration:none;
+}
+
+.hero{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:20px;
+}
+
+.hero img{
+  width:180px;
+  max-width:60vw;
+  filter:drop-shadow(0 0 25px #00c3ff);
+}
+
+.hero h1{
+  font-size:clamp(28px,6vw,48px);
+  margin-top:10px;
+}
+
+.hero p{
+  max-width:700px;
+  opacity:.85;
+  margin-top:10px;
+}
+
+.btn{
+  margin-top:20px;
+  padding:12px 30px;
+  border:none;
+  border-radius:30px;
+  background:linear-gradient(90deg,#00c3ff,#0066ff);
+  color:#fff;
+  cursor:pointer;
+}
+
+.section{
+  padding:60px 20px;
+  text-align:center;
+}
+
+/* CHART */
+.chart-box{
+  width:100%;
+  max-width:1000px;
+  margin:0 auto;
+  border-radius:20px;
+  overflow:hidden;
+  border:1px solid rgba(0,195,255,.4);
+  box-shadow:0 0 40px rgba(0,195,255,.25);
+}
+
+.chart-box iframe{
+  width:100%;
+  height:500px;
+  border:none;
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  header{padding:15px 20px}
+  nav a{margin-left:15px;font-size:14px}
+  .chart-box iframe{height:400px}
+}
+
+@media(max-width:480px){
+  .chart-box iframe{height:320px}
+}
 </style>
 </head>
+
 <body>
 
 <canvas id="bg"></canvas>
 
 <header>
-<img src="logo.png" />
-<nav>
-<a>About</a>
-<a>Features</a>
-<a>Chart</a>
-</nav>
+  <img src="logo.png">
+  <nav>
+    <a href="#evolution">Evolution</a>
+    <a href="#chart">Chart</a>
+  </nav>
 </header>
 
 <section class="hero">
-<img src="logo.png" />
-<h1>A NETWORK</h1>
-<p>
-Evolving the internet from Web2 → Web3 → Web4.
-<br><br>
-From centralized systems, to decent</section>
-
-<section style="padding:60px 20px;text-align:center;position:relative;z-index:1">
-  <h2 style="color:#00c3ff;margin-bottom:20px">The Evolution</h2>
-  <p style="max-width:800px;margin:0 auto 40px auto;opacity:.8">
-    The internet has evolved through stages. Web2 connected people. Web3 introduced ownership and decentralization. A Network is building Web4 — an intelligent, autonomous, and interconnected ecosystem where value, identity, and systems operate seamlessly.
+  <img src="logo.png">
+  <h1>A NETWORK</h1>
+  <p>
+    Evolving the internet from Web2 → Web3 → Web4.<br>
+    Building an AI-powered decentralized ecosystem.
   </p>
+  <button class="btn">Enter Web4</button>
+</section>
+
+<section id="evolution" class="section">
+  <h2 style="color:#00c3ff;margin-bottom:20px">Web Evolution</h2>
 
   <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:20px">
+    
     <div style="border:1px solid rgba(0,150,255,.2);padding:20px;border-radius:15px;width:220px;background:rgba(0,0,0,.5)">
       <h3>Web2</h3>
-      <p style="opacity:.7">Platforms, centralization, user data controlled by corporations.</p>
+      <p style="opacity:.7">Centralized platforms</p>
     </div>
 
     <div style="border:1px solid rgba(0,150,255,.2);padding:20px;border-radius:15px;width:220px;background:rgba(0,0,0,.5)">
       <h3>Web3</h3>
-      <p style="opacity:.7">Decentralization, blockchain, user ownership of assets.</p>
+      <p style="opacity:.7">Decentralized ownership</p>
     </div>
 
     <div style="border:1px solid rgba(0,195,255,.5);padding:20px;border-radius:15px;width:220px;background:rgba(0,20,40,.7);box-shadow:0 0 25px rgba(0,195,255,.3)">
       <h3 style="color:#00c3ff">Web4</h3>
-      <p style="opacity:.9">AI-driven, interconnected systems, autonomous value exchange.</p>
+      <p style="opacity:.9">AI-powered autonomous systems</p>
     </div>
+
   </div>
 </section>
 
-<script>o intelligent, connected, AI-powered networks.
-</p>
-<button class="btn">Enter Web4</button>
+<section id="chart" class="section">
+  <h2 style="color:#00c3ff;margin-bottom:20px">Live DEX Chart</h2>
+
+  <div class="chart-box">
+    <iframe src="https://dexscreener.com/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b?embed=1&theme=dark"></iframe>
+  </div>
 </section>
 
 <script>
@@ -85,7 +180,6 @@ window.addEventListener('resize',resize);
 let angle=0;
 let trails={g1:[],g2:[]};
 
-// stars background
 let stars=[];
 for(let i=0;i<120;i++){
   stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.5});
@@ -113,12 +207,7 @@ function drawTrail(trail){
     p.life*=0.96;
   }
 
-  let g=ctx.createLinearGradient(trail[0].x,trail[0].y,trail.at(-1).x,trail.at(-1).y);
-  g.addColorStop(0,'transparent');
-  g.addColorStop(.5,'rgba(0,195,255,.6)');
-  g.addColorStop(1,'#00c3ff');
-
-  ctx.strokeStyle=g;
+  ctx.strokeStyle='rgba(0,195,255,.8)';
   ctx.lineWidth=2;
   ctx.stroke();
 
@@ -126,63 +215,40 @@ function drawTrail(trail){
 }
 
 function globe(x,y,r,offset,key){
-  // sphere glow
-  let glow=ctx.createRadialGradient(x,y,10,x,y,r);
-  glow.addColorStop(0,'rgba(0,195,255,.2)');
-  glow.addColorStop(1,'transparent');
-  ctx.fillStyle=glow;
-  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-
-  // outer circle
-  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
-  ctx.strokeStyle='#00c3ff';ctx.stroke();
-
-  // orbiting A
   let ax=x+Math.cos(angle+offset)*r*0.6;
   let ay=y+Math.sin(angle+offset)*r*0.6;
 
   trails[key].push({x:ax,y:ay,life:1});
   trails[key]=drawTrail(trails[key]);
 
-  // A node
+  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.strokeStyle='#00c3ff';ctx.stroke();
+
   ctx.beginPath();ctx.arc(ax,ay,14,0,Math.PI*2);
   ctx.strokeStyle='#00c3ff';ctx.stroke();
-  ctx.fillStyle='#00c3ff';ctx.font='bold 14px Orbitron';
-  ctx.textAlign='center';ctx.textBaseline='middle';
+
+  ctx.fillStyle='#00c3ff';
+  ctx.font='bold 14px Orbitron';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
   ctx.fillText('A',ax,ay);
 
-  return {x,y,ax,ay};
+  return {x,y};
 }
 
 function beam(g1,g2){
-  // base line
-  ctx.beginPath();
-  ctx.moveTo(g1.x,g1.y);
-  ctx.lineTo(g2.x,g2.y);
-  ctx.strokeStyle='rgba(0,195,255,.15)';
-  ctx.lineWidth=1;
-  ctx.stroke();
-
-  // animated pulse
   let t=(Math.sin(angle*3)+1)/2;
   let px=g1.x+(g2.x-g1.x)*t;
   let py=g1.y+(g2.y-g1.y)*t;
 
-  let grad=ctx.createLinearGradient(g1.x,g1.y,g2.x,g2.y);
-  grad.addColorStop(0,'transparent');
-  grad.addColorStop(t,'#00c3ff');
-  grad.addColorStop(1,'transparent');
-
   ctx.beginPath();
   ctx.moveTo(g1.x,g1.y);
   ctx.lineTo(g2.x,g2.y);
-  ctx.strokeStyle=grad;
-  ctx.lineWidth=4;
+  ctx.strokeStyle='rgba(0,195,255,.2)';
   ctx.stroke();
 
-  // pulse glow
   ctx.beginPath();
-  ctx.arc(px,py,8,0,Math.PI*2);
+  ctx.arc(px,py,6,0,Math.PI*2);
   ctx.fillStyle='#00c3ff';
   ctx.fill();
 }
