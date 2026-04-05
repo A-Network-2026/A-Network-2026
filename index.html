@@ -15,26 +15,35 @@ header,.hero,.section{position:relative;z-index:1}
 
 header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;background:rgba(0,0,0,.6);backdrop-filter:blur(10px);border-bottom:1px solid rgba(0,150,255,.3)}
 header img{width:50px}
-nav a{margin-left:25px;color:#00c3ff;text-decoration:none}
+nav a{margin-left:20px;color:#00c3ff;text-decoration:none;font-size:14px}
 
 .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px}
-
-.hero video{
-  width:220px;
-  max-width:70vw;
-  border-radius:20px;
-  box-shadow:0 0 40px rgba(0,195,255,.5);
-}
-
+.hero video{width:220px;max-width:70vw;border-radius:20px;box-shadow:0 0 40px rgba(0,195,255,.6)}
 .hero h1{font-size:clamp(28px,6vw,48px);margin-top:15px}
 .hero p{max-width:700px;opacity:.85;margin-top:10px}
 
 .btn{margin-top:20px;padding:12px 30px;border:none;border-radius:30px;background:linear-gradient(90deg,#00c3ff,#0066ff);color:#fff;cursor:pointer}
 
+.metrics{
+  display:flex;gap:20px;margin-top:25px;flex-wrap:wrap;justify-content:center
+}
+.metric{
+  background:rgba(0,0,0,.5);
+  border:1px solid rgba(0,195,255,.3);
+  padding:15px 20px;
+  border-radius:12px;
+  min-width:120px
+}
+.metric h3{color:#00c3ff;font-size:18px}
+.metric p{font-size:12px;opacity:.7}
+
 .section{padding:60px 20px;text-align:center}
 
 .chart-box{width:100%;max-width:1000px;margin:0 auto;border-radius:20px;overflow:hidden;border:1px solid rgba(0,195,255,.4);box-shadow:0 0 40px rgba(0,195,255,.25)}
 .chart-box iframe{width:100%;height:500px;border:none}
+
+.links{display:flex;flex-wrap:wrap;justify-content:center;gap:15px;margin-top:20px}
+.links a{color:#00c3ff;text-decoration:none;border:1px solid rgba(0,195,255,.3);padding:10px 15px;border-radius:10px}
 
 @media(max-width:768px){.chart-box iframe{height:400px}}
 @media(max-width:480px){.chart-box iframe{height:320px}}
@@ -42,49 +51,44 @@ nav a{margin-left:25px;color:#00c3ff;text-decoration:none}
 </head>
 
 <body>
-
 <canvas id="bg"></canvas>
 
 <header>
   <img src="logo.png">
   <nav>
-    <a href="#evolution">Evolution</a>
     <a href="#chart">Chart</a>
+    <a href="#social">Social</a>
   </nav>
 </header>
 
 <section class="hero">
   <video src="video.mp4" autoplay muted loop playsinline></video>
   <h1>A NETWORK</h1>
-  <p>
-    Evolving the internet from Web2 → Web3 → Web4.<br>
-    Building an AI-powered decentralized ecosystem.
-  </p>
-  <button class="btn">Enter Web4</button>
-</section>
+  <p>Evolving the internet from Web2 → Web3 → Web4.<br>AI-powered decentralized infrastructure.</p>
 
-<section id="evolution" class="section">
-  <h2 style="color:#00c3ff;margin-bottom:20px">Web Evolution</h2>
-  <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:20px">
-    <div style="border:1px solid rgba(0,150,255,.2);padding:20px;border-radius:15px;width:220px;background:rgba(0,0,0,.5)">
-      <h3>Web2</h3>
-      <p style="opacity:.7">Centralized platforms</p>
-    </div>
-    <div style="border:1px solid rgba(0,150,255,.2);padding:20px;border-radius:15px;width:220px;background:rgba(0,0,0,.5)">
-      <h3>Web3</h3>
-      <p style="opacity:.7">Decentralized ownership</p>
-    </div>
-    <div style="border:1px solid rgba(0,195,255,.5);padding:20px;border-radius:15px;width:220px;background:rgba(0,20,40,.7);box-shadow:0 0 25px rgba(0,195,255,.3)">
-      <h3 style="color:#00c3ff">Web4</h3>
-      <p style="opacity:.9">AI-powered autonomous systems</p>
-    </div>
+  <div class="metrics">
+    <div class="metric"><h3>Live</h3><p>Network Active</p></div>
+    <div class="metric"><h3>AI</h3><p>Autonomous Layer</p></div>
+    <div class="metric"><h3>Web4</h3><p>Next Evolution</p></div>
   </div>
+
+  <button class="btn">Enter Network</button>
 </section>
 
 <section id="chart" class="section">
   <h2 style="color:#00c3ff;margin-bottom:20px">Live DEX Chart</h2>
   <div class="chart-box">
     <iframe src="https://dexscreener.com/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b?embed=1&theme=dark"></iframe>
+  </div>
+</section>
+
+<section id="social" class="section">
+  <h2 style="color:#00c3ff;margin-bottom:20px">Official Channels</h2>
+  <div class="links">
+    <a href="https://x.com/AAlphaNetwork" target="_blank">Official X</a>
+    <a href="https://x.com/Mr_A_Awakening" target="_blank">Co-Founder 1</a>
+    <a href="https://x.com/Alpha_ANet" target="_blank">Co-Founder 2</a>
+    <a href="https://github.com/A-Network-2026" target="_blank">GitHub</a>
   </div>
 </section>
 
@@ -95,53 +99,39 @@ const ctx=c.getContext('2d');
 function resize(){c.width=innerWidth;c.height=innerHeight}
 resize();window.addEventListener('resize',resize);
 
-let angle=0;
-let stars=[];
-
-for(let i=0;i<120;i++){
-  stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:(Math.random()-.5)*0.3,vy:(Math.random()-.5)*0.3});
+let nodes=[];
+for(let i=0;i<100;i++){
+  nodes.push({x:Math.random()*c.width,y:Math.random()*c.height,vx:(Math.random()-.5)*0.3,vy:(Math.random()-.5)*0.3});
 }
 
-function drawStars(){
-  for(let i=0;i<stars.length;i++){
-    let s=stars[i];
+function animate(){
+  ctx.fillStyle='rgba(0,8,20,.5)';
+  ctx.fillRect(0,0,c.width,c.height);
 
-    s.x+=s.vx;
-    s.y+=s.vy;
+  for(let i=0;i<nodes.length;i++){
+    let n=nodes[i];
+    n.x+=n.vx;n.y+=n.vy;
 
-    if(s.x<0||s.x>c.width) s.vx*=-1;
-    if(s.y<0||s.y>c.height) s.vy*=-1;
+    if(n.x<0||n.x>c.width)n.vx*=-1;
+    if(n.y<0||n.y>c.height)n.vy*=-1;
 
-    ctx.beginPath();
-    ctx.arc(s.x,s.y,1.5,0,Math.PI*2);
-    ctx.fillStyle='#fff';
-    ctx.fill();
+    ctx.beginPath();ctx.arc(n.x,n.y,2,0,Math.PI*2);
+    ctx.fillStyle='#00c3ff';ctx.fill();
 
-    // connect nearby stars
-    for(let j=i+1;j<stars.length;j++){
-      let s2=stars[j];
-      let dx=s.x-s2.x;
-      let dy=s.y-s2.y;
-      let dist=Math.sqrt(dx*dx+dy*dy);
-
-      if(dist<120){
+    for(let j=i+1;j<nodes.length;j++){
+      let m=nodes[j];
+      let dx=n.x-m.x,dy=n.y-m.y;
+      let d=Math.sqrt(dx*dx+dy*dy);
+      if(d<120){
         ctx.beginPath();
-        ctx.moveTo(s.x,s.y);
-        ctx.lineTo(s2.x,s2.y);
-        ctx.strokeStyle='rgba(0,195,255,'+(1-dist/120)*0.3+')';
+        ctx.moveTo(n.x,n.y);
+        ctx.lineTo(m.x,m.y);
+        ctx.strokeStyle='rgba(0,195,255,'+(1-d/120)*0.3+')';
         ctx.stroke();
       }
     }
   }
-}
 
-function animate(){
-  ctx.fillStyle='rgba(0,8,20,.4)';
-  ctx.fillRect(0,0,c.width,c.height);
-
-  drawStars();
-
-  angle+=0.01;
   requestAnimationFrame(animate);
 }
 
