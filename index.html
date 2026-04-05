@@ -4,112 +4,40 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>A Network</title>
-
 <link rel="icon" type="image/png" href="logo.png" />
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Orbitron',sans-serif;background:#000814;color:#fff;overflow-x:hidden}
+canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
+header,.hero,.section{position:relative;z-index:1}
 
-/* BACKGROUND */
-canvas{
-  position:fixed;
-  top:0;left:0;
-  width:100%;height:100%;
-  z-index:0;
-}
-
-/* UI LAYER */
-header,.hero,.section,footer{position:relative;z-index:1}
-
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:20px 40px;
-  background:rgba(0,0,0,.6);
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid rgba(0,150,255,.3);
-}
-
+header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;background:rgba(0,0,0,.6);backdrop-filter:blur(10px);border-bottom:1px solid rgba(0,150,255,.3)}
 header img{width:50px}
+nav a{margin-left:25px;color:#00c3ff;text-decoration:none}
 
-nav a{
-  margin-left:25px;
-  color:#00c3ff;
-  text-decoration:none;
-}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px}
 
-.hero{
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  text-align:center;
-  padding:20px;
-}
-
-.hero img{
-  width:180px;
-  max-width:60vw;
-  filter:drop-shadow(0 0 25px #00c3ff);
-}
-
-.hero h1{
-  font-size:clamp(28px,6vw,48px);
-  margin-top:10px;
-}
-
-.hero p{
-  max-width:700px;
-  opacity:.85;
-  margin-top:10px;
-}
-
-.btn{
-  margin-top:20px;
-  padding:12px 30px;
-  border:none;
-  border-radius:30px;
-  background:linear-gradient(90deg,#00c3ff,#0066ff);
-  color:#fff;
-  cursor:pointer;
-}
-
-.section{
-  padding:60px 20px;
-  text-align:center;
-}
-
-/* CHART */
-.chart-box{
-  width:100%;
-  max-width:1000px;
-  margin:0 auto;
+.hero video{
+  width:220px;
+  max-width:70vw;
   border-radius:20px;
-  overflow:hidden;
-  border:1px solid rgba(0,195,255,.4);
-  box-shadow:0 0 40px rgba(0,195,255,.25);
+  box-shadow:0 0 40px rgba(0,195,255,.5);
 }
 
-.chart-box iframe{
-  width:100%;
-  height:500px;
-  border:none;
-}
+.hero h1{font-size:clamp(28px,6vw,48px);margin-top:15px}
+.hero p{max-width:700px;opacity:.85;margin-top:10px}
 
-/* RESPONSIVE */
-@media(max-width:768px){
-  header{padding:15px 20px}
-  nav a{margin-left:15px;font-size:14px}
-  .chart-box iframe{height:400px}
-}
+.btn{margin-top:20px;padding:12px 30px;border:none;border-radius:30px;background:linear-gradient(90deg,#00c3ff,#0066ff);color:#fff;cursor:pointer}
 
-@media(max-width:480px){
-  .chart-box iframe{height:320px}
-}
+.section{padding:60px 20px;text-align:center}
+
+.chart-box{width:100%;max-width:1000px;margin:0 auto;border-radius:20px;overflow:hidden;border:1px solid rgba(0,195,255,.4);box-shadow:0 0 40px rgba(0,195,255,.25)}
+.chart-box iframe{width:100%;height:500px;border:none}
+
+@media(max-width:768px){.chart-box iframe{height:400px}}
+@media(max-width:480px){.chart-box iframe{height:320px}}
 </style>
 </head>
 
@@ -126,7 +54,7 @@ nav a{
 </header>
 
 <section class="hero">
-  <img src="logo.png">
+  <video src="video.mp4" autoplay muted loop playsinline></video>
   <h1>A NETWORK</h1>
   <p>
     Evolving the internet from Web2 → Web3 → Web4.<br>
@@ -137,30 +65,24 @@ nav a{
 
 <section id="evolution" class="section">
   <h2 style="color:#00c3ff;margin-bottom:20px">Web Evolution</h2>
-
   <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:20px">
-    
     <div style="border:1px solid rgba(0,150,255,.2);padding:20px;border-radius:15px;width:220px;background:rgba(0,0,0,.5)">
       <h3>Web2</h3>
       <p style="opacity:.7">Centralized platforms</p>
     </div>
-
     <div style="border:1px solid rgba(0,150,255,.2);padding:20px;border-radius:15px;width:220px;background:rgba(0,0,0,.5)">
       <h3>Web3</h3>
       <p style="opacity:.7">Decentralized ownership</p>
     </div>
-
     <div style="border:1px solid rgba(0,195,255,.5);padding:20px;border-radius:15px;width:220px;background:rgba(0,20,40,.7);box-shadow:0 0 25px rgba(0,195,255,.3)">
       <h3 style="color:#00c3ff">Web4</h3>
       <p style="opacity:.9">AI-powered autonomous systems</p>
     </div>
-
   </div>
 </section>
 
 <section id="chart" class="section">
   <h2 style="color:#00c3ff;margin-bottom:20px">Live DEX Chart</h2>
-
   <div class="chart-box">
     <iframe src="https://dexscreener.com/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b?embed=1&theme=dark"></iframe>
   </div>
@@ -170,99 +92,54 @@ nav a{
 const c=document.getElementById('bg');
 const ctx=c.getContext('2d');
 
-function resize(){
-  c.width=innerWidth;
-  c.height=innerHeight;
-}
-resize();
-window.addEventListener('resize',resize);
+function resize(){c.width=innerWidth;c.height=innerHeight}
+resize();window.addEventListener('resize',resize);
 
 let angle=0;
-let trails={g1:[],g2:[]};
-
 let stars=[];
+
 for(let i=0;i<120;i++){
-  stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.5});
+  stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:(Math.random()-.5)*0.3,vy:(Math.random()-.5)*0.3});
 }
 
 function drawStars(){
-  ctx.fillStyle='white';
-  stars.forEach(s=>{
-    ctx.globalAlpha=Math.random();
+  for(let i=0;i<stars.length;i++){
+    let s=stars[i];
+
+    s.x+=s.vx;
+    s.y+=s.vy;
+
+    if(s.x<0||s.x>c.width) s.vx*=-1;
+    if(s.y<0||s.y>c.height) s.vy*=-1;
+
     ctx.beginPath();
-    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.arc(s.x,s.y,1.5,0,Math.PI*2);
+    ctx.fillStyle='#fff';
     ctx.fill();
-  });
-  ctx.globalAlpha=1;
-}
 
-function drawTrail(trail){
-  if(trail.length<2)return trail;
+    // connect nearby stars
+    for(let j=i+1;j<stars.length;j++){
+      let s2=stars[j];
+      let dx=s.x-s2.x;
+      let dy=s.y-s2.y;
+      let dist=Math.sqrt(dx*dx+dy*dy);
 
-  ctx.beginPath();
-  for(let i=0;i<trail.length;i++){
-    let p=trail[i];
-    if(i===0) ctx.moveTo(p.x,p.y);
-    else ctx.lineTo(p.x,p.y);
-    p.life*=0.96;
+      if(dist<120){
+        ctx.beginPath();
+        ctx.moveTo(s.x,s.y);
+        ctx.lineTo(s2.x,s2.y);
+        ctx.strokeStyle='rgba(0,195,255,'+(1-dist/120)*0.3+')';
+        ctx.stroke();
+      }
+    }
   }
-
-  ctx.strokeStyle='rgba(0,195,255,.8)';
-  ctx.lineWidth=2;
-  ctx.stroke();
-
-  return trail.filter(p=>p.life>0.05);
-}
-
-function globe(x,y,r,offset,key){
-  let ax=x+Math.cos(angle+offset)*r*0.6;
-  let ay=y+Math.sin(angle+offset)*r*0.6;
-
-  trails[key].push({x:ax,y:ay,life:1});
-  trails[key]=drawTrail(trails[key]);
-
-  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
-  ctx.strokeStyle='#00c3ff';ctx.stroke();
-
-  ctx.beginPath();ctx.arc(ax,ay,14,0,Math.PI*2);
-  ctx.strokeStyle='#00c3ff';ctx.stroke();
-
-  ctx.fillStyle='#00c3ff';
-  ctx.font='bold 14px Orbitron';
-  ctx.textAlign='center';
-  ctx.textBaseline='middle';
-  ctx.fillText('A',ax,ay);
-
-  return {x,y};
-}
-
-function beam(g1,g2){
-  let t=(Math.sin(angle*3)+1)/2;
-  let px=g1.x+(g2.x-g1.x)*t;
-  let py=g1.y+(g2.y-g1.y)*t;
-
-  ctx.beginPath();
-  ctx.moveTo(g1.x,g1.y);
-  ctx.lineTo(g2.x,g2.y);
-  ctx.strokeStyle='rgba(0,195,255,.2)';
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(px,py,6,0,Math.PI*2);
-  ctx.fillStyle='#00c3ff';
-  ctx.fill();
 }
 
 function animate(){
-  ctx.fillStyle='rgba(0,8,20,.35)';
+  ctx.fillStyle='rgba(0,8,20,.4)';
   ctx.fillRect(0,0,c.width,c.height);
 
   drawStars();
-
-  let g1=globe(c.width*0.3,c.height*0.5,90,0,'g1');
-  let g2=globe(c.width*0.7,c.height*0.5,90,2,'g2');
-
-  beam(g1,g2);
 
   angle+=0.01;
   requestAnimationFrame(animate);
