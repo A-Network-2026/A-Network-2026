@@ -4,8 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>A Network</title>
+
 <link rel="icon" type="image/png" href="logo.png" />
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -22,7 +24,7 @@ nav a{margin-left:20px;color:#00c3ff;text-decoration:none;font-size:14px}
 .hero h1{font-size:clamp(28px,6vw,48px);margin-top:15px}
 .hero p{max-width:700px;opacity:.85;margin-top:10px}
 
-.btn{margin-top:20px;padding:12px 30px;border:none;border-radius:30px;background:linear-gradient(90deg,#00c3ff,#0066ff);color:#fff;cursor:pointer}
+.btn{margin-top:10px;padding:12px 25px;border:none;border-radius:30px;background:linear-gradient(90deg,#00c3ff,#0066ff);color:#fff;cursor:pointer}
 
 .metrics{
   display:flex;gap:20px;margin-top:25px;flex-wrap:wrap;justify-content:center
@@ -34,7 +36,7 @@ nav a{margin-left:20px;color:#00c3ff;text-decoration:none;font-size:14px}
   border-radius:12px;
   min-width:120px
 }
-.metric h3{color:#00c3ff;font-size:18px}
+.metric h3{color:#00c3ff;font-size:16px}
 .metric p{font-size:12px;opacity:.7}
 
 .section{padding:60px 20px;text-align:center}
@@ -51,6 +53,7 @@ nav a{margin-left:20px;color:#00c3ff;text-decoration:none;font-size:14px}
 </head>
 
 <body>
+
 <canvas id="bg"></canvas>
 
 <header>
@@ -66,13 +69,16 @@ nav a{margin-left:20px;color:#00c3ff;text-decoration:none;font-size:14px}
   <h1>A NETWORK</h1>
   <p>Evolving the internet from Web2 → Web3 → Web4.<br>AI-powered decentralized infrastructure.</p>
 
-  <div class="metrics">
-    <div class="metric"><h3>Live</h3><p>Network Active</p></div>
-    <div class="metric"><h3>AI</h3><p>Autonomous Layer</p></div>
-    <div class="metric"><h3>Web4</h3><p>Next Evolution</p></div>
-  </div>
+  <!-- ACTION BUTTONS -->
+  <button class="btn" onclick="connectWallet()">Connect Wallet</button>
+  <button class="btn" onclick="getBalance()">Check Balance</button>
+  <button class="btn" onclick="getPrice()">Get Price</button>
 
-  <button class="btn">Enter Network</button>
+  <div class="metrics">
+    <div class="metric"><h3 id="wallet">Not Connected</h3><p>Wallet</p></div>
+    <div class="metric"><h3 id="balance">-</h3><p>ANET</p></div>
+    <div class="metric"><h3 id="price">-</h3><p>USD</p></div>
+  </div>
 </section>
 
 <section id="chart" class="section">
@@ -93,6 +99,7 @@ nav a{margin-left:20px;color:#00c3ff;text-decoration:none;font-size:14px}
 </section>
 
 <script>
+// BACKGROUND NETWORK
 const c=document.getElementById('bg');
 const ctx=c.getContext('2d');
 
@@ -134,8 +141,49 @@ function animate(){
 
   requestAnimationFrame(animate);
 }
-
 animate();
+
+// WEB3 LOGIC
+let provider, signer, userAddress;
+const tokenAddress = "0x791055A7d52AA392eaE8De04250497f33807E46A";
+
+const abi = [
+  "function balanceOf(address owner) view returns (uint256)",
+  "function decimals() view returns (uint8)"
+];
+
+async function connectWallet(){
+  if(window.ethereum){
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    userAddress = await signer.getAddress();
+
+    document.getElementById("wallet").innerText =
+      userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+  } else {
+    alert("Install MetaMask");
+  }
+}
+
+async function getBalance(){
+  if(!provider) return alert("Connect wallet first");
+
+  const contract = new ethers.Contract(tokenAddress, abi, provider);
+  const balance = await contract.balanceOf(userAddress);
+  const decimals = await contract.decimals();
+
+  document.getElementById("balance").innerText =
+    ethers.utils.formatUnits(balance, decimals);
+}
+
+async function getPrice(){
+  const res = await fetch("https://api.dexscreener.com/latest/dex/pairs/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b");
+  const data = await res.json();
+
+  document.getElementById("price").innerText =
+    "$" + parseFloat(data.pair.priceUsd).toFixed(4);
+}
 </script>
 
 </body>
