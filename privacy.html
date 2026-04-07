@@ -1,113 +1,173 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Privacy Policy - A Network</title>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - A Network</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: #0d1b2f;
+      --text: #e8eef7;
+      --muted: #9eb0c7;
+      --line: rgba(115, 209, 255, 0.2);
+      --accent: #73d1ff;
+      --warn: #ffb454;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top, #10284a 0%, var(--bg) 45%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 60px;
+    }
+
+    .hero, .card {
+      background: rgba(13, 27, 47, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+    }
+
+    .hero {
+      padding: 28px;
+      margin-bottom: 18px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .nav a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    h1, h2 { margin: 0 0 12px; }
+    h1 { font-size: clamp(2rem, 4vw, 2.8rem); }
+    h2 { font-size: 1.2rem; color: var(--accent); }
+    p, li { color: var(--text); }
+    .muted { color: var(--muted); }
+
+    .notice {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 180, 84, 0.35);
+      background: rgba(255, 180, 84, 0.08);
+      color: #ffd8a2;
+      font-weight: 600;
+    }
+
+    .card {
+      padding: 22px;
+      margin-bottom: 14px;
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+    }
+
+    a { color: var(--accent); }
+  </style>
 </head>
-<body style="font-family: Arial; padding: 20px; line-height: 1.6;">
+<body>
+  <div class="wrap">
+    <div class="nav">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+    </div>
 
-<h1>Privacy Policy</h1>
+    <section class="hero">
+      <p class="muted">Last updated: April 8, 2026</p>
+      <h1>Privacy Policy</h1>
+      <p>A Network ("we", "our", or "us") operates the A Network application and related services. This Privacy Policy explains how we collect, use, store, and disclose information when users access our Web2, Web3, and Web4-related features.</p>
+      <div class="notice">A Network is a long-term ecosystem project. It is not a guaranteed-profit program, not financial advice, and not a get-rich-quick scheme.</div>
+    </section>
 
-<p>Last updated: 2026</p>
+    <section class="card">
+      <h2>1. Information We Collect</h2>
+      <p>We may collect the following categories of information:</p>
+      <ul>
+        <li>Email address and login credentials for account creation and authentication.</li>
+        <li>Device or session identifiers used to secure accounts and prevent abuse.</li>
+        <li>App activity and usage information used for functionality, reliability, and service improvement.</li>
+        <li>Wallet addresses or wallet-related identifiers when users access Web3 features.</li>
+        <li>Support or contact information when users communicate with us.</li>
+      </ul>
+    </section>
 
-<p>
-A Network ("we", "our", or "us") operates the A Network mobile application.
-This page informs users about our policies regarding the collection, use, and disclosure of information.
-</p>
+    <section class="card">
+      <h2>2. How We Use Information</h2>
+      <p>We use information we collect to:</p>
+      <ul>
+        <li>Provide, operate, maintain, and secure the application.</li>
+        <li>Authenticate users and manage user sessions.</li>
+        <li>Support app features across off-chain Web2 services and on-chain Web3 integrations.</li>
+        <li>Improve functionality, performance, user experience, and fraud detection.</li>
+        <li>Comply with legal obligations and protect the integrity of the ecosystem.</li>
+      </ul>
+    </section>
 
-<hr/>
+    <section class="card">
+      <h2>3. Web2, Web3, and Web4 Context</h2>
+      <p>A Network may include separate but linked product layers:</p>
+      <ul>
+        <li>Web2 off-chain features, including app-native account systems and service logic.</li>
+        <li>Web3 on-chain features, including wallet displays and token-related blockchain information.</li>
+        <li>Web4 coordination concepts that connect Web2 and Web3 through governed product logic.</li>
+      </ul>
+      <p>Not all app activity is blockchain activity. Some features are off-chain, some are on-chain, and some may connect both systems.</p>
+    </section>
 
-<h2>Information We Collect</h2>
+    <section class="card">
+      <h2>4. Advertising</h2>
+      <p>We may use Google AdMob or related advertising services. These services may collect and process data according to their own policies and technologies.</p>
+      <p>Learn more: <a href="https://policies.google.com/technologies/ads">https://policies.google.com/technologies/ads</a></p>
+    </section>
 
-<p>We may collect the following information:</p>
+    <section class="card">
+      <h2>5. Data Sharing</h2>
+      <p>We do not sell users' personal information. We may share limited information with service providers, hosting providers, analytics providers, ad partners, or legal authorities when reasonably necessary for service operation, security, compliance, or fraud prevention.</p>
+    </section>
 
-<ul>
-  <li>Email address (for account creation and login)</li>
-  <li>Device information (such as device ID)</li>
-  <li>App usage data (to improve functionality and performance)</li>
-</ul>
+    <section class="card">
+      <h2>6. Data Security</h2>
+      <p>We use reasonable technical and organizational measures to protect information. However, no method of internet transmission or electronic storage is completely secure, and we cannot guarantee absolute security.</p>
+    </section>
 
-<hr/>
+    <section class="card">
+      <h2>7. Children's Privacy</h2>
+      <p>This service is not directed to children under 13. We do not knowingly collect personal data from children under 13. If we become aware that such data has been provided, we will take reasonable steps to remove it.</p>
+    </section>
 
-<h2>How We Use Information</h2>
+    <section class="card">
+      <h2>8. Data Retention</h2>
+      <p>We retain information for as long as necessary to operate the service, resolve disputes, enforce agreements, maintain security, and comply with applicable law.</p>
+    </section>
 
-<p>We use collected data to:</p>
+    <section class="card">
+      <h2>9. Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. Any updated version will be posted on this page with a revised effective date.</p>
+    </section>
 
-<ul>
-  <li>Provide and maintain the app</li>
-  <li>Authenticate users</li>
-  <li>Improve user experience</li>
-  <li>Prevent abuse and ensure security</li>
-</ul>
-
-<hr/>
-
-<h2>Advertising</h2>
-
-<p>
-We use Google AdMob to display ads. AdMob may collect and use data in accordance with its own privacy policies.
-</p>
-
-<p>
-Learn more:
-<a href="https://policies.google.com/technologies/ads">
-https://policies.google.com/technologies/ads
-</a>
-</p>
-
-<hr/>
-
-<h2>Data Sharing</h2>
-
-<p>
-We do not sell, trade, or rent users’ personal information to third parties.
-</p>
-
-<hr/>
-
-<h2>Data Security</h2>
-
-<p>
-We implement reasonable security measures to protect your information. However, no method of transmission over the internet is 100% secure.
-</p>
-
-<hr/>
-
-<h2>Children’s Privacy</h2>
-
-<p>
-This app is not intended for children under the age of 13. We do not knowingly collect personal data from children.
-</p>
-
-<hr/>
-
-<h2>Changes to This Policy</h2>
-
-<p>
-We may update this Privacy Policy from time to time. Any changes will be posted on this page.
-</p>
-
-<hr/>
-
-<h2>Contact Us</h2>
-
-<p>
-If you have any questions about this Privacy Policy, you may contact us at:
-</p>
-
-<p>
-Email: info@a-network.net
-</p>
-
-<hr/>
-
-<h2>Disclaimer</h2>
-
-<p>
-This application is a simulation-based system designed for entertainment purposes only.
-It does not provide real cryptocurrency, financial services, or investment opportunities.
-All rewards are virtual and have no real-world monetary value.
-</p>
-
+    <section class="card">
+      <h2>10. Contact Us</h2>
+      <p>If you have any questions about this Privacy Policy, contact us at <a href="mailto:info@a-network.net">info@a-network.net</a>.</p>
+    </section>
+  </div>
 </body>
 </html>
