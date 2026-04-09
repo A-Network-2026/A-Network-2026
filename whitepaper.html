@@ -68,7 +68,7 @@
     .nav-item.sub:hover { color: var(--accent-2); border-left-color: var(--accent-2); }
 
     /* ── MAIN ── */
-    .main { flex: 1; min-width: 0; padding: 0 48px 80px; max-width: 960px; }
+    .main { flex: 1; min-width: 0; width: 100%; padding: 0 48px 80px; max-width: 960px; margin: 0 auto; }
     @media (max-width: 1000px) { .main { padding: 0 22px 60px; } }
 
     /* ── HEADER HERO ── */
@@ -89,8 +89,8 @@
       margin-bottom: 18px;
     }
     .hero-sub { font-size: 17px; color: var(--muted); max-width: 680px; line-height: 1.65; margin-bottom: 28px; }
-    .hero-meta { display: flex; flex-wrap: wrap; gap: 24px; }
-    .hero-meta-item { font-size: 13px; color: var(--muted); }
+    .hero-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 20px; }
+    .hero-meta-item { font-size: 13px; color: var(--muted); min-width: 0; }
     .hero-meta-item strong { color: var(--text); }
 
     /* ── SECTION ── */
@@ -139,7 +139,7 @@
     .formula-box .fn { color: #c792ea; }
 
     /* ── TABLE ── */
-    .wp-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+    .wp-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
     .wp-table th { background: rgba(88,197,255,.12); color: var(--accent); font-weight: 700; padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line-strong); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
     .wp-table td { padding: 11px 16px; border-bottom: 1px solid var(--line); color: var(--muted); vertical-align: top; }
     .wp-table tr:hover td { background: rgba(88,197,255,.04); }
@@ -159,14 +159,28 @@
     .stat-card .sc-label { font-size: 12px; color: var(--muted); font-weight: 600; }
 
     /* ── COMPARISON TABLE ── */
-    .compare-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0; margin: 24px 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .compare-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 24px 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
     .cg-header { background: rgba(88,197,255,.12); padding: 12px 14px; font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
-    .cg-cell { padding: 12px 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+    .cg-cell { padding: 12px 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); min-width: 0; word-break: break-word; }
     .cg-cell strong { color: var(--text); }
     .cg-cell.hi { background: rgba(34,231,184,.05); }
     @media (max-width: 700px) {
-      .compare-grid { grid-template-columns: 1fr 1fr; }
-      .cg-header:nth-child(n+3), .cg-cell:nth-child(4n), .cg-cell:nth-child(4n-1) { display: none; }
+      .compare-grid { grid-template-columns: 1fr; border: none; gap: 12px; overflow: visible; }
+      .cg-header { display: none; }
+      .cg-cell {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(88,197,255,.06);
+        padding: 14px 16px;
+      }
+      .cg-cell:nth-child(4n + 1) {
+        background: rgba(88,197,255,.12);
+        color: var(--accent);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+      }
+      .cg-cell.hi { background: rgba(34,231,184,.08); }
     }
 
     /* ── ROADMAP ── */
@@ -187,7 +201,7 @@
     .rm-tag { font-size: 11px; padding: 3px 10px; border-radius: 6px; font-weight: 600; background: rgba(88,197,255,.1); color: var(--accent); border: 1px solid rgba(88,197,255,.2); }
 
     /* ── NOTICE ── */
-    .notice { display: flex; gap: 14px; padding: 18px 22px; border-radius: 12px; margin: 24px 0; font-size: 14px; }
+    .notice { display: flex; gap: 14px; padding: 18px 22px; border-radius: 12px; margin: 24px 0; font-size: 14px; align-items: flex-start; }
     .notice-icon { font-size: 22px; flex-shrink: 0; }
     .notice-body { color: var(--muted); }
     .notice-body strong { color: var(--text); display: block; margin-bottom: 4px; }
@@ -205,10 +219,23 @@
       .layout { display: block; }
       .main { padding: 0 18px 60px; }
       .hero { padding: 40px 0 32px; }
+      .card-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .roadmap { padding-left: 24px; }
+      .rm-dot { left: -18px; }
     }
     @media (max-width: 500px) {
       .panel { padding: 18px 18px; }
       .formula-box { padding: 16px 18px; font-size: 12px; }
+      .hero-sub { font-size: 15px; }
+      .hero-meta { grid-template-columns: 1fr; gap: 10px; }
+      .card-row { grid-template-columns: 1fr; }
+      .notice { flex-direction: column; gap: 8px; padding: 16px; }
+      .notice-icon { font-size: 18px; }
+      .roadmap { padding-left: 18px; }
+      .rm-dot { left: -14px; width: 12px; height: 12px; }
+      .rm-title { font-size: 15px; }
+      .rm-tags { gap: 8px; }
+      .back-top { width: 36px; height: 36px; right: 16px; bottom: 16px; font-size: 16px; }
     }
 
     /* ── DIVIDER ── */
