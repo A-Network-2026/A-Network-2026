@@ -1,833 +1,1395 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A Network | Web2 + Web3 + Web4</title>
-  <meta name="description" content="A Network is building a long-term ecosystem across Web2, Web3, and Web4 with BNB Chain integration, developer access, and transparent DYOR paths.">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="A Network">
-  <meta property="og:title" content="A Network | Web2 + Web3 + Web4">
-  <meta property="og:description" content="Explore A Network's long-term ecosystem across Web2, Web3, and Web4. Review the contract, codebase, legal pages, and live market data.">
-  <meta property="og:url" content="https://a-network.net/">
-  <meta property="og:image" content="https://a-network.net/logo.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="A Network | Web2 + Web3 + Web4">
-  <meta name="twitter:description" content="Explore A Network's long-term ecosystem across Web2, Web3, and Web4. DYOR with legal pages, contract links, GitHub, and live market data.">
-  <meta name="twitter:image" content="https://a-network.net/logo.png">
-  <link rel="canonical" href="https://a-network.net/">
-  <link rel="icon" type="image/png" href="logo.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A-Network Whitepaper | Web2 · Web3 · Web4 · ANET Core</title>
+  <meta name="description" content="The official A-Network whitepaper covering the full ecosystem: Web2 time-based mining, Web3 BNB Chain integration, Web4 Layer 1 blockchain with time-based Proof-of-Work, transaction fees in Ants, and ANET Core (Web5)." />
+  <meta name="theme-color" content="#07101a" />
+  <meta property="og:title" content="A-Network Whitepaper" />
+  <meta property="og:description" content="Complete technical specification of the A-Network ecosystem: tokenomics, mining engine, halving formula, Web4 Layer 1, ANET Core, and full roadmap." />
+  <meta property="og:url" content="https://a-network.net/whitepaper.html" />
+  <meta property="og:image" content="https://a-network.net/logo.png" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
   <style>
     :root {
       --bg: #050b12;
       --bg-2: #091725;
-      --panel: rgba(10, 24, 39, 0.86);
-      --panel-strong: rgba(7, 17, 29, 0.96);
-      --line: rgba(88, 197, 255, 0.18);
-      --line-strong: rgba(88, 197, 255, 0.35);
+      --panel: rgba(10, 24, 39, 0.88);
+      --panel-strong: rgba(7, 17, 29, 0.97);
+      --line: rgba(88, 197, 255, 0.16);
+      --line-strong: rgba(88, 197, 255, 0.32);
       --text: #eff6ff;
       --muted: #9eb2c9;
       --accent: #58c5ff;
       --accent-2: #22e7b8;
-      --warn: #ffbc5c;
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      --accent-3: #f59e0b;
+      --accent-4: #a78bfa;
+      --danger: #f87171;
+      --shadow: 0 24px 80px rgba(0,0,0,.4);
     }
-
-    * { box-sizing: border-box; }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-
     body {
-      margin: 0;
       font-family: "Space Grotesk", sans-serif;
+      background: linear-gradient(180deg, #07101a 0%, var(--bg) 100%);
       color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(34, 231, 184, 0.08), transparent 28%),
-        radial-gradient(circle at top right, rgba(88, 197, 255, 0.18), transparent 24%),
-        linear-gradient(180deg, #07101a 0%, var(--bg) 100%);
-      line-height: 1.6;
+      line-height: 1.7;
       overflow-x: hidden;
     }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.55; pointer-events: none; }
 
-    canvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      opacity: 0.9;
+    /* ── LAYOUT ── */
+    .layout { display: flex; position: relative; z-index: 1; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      position: sticky; top: 0; width: 280px; min-width: 280px; height: 100vh;
+      overflow-y: auto; background: var(--panel-strong);
+      border-right: 1px solid var(--line); padding: 28px 0; flex-shrink: 0;
     }
-
-    .shell {
-      position: relative;
-      z-index: 1;
-      width: min(1200px, calc(100% - 32px));
-      margin: 0 auto;
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 24px 22px; border-bottom: 1px solid var(--line); margin-bottom: 18px;
     }
+    .sidebar-logo span { font-family: "Orbitron", sans-serif; font-size: 15px; font-weight: 700; color: var(--accent); }
+    .sidebar-logo sub { font-size: 9px; color: var(--muted); font-family: "Space Grotesk", sans-serif; display: block; margin-top: 2px; }
+    .nav-section { padding: 0 16px 4px; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 14px; }
+    .nav-item { display: block; padding: 7px 24px; font-size: 13px; color: #b0c8e0; text-decoration: none; border-left: 3px solid transparent; transition: all .2s; line-height: 1.4; }
+    .nav-item:hover { color: var(--accent); border-left-color: var(--accent); background: rgba(88,197,255,.06); }
+    .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(88,197,255,.10); }
+    .nav-item.sub { padding-left: 36px; font-size: 12px; color: #8aa0b8; }
+    .nav-item.sub:hover { color: var(--accent-2); border-left-color: var(--accent-2); }
 
-    header,
-    section,
-    footer {
-      position: relative;
-      z-index: 1;
-    }
+    /* ── MAIN ── */
+    .main { flex: 1; min-width: 0; width: 100%; padding: 0 48px 80px; max-width: 960px; margin: 0 auto; }
+    @media (max-width: 1000px) { .main { padding: 0 22px 60px; } }
 
-    header {
-      margin-top: 18px;
-      padding: 14px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      background: rgba(4, 10, 18, 0.68);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      backdrop-filter: blur(18px);
-      box-shadow: var(--shadow);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      text-decoration: none;
-      color: var(--text);
-    }
-
-    .brand-mark,
-    .brand-fallback {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
-      border: 1px solid var(--line-strong);
-      background: linear-gradient(145deg, rgba(34, 231, 184, 0.1), rgba(88, 197, 255, 0.15));
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    }
-
-    .brand-mark {
-      object-fit: cover;
-      display: block;
-    }
-
-    .brand-fallback {
-      display: none;
-      place-items: center;
-      font-family: "Orbitron", sans-serif;
-      font-weight: 800;
-      color: var(--accent);
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(1rem, 2vw, 1.2rem);
-      letter-spacing: 0.08em;
-    }
-
-    .brand p {
-      margin: 2px 0 0;
-      color: var(--muted);
-      font-size: 0.88rem;
-    }
-
-    nav {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 14px;
-    }
-
-    nav a {
-      color: var(--accent);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-
+    /* ── HEADER HERO ── */
     .hero {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 24px;
-      align-items: center;
-      min-height: calc(100vh - 120px);
-      padding: 46px 0 40px;
+      padding: 64px 0 48px; border-bottom: 1px solid var(--line); margin-bottom: 56px;
     }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--accent-2);
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(88,197,255,.10); border: 1px solid rgba(88,197,255,.25);
+      border-radius: 100px; padding: 5px 14px; font-size: 12px; color: var(--accent);
+      font-weight: 600; margin-bottom: 22px; letter-spacing: .04em;
     }
-
-    .hero h2 {
-      margin: 18px 0 14px;
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(2.4rem, 7vw, 5.2rem);
-      line-height: 1.03;
-      letter-spacing: 0.04em;
+    .hero h1 {
+      font-family: "Orbitron", sans-serif; font-size: clamp(26px, 4vw, 44px);
+      font-weight: 800; line-height: 1.15; color: #fff;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 70%, var(--accent-2) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 18px;
     }
+    .hero-sub { font-size: 17px; color: var(--muted); max-width: 680px; line-height: 1.65; margin-bottom: 28px; }
+    .hero-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 20px; }
+    .hero-meta-item { font-size: 13px; color: var(--muted); min-width: 0; }
+    .hero-meta-item strong { color: var(--text); }
 
-    .hero h2 span {
-      color: var(--accent);
-      text-shadow: 0 0 24px rgba(88, 197, 255, 0.25);
+    /* ── SECTION ── */
+    .wp-section { margin-bottom: 72px; scroll-margin-top: 24px; width: 100%; max-width: 100%; min-width: 0; }
+    .section-label {
+      display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--accent-2); margin-bottom: 10px;
     }
-
-    .hero p {
-      max-width: 720px;
-      margin: 0;
-      color: var(--muted);
-      font-size: clamp(1rem, 1.7vw, 1.15rem);
+    .wp-section h2 {
+      font-family: "Orbitron", sans-serif; font-size: clamp(18px, 2.5vw, 26px);
+      font-weight: 700; color: #fff; margin-bottom: 18px; line-height: 1.25;
     }
-
-    .hero-copy {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
+    .wp-section h3 {
+      font-size: 17px; font-weight: 700; color: var(--accent); margin: 32px 0 12px;
     }
-
-    .cta-row,
-    .quick-links,
-    .action-row,
-    .social-links,
-    .legal-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
+    .wp-section h4 {
+      font-size: 14px; font-weight: 700; color: var(--accent-2); margin: 22px 0 8px; text-transform: uppercase; letter-spacing: .06em;
     }
+    .wp-section p { color: var(--muted); margin-bottom: 14px; font-size: 15px; }
+    .wp-section p strong { color: var(--text); }
+    .wp-section ul, .wp-section ol { color: var(--muted); padding-left: 22px; margin-bottom: 14px; font-size: 15px; }
+    .wp-section li { margin-bottom: 6px; line-height: 1.6; }
+    .wp-section li strong { color: var(--text); }
 
-    .btn,
-    .btn-secondary,
-    .chip-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-height: 48px;
-      padding: 12px 20px;
-      border-radius: 999px;
-      text-decoration: none;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 0.96rem;
-      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    /* ── PANEL ── */
+    .panel {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 16px; padding: 28px 32px; margin-bottom: 24px; width: 100%; max-width: 100%; min-width: 0;
     }
+    .panel-accent { border-color: rgba(88,197,255,.3); background: rgba(88,197,255,.05); }
+    .panel-green  { border-color: rgba(34,231,184,.3); background: rgba(34,231,184,.05); }
+    .panel-amber  { border-color: rgba(245,158,11,.3);  background: rgba(245,158,11,.05); }
+    .panel-purple { border-color: rgba(167,139,250,.3); background: rgba(167,139,250,.05); }
+    .panel-red    { border-color: rgba(248,113,113,.3); background: rgba(248,113,113,.05); }
 
-    button.btn,
-    button.btn-secondary {
-      border: none;
-      font-family: inherit;
+    /* ── FORMULA BOX ── */
+    .formula-box {
+      background: #040c16; border: 1px solid var(--line-strong);
+      border-radius: 12px; padding: 22px 28px; margin: 20px 0;
+      font-family: "JetBrains Mono", monospace; font-size: 14px;
+      color: var(--accent-2); overflow-x: auto; width: 100%; max-width: 100%; min-width: 0; white-space: pre-wrap; word-break: break-word;
     }
+    .formula-box .comment { color: #4a6a85; }
+    .formula-box .keyword { color: var(--accent); }
+    .formula-box .value { color: var(--accent-3); }
+    .formula-box .fn { color: #c792ea; }
 
-    .btn {
-      color: #02111d;
-      background: linear-gradient(90deg, var(--accent-2), var(--accent));
-      box-shadow: 0 12px 30px rgba(88, 197, 255, 0.25);
-    }
-
-    .btn-secondary,
-    .chip-link {
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--line);
-    }
-
-    .btn:hover,
-    .btn-secondary:hover,
-    .chip-link:hover {
-      transform: translateY(-1px);
-      border-color: var(--line-strong);
-    }
-
-    .hero-panel,
-    .section-card,
-    .stat-card,
-    .economy-card,
-    .dev-card,
-    .dyor-card,
-    .market-card,
-    .social-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-    }
-
-    .hero-panel {
-      padding: 18px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .panel-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .stat-card {
-      padding: 16px;
-      min-height: 118px;
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .stat-card h3,
-    .section-head h3,
-    .economy-card h3,
-    .dev-card h3,
-    .dyor-card h3,
-    .market-card h3,
-    .social-card h3 {
-      margin: 0 0 10px;
-      font-size: 0.86rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--accent);
-    }
-
-    .stat-value {
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(1.1rem, 2vw, 1.45rem);
-      word-break: break-word;
-    }
-
-    .stat-note,
-    .tiny,
-    .section-copy,
-    .market-copy,
-    .dev-copy,
-    .dyor-copy {
-      color: var(--muted);
-      font-size: 0.92rem;
-    }
-
-    .hero-note {
-      margin-top: 14px;
-      padding: 14px 16px;
-      border-radius: 16px;
-      background: rgba(255, 188, 92, 0.08);
-      border: 1px solid rgba(255, 188, 92, 0.2);
-      color: #ffd6a4;
-      font-weight: 600;
-    }
-
-    .section {
-      padding: 28px 0;
-    }
-
-    .section-card {
-      padding: 24px;
-    }
-
-    .section-head {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 14px;
-      align-items: end;
-      margin-bottom: 20px;
-    }
-
-    .section-head h2 {
-      margin: 0;
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(1.5rem, 3vw, 2.2rem);
-    }
-
-    .economy-grid,
-    .dev-grid,
-    .dyor-grid,
-    .social-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .economy-card,
-    .dev-card,
-    .dyor-card,
-    .social-card,
-    .market-card {
-      padding: 18px;
-    }
-
-    .accent-line {
-      height: 1px;
-      margin: 14px 0;
-      background: linear-gradient(90deg, transparent, rgba(88, 197, 255, 0.4), transparent);
-    }
-
-    .market-wrap {
-      display: grid;
-      grid-template-columns: 0.8fr 1.2fr;
-      gap: 14px;
-    }
-
-    .chart-box {
-      overflow: hidden;
-      border-radius: 18px;
-      border: 1px solid var(--line);
-      min-height: 540px;
-    }
-
-    .chart-box iframe {
+    /* ── TABLE ── */
+    .table-scroll {
       width: 100%;
-      height: 100%;
-      min-height: 540px;
-      border: none;
-      background: #06101a;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
+    }
+    .wp-table { width: 100%; min-width: 640px; border-collapse: collapse; margin: 20px 0; font-size: 14px; display: table; white-space: normal; }
+    .wp-table.table-wide { min-width: 900px; }
+    .wp-table th { background: rgba(88,197,255,.12); color: var(--accent); font-weight: 700; padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line-strong); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+    .wp-table td { padding: 11px 16px; border-bottom: 1px solid var(--line); color: var(--muted); vertical-align: top; line-height: 1.55; }
+    .wp-table tr:hover td { background: rgba(88,197,255,.04); }
+    .wp-table td strong { color: var(--text); }
+    .wp-table td .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+    .tag-active { background: rgba(34,231,184,.15); color: var(--accent-2); }
+    .tag-future { background: rgba(88,197,255,.12); color: var(--accent); }
+    .tag-max    { background: rgba(245,158,11,.15);  color: var(--accent-3); }
+
+    /* ── HIGHLIGHT CARDS ROW ── */
+    .card-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 16px; margin: 24px 0; }
+    .stat-card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+      padding: 20px 18px; text-align: center;
+    }
+    .stat-card .sc-val { font-family: "Orbitron", sans-serif; font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
+    .stat-card .sc-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+
+    /* ── COMPARISON TABLE ── */
+    .compare-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 24px 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .cg-header { background: rgba(88,197,255,.12); padding: 12px 14px; font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+    .cg-cell { padding: 12px 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); min-width: 0; word-break: break-word; }
+    .cg-cell strong { color: var(--text); }
+    .cg-cell.hi { background: rgba(34,231,184,.05); }
+    @media (max-width: 700px) {
+      .compare-grid { grid-template-columns: 1fr; border: none; gap: 12px; overflow: visible; }
+      .cg-header { display: none; }
+      .cg-cell {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(88,197,255,.06);
+        padding: 14px 16px;
+      }
+      .cg-cell:nth-child(4n + 1) {
+        background: rgba(88,197,255,.12);
+        color: var(--accent);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+      }
+      .cg-cell.hi { background: rgba(34,231,184,.08); }
     }
 
-    .social-links a,
-    .legal-links a,
-    .quick-links a {
-      color: var(--accent);
-      text-decoration: none;
+    /* ── ROADMAP ── */
+    .roadmap { position: relative; padding-left: 32px; }
+    .roadmap::before { content: ''; position: absolute; left: 10px; top: 6px; bottom: 6px; width: 2px; background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 50%, var(--accent-4) 100%); }
+    .rm-item { position: relative; margin-bottom: 36px; }
+    .rm-dot {
+      position: absolute; left: -26px; top: 6px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); border: 3px solid var(--bg); box-shadow: 0 0 10px var(--accent);
+    }
+    .rm-dot.done { background: var(--accent-2); box-shadow: 0 0 10px var(--accent-2); }
+    .rm-dot.future { background: var(--accent-4); box-shadow: 0 0 10px var(--accent-4); }
+    .rm-phase { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-3); margin-bottom: 4px; }
+    .rm-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .rm-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .rm-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .rm-tag { font-size: 11px; padding: 3px 10px; border-radius: 6px; font-weight: 600; background: rgba(88,197,255,.1); color: var(--accent); border: 1px solid rgba(88,197,255,.2); }
+
+    /* ── NOTICE ── */
+    .notice { display: flex; gap: 14px; padding: 18px 22px; border-radius: 12px; margin: 24px 0; font-size: 14px; align-items: flex-start; }
+    .notice-icon { font-size: 22px; flex-shrink: 0; }
+    .notice-body { color: var(--muted); }
+    .notice-body strong { color: var(--text); display: block; margin-bottom: 4px; }
+    .notice.warn { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.25); }
+    .notice.info { background: rgba(88,197,255,.08); border: 1px solid rgba(88,197,255,.2); }
+    .notice.success { background: rgba(34,231,184,.08); border: 1px solid rgba(34,231,184,.2); }
+
+    /* ── FOOTER ── */
+    .wp-footer { border-top: 1px solid var(--line); padding-top: 40px; margin-top: 60px; color: var(--muted); font-size: 13px; }
+    .wp-footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 860px) {
+      .sidebar { display: none; }
+      .layout { display: block; }
+      .main { padding: 0 18px 60px; }
+      .hero { padding: 40px 0 32px; }
+      .card-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .roadmap { padding-left: 24px; }
+      .rm-dot { left: -18px; }
+      .wp-table { margin: 16px 0; }
+    }
+    @media (max-width: 500px) {
+      .panel { padding: 18px 18px; }
+      .formula-box { padding: 16px 18px; font-size: 12px; }
+      .hero-sub { font-size: 15px; }
+      .hero-meta { grid-template-columns: 1fr; gap: 10px; }
+      .card-row { grid-template-columns: 1fr; }
+      .notice { flex-direction: column; gap: 8px; padding: 16px; }
+      .notice-icon { font-size: 18px; }
+      .roadmap { padding-left: 18px; }
+      .rm-dot { left: -14px; width: 12px; height: 12px; }
+      .rm-title { font-size: 15px; }
+      .rm-tags { gap: 8px; }
+      .back-top { width: 36px; height: 36px; right: 16px; bottom: 16px; font-size: 16px; }
+      .table-scroll { margin: 0 -4px; }
+      .wp-table { min-width: 620px; font-size: 13px; }
+      .wp-table.table-wide { min-width: 860px; }
     }
 
-    .contract-box {
-      padding: 12px 14px;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--line);
-      font-size: 0.92rem;
-      color: var(--muted);
-      word-break: break-all;
-    }
+    /* ── DIVIDER ── */
+    .divider { height: 1px; background: var(--line); margin: 40px 0; }
 
-    footer {
-      padding: 24px 0 48px;
-      text-align: center;
-      color: var(--muted);
-    }
+    /* ── INLINE CODE ── */
+    code { font-family: "JetBrains Mono", monospace; font-size: 12px; background: rgba(88,197,255,.1); color: var(--accent); padding: 2px 6px; border-radius: 4px; }
 
-    @media (max-width: 980px) {
-      .hero,
-      .market-wrap,
-      .economy-grid,
-      .dev-grid,
-      .dyor-grid,
-      .social-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .panel-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 720px) {
-      header {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      nav {
-        justify-content: flex-start;
-      }
-
-      .panel-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .shell {
-        width: min(1200px, calc(100% - 20px));
-      }
-
-      .hero {
-        min-height: auto;
-        padding-top: 28px;
-      }
-    }
+    /* ── SCROLL TO TOP ── */
+    .back-top { position: fixed; bottom: 28px; right: 28px; z-index: 99; background: var(--accent); color: #000; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; text-decoration: none; box-shadow: 0 4px 20px rgba(88,197,255,.4); opacity: 0.85; transition: opacity .2s; }
+    .back-top:hover { opacity: 1; }
   </style>
 </head>
 <body>
-  <canvas id="bg"></canvas>
 
-  <div class="shell">
-    <header>
-      <a class="brand" href="#top">
-        <img class="brand-mark" src="logo.png" alt="A Network logo" onerror="this.style.display='none';document.getElementById('brandFallback').style.display='grid';">
-        <div class="brand-fallback" id="brandFallback">A</div>
-        <div>
-          <h1>A NETWORK</h1>
-          <p>Web2 + Web3 + Web4 ecosystem</p>
-        </div>
-      </a>
-      <nav>
-        <a href="#economies">Economies</a>
-        <a href="#developers">Developers</a>
-        <a href="#dyor">DYOR</a>
-        <a href="#market">Market</a>
-        <a href="#social">Social</a>
-      </nav>
-    </header>
+<canvas id="c"></canvas>
 
-    <section class="hero" id="top">
-      <div class="hero-copy">
-        <div class="eyebrow">BNB Chain Live | Long-Term Ecosystem Vision</div>
-        <h2>Where <span>Web2</span>, <span>Web3</span>, and <span>Web4</span> meet.</h2>
-        <p>A Network is building a linked digital economy: Web2 services and utility, Web3 decentralized ownership and settlement, and a Web4 coordination layer that connects both into a broader long-term system.</p>
-        <div class="cta-row">
-          <a class="btn" href="#dyor">Start DYOR</a>
-          <a class="btn-secondary" href="https://bscscan.com/token/0x791055A7d52AA392eaE8De04250497f33807E46A" target="_blank" rel="noopener noreferrer">View Contract</a>
-          <a class="btn-secondary" href="https://github.com/A-Network-2026" target="_blank" rel="noopener noreferrer">Explore GitHub</a>
-        </div>
-        <div class="quick-links">
-          <a class="chip-link" href="privacy.html">Privacy Policy</a>
-          <a class="chip-link" href="terms.html">Terms of Service</a>
-          <a class="chip-link" href="#market">Live Market</a>
-        </div>
-        <div class="hero-note">A Network is not a get-rich-quick scheme. The project is designed for long-term participation, research, and ecosystem development.</div>
+<div class="layout">
+
+  <!-- ══════════════════════════════════
+       SIDEBAR NAVIGATION
+  ══════════════════════════════════ -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div>
+        <span>A-NETWORK</span>
+        <sub>OFFICIAL WHITEPAPER v1.0 · 2026</sub>
+      </div>
+    </div>
+
+    <div class="nav-section">Overview</div>
+    <a class="nav-item" href="#abstract">Abstract</a>
+    <a class="nav-item" href="#introduction">Introduction</a>
+    <a class="nav-item" href="#vision">The Vision</a>
+    <a class="nav-item" href="#comparison">Web2 vs Web3 vs Web4</a>
+
+    <div class="nav-section">Token</div>
+    <a class="nav-item" href="#tokenomics">Tokenomics</a>
+    <a class="nav-item sub" href="#ants">Ants — Smallest Unit</a>
+    <a class="nav-item sub" href="#supply">Max Supply Model</a>
+
+    <div class="nav-section">Web2 Mining</div>
+    <a class="nav-item" href="#web2-mining">How It Works</a>
+    <a class="nav-item sub" href="#session-model">6-Hour Session Model</a>
+    <a class="nav-item sub" href="#halving">Reverse Era Halving</a>
+    <a class="nav-item sub" href="#formula">Mining Formula</a>
+    <a class="nav-item sub" href="#reward-table">Reward Table</a>
+    <a class="nav-item sub" href="#anti-gaming">Anti-Gaming Rules</a>
+
+    <div class="nav-section">Web3</div>
+    <a class="nav-item" href="#web3">BNB Chain Integration</a>
+    <a class="nav-item sub" href="#contract">ANET Token Contract</a>
+    <a class="nav-item sub" href="#wallet">On-Chain Wallet</a>
+
+    <div class="nav-section">Web4 Layer 1</div>
+    <a class="nav-item" href="#web4">Layer 1 Overview</a>
+    <a class="nav-item sub" href="#tpow">Time-Based PoW (TPoW)</a>
+    <a class="nav-item sub" href="#blocks">Block Structure</a>
+    <a class="nav-item sub" href="#txfees">Transaction Fees in Ants</a>
+    <a class="nav-item sub" href="#migration">Web2 → Web4 Migration</a>
+    <a class="nav-item sub" href="#reorg">Ledger Re-Org</a>
+
+    <div class="nav-section">Web5</div>
+    <a class="nav-item" href="#anet-core">ANET Core (Web5)</a>
+    <a class="nav-item sub" href="#anet-core-features">Core Features</a>
+    <a class="nav-item sub" href="#anet-core-ai">AI + Identity Layer</a>
+
+    <div class="nav-section">Project</div>
+    <a class="nav-item" href="#referral">F1 Referral System</a>
+    <a class="nav-item" href="#security">Security Model</a>
+    <a class="nav-item" href="#roadmap">Roadmap</a>
+    <a class="nav-item" href="#legal">Legal Disclaimer</a>
+  </nav>
+
+  <!-- ══════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════ -->
+  <main class="main">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-badge">⚡ Official Technical Whitepaper</div>
+      <h1>A-Network<br/>Technical Whitepaper</h1>
+      <p class="hero-sub">A multi-phase decentralized ecosystem spanning Web2 time-based mining, Web3 BNB Chain token infrastructure, Web4 Layer 1 blockchain with Time-Based Proof-of-Work, and ANET Core — the self-sovereign identity and AI layer of Web5.</p>
+      <div class="hero-meta">
+        <div class="hero-meta-item"><strong>Version</strong> — 1.0</div>
+        <div class="hero-meta-item"><strong>Published</strong> — April 2026</div>
+        <div class="hero-meta-item"><strong>Token</strong> — $ANET</div>
+        <div class="hero-meta-item"><strong>Network</strong> — BNB Chain (Web3) → ANET Layer 1 (Web4)</div>
+        <div class="hero-meta-item"><strong>Max Supply</strong> — 21,000,000 ANET</div>
+        <div class="hero-meta-item"><strong>Smallest Unit</strong> — Ant (1 ANET = 100,000,000 Ants)</div>
+      </div>
+    </div>
+
+
+    <!-- ──────────────────────────────────
+         § 1 ABSTRACT
+    ────────────────────────────────── -->
+    <section class="wp-section" id="abstract">
+      <div class="section-label">§ 1</div>
+      <h2>Abstract</h2>
+
+      <p>A-Network is a long-horizon ecosystem protocol designed to transition the internet from a value-extraction model (Web2) to a value-creation model (Web4), with Web3 acting as the connective bridge. The protocol is implemented across four distinct phases: a mobile-accessible time-based mining application (Web2), a BNB Chain token layer (Web3), a purpose-built Layer 1 blockchain with Time-Based Proof-of-Work (Web4), and a self-sovereign AI and identity network called ANET Core (Web5).</p>
+
+      <p>The native currency is <strong>$ANET</strong>, capped at a hard maximum of <strong>21,000,000 ANET</strong> — a deliberate parallel to Bitcoin's model of absolute scarcity. The smallest indivisible unit is one <strong>Ant</strong>, where <strong>1 ANET = 100,000,000 Ants</strong>, mirroring Bitcoin's Satoshi denomination system and enabling micro-transaction precision on the network.</p>
+
+      <p>A-Network deliberately excludes multi-level referral reward structures. Growth is driven by real participation: every reward is earned through genuine mining activity. This separates A-Network from incentive-farming token models and positions it as a merit-based, participation-first protocol.</p>
+
+      <div class="card-row">
+        <div class="stat-card"><div class="sc-val">21M</div><div class="sc-label">Max Supply (ANET)</div></div>
+        <div class="stat-card"><div class="sc-val">100M</div><div class="sc-label">Ants per ANET</div></div>
+        <div class="stat-card"><div class="sc-val">6h</div><div class="sc-label">Session Duration</div></div>
+        <div class="stat-card"><div class="sc-val">7</div><div class="sc-label">Halving Levels</div></div>
+        <div class="stat-card"><div class="sc-val">210k</div><div class="sc-label">Users per Halving</div></div>
+        <div class="stat-card"><div class="sc-val">4</div><div class="sc-label">Ecosystem Phases</div></div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+
+    <!-- ──────────────────────────────────
+         § 2 INTRODUCTION
+    ────────────────────────────────── -->
+    <section class="wp-section" id="introduction">
+      <div class="section-label">§ 2</div>
+      <h2>Introduction — The Problem</h2>
+
+      <h3>The Failure of Web2</h3>
+      <p>Web2 — the internet most users interact with today — is a closed-loop value extraction machine. Corporations harvest user data, attention, and behavioral signals, converting them into advertising revenue. Users are the product. They generate enormous value and receive nothing. Facebook, Google, and TikTok collectively extract hundreds of billions of dollars annually from unpaid human attention.</p>
+      <p>Web2 platforms have no scarcity model, no exit rights for participants, and no on-chain verifiability. Users cannot own their data, cannot monetize their contributions, and have no stake in the infrastructure they build with their time.</p>
+
+      <h3>The Partial Solution of Web3</h3>
+      <p>Web3 introduced ownership through tokenization and smart contracts — a monumental step forward. However, most Web3 systems suffer from speculative tokenomics, Sybil attacks via referral farming, and technical complexity that excludes billions of potential participants who do not own crypto wallets, understand gas fees, or can afford hardware mining equipment.</p>
+      <p>Web3 says <em>"You are the owner"</em> — but the entry barrier often ensures the same early-capital advantage that Web2 companies enjoy.</p>
+
+      <h3>The A-Network Proposal</h3>
+      <p>A-Network proposes a complete stack: beginning with a zero-cost, smartphone-accessible mining phase (Web2 App), transitioning through BNB Chain token infrastructure (Web3), graduating to a community-built Layer 1 blockchain that rewards every registered miner with transaction fees (Web4), and ultimately culminating in ANET Core — a self-sovereign, AI-augmented identity and application layer (Web5).</p>
+      <p>In this model: <strong>You are the value creator.</strong> Every action — every 6-hour session completed — contributes to a shared ledger that will persist across all future phases of the network.</p>
+    </section>
+
+    <div class="divider"></div>
+
+
+    <!-- ──────────────────────────────────
+         § 3 VISION
+    ────────────────────────────────── -->
+    <section class="wp-section" id="vision">
+      <div class="section-label">§ 3</div>
+      <h2>The Vision</h2>
+
+      <p>A-Network is not a short-term token project. It is a multi-decade infrastructure commitment. The roadmap is designed to grow with the technology landscape, from today's mobile app to a fully sovereign blockchain with its own consensus mechanism, validator economy, and application ecosystem.</p>
+
+      <div class="panel panel-green">
+        <h4>Core Principles</h4>
+        <ul>
+          <li><strong>Absolute Scarcity:</strong> 21,000,000 ANET will ever exist. Not one more. Once the last Ant is mined, the issuance engine halts permanently and block-reward mining transitions to fee-only sustenance.</li>
+          <li><strong>Participation-First:</strong> No purchasing required. No GPU required. Every smartphone on Earth is a valid mining device. Mining is time-based, not compute-based.</li>
+          <li><strong>Anti-Farming:</strong> No multi-level referral rewards. No whale accumulation through referral pyramids. Referral tracking exists purely for network growth transparency, not reward amplification.</li>
+          <li><strong>Ledger Continuity:</strong> Every Web2 miner is a genesis participant. When Web4 Layer 1 launches, the Web2 ledger is migrated on-chain. No one is left behind. No one's sessions are erased.</li>
+          <li><strong>Micro-Economic Precision:</strong> The Ant denomination (1/100,000,000th of an ANET) ensures the network remains economically viable even when ANET is highly valued — enabling micro-payments, gas fees, and nano-transactions without rounding errors.</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+
+    <!-- ──────────────────────────────────
+         § 4 COMPARISON
+    ────────────────────────────────── -->
+    <section class="wp-section" id="comparison">
+      <div class="section-label">§ 4</div>
+      <h2>Web2 vs Web3 vs Web4 vs ANET Core</h2>
+
+      <div class="compare-grid">
+        <div class="cg-header">Feature</div>
+        <div class="cg-header">Web2 (Legacy)</div>
+        <div class="cg-header">Web3 (Crypto)</div>
+        <div class="cg-header">Web4 / ANET Core</div>
+
+        <div class="cg-cell"><strong>Control</strong></div>
+        <div class="cg-cell">Corporations</div>
+        <div class="cg-cell">Decentralized DAOs</div>
+        <div class="cg-cell hi"><strong>Smart + Community</strong></div>
+
+        <div class="cg-cell"><strong>Earnings</strong></div>
+        <div class="cg-cell">Companies earn</div>
+        <div class="cg-cell">Users can earn</div>
+        <div class="cg-cell hi"><strong>Users earn by activity</strong></div>
+
+        <div class="cg-cell"><strong>Focus</strong></div>
+        <div class="cg-cell">Ads &amp; data</div>
+        <div class="cg-cell">Tokens &amp; ownership</div>
+        <div class="cg-cell hi"><strong>Real contribution</strong></div>
+
+        <div class="cg-cell"><strong>Mining</strong></div>
+        <div class="cg-cell">N/A</div>
+        <div class="cg-cell">PoW / PoS (hardware)</div>
+        <div class="cg-cell hi"><strong>Time-Based PoW (smartphone)</strong></div>
+
+        <div class="cg-cell"><strong>Entry</strong></div>
+        <div class="cg-cell">Free (data cost)</div>
+        <div class="cg-cell">Capital required</div>
+        <div class="cg-cell hi"><strong>Free (time only)</strong></div>
+
+        <div class="cg-cell"><strong>Identity</strong></div>
+        <div class="cg-cell">Platform-owned</div>
+        <div class="cg-cell">Pseudonymous</div>
+        <div class="cg-cell hi"><strong>Self-sovereign (ANET Core)</strong></div>
+
+        <div class="cg-cell"><strong>Fees model</strong></div>
+        <div class="cg-cell">N/A</div>
+        <div class="cg-cell">Gas (ETH/BNB)</div>
+        <div class="cg-cell hi"><strong>Ants (transaction fees)</strong></div>
+
+        <div class="cg-cell"><strong>Example</strong></div>
+        <div class="cg-cell">Facebook</div>
+        <div class="cg-cell">Ethereum</div>
+        <div class="cg-cell hi"><strong>A-Network</strong></div>
       </div>
 
-      <div class="hero-panel">
-        <div class="panel-grid">
-          <div class="stat-card">
-            <h3>Wallet</h3>
-            <div class="stat-value" id="wallet">Not Connected</div>
-            <p class="stat-note">Connect BNB Chain wallet</p>
-          </div>
-          <div class="stat-card">
-            <h3>ANET Balance</h3>
-            <div class="stat-value" id="balance">-</div>
-            <p class="stat-note">Live on-chain token balance</p>
-          </div>
-          <div class="stat-card">
-            <h3>ANET Price</h3>
-            <div class="stat-value" id="price">-</div>
-            <p class="stat-note">Live pair price from DEXScreener</p>
-          </div>
-          <div class="stat-card">
-            <h3>Architecture</h3>
-            <div class="stat-value">3 Economies</div>
-            <p class="stat-note">Web2 utility, Web3 ownership, Web4 coordination</p>
-          </div>
-        </div>
-
-        <div class="accent-line"></div>
-
-        <div class="action-row">
-          <button class="btn" onclick="connectWallet()">Connect Wallet</button>
-          <button class="btn-secondary" onclick="getBalance()">Check Balance</button>
-          <button class="btn-secondary" onclick="getPrice()">Refresh Price</button>
-        </div>
-
-        <div class="accent-line"></div>
-
-        <div class="contract-box">
-          Contract: 0x791055A7d52AA392eaE8De04250497f33807E46A
+      <div class="notice info">
+        <div class="notice-icon">ℹ️</div>
+        <div class="notice-body">
+          <strong>Key Insight from the Comparison</strong>
+          Web2: <em>You are the product.</em>&nbsp; Web3: <em>You are the owner.</em>&nbsp; Web4: <em>You are the value creator.</em>&nbsp; ANET Core: <em>You are the network itself.</em>
         </div>
       </div>
     </section>
 
-    <section class="section" id="economies">
-      <div class="section-card">
-        <div class="section-head">
-          <div>
-            <h2>Three Linked Economies</h2>
-            <p class="section-copy">A clearer model helps users, builders, and researchers understand what is off-chain, what is on-chain, and how the long-term Web4 layer ties both together.</p>
-          </div>
-        </div>
+    <div class="divider"></div>
 
-        <div class="economy-grid">
-          <article class="economy-card">
-            <h3>Web2 Economy</h3>
-            <p>App-native services, engagement logic, growth systems, user operations, and off-chain utility. This layer focuses on usability, product access, and operational scale.</p>
-          </article>
-          <article class="economy-card">
-            <h3>Web3 Economy</h3>
-            <p>The decentralized center of A Network. Wallet ownership, transparent contract logic, and verifiable token balances live here and anchor ecosystem trust.</p>
-          </article>
-          <article class="economy-card">
-            <h3>Web4 Economy</h3>
-            <p>The coordination layer. Web4 connects Web2 utility with Web3 settlement under defined rules, compliance logic, and long-term ecosystem governance.</p>
-          </article>
+
+    <!-- ──────────────────────────────────
+         § 5 TOKENOMICS
+    ────────────────────────────────── -->
+    <section class="wp-section" id="tokenomics">
+      <div class="section-label">§ 5</div>
+      <h2>Tokenomics — $ANET</h2>
+
+      <p>The ANET token is the universal currency across all four ecosystem phases. It is not pre-mined, not VC-allocated, and not team-reserved. Every single ANET in existence has been or will be earned through real mining activity by real participants.</p>
+
+      <div class="panel">
+        <div class="table-scroll">
+        <table class="wp-table">
+          <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Token Name</strong></td><td>A-Network Token</td><td>Official full name</td></tr>
+            <tr><td><strong>Ticker Symbol</strong></td><td>$ANET</td><td>Traded symbol</td></tr>
+            <tr><td><strong>Maximum Supply</strong></td><td>21,000,000 ANET</td><td>Hard cap, identical philosophy to Bitcoin</td></tr>
+            <tr><td><strong>Smallest Unit</strong></td><td>1 Ant</td><td>Like Bitcoin's Satoshi</td></tr>
+            <tr><td><strong>Unit Ratio</strong></td><td>1 ANET = 100,000,000 Ants</td><td>8 decimal places of precision</td></tr>
+            <tr><td><strong>Precision</strong></td><td>8 decimal places</td><td>Stored as DECIMAL(20,8) in ledger</td></tr>
+            <tr><td><strong>Pre-mine</strong></td><td>0 ANET</td><td>No team allocation, no VC reserve</td></tr>
+            <tr><td><strong>Distribution</strong></td><td>100% via mining</td><td>Every ANET earned through 6-hour sessions</td></tr>
+            <tr><td><strong>Network</strong></td><td>BNB Chain (Web3)</td><td>Contract: 0x791055A7d52AA392eaE8De04250497f33807E46A</td></tr>
+            <tr><td><strong>Web4 Network</strong></td><td>ANET Layer 1</td><td>Designed — in development post max-supply</td></tr>
+            <tr><td><strong>Issuance Model</strong></td><td>Reverse Era Mining</td><td>Starts low, grows with adoption (see §8)</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <!-- ANTS SECTION -->
+      <h3 id="ants">⚡ Ants — The Smallest Unit of ANET</h3>
+      <p>In Bitcoin, the smallest indivisible unit is called a <em>Satoshi</em> (or <em>Sat</em>), where 1 BTC = 100,000,000 Satoshis. A-Network adopts the identical precision model but with its own cultural identity.</p>
+
+      <div class="panel panel-amber">
+        <h4>Definition: Ant</h4>
+        <p style="margin:0; color: var(--text);">An <strong>Ant</strong> is the smallest indivisible unit of $ANET.</p>
+        <div class="formula-box" style="margin: 14px 0 0;">
+<span class="comment">// Unit conversion</span>
+<span class="keyword">1 ANET</span> = <span class="value">100,000,000</span> <span class="fn">Ants</span>
+<span class="keyword">1 Ant</span>  = <span class="value">0.00000001</span> ANET  <span class="comment">// (1 × 10⁻⁸ ANET)</span>
+
+<span class="comment">// Total supply in Ants</span>
+<span class="keyword">21,000,000</span> ANET × <span class="value">100,000,000</span> = <span class="fn">2,100,000,000,000,000</span> Ants
+<span class="comment">// = 2.1 Quadrillion Ants total</span>
+
+<span class="comment">// Example rewards expressed in Ants</span>
+<span class="keyword">3.125</span> ANET/session = <span class="value">312,500,000</span> Ants/session
+<span class="keyword">0.048828125</span> ANET/session = <span class="value">4,882,812</span> Ants/session
+        </div>
+        <p style="margin-top:12px; margin-bottom:0; font-size:13px; color: var(--muted);">Transaction fees on the Web4 Layer 1 will be denominated in Ants — enabling sub-cent fee structures even at high ANET valuations. On-chain amounts will always display with full 8-decimal precision.</p>
+      </div>
+
+      <div class="table-scroll">
+      <table class="wp-table">
+        <thead><tr><th>A-Network</th><th>Equivalent</th><th>Bitcoin</th></tr></thead>
+        <tbody>
+          <tr><td>$ANET</td><td>≈</td><td>BTC</td></tr>
+          <tr><td>Ant</td><td>≈</td><td>Satoshi (Sat)</td></tr>
+          <tr><td>100,000,000 Ants</td><td>= 1 ANET</td><td>100,000,000 Sats = 1 BTC</td></tr>
+          <tr><td>21,000,000 ANET max</td><td>≡</td><td>21,000,000 BTC max</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <!-- SUPPLY -->
+      <h3 id="supply">Supply Exhaustion &amp; Hard Cap Enforcement</h3>
+      <p>The <code>MAX_SUPPLY</code> constant is hardcoded in the mining engine at exactly <strong>21,000,000 ANET</strong>. Every mining completion call checks the remaining supply before crediting any reward. If a session reward would cause total mined to exceed the cap, the reward is truncated to the remaining balance:</p>
+      <div class="formula-box">
+<span class="comment">// Overflow protection (from mining engine)</span>
+<span class="keyword">if</span> (stats.total_mined + reward > MAX_SUPPLY) {
+  reward = MAX_SUPPLY - stats.total_mined;   <span class="comment">// truncate to remaining</span>
+  is_mining_active = <span class="value">FALSE</span>;                 <span class="comment">// halt globally</span>
+}
+
+<span class="comment">// After MAX_SUPPLY is reached:</span>
+<span class="comment">// - All mining sessions return reward = 0</span>
+<span class="comment">// - is_mining_active flag = FALSE in network_stats</span>
+<span class="comment">// - Web4 Layer 1 activation phase begins</span>
+      </div>
+
+      <div class="notice warn">
+        <div class="notice-icon">⚠️</div>
+        <div class="notice-body">
+          <strong>Irreversible Hard Cap</strong>
+          Once <code>is_mining_active</code> is set to <code>FALSE</code>, it cannot be re-enabled from any user action. The contract enforces absolute scarcity. The final issued ANET will be the last one ever created.
         </div>
       </div>
     </section>
 
-    <section class="section" id="developers">
-      <div class="section-card">
-        <div class="section-head">
-          <div>
-            <h2>Built For Developers Too</h2>
-            <p class="section-copy">A Network should not only attract users. It should give builders enough clarity to inspect the stack, evaluate the model, and contribute with conviction.</p>
-          </div>
-        </div>
+    <div class="divider"></div>
 
-        <div class="dev-grid">
-          <article class="dev-card">
-            <h3>Transparent Direction</h3>
-            <p class="dev-copy">The project explicitly distinguishes off-chain logic, on-chain ownership, and Web4 coordination instead of hiding product complexity behind hype language.</p>
-          </article>
-          <article class="dev-card">
-            <h3>Research-Friendly Surface</h3>
-            <p class="dev-copy">Developers can inspect the token contract, follow GitHub updates, check public market data, and review legal pages before participating.</p>
-          </article>
-          <article class="dev-card">
-            <h3>Long-Term Product Focus</h3>
-            <p class="dev-copy">The ambition is ecosystem design, not short-term speculation. That makes technical due diligence more meaningful and more necessary.</p>
-          </article>
+
+    <!-- ──────────────────────────────────
+         § 6 WEB2 MINING
+    ────────────────────────────────── -->
+    <section class="wp-section" id="web2-mining">
+      <div class="section-label">§ 6</div>
+      <h2>Web2 Phase — Time-Based Mobile Mining</h2>
+
+      <p>The Web2 phase is the entry point into the A-Network ecosystem. It requires nothing but a smartphone and an internet connection. There is no GPU mining, no staking capital, and no hardware investment. Participation is open to anyone on Earth with access to the Android app (iOS forthcoming).</p>
+
+      <h3 id="session-model">The 6-Hour Session Model</h3>
+      <p>Mining in A-Network is structured around fixed <strong>6-hour sessions</strong>. Each session is a discrete unit of contribution. A user initiates a session, waits 6 hours, and claims their reward. The session duration cannot be shortened, and rewards cannot be claimed before the 6-hour mark has elapsed.</p>
+
+      <div class="panel">
+        <h4>Session Lifecycle</h4>
+        <ol>
+          <li><strong>Prerequisites Met:</strong> User must have verified email + created permanent on-chain wallet (BNB Chain address).</li>
+          <li><strong>Session Start:</strong> User taps "Start Mining". The server records <code>last_mining_start = NOW()</code> and sets <code>is_mining = TRUE</code>.</li>
+          <li><strong>Active Phase (0–6 hours):</strong> Session runs server-side. App tracks countdown timer. Push notification is scheduled for the 6-hour mark.</li>
+          <li><strong>Completion Eligible (≥ 6 hours):</strong> The server validates elapsed time. Only sessions where <code>NOW() - last_mining_start ≥ 21,600 seconds</code> are accepted.</li>
+          <li><strong>Reward Calculation:</strong> Halving level is computed from real-time network state. Reward is calculated and added to user balance.</li>
+          <li><strong>Session Reset:</strong> <code>is_mining = FALSE</code>. User can immediately start next session.</li>
+        </ol>
+      </div>
+
+      <div class="formula-box">
+<span class="comment">// Session validation (server-side)</span>
+<span class="keyword">const</span> diffHours = (NOW() - last_mining_start) / <span class="value">3600000</span>;
+<span class="keyword">if</span> (diffHours &lt; <span class="value">6</span>) return { error: <span class="value">"Mining not complete"</span> };
+
+<span class="comment">// One session per 6 hours per account</span>
+<span class="comment">// One active session at a time (is_mining flag)</span>
+<span class="comment">// Unique device binding prevents session duplication</span>
+      </div>
+
+      <h3>Prerequisites for Mining</h3>
+      <div class="table-scroll">
+      <table class="wp-table">
+        <thead><tr><th>Requirement</th><th>Purpose</th><th>Enforcement</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Email Verification</strong></td><td>Sybil resistance — one real person per account</td><td>OTP verification required before first session</td></tr>
+          <tr><td><strong>Wallet Creation</strong></td><td>Ensures every miner has a receiving address for Web4 airdrop</td><td>Session start blocked until wallet exists</td></tr>
+          <tr><td><strong>Single Active Session</strong></td><td>Prevents parallel session farming</td><td><code>is_mining</code> flag; duplicate start returns error</td></tr>
+          <tr><td><strong>Rate Limiting</strong></td><td>API abuse prevention</td><td>30 requests/minute on mining endpoints</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+
+    <!-- ──────────────────────────────────
+         § 7 HALVING &amp; FORMULA
+    ────────────────────────────────── -->
+    <section class="wp-section" id="halving">
+      <div class="section-label">§ 7</div>
+      <h2>Reverse Era Mining — The Halving Formula</h2>
+
+      <p>A-Network's reward mechanism is called <strong>Reverse Era Mining</strong>. Where Bitcoin starts with a large block reward (50 BTC) that halves over time, A-Network does the inverse at the application layer: it starts at the reward level equivalent to Bitcoin's highly advanced future halvings, and the reward <em>increases</em> back toward higher levels as network adoption grows.</p>
+
+      <p>This creates a unique economic incentive: early participants mine at low rates, but as more users join and more sessions are completed globally, all miners benefit from higher rewards per session — a collective reward for collective growth. It is anti-speculative: you cannot buy your way to higher rewards. Only real participation counts.</p>
+
+      <h3 id="formula">The Halving Level Formula</h3>
+
+      <div class="formula-box">
+<span class="comment">// === HALVING LEVEL COMPUTATION ===</span>
+
+<span class="comment">// Step 1: Count registered users</span>
+<span class="keyword">totalUsers</span> = SELECT COUNT(*) FROM users;
+
+<span class="comment">// Step 2: Count all successfully completed sessions network-wide</span>
+<span class="keyword">totalSessions</span> = SELECT SUM(successful_sessions) FROM users;
+
+<span class="comment">// Step 3: Calculate each sub-level independently</span>
+<span class="keyword">userLevel</span>    = floor(totalUsers    / <span class="value">210,000</span>);
+<span class="keyword">sessionLevel</span> = floor(totalSessions / <span class="value">1,000</span>);
+
+<span class="comment">// Step 4: Halving level = minimum of both (BOTH thresholds must be met)</span>
+<span class="keyword">halvingLevel</span> = min(userLevel, sessionLevel);
+
+<span class="comment">// Step 5: Look up reward in the reverse-era reward table</span>
+<span class="keyword">rewardPerSession</span> = BTC_HALVING_REWARDS[halvingLevel];
+      </div>
+
+      <div class="notice info">
+        <div class="notice-icon">💡</div>
+        <div class="notice-body">
+          <strong>Why BOTH thresholds?</strong>
+          The dual-threshold design prevents gaming. An attacker cannot inflate <code>userLevel</code> with fake accounts alone — the <code>sessionLevel</code> (total real sessions completed) must also be met. Fake accounts without completed sessions do not advance the halving level. Conversely, a small group of hyperactive miners cannot advance the level without broader user adoption.
+        </div>
+      </div>
+
+      <h3>Threshold Milestones to Next Halving Level</h3>
+      <div class="formula-box">
+<span class="comment">// To advance from Level N to Level N+1:</span>
+<span class="keyword">Required Users</span>    = (N+1) × 210,000
+<span class="keyword">Required Sessions</span> = (N+1) × 1,000
+
+<span class="comment">// Example: Level 0 → Level 1</span>
+<span class="comment">// Needs: 210,000 total registered users</span>
+<span class="comment">// AND:   1,000 total completed sessions</span>
+
+<span class="comment">// Example: Level 5 → Level 6 (maximum reward)</span>
+<span class="comment">// Needs: 1,260,000 total registered users</span>
+<span class="comment">// AND:   6,000 total completed sessions</span>
+      </div>
+
+      <h3 id="reward-table">Complete Reward Table</h3>
+      <p>The seven reward levels correspond to Bitcoin's halving eras running in reverse — from the 10th halving (most advanced, smallest reward) back to the 4th halving (current Bitcoin era, largest Web2 reward). This is the "Reverse Era" concept: A-Network's early phase mirrors Bitcoin's far future, and adoption unlocks the rewards of Bitcoin's present.</p>
+
+      <div class="panel">
+        <div class="table-scroll">
+        <table class="wp-table table-wide">
+          <thead>
+            <tr>
+              <th>Halving Level</th>
+              <th>Users Needed</th>
+              <th>Sessions Needed</th>
+              <th>ANET / Session</th>
+              <th>Ants / Session</th>
+              <th>Bitcoin Era Equivalent</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Level 0</strong></td>
+              <td>0</td>
+              <td>0</td>
+              <td><strong>0.04882813 ANET</strong></td>
+              <td>4,882,813 Ants</td>
+              <td>~10th Halving (~2048)</td>
+              <td><span class="tag tag-active">Launch Rate</span></td>
+            </tr>
+            <tr>
+              <td><strong>Level 1</strong></td>
+              <td>210,000</td>
+              <td>1,000</td>
+              <td><strong>0.09765625 ANET</strong></td>
+              <td>9,765,625 Ants</td>
+              <td>~9th Halving (~2044)</td>
+              <td><span class="tag tag-future">Upcoming</span></td>
+            </tr>
+            <tr>
+              <td><strong>Level 2</strong></td>
+              <td>420,000</td>
+              <td>2,000</td>
+              <td><strong>0.19531250 ANET</strong></td>
+              <td>19,531,250 Ants</td>
+              <td>~8th Halving (~2040)</td>
+              <td><span class="tag tag-future">Upcoming</span></td>
+            </tr>
+            <tr>
+              <td><strong>Level 3</strong></td>
+              <td>630,000</td>
+              <td>3,000</td>
+              <td><strong>0.39062500 ANET</strong></td>
+              <td>39,062,500 Ants</td>
+              <td>~7th Halving (~2036)</td>
+              <td><span class="tag tag-future">Upcoming</span></td>
+            </tr>
+            <tr>
+              <td><strong>Level 4</strong></td>
+              <td>840,000</td>
+              <td>4,000</td>
+              <td><strong>0.78125000 ANET</strong></td>
+              <td>78,125,000 Ants</td>
+              <td>~6th Halving (~2032)</td>
+              <td><span class="tag tag-future">Upcoming</span></td>
+            </tr>
+            <tr>
+              <td><strong>Level 5</strong></td>
+              <td>1,050,000</td>
+              <td>5,000</td>
+              <td><strong>1.56250000 ANET</strong></td>
+              <td>156,250,000 Ants</td>
+              <td>~5th Halving (~2028)</td>
+              <td><span class="tag tag-future">Upcoming</span></td>
+            </tr>
+            <tr>
+              <td><strong>Level 6</strong></td>
+              <td>1,260,000</td>
+              <td>6,000</td>
+              <td><strong>3.12500000 ANET</strong></td>
+              <td>312,500,000 Ants</td>
+              <td>4th Halving (Apr 2024)</td>
+              <td><span class="tag tag-max">Maximum Rate</span></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <h3>Sessions Required to Exhaust Supply</h3>
+      <div class="formula-box">
+<span class="comment">// Theoretical minimum sessions to mint all 21,000,000 ANET</span>
+<span class="comment">// (assuming network reaches Level 6 immediately — best case)</span>
+<span class="keyword">min_sessions</span> = 21,000,000 / 3.125 = <span class="value">6,720,000</span> sessions
+
+<span class="comment">// Realistic estimate with Reverse Era progression:</span>
+<span class="comment">// Early sessions at Level 0 (0.048828125 ANET)</span>
+<span class="comment">// Late sessions at Level 6 (3.125 ANET)</span>
+<span class="comment">// Total issuance = weighted sum across all levels</span>
+
+<span class="comment">// Anti-inflation design: lower early rewards prevent</span>
+<span class="comment">// whale accumulation before broad adoption</span>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+
+    <!-- ──────────────────────────────────
+         § 8 ANTI-GAMING
+    ────────────────────────────────── -->
+    <section class="wp-section" id="anti-gaming">
+      <div class="section-label">§ 8</div>
+      <h2>Anti-Gaming &amp; Security Rules</h2>
+
+      <p>Mining apps are high-value targets for automation abuse. A-Network implements multiple overlapping defenses:</p>
+
+      <div class="table-scroll">
+      <table class="wp-table">
+        <thead><tr><th>Attack Vector</th><th>Defense Mechanism</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Bot sessions</strong></td><td>6-hour server-validated timer; API rate limiting (30 req/min)</td></tr>
+          <tr><td><strong>Multiple accounts per person</strong></td><td>Email OTP verification required; unique device binding</td></tr>
+          <tr><td><strong>Parallel session farming</strong></td><td><code>is_mining</code> boolean prevents starting second session</td></tr>
+          <tr><td><strong>Referral reward farming</strong></td><td>Referrals are tracking-only; zero reward amplification</td></tr>
+          <tr><td><strong>Fake user inflation (to advance halving)</strong></td><td>Dual threshold: both <code>userLevel</code> AND <code>sessionLevel</code> must be met</td></tr>
+          <tr><td><strong>Over-minting</strong></td><td>Hard supply cap enforced on every complete call; remainder truncation</td></tr>
+          <tr><td><strong>Reward without wallet</strong></td><td>Mining start blocked until BNB wallet address is set</td></tr>
+          <tr><td><strong>Unverified accounts</strong></td><td><code>email_verified</code> check on both start and complete endpoints</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+
+    <!-- ──────────────────────────────────
+         § 9 WEB3
+    ────────────────────────────────── -->
+    <section class="wp-section" id="web3">
+      <div class="section-label">§ 9</div>
+      <h2>Web3 Phase — BNB Chain Integration</h2>
+
+      <p>Web3 is the bridge between the A-Network mining economy and the decentralized financial world. The ANET token is deployed on the BNB Smart Chain (BSC), enabling on-chain transferability, DEX trading, and DeFi participation.</p>
+
+      <h3 id="contract">ANET Token Contract</h3>
+      <div class="panel panel-accent">
+        <h4>Contract Details</h4>
+        <div class="table-scroll">
+        <table class="wp-table">
+          <tbody>
+            <tr><td><strong>Contract Address</strong></td><td><code>0x791055A7d52AA392eaE8De04250497f33807E46A</code></td></tr>
+            <tr><td><strong>Network</strong></td><td>BNB Smart Chain (BSC) — Chain ID: 56</td></tr>
+            <tr><td><strong>Standard</strong></td><td>BEP-20</td></tr>
+            <tr><td><strong>Decimals</strong></td><td>8 (matching Ant precision)</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <h3 id="wallet">On-Chain Wallet Creation</h3>
+      <p>Every A-Network user is required to create a permanent BNB Chain wallet address before starting their first mining session. This wallet is the destination address for all future Web4 Layer 1 migration — ensuring no miner is excluded from the transition.</p>
+      <p>Wallets are generated using a cryptographically secure HD wallet derivation path and the user is issued a seed phrase backed by their account. The seed phrase is the sole recovery method — A-Network does not store or have access to private keys.</p>
+
+      <div class="notice warn">
+        <div class="notice-icon">⚠️</div>
+        <div class="notice-body">
+          <strong>Seed Phrase Warning</strong>
+          Your seed phrase grants full access to your wallet. A-Network staff will NEVER ask for your seed phrase. Store it offline in at least two physical locations.
         </div>
       </div>
     </section>
 
-    <section class="section" id="dyor">
-      <div class="section-card">
-        <div class="section-head">
-          <div>
-            <h2>Do Your Own Research</h2>
-            <p class="section-copy">If someone wants to understand A Network properly, this is where they should start. The goal is conviction through transparency, not attention through shortcuts.</p>
-          </div>
-        </div>
+    <div class="divider"></div>
 
-        <div class="dyor-grid">
-          <article class="dyor-card">
-            <h3>Read The Legal Base</h3>
-            <p class="dyor-copy">Understand the privacy policy and terms before using the app or interacting with the ecosystem.</p>
-            <div class="legal-links">
-              <a class="chip-link" href="privacy.html">Privacy Policy</a>
-              <a class="chip-link" href="terms.html">Terms of Service</a>
-            </div>
-          </article>
-          <article class="dyor-card">
-            <h3>Inspect The Chain</h3>
-            <p class="dyor-copy">Check the ANET contract, token metadata, holders, and transactions directly on BscScan.</p>
-            <div class="legal-links">
-              <a class="chip-link" href="https://bscscan.com/token/0x791055A7d52AA392eaE8De04250497f33807E46A" target="_blank" rel="noopener noreferrer">BscScan Token Page</a>
-            </div>
-          </article>
-          <article class="dyor-card">
-            <h3>Review The Build Surface</h3>
-            <p class="dyor-copy">Explore the codebase, product structure, and ongoing technical direction on GitHub.</p>
-            <div class="legal-links">
-              <a class="chip-link" href="https://github.com/A-Network-2026" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
-            </div>
-          </article>
+
+    <!-- ──────────────────────────────────
+         § 10 WEB4 LAYER 1
+    ────────────────────────────────── -->
+    <section class="wp-section" id="web4">
+      <div class="section-label">§ 10</div>
+      <h2>Web4 Phase — ANET Layer 1 Blockchain</h2>
+
+      <p>When the 21,000,000 ANET maximum supply is fully mined in the Web2 phase, A-Network activates its most transformative milestone: the launch of the <strong>ANET Layer 1 blockchain</strong> — a purpose-built distributed ledger that extends the time-based mining concept into a full Proof-of-Work consensus system, while migrating every Web2 miner's ledger balance on-chain.</p>
+
+      <p>This is not a token swap. This is a <strong>ledger synchronization and chain genesis</strong>. Every ANET balance, every completed session, and every wallet address recorded in the Web2 database becomes part of the genesis block of the Web4 chain.</p>
+
+      <h3 id="tpow">Time-Based Proof-of-Work (TPoW)</h3>
+      <p>Traditional Proof-of-Work (Bitcoin) requires computational work — hash calculations demanding specialized hardware (ASICs). This concentrates mining power with wealthy hardware operators and excludes the majority of Earth's population.</p>
+      <p>A-Network's <strong>Time-Based Proof-of-Work (TPoW)</strong> replaces computational work with committed time. The "work" is a verified 6-hour active node participation window. This preserves Bitcoin's core properties — permissionless participation, verifiable contribution, block-reward issuance — while democratizing access to any participant with a mobile device.</p>
+
+      <div class="panel panel-accent">
+        <h4>TPoW vs Traditional PoW Comparison</h4>
+        <div class="table-scroll">
+        <table class="wp-table">
+          <thead><tr><th>Property</th><th>Bitcoin PoW</th><th>A-Network TPoW</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Work Unit</strong></td><td>Hash computation (SHA-256)</td><td>Time commitment (6 hours verified)</td></tr>
+            <tr><td><strong>Hardware</strong></td><td>ASIC miners ($10k–$100k)</td><td>Any smartphone</td></tr>
+            <tr><td><strong>Energy</strong></td><td>Enormous (gigawatts)</td><td>Negligible (background app)</td></tr>
+            <tr><td><strong>Sybil resistance</strong></td><td>Hash rate cost</td><td>Email verification + time cost</td></tr>
+            <tr><td><strong>Block time</strong></td><td>~10 minutes</td><td>6 hours (one session = one block contribution)</td></tr>
+            <tr><td><strong>Reward model</strong></td><td>Block reward + fees</td><td>Block reward (Web2) → fees only (Web4)</td></tr>
+            <tr><td><strong>Decentralization</strong></td><td>Hardware-limited</td><td>Smartphone-universal</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <h3 id="blocks">Block Structure on ANET Layer 1</h3>
+      <p>Each block on the ANET Layer 1 chain represents a 6-hour epoch. All miners who completed their session within that epoch are credited as the block's contributors. The block contains:</p>
+
+      <div class="formula-box">
+<span class="comment">// ANET Layer 1 Block Structure (Conceptual)</span>
+Block {
+  <span class="keyword">blockNumber</span>:      uint64,
+  <span class="keyword">epochStart</span>:       timestamp,       <span class="comment">// 6h window start</span>
+  <span class="keyword">epochEnd</span>:         timestamp,       <span class="comment">// 6h window end</span>
+  <span class="keyword">miners</span>:           address[],       <span class="comment">// all who completed TPoW</span>
+  <span class="keyword">transactionRoot</span>:  bytes32,         <span class="comment">// Merkle root of txns</span>
+  <span class="keyword">stateRoot</span>:        bytes32,         <span class="comment">// account state hash</span>
+  <span class="keyword">totalFees</span>:        uint64,          <span class="comment">// in Ants</span>
+  <span class="keyword">feePerMiner</span>:      uint64,          <span class="comment">// totalFees / miners.length</span>
+  <span class="keyword">prevBlockHash</span>:    bytes32,
+  <span class="keyword">blockHash</span>:        bytes32
+}
+      </div>
+
+      <h3 id="txfees">Transaction Fees — Paid in Ants</h3>
+      <p>After the max supply of 21,000,000 ANET is reached, no new ANET is created. The network transitions from a <em>block-reward model</em> to a <em>fee-only model</em> — identical to Bitcoin's long-term economic design. This is where the Ant denomination becomes critical.</p>
+
+      <div class="panel panel-green">
+        <h4>How Transaction Fees Work in Web4</h4>
+        <ol>
+          <li><strong>Any ANET transfer</strong> on the Layer 1 chain requires a small fee denominated in Ants.</li>
+          <li><strong>Fees accumulate</strong> in a block fee pool during each 6-hour epoch.</li>
+          <li><strong>At epoch close</strong>, all miners who completed TPoW in that block are eligible to split the fee pool equally — regardless of when they registered or how many total sessions they have.</li>
+          <li><strong>Pro-rata distribution</strong>: If 10,000 miners completed TPoW in a block and 5,000,000 Ants were collected in fees, each miner receives 500 Ants for that block.</li>
+          <li><strong>No minimum stake required</strong>. Every verified miner with a completed session is eligible.</li>
+        </ol>
+      </div>
+
+      <div class="formula-box">
+<span class="comment">// Block fee distribution formula</span>
+<span class="keyword">feePerMiner</span> = totalBlockFees (Ants) / activeMinerCount
+
+<span class="comment">// Example calculation</span>
+<span class="comment">// Block epoch collects:  10,000,000 Ants in fees</span>
+<span class="comment">// Active miners:         50,000</span>
+<span class="keyword">feePerMiner</span> = 10,000,000 / 50,000 = <span class="value">200 Ants</span>
+<span class="comment">// = 0.000002 ANET per miner per block</span>
+
+<span class="comment">// At 4 blocks per day (6h/block) = 800 Ants/day</span>
+<span class="comment">// = 292,000 Ants/year per consistently active miner</span>
+<span class="comment">// = 0.00292 ANET/year (at 50k miners and current estimate)</span>
+<span class="comment">// Fee income scales with ANET value × network activity</span>
+      </div>
+
+      <div class="notice success">
+        <div class="notice-icon">✅</div>
+        <div class="notice-body">
+          <strong>Why Ants make this work</strong>
+          At a hypothetical $100 ANET price, 200 Ants = $0.0002. This is economically viable as a micro-reward for network participation. At $10,000/ANET (long-term), 200 Ants = $0.02 per block — meaningful daily income from fee mining alone, especially for participants in lower-cost economies.
+        </div>
+      </div>
+
+      <h3 id="migration">Web2 → Web4 Migration Specification</h3>
+      <p>The migration from the Web2 PostgreSQL ledger to the Web4 Layer 1 blockchain is the most critical operation in A-Network's history. It must be transparent, verifiable, and zero-loss. Every balance, every session count, and every wallet address must be preserved exactly.</p>
+
+      <div class="panel panel-purple">
+        <h4>Migration Process — Step by Step</h4>
+        <ol>
+          <li><strong>Max Supply Reached:</strong> The server detects <code>total_mined ≥ 21,000,000</code>. <code>is_mining_active = FALSE</code> is written to <code>network_stats</code>. No further rewards are issued.</li>
+          <li><strong>Snapshot Export:</strong> A cryptographically signed snapshot of the entire <code>users</code> table is exported: all <code>id</code>, <code>wallet_address</code>, <code>balance</code>, <code>successful_sessions</code>, <code>created_at</code> records. The snapshot hash is published publicly.</li>
+          <li><strong>Genesis Block Construction:</strong> The ANET Layer 1 genesis block is constructed from the snapshot. Every user's <code>wallet_address → balance</code> mapping becomes the initial state tree.</li>
+          <li><strong>Chain Launch:</strong> The genesis block is sealed, hashed, and broadcast to the initial validator set (early miners who meet node eligibility thresholds).</li>
+          <li><strong>Ledger Re-Org (see §11):</strong> Transactions are re-ordered starting from the most recent Web2 miners to establish chain history.</li>
+          <li><strong>Verification Period:</strong> A 30-day public verification window allows any participant to audit their balance against the published snapshot.</li>
+          <li><strong>Full Activation:</strong> After verification, the Layer 1 chain is opened for transactions, smart contracts, and fee mining.</li>
+        </ol>
+      </div>
+
+      <h3 id="reorg">Ledger Re-Organization — Last Miner First</h3>
+      <p>The genesis state of the Web4 chain is populated from the Web2 database in a <strong>reverse-chronological order</strong>: the most recently active miners are synchronized first. This is called the <strong>Ledger Re-Org</strong>.</p>
+
+      <div class="panel panel-amber">
+        <h4>Why Reverse-Chronological Sync?</h4>
+        <p>The design rationale is threefold:</p>
+        <ul>
+          <li><strong>Activity Incentive:</strong> Miners who are still actively participating at the moment of max-supply are most likely to be the foundation of the Web4 validator set. They are synchronized first to minimize their downtime.</li>
+          <li><strong>Chain Integrity:</strong> The most recent balances represent the most up-to-date, accurate state of the ledger. Starting from the latest state and working backward ensures the genesis block reflects reality.</li>
+          <li><strong>Sybil Protection:</strong> Long-dormant accounts with zero recent activity (suggesting bot or abandoned accounts) are synchronized last, reducing their influence on the initial chain state.</li>
+        </ul>
+        <div class="formula-box" style="margin-top:14px;">
+<span class="comment">// Sync order query (conceptual)</span>
+SELECT wallet_address, balance, successful_sessions
+FROM users
+WHERE balance > 0
+ORDER BY updated_at DESC   <span class="comment">// most recently active first</span>
+
+<span class="comment">// All miners with balance > 0 are included</span>
+<span class="comment">// (regardless of when they first registered)</span>
+        </div>
+      </div>
+
+      <div class="notice success">
+        <div class="notice-icon">🔗</div>
+        <div class="notice-body">
+          <strong>Eligibility: All Web2 Database Miners Are Eligible</strong>
+          Every miner who has a recorded balance in the A-Network Web2 database is eligible for Web4 Layer 1 migration. There is no minimum balance requirement, no minimum session count, and no application process. The ledger migration is automatic and inclusive. If you mined at least one session in Web2, your balance is carried to Web4.
         </div>
       </div>
     </section>
 
-    <section class="section" id="market">
-      <div class="market-wrap">
-        <div class="market-card">
-          <h3>Market Context</h3>
-          <p class="market-copy">Live chart access helps visitors inspect current pair data independently. Market visibility should support research, not replace it.</p>
-          <div class="accent-line"></div>
-          <div class="contract-box">DEX pair: 0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b</div>
-          <div class="accent-line"></div>
-          <p class="market-copy">Before participating, review the contract, liquidity, legal pages, GitHub activity, and official channels. A serious project should survive scrutiny.</p>
-          <div class="action-row">
-            <a class="btn-secondary" href="https://dexscreener.com/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b" target="_blank" rel="noopener noreferrer">Open Full Chart</a>
-            <button class="btn-secondary" onclick="getPrice()">Refresh Price</button>
-          </div>
-        </div>
-        <div class="chart-box">
-          <iframe src="https://dexscreener.com/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b?embed=1&theme=dark"></iframe>
+    <div class="divider"></div>
+
+
+    <!-- ──────────────────────────────────
+         § 11 ANET CORE (WEB5)
+    ────────────────────────────────── -->
+    <section class="wp-section" id="anet-core">
+      <div class="section-label">§ 11</div>
+      <h2>ANET Core — Web5 Layer</h2>
+
+      <p>ANET Core is the fifth and final phase of the A-Network ecosystem. Where Web4 built the infrastructure (the chain), Web5 builds the intelligence and identity layer on top of it. ANET Core is not simply a product — it is a protocol for self-sovereign identity, decentralized AI services, and community governance.</p>
+
+      <p>The codename <strong>"ANET Core"</strong> reflects its role: the nucleus of the A-Network universe. All other phases — mining, token, chain — converge here.</p>
+
+      <h3 id="anet-core-features">Core Features</h3>
+
+      <div class="panel panel-purple">
+        <h4>1. Decentralized Identity (DID)</h4>
+        <p>Every A-Network participant who has completed at least 1,000 mining sessions qualifies for a self-sovereign identity — a cryptographically verifiable on-chain identity linked to their mining history. This DID is:</p>
+        <ul>
+          <li>Not controlled by any company or platform</li>
+          <li>Portable across all ANET Core applications</li>
+          <li>Backed by on-chain session history (proof-of-participation)</li>
+          <li>Used for governance voting, dApp access, and reputation scoring</li>
+        </ul>
+      </div>
+
+      <div class="panel panel-green">
+        <h4>2. Community Governance</h4>
+        <p>Mining history becomes governance weight. Miners with more completed sessions (and by extension, more ANET earned through genuine participation) have proportionally more influence in protocol upgrades, parameter changes, and ecosystem fund allocation.</p>
+        <ul>
+          <li><strong>Proposal threshold:</strong> Minimum 100 successful sessions to submit governance proposals</li>
+          <li><strong>Voting weight:</strong> Proportional to verified session count (not raw token balance, preventing whale dominance)</li>
+          <li><strong>Timelock:</strong> All approved protocol changes include a minimum 7-day timelock before execution</li>
+        </ul>
+      </div>
+
+      <div class="panel panel-accent">
+        <h4>3. dApp Ecosystem</h4>
+        <p>ANET Core functions as an application platform. Developers can deploy decentralized applications that:</p>
+        <ul>
+          <li>Use ANET as native currency (fees in Ants)</li>
+          <li>Verify user identity through DID without centralized data storage</li>
+          <li>Access the ANET Core identity graph for reputation-gated features</li>
+          <li>Integrate with the mining history ledger for proof-of-participation requirements</li>
+        </ul>
+      </div>
+
+      <h3 id="anet-core-ai">AI Integration Layer</h3>
+      <p>ANET Core includes a protocol-level AI layer that enables:</p>
+      <ul>
+        <li><strong>Personal AI agents</strong> — owned by the user, not a corporation. AI models run on the user's data without exporting it to centralized servers.</li>
+        <li><strong>Federated learning</strong> — AI models improve from participant contributions without centralizing training data.</li>
+        <li><strong>On-chain AI inference market</strong> — Participants can offer AI compute services and earn Ants for processing inference requests.</li>
+        <li><strong>ANET Support Bot</strong> — An initial AI assistant built on the ANET Core identity layer, accessible to all miners for ecosystem guidance.</li>
+      </ul>
+
+      <div class="notice info">
+        <div class="notice-icon">🧠</div>
+        <div class="notice-body">
+          <strong>The Web5 Philosophy</strong>
+          Web2: <em>You are the product.</em> Web3: <em>You are the owner.</em> Web4: <em>You are the value creator.</em> ANET Core / Web5: <em>You are the network itself.</em> Your identity, your computation, your data — all sovereign.
         </div>
       </div>
     </section>
 
-    <section class="section" id="social">
-      <div class="section-card">
-        <div class="section-head">
-          <div>
-            <h2>Official Channels</h2>
-            <p class="section-copy">Use official sources for updates, research, and ecosystem participation.</p>
+    <div class="divider"></div>
+
+
+    <!-- ──────────────────────────────────
+         § 12 REFERRAL
+    ────────────────────────────────── -->
+    <section class="wp-section" id="referral">
+      <div class="section-label">§ 12</div>
+      <h2>F1 Referral System — Tracking Only</h2>
+
+      <p>A-Network includes a single-level (F1) referral tracking system for network growth transparency. There is <strong>no referral reward</strong> — no coin bonuses, no session boosts, no percentage cuts. This is an intentional design decision that separates A-Network from pyramid-incentive token schemes.</p>
+
+      <div class="panel">
+        <h4>What the Referral System Does</h4>
+        <ul>
+          <li>Tracks who invited whom (one level deep, F1 only)</li>
+          <li>Counts how many of your F1 referrals have completed ≥ 1,000 sessions</li>
+          <li>Displays your personal session progress toward the 1,000-session level milestone</li>
+          <li>Will be used in ANET Core governance weighting as a social graph signal</li>
+        </ul>
+        <h4 style="margin-top: 16px;">What the Referral System Does NOT Do</h4>
+        <ul>
+          <li>❌ No coin rewards for referring</li>
+          <li>❌ No session multipliers</li>
+          <li>❌ No multi-level (F2, F3...) chains</li>
+          <li>❌ No influence farming via referral counts</li>
+        </ul>
+      </div>
+
+      <p>Why? Because A-Network believes that <strong>fake growth is worse than slow growth</strong>. Referral reward systems incentivize spam, bot account creation, and social pressure tactics. A-Network grows through genuine value: every new user who joins does so because the product is good — not because someone got paid to recruit them.</p>
+    </section>
+
+    <div class="divider"></div>
+
+
+    <!-- ──────────────────────────────────
+         § 13 SECURITY
+    ────────────────────────────────── -->
+    <section class="wp-section" id="security">
+      <div class="section-label">§ 13</div>
+      <h2>Security Model</h2>
+
+      <h3>Authentication Architecture</h3>
+      <ul>
+        <li><strong>JWT Tokens:</strong> All API endpoints require Bearer token authentication. Tokens expire and are refreshed on session activity.</li>
+        <li><strong>Email OTP:</strong> Account activation requires OTP verification — a phone-accessible, infrastructure-light method that works globally without SMS cost.</li>
+        <li><strong>Rate Limiting:</strong> Mining endpoints: 30 req/min. Auth endpoints: additional hardened limits per IP.</li>
+        <li><strong>IP Logging:</strong> Last IP recorded per user for anomaly detection (not persisted in history, only current).</li>
+      </ul>
+
+      <h3>Database Security</h3>
+      <ul>
+        <li>Passwords stored as bcrypt hashes (minimum 10 rounds) — plaintext never stored.</li>
+        <li>Wallet private keys never touch the server — all key generation is client-side.</li>
+        <li>Seed phrases stored only in user-controlled storage — A-Network has zero key custody.</li>
+        <li>PostgreSQL with parameterized queries throughout — SQL injection surface is zero.</li>
+      </ul>
+
+      <h3>Ledger Integrity</h3>
+      <ul>
+        <li><code>DECIMAL(20,8)</code> balance type — no floating-point rounding errors in accounting.</li>
+        <li>Database-level triggers ensure <code>updated_at</code> is always accurate.</li>
+        <li>Cascade delete protections on mining session foreign keys.</li>
+        <li>All balance changes are atomic SQL transactions — partial credit is impossible.</li>
+      </ul>
+    </section>
+
+    <div class="divider"></div>
+
+
+    <!-- ──────────────────────────────────
+         § 14 ROADMAP
+    ────────────────────────────────── -->
+    <section class="wp-section" id="roadmap">
+      <div class="section-label">§ 14</div>
+      <h2>Roadmap</h2>
+
+      <div class="roadmap">
+
+        <div class="rm-item">
+          <div class="rm-dot done"></div>
+          <div class="rm-phase">Phase 1 — Completed</div>
+          <div class="rm-title">Web2 Mining App Launch</div>
+          <div class="rm-desc">
+            Launch of the Android mining application with 6-hour time-based sessions, Reverse Era Mining engine, BNB wallet creation, email OTP verification, leaderboard, referral tracking, and push notifications. Backend deployed on cloud infrastructure with PostgreSQL ledger.
+          </div>
+          <div class="rm-tags">
+            <span class="rm-tag">Android App ✓</span>
+            <span class="rm-tag">Mining Engine ✓</span>
+            <span class="rm-tag">Referral System ✓</span>
+            <span class="rm-tag">Leaderboard ✓</span>
+            <span class="rm-tag">Push Notifications ✓</span>
+            <span class="rm-tag">BNB Wallet ✓</span>
           </div>
         </div>
 
-        <div class="social-grid">
-          <article class="social-card">
-            <h3>Official X</h3>
-            <p>Follow project announcements, rollout updates, and public communication.</p>
-            <div class="social-links">
-              <a class="chip-link" href="https://x.com/AAlphaNetwork" target="_blank" rel="noopener noreferrer">Open X</a>
-            </div>
-          </article>
-          <article class="social-card">
-            <h3>GitHub</h3>
-            <p>Review code, repo history, and technical direction directly.</p>
-            <div class="social-links">
-              <a class="chip-link" href="https://github.com/A-Network-2026" target="_blank" rel="noopener noreferrer">Open GitHub</a>
-            </div>
-          </article>
-          <article class="social-card">
-            <h3>Legal</h3>
-            <p>Privacy and terms should be public, easy to find, and easy to review.</p>
-            <div class="social-links">
-              <a class="chip-link" href="privacy.html">Privacy</a>
-              <a class="chip-link" href="terms.html">Terms</a>
-            </div>
-          </article>
+        <div class="rm-item">
+          <div class="rm-dot done"></div>
+          <div class="rm-phase">Phase 1b — Completed</div>
+          <div class="rm-title">App Stability &amp; Bug Fixes</div>
+          <div class="rm-desc">
+            Resolution of notification spam, mining state lock issues, balance sync improvements, and ad optimization. App published on Google Play Store. Version 1.0.0 Build 2 approved.
+          </div>
+          <div class="rm-tags">
+            <span class="rm-tag">Play Store ✓</span>
+            <span class="rm-tag">Notification Fix ✓</span>
+            <span class="rm-tag">Balance Sync ✓</span>
+            <span class="rm-tag">Ad Stability ✓</span>
+          </div>
         </div>
+
+        <div class="rm-item">
+          <div class="rm-dot"></div>
+          <div class="rm-phase">Phase 2 — In Progress</div>
+          <div class="rm-title">iOS App Launch &amp; User Growth</div>
+          <div class="rm-desc">
+            Publication of the iOS version on the Apple App Store. Expansion to Level 1 halving threshold (210,000 registered users). Community building, international outreach, and in-app ecosystem education content. Live network statistics dashboard.
+          </div>
+          <div class="rm-tags">
+            <span class="rm-tag">iOS App</span>
+            <span class="rm-tag">210k Users Target</span>
+            <span class="rm-tag">Community Growth</span>
+            <span class="rm-tag">Network Dashboard</span>
+          </div>
+        </div>
+
+        <div class="rm-item">
+          <div class="rm-dot"></div>
+          <div class="rm-phase">Phase 3</div>
+          <div class="rm-title">Web3 Token Activation &amp; DEX Listing</div>
+          <div class="rm-desc">
+            Full activation of the BEP-20 ANET token on BNB Chain. Integration with decentralized exchanges (DEX). On-chain wallet balance verification within the app. ANET token visible and tradable on PancakeSwap and BSC explorers. Token price oracle integration.
+          </div>
+          <div class="rm-tags">
+            <span class="rm-tag">BEP-20 Active</span>
+            <span class="rm-tag">DEX Listing</span>
+            <span class="rm-tag">PancakeSwap</span>
+            <span class="rm-tag">BSCScan</span>
+            <span class="rm-tag">Price Oracle</span>
+          </div>
+        </div>
+
+        <div class="rm-item">
+          <div class="rm-dot"></div>
+          <div class="rm-phase">Phase 4</div>
+          <div class="rm-title">Level 6 Halving &amp; Max Reward Era</div>
+          <div class="rm-desc">
+            Network reaches 1,260,000 registered users and 6,000 total completed sessions. Mining reward reaches maximum: 3.125 ANET per session. Community milestone celebration. Transition planning for Web4 Layer 1 begins. Final supply countdown visible in app.
+          </div>
+          <div class="rm-tags">
+            <span class="rm-tag">1.26M Users</span>
+            <span class="rm-tag">3.125 ANET/Session</span>
+            <span class="rm-tag">Level 6 Halving</span>
+            <span class="rm-tag">Web4 Planning</span>
+          </div>
+        </div>
+
+        <div class="rm-item">
+          <div class="rm-dot future"></div>
+          <div class="rm-phase">Phase 5 — Key Milestone</div>
+          <div class="rm-title">Max Supply Reached — Web4 Layer 1 Activation</div>
+          <div class="rm-desc">
+            <strong>The most important milestone in A-Network's history.</strong> When the 21,000,000 ANET hard cap is reached, Web2 mining halts permanently. The Web2 PostgreSQL ledger snapshot is taken, cryptographically signed, and published. The ANET Layer 1 genesis block is constructed from this snapshot. The node network (comprised of active Web2 miners) bootstraps the chain. Time-Based Proof-of-Work begins on Layer 1 — all miners earn transaction fees in Ants for every block they participate in.
+          </div>
+          <div class="rm-tags">
+            <span class="rm-tag">Max Supply Reached</span>
+            <span class="rm-tag">Ledger Snapshot</span>
+            <span class="rm-tag">Genesis Block</span>
+            <span class="rm-tag">TPoW Consensus</span>
+            <span class="rm-tag">Fee Mining Begins</span>
+            <span class="rm-tag">Re-Org Sync</span>
+          </div>
+        </div>
+
+        <div class="rm-item">
+          <div class="rm-dot future"></div>
+          <div class="rm-phase">Phase 6</div>
+          <div class="rm-title">Web4 Layer 1 — Full Ecosystem</div>
+          <div class="rm-desc">
+            Full Layer 1 operations: smart contracts, ANET dApps, developer tooling (SDK, RPC, explorer), token bridges (BNB ↔ ANET Layer 1), and Ants-denominated gas market. ANET Layer 1 becomes a fully independent, self-sustaining blockchain. External developer grants issued from the ecosystem fund (funded by a portion of genesis block transaction fees).
+          </div>
+          <div class="rm-tags">
+            <span class="rm-tag">Smart Contracts</span>
+            <span class="rm-tag">dApps Platform</span>
+            <span class="rm-tag">SDK / RPC</span>
+            <span class="rm-tag">ANET Explorer</span>
+            <span class="rm-tag">Cross-Chain Bridge</span>
+            <span class="rm-tag">Developer Grants</span>
+          </div>
+        </div>
+
+        <div class="rm-item">
+          <div class="rm-dot future"></div>
+          <div class="rm-phase">Phase 7 — Long-Term Vision</div>
+          <div class="rm-title">ANET Core (Web5) — Identity, AI &amp; Governance</div>
+          <div class="rm-desc">
+            Deployment of the ANET Core protocol: decentralized identity (DID) for all ≥1,000-session miners, on-chain governance weighted by participation history, personal AI agents owned and controlled by users, federated learning marketplace, and a self-sovereign application ecosystem. ANET Core represents the culmination of the A-Network vision: an internet where users are the network.
+          </div>
+          <div class="rm-tags">
+            <span class="rm-tag">DID Protocol</span>
+            <span class="rm-tag">On-Chain Governance</span>
+            <span class="rm-tag">Personal AI Agents</span>
+            <span class="rm-tag">Federated Learning</span>
+            <span class="rm-tag">AI Inference Market</span>
+            <span class="rm-tag">Web5 Complete</span>
+          </div>
+        </div>
+
       </div>
     </section>
 
-    <footer>
-      <p>© 2026 A Network. Built for long-term ecosystem development across Web2, Web3, and Web4.</p>
-    </footer>
-  </div>
+    <div class="divider"></div>
 
-  <script>
-    const c = document.getElementById('bg');
-    const ctx = c.getContext('2d');
 
-    function resize() {
-      c.width = innerWidth;
-      c.height = innerHeight;
-    }
+    <!-- ──────────────────────────────────
+         § 15 LEGAL
+    ────────────────────────────────── -->
+    <section class="wp-section" id="legal">
+      <div class="section-label">§ 15</div>
+      <h2>Legal Disclaimer</h2>
 
+      <div class="panel panel-red">
+        <p><strong>This whitepaper is provided for informational purposes only.</strong> Nothing in this document constitutes financial advice, investment advice, or a solicitation to purchase any digital asset. Participation in A-Network mining involves risks including but not limited to: technological risk, regulatory risk, and market risk.</p>
+        <p>The ANET token is a utility token within the A-Network ecosystem. It is not a security, does not represent equity in any company, and does not entitle the holder to any dividend, profit share, or management rights.</p>
+        <p>The development timelines, technical specifications, and feature descriptions in this whitepaper represent current plans and intentions. They are subject to change as the project evolves. No guarantee is made regarding any specific future feature, capability, or timeline.</p>
+        <p>Users are responsible for complying with all applicable laws and regulations in their jurisdiction. A-Network does not represent that participation is legal in any specific jurisdiction. Always conduct your own research (DYOR).</p>
+        <p style="margin-bottom: 0;"><strong>By using the A-Network application or holding ANET, you acknowledge that you have read and understood this disclaimer.</strong></p>
+      </div>
+
+      <p>Full legal documents: <a href="https://a-network.net/privacy.html" style="color: var(--accent);">Privacy Policy</a> · <a href="https://a-network.net/terms.html" style="color: var(--accent);">Terms of Service</a> · <a href="https://a-network.net/delete-account.html" style="color: var(--accent);">Account Deletion</a></p>
+    </section>
+
+
+    <!-- FOOTER -->
+    <div class="wp-footer">
+      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> · Official Whitepaper v1.0 · April 2026</p>
+      <p>Website: <a href="https://a-network.net">a-network.net</a> · Contract: <a href="https://bscscan.com/address/0x791055A7d52AA392eaE8De04250497f33807E46A">0x791055A7...E46A</a> · App: <a href="https://play.google.com/store">Google Play</a></p>
+      <p style="margin-top: 10px;">© 2026 A-Network. All rights reserved. &nbsp;·&nbsp; <a href="https://a-network.net/privacy.html">Privacy</a> &nbsp;·&nbsp; <a href="https://a-network.net/terms.html">Terms</a></p>
+    </div>
+
+  </main>
+</div>
+
+<a class="back-top" href="#" title="Back to top">↑</a>
+
+<script>
+// ── PARTICLES ──
+(function() {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function Particle() {
+    this.x  = Math.random() * W;
+    this.y  = Math.random() * H;
+    this.vx = (Math.random() - 0.5) * 0.3;
+    this.vy = (Math.random() - 0.5) * 0.3;
+    this.r  = Math.random() * 1.5 + 0.4;
+    this.a  = Math.random() * 0.55 + 0.1;
+    this.c  = Math.random() > 0.6 ? '#22e7b8' : '#58c5ff';
+  }
+
+  Particle.prototype.update = function() {
+    this.x += this.vx; this.y += this.vy;
+    if (this.x < 0) this.x = W;
+    if (this.x > W) this.x = 0;
+    if (this.y < 0) this.y = H;
+    if (this.y > H) this.y = 0;
+  };
+
+  function init() {
     resize();
-    window.addEventListener('resize', resize);
+    particles = Array.from({length: 80}, () => new Particle());
+  }
 
-    const nodes = [];
-    for (let i = 0; i < 90; i++) {
-      nodes.push({
-        x: Math.random() * c.width,
-        y: Math.random() * c.height,
-        vx: (Math.random() - 0.5) * 0.28,
-        vy: (Math.random() - 0.5) * 0.28
-      });
-    }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => {
+      p.update();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.c;
+      ctx.globalAlpha = p.a;
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
 
-    function animate() {
-      ctx.fillStyle = 'rgba(5, 11, 18, 0.32)';
-      ctx.fillRect(0, 0, c.width, c.height);
+  window.addEventListener('resize', resize);
+  init();
+  draw();
+})();
 
-      for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        node.x += node.vx;
-        node.y += node.vy;
+// ── SIDEBAR ACTIVE LINK ──
+(function() {
+  const sections = document.querySelectorAll('.wp-section, .hero');
+  const links    = document.querySelectorAll('.nav-item');
 
-        if (node.x < 0 || node.x > c.width) node.vx *= -1;
-        if (node.y < 0 || node.y > c.height) node.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, 1.8, 0, Math.PI * 2);
-        ctx.fillStyle = '#58c5ff';
-        ctx.fill();
-
-        for (let j = i + 1; j < nodes.length; j++) {
-          const other = nodes[j];
-          const dx = node.x - other.x;
-          const dy = node.y - other.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < 120) {
-            ctx.strokeStyle = `rgba(88, 197, 255, ${0.08 * (1 - distance / 120)})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(node.x, node.y);
-            ctx.lineTo(other.x, other.y);
-            ctx.stroke();
-          }
-        }
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id;
+        links.forEach(l => {
+          l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+        });
       }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
 
-      requestAnimationFrame(animate);
+  sections.forEach(s => { if (s.id) observer.observe(s); });
+})();
+
+// ── SMOOTH SCROLL FOR SIDEBAR LINKS ──
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  });
+});
+</script>
 
-    animate();
-
-    let provider;
-    let signer;
-    let userAddress;
-
-    const tokenAddress = '0x791055A7d52AA392eaE8De04250497f33807E46A';
-    const pairAddress = '0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b';
-    const abi = [
-      'function balanceOf(address owner) view returns (uint256)',
-      'function decimals() view returns (uint8)'
-    ];
-
-    async function connectWallet() {
-      if (!window.ethereum) {
-        alert('Install MetaMask or another compatible wallet.');
-        return;
-      }
-
-      provider = new ethers.providers.Web3Provider(window.ethereum);
-
-      try {
-        await provider.send('eth_requestAccounts', []);
-        await provider.send('wallet_switchEthereumChain', [{ chainId: '0x38' }]);
-      } catch (err) {
-        if (err.code === 4902) {
-          await provider.send('wallet_addEthereumChain', [{
-            chainId: '0x38',
-            chainName: 'BNB Smart Chain',
-            nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-            rpcUrls: ['https://bsc-dataseed.binance.org/'],
-            blockExplorerUrls: ['https://bscscan.com']
-          }]);
-        } else {
-          console.error(err);
-          return;
-        }
-      }
-
-      signer = provider.getSigner();
-      userAddress = await signer.getAddress();
-      document.getElementById('wallet').innerText = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
-      await getBalance();
-    }
-
-    async function getBalance() {
-      try {
-        if (!provider || !userAddress) {
-          alert('Connect wallet first');
-          return;
-        }
-
-        const network = await provider.getNetwork();
-        if (network.chainId !== 56) {
-          alert('Switch to BNB Smart Chain');
-          return;
-        }
-
-        const contract = new ethers.Contract(tokenAddress, abi, provider);
-        const balance = await contract.balanceOf(userAddress);
-        const decimals = await contract.decimals();
-        const formatted = Number(ethers.utils.formatUnits(balance, decimals));
-        document.getElementById('balance').innerText = formatted.toLocaleString(undefined, { maximumFractionDigits: 4 });
-      } catch (e) {
-        console.error(e);
-        alert('Failed to fetch balance');
-      }
-    }
-
-    async function getPrice() {
-      try {
-        const res = await fetch(`https://api.dexscreener.com/latest/dex/pairs/bsc/${pairAddress}`);
-        const data = await res.json();
-        const usd = Number(data?.pair?.priceUsd || 0);
-        document.getElementById('price').innerText = usd ? `$${usd.toFixed(4)}` : 'Unavailable';
-      } catch (e) {
-        console.error(e);
-        document.getElementById('price').innerText = 'Unavailable';
-      }
-    }
-
-    getPrice();
-
-    if (window.ethereum) {
-      window.ethereum.on('chainChanged', () => location.reload());
-      window.ethereum.on('accountsChanged', () => location.reload());
-    }
-  </script>
 </body>
 </html>
