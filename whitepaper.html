@@ -616,7 +616,7 @@
         <thead><tr><th>Requirement</th><th>Purpose</th><th>Enforcement</th></tr></thead>
         <tbody>
           <tr><td><strong>Email Verification</strong></td><td>Sybil resistance — one real person per account</td><td>OTP verification required before first session</td></tr>
-          <tr><td><strong>Wallet Module</strong></td><td>Web3 wallet integration is in staged rollout</td><td>Displayed as <code>Coming Soon</code> in app v1.0.2</td></tr>
+          <tr><td><strong>Wallet Setup</strong></td><td>Bind each miner to a unique ANET wallet identity and optional Web4 migration address</td><td><code>Create Wallet</code> is required before mining; migration wallet can be saved for future Layer 1 migration</td></tr>
           <tr><td><strong>Single Active Session</strong></td><td>Prevents parallel session farming</td><td><code>is_mining</code> flag; duplicate start returns error</td></tr>
           <tr><td><strong>Rate Limiting</strong></td><td>API abuse prevention</td><td>30 requests/minute on mining endpoints</td></tr>
         </tbody>
@@ -661,6 +661,8 @@
           The strict-qualified-user design prevents fake-account inflation. A user only counts toward level progression after reaching <code>1,000</code> successful sessions. This makes level growth depend on long-term, verifiable participation rather than raw sign-up count.
         </div>
       </div>
+
+      <p><strong>Important metric distinction:</strong> <em>Total Users</em> and <em>Qualified Users</em> are different system values. Total Users counts all registered miners. Qualified Users counts only miners with <code>successful_sessions &gt;= 1000</code>. Only Qualified Users can move halving levels.</p>
 
       <h3>Threshold Milestones to Next Halving Level</h3>
       <div class="formula-box">
@@ -818,7 +820,7 @@
       <div class="section-label">§ 9</div>
       <h2>Web3 Phase — BNB Chain Integration</h2>
 
-      <p>Web3 is the bridge between the A-Network mining economy and the decentralized financial world. The ANET token is deployed on the BNB Smart Chain (BSC), enabling on-chain transferability, DEX trading, and DeFi participation.</p>
+      <p>Web3 is the bridge between the A-Network mining economy and the decentralized financial world. The ANET token is deployed on the BNB Smart Chain (BSC), enabling ecosystem transparency, DEX visibility, and public on-chain tracking of ecosystem growth while Web2 mining continues.</p>
 
       <h3 id="contract">ANET Token Contract</h3>
       <div class="panel panel-accent">
@@ -835,9 +837,19 @@
         </div>
       </div>
 
-      <h3 id="wallet">On-Chain Wallet Creation</h3>
-      <p>The wallet module is part of the Web3 bridge and remains in staged rollout. In app version <strong>1.0.2</strong>, wallet actions are intentionally displayed as <strong>Coming Soon</strong> to keep release stability while the integration is hardened.</p>
-      <p>The long-term design remains: each user gets a permanent BNB Chain address for Web4 migration readiness, with self-custody principles and no private-key custody by A-Network.</p>
+      <h3 id="wallet">Wallet Identity &amp; Migration Address</h3>
+      <p>Each account can now create a unique ANET wallet identity in-app (custom ANET-formatted address). This wallet is linked to the miner profile and is used to display the user's mined ANET balance from the Web2 ledger.</p>
+      <p>Users can also save a separate migration wallet address for future Web4 Layer 1 migration. This allows migration planning ahead of chain launch while preserving current mining continuity.</p>
+
+      <div class="panel panel-accent">
+        <h4>Current Wallet Behavior</h4>
+        <ul>
+          <li><strong>Create Wallet:</strong> Generates a unique ANET wallet identity for each user account.</li>
+          <li><strong>Check Balance:</strong> Shows the user's mined ANET synchronized from the Web2 ledger.</li>
+          <li><strong>Set Migration Wallet:</strong> Optional address field for future Web4 migration routing.</li>
+          <li><strong>Web3 Role:</strong> BNB Chain contract remains the ecosystem visibility layer while Web4 Layer 1 is prepared.</li>
+        </ul>
+      </div>
 
       <div class="notice warn">
         <div class="notice-icon">⚠️</div>
@@ -914,6 +926,7 @@ Block {
           <li><strong>At epoch close</strong>, all miners who completed TPoW in that block are eligible to split the fee pool equally — regardless of when they registered or how many total sessions they have.</li>
           <li><strong>Pro-rata distribution</strong>: If 10,000 miners completed TPoW in a block and 5,000,000 Ants were collected in fees, each miner receives 500 Ants for that block.</li>
           <li><strong>No minimum stake required</strong>. Every verified miner with a completed session is eligible.</li>
+          <li><strong>Full ANTS role</strong>: Ants are the unit for fees, block-level accounting, micro-payments, and miner payout settlement across Layer 1.</li>
         </ol>
       </div>
 
@@ -948,8 +961,8 @@ Block {
         <h4>Migration Process — Step by Step</h4>
         <ol>
           <li><strong>Max Supply Reached:</strong> The server detects <code>total_mined ≥ 21,000,000</code>. <code>is_mining_active = FALSE</code> is written to <code>network_stats</code>. No further rewards are issued.</li>
-          <li><strong>Snapshot Export:</strong> A cryptographically signed snapshot of the entire <code>users</code> table is exported: all <code>id</code>, <code>wallet_address</code>, <code>balance</code>, <code>successful_sessions</code>, <code>created_at</code> records. The snapshot hash is published publicly.</li>
-          <li><strong>Genesis Block Construction:</strong> The ANET Layer 1 genesis block is constructed from the snapshot. Every user's <code>wallet_address → balance</code> mapping becomes the initial state tree.</li>
+          <li><strong>Snapshot Export:</strong> A cryptographically signed snapshot of the entire <code>users</code> table is exported: all <code>id</code>, <code>wallet_address</code>, <code>custom_wallet_address</code>, <code>migration_wallet_address</code>, <code>balance</code>, <code>successful_sessions</code>, <code>created_at</code> records. The snapshot hash is published publicly.</li>
+          <li><strong>Genesis Block Construction:</strong> The ANET Layer 1 genesis block is constructed from the snapshot. Every user's approved migration mapping and <code>balance</code> become part of the initial state tree.</li>
           <li><strong>Chain Launch:</strong> The genesis block is sealed, hashed, and broadcast to the initial validator set (early miners who meet node eligibility thresholds).</li>
           <li><strong>Ledger Re-Org (see §11):</strong> Transactions are re-ordered starting from the most recent Web2 miners to establish chain history.</li>
           <li><strong>Verification Period:</strong> A 30-day public verification window allows any participant to audit their balance against the published snapshot.</li>
