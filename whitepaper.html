@@ -591,7 +591,7 @@
       <div class="panel">
         <h4>Session Lifecycle</h4>
         <ol>
-          <li><strong>Prerequisites Met:</strong> User must have verified email + created permanent on-chain wallet (BNB Chain address).</li>
+          <li><strong>Prerequisites Met:</strong> User must have verified email + created ANET wallet identity (and may optionally set a Web4 migration wallet address).</li>
           <li><strong>Session Start:</strong> User taps "Start Mining". The server records <code>last_mining_start = NOW()</code> and sets <code>is_mining = TRUE</code>.</li>
           <li><strong>Active Phase (0–6 hours):</strong> Session runs server-side. App tracks countdown timer. Push notification is scheduled for the 6-hour mark.</li>
           <li><strong>Completion Eligible (≥ 6 hours):</strong> The server validates elapsed time. Only sessions where <code>NOW() - last_mining_start ≥ 21,600 seconds</code> are accepted.</li>
@@ -803,7 +803,7 @@
           <tr><td><strong>Referral reward farming</strong></td><td>Referrals are tracking-only; zero reward amplification</td></tr>
           <tr><td><strong>Fake user inflation (to advance halving)</strong></td><td>Strict ANTS rule: only users with <code>successful_sessions >= 1000</code> are counted</td></tr>
           <tr><td><strong>Over-minting</strong></td><td>Hard supply cap enforced on every complete call; remainder truncation</td></tr>
-          <tr><td><strong>Wallet UX volatility</strong></td><td>Wallet UI is staged as <code>Coming Soon</code> in app v1.0.2 while Web3 module rollout continues</td></tr>
+          <tr><td><strong>Wallet ownership integrity</strong></td><td>Each account has a unique ANET wallet identity and can save a migration wallet for Web4</td></tr>
           <tr><td><strong>Unverified accounts</strong></td><td><code>email_verified</code> check on both start and complete endpoints</td></tr>
         </tbody>
       </table>
@@ -1110,10 +1110,18 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
       <div class="section-label">§ 13</div>
       <h2>Security Model</h2>
 
+      <div class="notice warn">
+        <div class="notice-icon">🔐</div>
+        <div class="notice-body">
+          <strong>Email Is Account Ownership Key</strong>
+          A-Network enforces email verification by OTP during registration as a one-time account activation step. If a user permanently loses access to their email and cannot recover it, they lose access to the account and mined ANET tied to that identity. In the Web4 migration model, ownership is anchored to <code>Email + Wallet Address</code> together.
+        </div>
+      </div>
+
       <h3>Authentication Architecture</h3>
       <ul>
         <li><strong>JWT Tokens:</strong> All API endpoints require Bearer token authentication. Tokens expire and are refreshed on session activity.</li>
-        <li><strong>Email OTP:</strong> Account activation requires OTP verification — a phone-accessible, infrastructure-light method that works globally without SMS cost.</li>
+        <li><strong>Email OTP:</strong> Account activation requires OTP verification during registration (one-time ownership confirmation) — a phone-accessible, infrastructure-light method that works globally without SMS cost.</li>
         <li><strong>Rate Limiting:</strong> Mining endpoints: 30 req/min. Auth endpoints: additional hardened limits per IP.</li>
         <li><strong>IP Logging:</strong> Last IP recorded per user for anomaly detection (not persisted in history, only current).</li>
       </ul>
