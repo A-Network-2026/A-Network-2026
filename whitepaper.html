@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A-Network Whitepaper | Web2 · Web3 · Web4 · ANET Core</title>
-  <meta name="description" content="The official A-Network whitepaper covering the full ecosystem: Web2 time-based mining, Web3 BNB Chain integration, Web4 Layer 1 blockchain with time-based Proof-of-Work, transaction fees in Ants, and ANET Core (Web5)." />
+  <title>A-Network Whitepaper v1.0.2 | Web2 · Web3 · Web4 · ANET Core</title>
+  <meta name="description" content="The official A-Network v1.0.2 whitepaper covering Web2 session mining, ANTS-first accounting, delayed ANET conversion, Bitcoin-style halving by total sessions, Web3 visibility, and the Web4 migration roadmap." />
   <meta name="theme-color" content="#07101a" />
   <meta property="og:title" content="A-Network Whitepaper" />
-  <meta property="og:description" content="Complete technical specification of the A-Network ecosystem: tokenomics, mining engine, halving formula, Web4 Layer 1, ANET Core, and full roadmap." />
+  <meta property="og:description" content="Complete technical specification of the A-Network ecosystem: ANTS-first Web2 mining, session-based halving, supply controls, wallet migration design, Web4 Layer 1, ANET Core, and full roadmap." />
   <meta property="og:url" content="https://a-network.net/whitepaper.html" />
   <meta property="og:image" content="https://a-network.net/logo.png" />
   <link rel="icon" type="image/png" href="logo.png" />
@@ -275,7 +275,7 @@
     <div class="sidebar-logo">
       <div>
         <span>A-NETWORK</span>
-        <sub>OFFICIAL WHITEPAPER v1.0 · 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v1.0.2 · 2026</sub>
       </div>
     </div>
 
@@ -332,12 +332,12 @@
     <div class="hero">
       <div class="hero-badge">⚡ Official Technical Whitepaper</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A multi-phase decentralized ecosystem spanning Web2 time-based mining, Web3 BNB Chain token infrastructure, Web4 Layer 1 blockchain with Time-Based Proof-of-Work, and ANET Core — the self-sovereign identity and AI layer of Web5.</p>
+      <p class="hero-sub">A multi-phase ecosystem spanning Web2 proof-of-time session mining, Web3 visibility on BNB Chain, planned Web4 Layer 1 settlement, and ANET Core. Version 1.0.2 defines A-Network as an ANTS-first mining ledger with delayed ANET conversion, strict session validation, and Bitcoin-style reward halving driven only by total network sessions.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> — 1.0</div>
+        <div class="hero-meta-item"><strong>Version</strong> — 1.0.2</div>
         <div class="hero-meta-item"><strong>Published</strong> — April 2026</div>
         <div class="hero-meta-item"><strong>Token</strong> — $ANET</div>
-        <div class="hero-meta-item"><strong>Network</strong> — BNB Chain (Web3) → ANET Layer 1 (Web4)</div>
+        <div class="hero-meta-item"><strong>Ledger Model</strong> — ANTS-first → ANET conversion after eligibility</div>
         <div class="hero-meta-item"><strong>Max Supply</strong> — 21,000,000 ANET</div>
         <div class="hero-meta-item"><strong>Smallest Unit</strong> — Ant (1 ANET = 100,000,000 Ants)</div>
       </div>
@@ -351,18 +351,20 @@
       <div class="section-label">§ 1</div>
       <h2>Abstract</h2>
 
-      <p>A-Network is a long-horizon ecosystem protocol designed to transition the internet from a value-extraction model (Web2) to a value-creation model (Web4), with Web3 acting as the connective bridge. The protocol is implemented across four distinct phases: a mobile-accessible time-based mining application (Web2), a BNB Chain token layer (Web3), a purpose-built Layer 1 blockchain with Time-Based Proof-of-Work (Web4), and a self-sovereign AI and identity network called ANET Core (Web5).</p>
+      <p>A-Network v1.0.2 defines the Web2 mining backend as a clean proof-of-time system. Users do not mine ANET directly at session completion. They mine <strong>ANTS</strong>, the smallest accounting unit of ANET, during validated 6-hour sessions. ANET becomes claimable only after a miner reaches the eligibility threshold of <strong>1,000 completed sessions</strong>.</p>
 
-      <p>The native currency is <strong>$ANET</strong>, capped at a hard maximum of <strong>21,000,000 ANET</strong> — a deliberate parallel to Bitcoin's model of absolute scarcity. The smallest indivisible unit is one <strong>Ant</strong>, where <strong>1 ANET = 100,000,000 Ants</strong>, mirroring Bitcoin's Satoshi denomination system and enabling micro-transaction precision on the network.</p>
+      <p>The native currency is <strong>$ANET</strong>, capped at a hard maximum of <strong>21,000,000 ANET</strong>. The smallest indivisible unit is one <strong>Ant</strong>, where <strong>1 ANET = 100,000,000 Ants</strong>. Web2 mining therefore uses ANTS as the operating ledger unit and ANET as the delayed settlement unit. This avoids precision loss, supports future fee economics, and keeps the supply engine compatible with long-term Layer 1 settlement.</p>
 
-      <p>A-Network deliberately excludes multi-level referral reward structures. Growth is driven by real participation: every reward is earned through genuine mining activity. This separates A-Network from incentive-farming token models and positions it as a merit-based, participation-first protocol.</p>
+      <p>The network reward schedule follows a Bitcoin-style halving direction: the session reward starts at <strong>0.048828125 ANET</strong> per session and halves as the network's total completed session count reaches global milestones. Halving is not triggered by registration count, referrals, or wallet balance. It is triggered only by total verified sessions across the network.</p>
+
+      <p>A-Network deliberately excludes referral reward amplification. Growth may be tracked through F1 referrals, but rewards come only from actual mining participation. This positions the system as a merit-based ledger rather than an incentive pyramid.</p>
 
       <div class="card-row">
         <div class="stat-card"><div class="sc-val">21M</div><div class="sc-label">Max Supply (ANET)</div></div>
         <div class="stat-card"><div class="sc-val">100M</div><div class="sc-label">Ants per ANET</div></div>
         <div class="stat-card"><div class="sc-val">6h</div><div class="sc-label">Session Duration</div></div>
-        <div class="stat-card"><div class="sc-val">7</div><div class="sc-label">Halving Levels</div></div>
-        <div class="stat-card"><div class="sc-val">210k</div><div class="sc-label">Qualified Users per Level</div></div>
+        <div class="stat-card"><div class="sc-val">4</div><div class="sc-label">Reward Stages (0-3)</div></div>
+        <div class="stat-card"><div class="sc-val">500k</div><div class="sc-label">Sessions per Halving</div></div>
         <div class="stat-card"><div class="sc-val">4</div><div class="sc-label">Ecosystem Phases</div></div>
       </div>
     </section>
@@ -504,10 +506,10 @@
             <tr><td><strong>Unit Ratio</strong></td><td>1 ANET = 100,000,000 Ants</td><td>8 decimal places of precision</td></tr>
             <tr><td><strong>Precision</strong></td><td>8 decimal places</td><td>Stored as DECIMAL(20,8) in ledger</td></tr>
             <tr><td><strong>Pre-mine</strong></td><td>0 ANET</td><td>No team allocation, no VC reserve</td></tr>
-            <tr><td><strong>Distribution</strong></td><td>100% via mining</td><td>Every ANET earned through 6-hour sessions</td></tr>
+            <tr><td><strong>Distribution</strong></td><td>100% via mining</td><td>ANTS accumulate per session; ANET is claimed after eligibility</td></tr>
             <tr><td><strong>Network</strong></td><td>BNB Chain (Web3)</td><td>Contract: 0x791055A7d52AA392eaE8De04250497f33807E46A</td></tr>
             <tr><td><strong>Web4 Network</strong></td><td>ANET Layer 1</td><td>Designed — in development post max-supply</td></tr>
-            <tr><td><strong>Issuance Model</strong></td><td>Reverse Era Mining</td><td>Starts low, grows with adoption (see §8)</td></tr>
+            <tr><td><strong>Issuance Model</strong></td><td>ANTS-first with delayed conversion</td><td>Session mining credits ANTS first; ANET claim is supply-controlled</td></tr>
           </tbody>
         </table>
         </div>
@@ -530,8 +532,9 @@
 <span class="comment">// = 2.1 Quadrillion Ants total</span>
 
 <span class="comment">// Example rewards expressed in Ants</span>
-<span class="keyword">3.125</span> ANET/session = <span class="value">312,500,000</span> Ants/session
 <span class="keyword">0.048828125</span> ANET/session = <span class="value">4,882,812</span> Ants/session
+<span class="keyword">0.0244140625</span> ANET/session = <span class="value">2,441,406</span> Ants/session
+<span class="keyword">0.006103515625</span> ANET/session = <span class="value">610,351</span> Ants/session
         </div>
         <p style="margin-top:12px; margin-bottom:0; font-size:13px; color: var(--muted);">Transaction fees on the Web4 Layer 1 will be denominated in Ants — enabling sub-cent fee structures even at high ANET valuations. On-chain amounts will always display with full 8-decimal precision.</p>
       </div>
@@ -550,25 +553,27 @@
 
       <!-- SUPPLY -->
       <h3 id="supply">Supply Exhaustion &amp; Hard Cap Enforcement</h3>
-      <p>The <code>MAX_SUPPLY</code> constant is hardcoded in the mining engine at exactly <strong>21,000,000 ANET</strong>. Every mining completion call checks the remaining supply before crediting any reward. If a session reward would cause total mined to exceed the cap, the reward is truncated to the remaining balance:</p>
+      <p>The <code>MAX_SUPPLY</code> constant is hardcoded in the mining engine at exactly <strong>21,000,000 ANET</strong>. Session completion adds only ANTS to the user ledger. Supply protection becomes critical during claim, where a user's convertible ANET is capped so that <code>totalANETClaimed</code> can never exceed 21,000,000.</p>
       <div class="formula-box">
-<span class="comment">// Overflow protection (from mining engine)</span>
-<span class="keyword">if</span> (stats.total_mined + reward > MAX_SUPPLY) {
-  reward = MAX_SUPPLY - stats.total_mined;   <span class="comment">// truncate to remaining</span>
-  is_mining_active = <span class="value">FALSE</span>;                 <span class="comment">// halt globally</span>
+<span class="comment">// Safe conversion protection (from v1.0.2 model)</span>
+<span class="keyword">if</span> (user.totalSessions &lt; requiredSessionsForEligibility) {
+  claimableANET = <span class="value">0</span>;
 }
 
-<span class="comment">// After MAX_SUPPLY is reached:</span>
-<span class="comment">// - All mining sessions return reward = 0</span>
-<span class="comment">// - is_mining_active flag = FALSE in network_stats</span>
-<span class="comment">// - Web4 Layer 1 activation phase begins</span>
+claimableANET = user.totalANTS / antsPerAnet;
+
+<span class="keyword">if</span> (global.totalANETClaimed + claimableANET &gt; MAX_SUPPLY) {
+  claimableANET = MAX_SUPPLY - global.totalANETClaimed;
+}
+
+claimableANET = max(claimableANET, <span class="value">0</span>);
       </div>
 
       <div class="notice warn">
         <div class="notice-icon">⚠️</div>
         <div class="notice-body">
           <strong>Irreversible Hard Cap</strong>
-          Once <code>is_mining_active</code> is set to <code>FALSE</code>, it cannot be re-enabled from any user action. The contract enforces absolute scarcity. The final issued ANET will be the last one ever created.
+          Once the combination of claimed ANET and remaining claimable supply reaches the hard cap, no further ANET conversion can occur. This preserves absolute scarcity across Web2 accounting and future chain settlement.
         </div>
       </div>
     </section>
@@ -583,19 +588,19 @@
       <div class="section-label">§ 6</div>
       <h2>Web2 Phase — Time-Based Mobile Mining</h2>
 
-      <p>The Web2 phase is the entry point into the A-Network ecosystem. It requires nothing but a smartphone and an internet connection. There is no GPU mining, no staking capital, and no hardware investment. Participation is open to anyone on Earth with access to the Android app (iOS forthcoming).</p>
+      <p>The Web2 phase is the entry point into the A-Network ecosystem. It requires only a smartphone and internet access. There is no GPU mining, no staking capital, and no specialized hardware. In v1.0.2, the Web2 backend acts as a server-validated ledger that records time-based contribution, ANTS accumulation, eligibility progress, and delayed ANET conversion.</p>
 
       <h3 id="session-model">The 6-Hour Session Model</h3>
-      <p>Mining in A-Network is structured around fixed <strong>6-hour sessions</strong>. Each session is a discrete unit of contribution. A user initiates a session, waits 6 hours, and claims their reward. The session duration cannot be shortened, and rewards cannot be claimed before the 6-hour mark has elapsed.</p>
+      <p>Mining in A-Network is structured around fixed <strong>6-hour sessions</strong>. Each session is a discrete unit of validated participation. A user initiates a session, waits 6 hours, and completes it. On completion, the ledger credits ANTS rather than immediately issuing ANET. The session duration cannot be shortened, and instant completion attempts are rejected.</p>
 
       <div class="panel">
         <h4>Session Lifecycle</h4>
         <ol>
           <li><strong>Prerequisites Met:</strong> User must have verified email + created ANET wallet identity (and may optionally set a Web4 migration wallet address).</li>
-          <li><strong>Session Start:</strong> User taps "Start Mining". The server records <code>last_mining_start = NOW()</code> and sets <code>is_mining = TRUE</code>.</li>
+          <li><strong>Session Start:</strong> User taps "Start Mining". The server records <code>last_mining_start = NOW()</code>, writes a <code>mining_sessions</code> row, and sets <code>is_mining = TRUE</code>.</li>
           <li><strong>Active Phase (0–6 hours):</strong> Session runs server-side. App tracks countdown timer. Push notification is scheduled for the 6-hour mark.</li>
           <li><strong>Completion Eligible (≥ 6 hours):</strong> The server validates elapsed time. Only sessions where <code>NOW() - last_mining_start ≥ 21,600 seconds</code> are accepted.</li>
-          <li><strong>Reward Calculation:</strong> Halving level is computed from real-time network state. Reward is calculated and added to user balance.</li>
+          <li><strong>Reward Calculation:</strong> Halving stage is computed from total network sessions. Reward is calculated as an ANET-equivalent session reward, then credited to the user ledger in ANTS.</li>
           <li><strong>Session Reset:</strong> <code>is_mining = FALSE</code>. User can immediately start next session.</li>
         </ol>
       </div>
@@ -607,7 +612,20 @@
 
 <span class="comment">// One session per 6 hours per account</span>
 <span class="comment">// One active session at a time (is_mining flag)</span>
+<span class="comment">// Maximum 4 sessions per day</span>
 <span class="comment">// Unique device binding prevents session duplication</span>
+      </div>
+
+      <h3>Session Capacity Rules</h3>
+      <div class="panel panel-green">
+        <h4>Daily and Account Limits</h4>
+        <ul>
+          <li><strong>Max cycles per day:</strong> 4 completed sessions per account per calendar day.</li>
+          <li><strong>Session duration:</strong> exactly 6 hours of server-observed elapsed time.</li>
+          <li><strong>No overlap:</strong> an account cannot begin a second session while one is active.</li>
+          <li><strong>Eligibility threshold:</strong> users become eligible to convert ANTS into ANET after 1,000 completed sessions.</li>
+          <li><strong>Timestamps tracked:</strong> the backend stores per-session start and completion records for audit, analytics, and abuse detection.</li>
+        </ul>
       </div>
 
       <h3>Prerequisites for Mining</h3>
@@ -617,7 +635,9 @@
         <tbody>
           <tr><td><strong>Email Verification</strong></td><td>Sybil resistance — one real person per account</td><td>OTP verification required before first session</td></tr>
           <tr><td><strong>Wallet Setup</strong></td><td>Bind each miner to a unique ANET wallet identity and optional Web4 migration address</td><td><code>Create Wallet</code> is required before mining; migration wallet can be saved for future Layer 1 migration</td></tr>
+          <tr><td><strong>Device Binding</strong></td><td>Reduce duplicate-account and automation abuse</td><td>Device ID is required before mining is allowed</td></tr>
           <tr><td><strong>Single Active Session</strong></td><td>Prevents parallel session farming</td><td><code>is_mining</code> flag; duplicate start returns error</td></tr>
+          <tr><td><strong>Daily Cycle Cap</strong></td><td>Stops 24/7 API farming and keeps mining cadence predictable</td><td>4 sessions per day enforced at the database/session log level</td></tr>
           <tr><td><strong>Rate Limiting</strong></td><td>API abuse prevention</td><td>30 requests/minute on mining endpoints</td></tr>
         </tbody>
       </table>
@@ -632,133 +652,109 @@
     ────────────────────────────────── -->
     <section class="wp-section" id="halving">
       <div class="section-label">§ 7</div>
-      <h2>Strict ANTS Halving — The Level Formula</h2>
+      <h2>Session Halving — The v1.0.2 Reward Formula</h2>
 
-      <p>A-Network's reward mechanism is called <strong>Reverse Era Mining</strong>. Where Bitcoin starts with a large block reward (50 BTC) that halves over time, A-Network does the inverse at the application layer: it starts at the reward level equivalent to Bitcoin's highly advanced future halvings, and the reward <em>increases</em> back toward higher levels as network adoption grows.</p>
+      <p>A-Network v1.0.2 uses a Bitcoin-style halving schedule at the application ledger layer. The reward starts at <strong>0.048828125 ANET</strong> per completed 6-hour session and halves each time the network reaches another <strong>500,000 total completed sessions</strong>. The trigger is not user count. The trigger is network activity.</p>
 
-      <p>This creates a unique economic incentive: early participants mine at low rates, but as the network grows and more users become qualified ANTS participants, all miners benefit from higher rewards per session. It is anti-speculative: you cannot buy your way to higher rewards. Only real participation counts.</p>
+      <p>This design makes the reward curve predictable, analytics-friendly, and resistant to vanity metrics. A user cannot unlock a higher reward tier through referrals, token purchases, or wallet size. The only driver is aggregated proof-of-time from the network as a whole.</p>
+
+      <p><strong>Dashboard interpretation:</strong> current mining output can be displayed in <strong>ANTS</strong> because ANTS is the smallest live accounting unit of ANET. Users may also see an estimated ANET equivalent, but the ledger source of truth during Web2 remains ANTS accumulation until claim eligibility is reached.</p>
 
       <h3 id="formula">The Halving Level Formula</h3>
 
       <div class="formula-box">
-<span class="comment">// === HALVING LEVEL COMPUTATION ===</span>
+<span class="comment">// === HALVING STAGE COMPUTATION ===</span>
 
-<span class="comment">// Step 1: Count qualified ANTS users</span>
-<span class="comment">// Qualified user = successful_sessions >= 1,000</span>
-<span class="keyword">qualifiedUsers</span> = SELECT COUNT(*) FROM users WHERE successful_sessions >= <span class="value">1,000</span>;
+<span class="comment">// Step 1: Read the total completed sessions in the network</span>
+<span class="keyword">totalSessions</span> = SUM(users.successful_sessions);
 
-<span class="comment">// Step 2: Halving level is driven only by qualified users</span>
-<span class="keyword">halvingLevel</span> = floor(qualifiedUsers / <span class="value">210,000</span>);
+<span class="comment">// Step 2: Advance stage every 500,000 sessions</span>
+<span class="keyword">halvingStage</span> = floor(totalSessions / <span class="value">500,000</span>);
+<span class="keyword">halvingStage</span> = min(halvingStage, <span class="value">3</span>);
 
-<span class="comment">// Step 3: Look up reward in the reverse-era reward table</span>
-<span class="keyword">rewardPerSession</span> = BTC_HALVING_REWARDS[halvingLevel];
+<span class="comment">// Step 3: Apply Bitcoin-style halving to the base session reward</span>
+<span class="keyword">baseReward</span> = <span class="value">0.048828125</span>;
+<span class="keyword">rewardPerSession</span> = baseReward / (2 ^ halvingStage);
+<span class="keyword">rewardPerSessionAnts</span> = floor(rewardPerSession × <span class="value">100,000,000</span>);
       </div>
 
       <div class="notice info">
         <div class="notice-icon">💡</div>
         <div class="notice-body">
-          <strong>Why Strict ANTS Qualification?</strong>
-          The strict-qualified-user design prevents fake-account inflation. A user only counts toward level progression after reaching <code>1,000</code> successful sessions. This makes level growth depend on long-term, verifiable participation rather than raw sign-up count.
+              <strong>Why Session-Based Halving?</strong>
+              Session-driven halving is easier to audit, harder to manipulate, and cleaner for analytics. It ties the reward schedule to actual throughput of the protocol instead of ambiguous growth metrics such as sign-ups or social expansion.
         </div>
       </div>
 
-      <p><strong>Important metric distinction:</strong> <em>Total Users</em> and <em>Qualified Users</em> are different system values. Total Users counts all registered miners. Qualified Users counts only miners with <code>successful_sessions &gt;= 1000</code>. Only Qualified Users can move halving levels.</p>
+          <p><strong>Important metric distinction:</strong> <em>Eligibility</em> and <em>halving</em> are now separate concepts. A user becomes eligible to convert after <code>1,000</code> sessions, but halving progression is driven only by <code>totalSessions</code> at the network level.</p>
 
-      <h3>Threshold Milestones to Next Halving Level</h3>
+          <h3>Threshold Milestones to the Next Halving Stage</h3>
       <div class="formula-box">
-<span class="comment">// To advance from Level N to Level N+1:</span>
-<span class="keyword">Required Qualified Users</span> = (N+1) × 210,000
-<span class="keyword">Qualifier Per User</span>      = 1,000 successful sessions
+        <span class="comment">// To advance from Stage N to Stage N+1:</span>
+        <span class="keyword">Required Total Sessions</span> = (N+1) × 500,000
 
-<span class="comment">// Example: Level 0 → Level 1</span>
-<span class="comment">// Needs: 210,000 qualified users</span>
-<span class="comment">// (each qualified user has >= 1,000 sessions)</span>
+        <span class="comment">// Example: Stage 0 → Stage 1</span>
+        <span class="comment">// Needs: 500,000 total completed sessions network-wide</span>
 
-<span class="comment">// Example: Level 5 → Level 6 (maximum reward)</span>
-<span class="comment">// Needs: 1,260,000 qualified users</span>
-<span class="comment">// (each qualified user has >= 1,000 sessions)</span>
+        <span class="comment">// Example: Stage 2 → Stage 3</span>
+        <span class="comment">// Needs: 1,500,000 total completed sessions network-wide</span>
+
+        <span class="comment">// Stage 3 is the capped final halving stage in v1.0.2</span>
       </div>
 
       <h3 id="reward-table">Complete Reward Table</h3>
-      <p>The seven reward levels correspond to Bitcoin's halving eras running in reverse — from the 10th halving (most advanced, smallest reward) back to the 4th halving (current Bitcoin era, largest Web2 reward). This is the "Reverse Era" concept: A-Network's early phase mirrors Bitcoin's far future, and adoption unlocks the rewards of Bitcoin's present.</p>
+      <p>The v1.0.2 reward table is intentionally compact and predictable. There are four stages, from Stage 0 to Stage 3, with each stage halving the session reward. This allows a clean public API, simpler frontend interpretation, and easier data warehousing for analytics.</p>
 
       <div class="panel">
         <div class="table-scroll">
         <table class="wp-table table-wide">
           <thead>
             <tr>
-              <th>Halving Level</th>
-              <th>Users Needed</th>
-              <th>Qualification Rule</th>
+              <th>Halving Stage</th>
+              <th>Total Sessions Threshold</th>
+              <th>Trigger Rule</th>
               <th>ANET / Session</th>
               <th>Ants / Session</th>
-              <th>Bitcoin Era Equivalent</th>
+              <th>Direction</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>Level 0</strong></td>
-              <td>None</td>
-              <td>0</td>
+              <td><strong>Stage 0</strong></td>
+              <td>0 - 499,999</td>
+              <td>Total sessions below 500,000</td>
               <td><strong>0.04882813 ANET</strong></td>
-              <td>4,882,813 Ants</td>
-              <td>~10th Halving (~2048)</td>
+              <td>4,882,812 Ants</td>
+              <td>Initial launch reward</td>
               <td><span class="tag tag-active">Launch Rate</span></td>
             </tr>
             <tr>
-              <td><strong>Level 1</strong></td>
-              <td>210,000</td>
-              <td>Each counted user has ≥ 1,000 sessions</td>
-              <td><strong>0.09765625 ANET</strong></td>
-              <td>9,765,625 Ants</td>
-              <td>~9th Halving (~2044)</td>
+              <td><strong>Stage 1</strong></td>
+              <td>500,000 - 999,999</td>
+              <td>Total sessions reach 500,000</td>
+              <td><strong>0.02441406 ANET</strong></td>
+              <td>2,441,406 Ants</td>
+              <td>First halving</td>
               <td><span class="tag tag-future">Upcoming</span></td>
             </tr>
             <tr>
-              <td><strong>Level 2</strong></td>
-              <td>420,000</td>
-              <td>Each counted user has ≥ 1,000 sessions</td>
-              <td><strong>0.19531250 ANET</strong></td>
-              <td>19,531,250 Ants</td>
-              <td>~8th Halving (~2040)</td>
+              <td><strong>Stage 2</strong></td>
+              <td>1,000,000 - 1,499,999</td>
+              <td>Total sessions reach 1,000,000</td>
+              <td><strong>0.01220703 ANET</strong></td>
+              <td>1,220,703 Ants</td>
+              <td>Second halving</td>
               <td><span class="tag tag-future">Upcoming</span></td>
             </tr>
             <tr>
-              <td><strong>Level 3</strong></td>
-              <td>630,000</td>
-              <td>Each counted user has ≥ 1,000 sessions</td>
-              <td><strong>0.39062500 ANET</strong></td>
-              <td>39,062,500 Ants</td>
-              <td>~7th Halving (~2036)</td>
-              <td><span class="tag tag-future">Upcoming</span></td>
-            </tr>
-            <tr>
-              <td><strong>Level 4</strong></td>
-              <td>840,000</td>
-              <td>Each counted user has ≥ 1,000 sessions</td>
-              <td><strong>0.78125000 ANET</strong></td>
-              <td>78,125,000 Ants</td>
-              <td>~6th Halving (~2032)</td>
-              <td><span class="tag tag-future">Upcoming</span></td>
-            </tr>
-            <tr>
-              <td><strong>Level 5</strong></td>
-              <td>1,050,000</td>
-              <td>Each counted user has ≥ 1,000 sessions</td>
-              <td><strong>1.56250000 ANET</strong></td>
-              <td>156,250,000 Ants</td>
-              <td>~5th Halving (~2028)</td>
-              <td><span class="tag tag-future">Upcoming</span></td>
-            </tr>
-            <tr>
-              <td><strong>Level 6</strong></td>
-              <td>1,260,000</td>
-              <td>Each counted user has ≥ 1,000 sessions</td>
-              <td><strong>3.12500000 ANET</strong></td>
-              <td>312,500,000 Ants</td>
-              <td>4th Halving (Apr 2024)</td>
-              <td><span class="tag tag-max">Maximum Rate</span></td>
+              <td><strong>Stage 3</strong></td>
+              <td>1,500,000+</td>
+              <td>Total sessions reach 1,500,000</td>
+              <td><strong>0.00610352 ANET</strong></td>
+              <td>610,351 Ants</td>
+              <td>Final capped halving stage</td>
+              <td><span class="tag tag-max">Capped</span></td>
             </tr>
           </tbody>
         </table>
@@ -767,17 +763,14 @@
 
       <h3>Sessions Required to Exhaust Supply</h3>
       <div class="formula-box">
-<span class="comment">// Theoretical minimum sessions to mint all 21,000,000 ANET</span>
-<span class="comment">// (assuming network reaches Level 6 immediately — best case)</span>
-<span class="keyword">min_sessions</span> = 21,000,000 / 3.125 = <span class="value">6,720,000</span> sessions
+<span class="comment">// Theoretical example using Stage 0 only</span>
+<span class="keyword">sessionsAtInitialRate</span> = 21,000,000 / 0.048828125 ≈ <span class="value">430,080,000</span>
 
-<span class="comment">// Realistic estimate with Reverse Era progression:</span>
-<span class="comment">// Early sessions at Level 0 (0.048828125 ANET)</span>
-<span class="comment">// Late sessions at Level 6 (3.125 ANET)</span>
-<span class="comment">// Total issuance = weighted sum across all levels</span>
+<span class="comment">// In practice, the reward halves as total network sessions increase.</span>
+<span class="comment">// So issuance is the weighted sum of all completed sessions across</span>
+<span class="comment">// stages 0, 1, 2, and 3, plus claim timing and supply truncation.</span>
 
-<span class="comment">// Anti-inflation design: lower early rewards prevent</span>
-<span class="comment">// whale accumulation before broad adoption</span>
+<span class="comment">// The hard cap applies at the ANET claim boundary, not only at session crediting.</span>
       </div>
     </section>
 
@@ -800,9 +793,10 @@
           <tr><td><strong>Bot sessions</strong></td><td>6-hour server-validated timer; API rate limiting (30 req/min)</td></tr>
           <tr><td><strong>Multiple accounts per person</strong></td><td>Email OTP verification required; unique device binding</td></tr>
           <tr><td><strong>Parallel session farming</strong></td><td><code>is_mining</code> boolean prevents starting second session</td></tr>
+          <tr><td><strong>Daily farming loops</strong></td><td>Maximum 4 sessions per user per day</td></tr>
           <tr><td><strong>Referral reward farming</strong></td><td>Referrals are tracking-only; zero reward amplification</td></tr>
-          <tr><td><strong>Fake user inflation (to advance halving)</strong></td><td>Strict ANTS rule: only users with <code>successful_sessions >= 1000</code> are counted</td></tr>
-          <tr><td><strong>Over-minting</strong></td><td>Hard supply cap enforced on every complete call; remainder truncation</td></tr>
+          <tr><td><strong>Instant completion attempts</strong></td><td>Server rejects completion before the full 6-hour window and flags suspicious behavior</td></tr>
+          <tr><td><strong>Over-minting</strong></td><td>Hard supply cap enforced during ANET conversion; conversion truncates to remaining supply</td></tr>
           <tr><td><strong>Wallet ownership integrity</strong></td><td>Each account has a unique ANET wallet identity and can save a migration wallet for Web4</td></tr>
           <tr><td><strong>Unverified accounts</strong></td><td><code>email_verified</code> check on both start and complete endpoints</td></tr>
         </tbody>
@@ -820,7 +814,7 @@
       <div class="section-label">§ 9</div>
       <h2>Web3 Phase — BNB Chain Integration</h2>
 
-      <p>Web3 is the bridge between the A-Network mining economy and the decentralized financial world. The ANET token is deployed on the BNB Smart Chain (BSC), enabling ecosystem transparency, DEX visibility, and public on-chain tracking of ecosystem growth while Web2 mining continues.</p>
+      <p>Web3 is the visibility bridge between the A-Network mining economy and the decentralized financial world. In the current product, Web2 remains the source of truth for session mining and ANTS accumulation, while the BNB Chain presence provides public token visibility, wallet references, and ecosystem discovery.</p>
 
       <h3 id="contract">ANET Token Contract</h3>
       <div class="panel panel-accent">
@@ -838,14 +832,14 @@
       </div>
 
       <h3 id="wallet">Wallet Identity &amp; Migration Address</h3>
-      <p>Each account can now create a unique ANET wallet identity in-app (custom ANET-formatted address). This wallet is linked to the miner profile and is used to display the user's mined ANET balance from the Web2 ledger.</p>
-      <p>Users can also save a separate migration wallet address for future Web4 Layer 1 migration. This allows migration planning ahead of chain launch while preserving current mining continuity.</p>
+      <p>Each account can create a unique ANET wallet identity in-app. This wallet is linked to the miner profile and is used to display the user's currently claimed ANET while also preserving tracked ANTS for migration visibility.</p>
+      <p>Users can also save a separate migration wallet address for future Web4 Layer 1 migration. This allows migration planning ahead of chain launch while preserving mining continuity and future identity portability.</p>
 
       <div class="panel panel-accent">
         <h4>Current Wallet Behavior</h4>
         <ul>
           <li><strong>Create Wallet:</strong> Generates a unique ANET wallet identity for each user account.</li>
-          <li><strong>Check Balance:</strong> Shows the user's mined ANET synchronized from the Web2 ledger.</li>
+          <li><strong>Check Balance:</strong> Shows claimed ANET balance and tracked ANTS derived from the Web2 ledger.</li>
           <li><strong>Set Migration Wallet:</strong> Optional address field for future Web4 migration routing.</li>
           <li><strong>Web3 Role:</strong> BNB Chain contract remains the ecosystem visibility layer while Web4 Layer 1 is prepared.</li>
         </ul>
@@ -930,6 +924,8 @@ Block {
         </ol>
       </div>
 
+      <p>In the application dashboard, ANET supply and ANTS supply can both be shown side by side. This gives users a clear view of whole-token economics and smallest-unit accounting at the same time.</p>
+
       <div class="formula-box">
 <span class="comment">// Block fee distribution formula</span>
 <span class="keyword">feePerMiner</span> = totalBlockFees (Ants) / activeMinerCount
@@ -955,23 +951,22 @@ Block {
       </div>
 
       <h3 id="migration">Web2 → Web4 Migration Specification</h3>
-      <p>The migration from the Web2 PostgreSQL ledger to the Web4 Layer 1 blockchain is the most critical operation in A-Network's history. It must be transparent, verifiable, and zero-loss. Every balance, every session count, and every wallet address must be preserved exactly.</p>
+      <p>The migration from the Web2 PostgreSQL ledger to the Web4 Layer 1 blockchain is the most critical operation in A-Network's history. It must be transparent, verifiable, and zero-loss. Every wallet identity, migration wallet, ANTS balance, claimed ANET total, and session count must be preserved exactly.</p>
 
       <div class="panel panel-purple">
         <h4>Migration Process — Step by Step</h4>
         <ol>
-          <li><strong>Max Supply Reached:</strong> The server detects <code>total_mined ≥ 21,000,000</code>. <code>is_mining_active = FALSE</code> is written to <code>network_stats</code>. No further rewards are issued.</li>
-          <li><strong>Snapshot Export:</strong> A cryptographically signed snapshot of the entire <code>users</code> table is exported: all <code>id</code>, <code>wallet_address</code>, <code>custom_wallet_address</code>, <code>migration_wallet_address</code>, <code>balance</code>, <code>successful_sessions</code>, <code>created_at</code> records. The snapshot hash is published publicly.</li>
-          <li><strong>Genesis Block Construction:</strong> The ANET Layer 1 genesis block is constructed from the snapshot. Every user's approved migration mapping and <code>balance</code> become part of the initial state tree.</li>
+          <li><strong>Migration Snapshot Window:</strong> The Web2 ledger exports a signed snapshot of all participating users, including <code>wallet_address</code>, <code>migration_wallet_address</code>, <code>ant_balance</code>, <code>claimed_anet</code>, and <code>successful_sessions</code>.</li>
+          <li><strong>Eligibility Mapping:</strong> Users who have reached the migration threshold of 1,000 sessions can be marked as fully eligible migration participants, while lower-session accounts remain auditable in the snapshot for future governed treatment.</li>
+          <li><strong>Genesis Block Construction:</strong> The ANET Layer 1 genesis block is constructed from the signed snapshot. Each user's approved migration mapping, ANTS-derived state, and claimed ANET settlement become part of the initial state tree.</li>
           <li><strong>Chain Launch:</strong> The genesis block is sealed, hashed, and broadcast to the initial validator set (early miners who meet node eligibility thresholds).</li>
-          <li><strong>Ledger Re-Org (see §11):</strong> Transactions are re-ordered starting from the most recent Web2 miners to establish chain history.</li>
           <li><strong>Verification Period:</strong> A 30-day public verification window allows any participant to audit their balance against the published snapshot.</li>
           <li><strong>Full Activation:</strong> After verification, the Layer 1 chain is opened for transactions, smart contracts, and fee mining.</li>
         </ol>
       </div>
 
       <h3 id="reorg">Ledger Re-Organization — Last Miner First</h3>
-      <p>The genesis state of the Web4 chain is populated from the Web2 database in a <strong>reverse-chronological order</strong>: the most recently active miners are synchronized first. This is called the <strong>Ledger Re-Org</strong>.</p>
+      <p>The genesis state of the Web4 chain can be populated from the Web2 database using a <strong>recent-activity-first</strong> synchronization order. This favors the latest verified state while minimizing downtime for miners who remain active near migration.</p>
 
       <div class="panel panel-amber">
         <h4>Why Reverse-Chronological Sync?</h4>
@@ -996,8 +991,8 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
       <div class="notice success">
         <div class="notice-icon">🔗</div>
         <div class="notice-body">
-          <strong>Eligibility: All Web2 Database Miners Are Eligible</strong>
-          Every miner who has a recorded balance in the A-Network Web2 database is eligible for Web4 Layer 1 migration. There is no minimum balance requirement, no minimum session count, and no application process. The ledger migration is automatic and inclusive. If you mined at least one session in Web2, your balance is carried to Web4.
+          <strong>Migration Principle</strong>
+          Web2 is the canonical source of mining history. The published snapshot must preserve account existence, wallet links, ANTS accumulation, claimed ANET, and session history. The exact migration treatment of sub-threshold accounts remains a governed policy matter, but no valid ledger record should be silently lost.
         </div>
       </div>
     </section>
@@ -1160,7 +1155,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
           <div class="rm-phase">Phase 1 — Completed</div>
           <div class="rm-title">Web2 Mining App Launch</div>
           <div class="rm-desc">
-            Launch of the Android mining application with 6-hour time-based sessions, Reverse Era Mining engine, email OTP verification, leaderboard, referral tracking, and push notifications. Backend deployed on cloud infrastructure with PostgreSQL ledger.
+            Launch of the Android mining application with 6-hour time-based sessions, ANTS-first mining ledger, email OTP verification, leaderboard, referral tracking, and push notifications. Backend deployed on cloud infrastructure with PostgreSQL ledger.
           </div>
           <div class="rm-tags">
             <span class="rm-tag">Android App ✓</span>
@@ -1177,7 +1172,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
           <div class="rm-phase">Phase 1b — Completed</div>
           <div class="rm-title">App Stability &amp; Bug Fixes</div>
           <div class="rm-desc">
-            Resolution of notification spam, mining state lock issues, balance sync improvements, and ad optimization. App published on Google Play Store. Version 1.0.2 Build 3 released with strict ANTS halving qualification and staged wallet UX (Coming Soon).
+            Resolution of notification spam, mining state lock issues, balance sync improvements, and ad optimization. App published on Google Play Store. Version 1.0.2 introduced session-based halving, migration progress visibility, ANTS-first accounting, and staged wallet UX.
           </div>
           <div class="rm-tags">
             <span class="rm-tag">Play Store ✓</span>
@@ -1193,11 +1188,11 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
           <div class="rm-phase">Phase 2 — In Progress</div>
           <div class="rm-title">iOS App Launch &amp; User Growth</div>
           <div class="rm-desc">
-            Publication of the iOS version on the Apple App Store. Expansion to Level 1 strict ANTS threshold (210,000 qualified users, each with at least 1,000 successful sessions). Community building, international outreach, and in-app ecosystem education content. Live network statistics dashboard.
+            Publication of the iOS version on the Apple App Store. Expansion of the global session ledger toward the first 500,000-session halving milestone. Community building, international outreach, ecosystem education content, and live network statistics dashboards.
           </div>
           <div class="rm-tags">
             <span class="rm-tag">iOS App</span>
-            <span class="rm-tag">210k Users Target</span>
+            <span class="rm-tag">500k Sessions Target</span>
             <span class="rm-tag">Community Growth</span>
             <span class="rm-tag">Network Dashboard</span>
           </div>
@@ -1222,14 +1217,14 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
         <div class="rm-item">
           <div class="rm-dot"></div>
           <div class="rm-phase">Phase 4</div>
-          <div class="rm-title">Level 6 Halving &amp; Max Reward Era</div>
+          <div class="rm-title">Stage 3 Halving &amp; Supply Maturity</div>
           <div class="rm-desc">
-            Network reaches 1,260,000 qualified users (each with at least 1,000 successful sessions). Mining reward reaches maximum: 3.125 ANET per session. Community milestone celebration. Transition planning for Web4 Layer 1 begins. Final supply countdown visible in app.
+            Network reaches the capped stage-3 halving range after 1,500,000 total sessions. Reward stabilizes at the final configured session level for v1.0.2, supply countdown becomes more visible, and Web4 migration planning intensifies.
           </div>
           <div class="rm-tags">
-            <span class="rm-tag">1.26M Users</span>
-            <span class="rm-tag">3.125 ANET/Session</span>
-            <span class="rm-tag">Level 6 Halving</span>
+            <span class="rm-tag">1.5M Sessions</span>
+            <span class="rm-tag">Stage 3</span>
+            <span class="rm-tag">0.00610352 ANET/Session</span>
             <span class="rm-tag">Web4 Planning</span>
           </div>
         </div>
