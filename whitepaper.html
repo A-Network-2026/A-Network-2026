@@ -332,7 +332,7 @@
     <div class="hero">
       <div class="hero-badge">⚡ Official Technical Whitepaper</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A multi-phase ecosystem spanning Web2 proof-of-time session mining, Web3 visibility on BNB Chain, planned Web4 Layer 1 settlement, and ANET Core. Version 1.0.2 defines A-Network as an ANTS-first mining ledger with delayed ANET conversion, strict session validation, and Bitcoin-style reward halving driven only by total network sessions.</p>
+      <p class="hero-sub">A multi-phase ecosystem spanning Web2 proof-of-time session mining, Web3 visibility on BNB Chain, planned Web4 Layer 1 settlement, and ANET Core. Version 1.0.2 defines A-Network as an ANTS-first mining ledger with delayed ANET conversion, strict session validation, heartbeat-backed proof-of-authenticity, and Bitcoin-style reward halving driven only by total network sessions.</p>
       <div class="hero-meta">
         <div class="hero-meta-item"><strong>Version</strong> — 1.0.2</div>
         <div class="hero-meta-item"><strong>Published</strong> — April 2026</div>
@@ -634,11 +634,11 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
         <thead><tr><th>Requirement</th><th>Purpose</th><th>Enforcement</th></tr></thead>
         <tbody>
           <tr><td><strong>Email Verification</strong></td><td>Sybil resistance — one real person per account</td><td>OTP verification required before first session</td></tr>
-          <tr><td><strong>Wallet Setup</strong></td><td>Bind each miner to a unique ANET wallet identity and optional Web4 migration address</td><td><code>Create Wallet</code> is required before mining; migration wallet can be saved for future Layer 1 migration</td></tr>
+          <tr><td><strong>Wallet Setup</strong></td><td>Bind each miner to a unique ANET wallet identity and optional Web4 migration address</td><td><code>Generate Wallet</code> is required before mining; migration wallet can be saved for future Layer 1 migration</td></tr>
           <tr><td><strong>Device Binding</strong></td><td>Reduce duplicate-account and automation abuse</td><td>Device ID is required before mining is allowed</td></tr>
           <tr><td><strong>Single Active Session</strong></td><td>Prevents parallel session farming</td><td><code>is_mining</code> flag; duplicate start returns error</td></tr>
           <tr><td><strong>Daily Cycle Cap</strong></td><td>Stops 24/7 API farming and keeps mining cadence predictable</td><td>4 sessions per day enforced at the database/session log level</td></tr>
-          <tr><td><strong>Rate Limiting</strong></td><td>API abuse prevention</td><td>30 requests/minute on mining endpoints</td></tr>
+          <tr><td><strong>Rate Limiting</strong></td><td>API abuse prevention</td><td>Global limit baseline 100 requests / 15 minutes per IP, with stricter route-level limits on sensitive actions</td></tr>
         </tbody>
       </table>
       </div>
@@ -790,15 +790,17 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <table class="wp-table">
         <thead><tr><th>Attack Vector</th><th>Defense Mechanism</th></tr></thead>
         <tbody>
-          <tr><td><strong>Bot sessions</strong></td><td>6-hour server-validated timer; API rate limiting (30 req/min)</td></tr>
-          <tr><td><strong>Multiple accounts per person</strong></td><td>Email OTP verification required; unique device binding</td></tr>
+          <tr><td><strong>Bot sessions</strong></td><td>6-hour server-validated timer + heartbeat verification + risk scoring and audit logs</td></tr>
+          <tr><td><strong>Multiple accounts per person</strong></td><td>Email OTP verification + device binding with configurable device account cap (default: 2)</td></tr>
           <tr><td><strong>Parallel session farming</strong></td><td><code>is_mining</code> boolean prevents starting second session</td></tr>
           <tr><td><strong>Daily farming loops</strong></td><td>Maximum 4 sessions per user per day</td></tr>
           <tr><td><strong>Referral reward farming</strong></td><td>Referrals are tracking-only; zero reward amplification</td></tr>
           <tr><td><strong>Instant completion attempts</strong></td><td>Server rejects completion before the full 6-hour window and flags suspicious behavior</td></tr>
           <tr><td><strong>Over-minting</strong></td><td>Hard supply cap enforced during ANET conversion; conversion truncates to remaining supply</td></tr>
           <tr><td><strong>Wallet ownership integrity</strong></td><td>Each account has a unique ANET wallet identity and can save a migration wallet for Web4</td></tr>
-          <tr><td><strong>Unverified accounts</strong></td><td><code>email_verified</code> check on both start and complete endpoints</td></tr>
+          <tr><td><strong>Unverified accounts</strong></td><td><code>email_verified</code> check on start/complete; suspicious attempts are flagged and logged</td></tr>
+          <tr><td><strong>Session spoofing / inactivity</strong></td><td>Server validates <code>last_heartbeat</code> gap and minimum heartbeat count before reward completion</td></tr>
+          <tr><td><strong>Risk-heavy claims</strong></td><td>Claim is blocked if account is flagged or risk score exceeds configured threshold</td></tr>
         </tbody>
       </table>
       </div>
@@ -838,7 +840,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <div class="panel panel-accent">
         <h4>Current Wallet Behavior</h4>
         <ul>
-          <li><strong>Create Wallet:</strong> Generates a unique ANET wallet identity for each user account.</li>
+          <li><strong>Generate Wallet:</strong> Generates a unique ANET wallet identity for each user account.</li>
           <li><strong>Check Balance:</strong> Shows claimed ANET balance and tracked ANTS derived from the Web2 ledger.</li>
           <li><strong>Set Migration Wallet:</strong> Optional address field for future Web4 migration routing.</li>
           <li><strong>Web3 Role:</strong> BNB Chain contract remains the ecosystem visibility layer while Web4 Layer 1 is prepared.</li>
@@ -1117,15 +1119,15 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
       <ul>
         <li><strong>JWT Tokens:</strong> All API endpoints require Bearer token authentication. Tokens expire and are refreshed on session activity.</li>
         <li><strong>Email OTP:</strong> Account activation requires OTP verification during registration (one-time ownership confirmation) — a phone-accessible, infrastructure-light method that works globally without SMS cost.</li>
-        <li><strong>Rate Limiting:</strong> Mining endpoints: 30 req/min. Auth endpoints: additional hardened limits per IP.</li>
+        <li><strong>Rate Limiting:</strong> Global baseline 100 requests per 15 minutes per IP, with additional route-specific throttles for auth/mining actions.</li>
         <li><strong>IP Logging:</strong> Last IP recorded per user for anomaly detection (not persisted in history, only current).</li>
       </ul>
 
       <h3>Database Security</h3>
       <ul>
         <li>Passwords stored as bcrypt hashes (minimum 10 rounds) — plaintext never stored.</li>
-        <li>Wallet private keys never touch the server — all key generation is client-side.</li>
-        <li>Seed phrases stored only in user-controlled storage — A-Network has zero key custody.</li>
+        <li>Wallet identity is generated and linked at account level with server-validated uniqueness constraints.</li>
+        <li>Seed phrase is displayed to the user for backup and should be stored offline by the account owner.</li>
         <li>PostgreSQL with parameterized queries throughout — SQL injection surface is zero.</li>
       </ul>
 
@@ -1307,7 +1309,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <!-- FOOTER -->
     <div class="wp-footer">
-      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> · Official Whitepaper v1.0 · April 2026</p>
+      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> · Official Whitepaper v1.0.2 · April 2026</p>
       <p>Website: <a href="https://a-network.net">a-network.net</a> · Contract: <a href="https://bscscan.com/address/0x791055A7d52AA392eaE8De04250497f33807E46A">0x791055A7...E46A</a> · App: <a href="https://play.google.com/store">Google Play</a></p>
       <p style="margin-top: 10px;">© 2026 A-Network. All rights reserved. &nbsp;·&nbsp; <a href="https://a-network.net/privacy.html">Privacy</a> &nbsp;·&nbsp; <a href="https://a-network.net/terms.html">Terms</a></p>
     </div>
