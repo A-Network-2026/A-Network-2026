@@ -1,221 +1,234 @@
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=0,24,12,18&height=200&section=header&text=A%20Network&fontSize=42&fontAlignY=40&desc=Simulation-Based%20Mining%20System&descFontSize=18&fontColor=FFFFFF"/>
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=0,24,12,18&height=200&section=header&text=A%20Network&fontSize=42&fontAlignY=40&desc=Web4%20ANTS%20Ecosystem&descFontSize=18&fontColor=FFFFFF"/>
 </div>
 
 ---
 
-### Core System Initialization
+# 🐜 A-Network — Web4 ANTS Ecosystem
 
-<div align="center">
-
-<pre>
-> Booting Mining Simulation...
-> Loading Application Interface... [COMPLETE]
-> Connecting User System... [ACTIVE]
-> Initializing Reward Engine... [RUNNING]
-> Mission: Provide an engaging and interactive experience
-</pre>
-
-</div>
+A-Network is a **Web4 decentralized ecosystem** inspired by **ant colonies**, where every participant contributes to building a **living digital network** through time-based sessions.
 
 ---
 
-### Primary System
+## 🌐 Core Vision
 
-<div align="center">
+A-Network evolves beyond Web3 into **Web4**, where:
 
-<pre>
-> System Type   : Simulation-Based Application
-> Core Focus    : User Engagement & Activity
+- Users are not just participants — they are **infrastructure**
+- The system is **fully decentralized**
+- Growth is driven by **collective intelligence**
+- No central authority controls the network
+
+---
+
+## 🐜 ANTS Ecosystem Concept
+
+The system is modeled after **real ant colonies**:
+
+| Role | Description |
+|------|------------|
+| 🟢 Worker Ants | Users performing sessions |
+| 🔵 Builder Ants | Developers expanding the system |
+| 🟡 Guardian Ants | Node operators securing the network |
+| 🟣 Scout Ants | Early adopters growing the ecosystem |
+
+👉 Every user is an **ANT contributing to the colony**
+
+---
+
+## ⚙️ Primary System — Session Mining
+
+```
+> System Type   : Web4 Mining Protocol
+> Core Model    : Proof-of-Time (Session-Based)
 > Mining Cycle  : 6 Hours
-> Status        : ACTIVE
-</pre>
+> Status        : ACTIVE DEVELOPMENT
+```
 
-</div>
-
-This application provides a structured, time-based activity system where users can interact with a simulated mining experience and receive in-app rewards.
+Users participate in **time-based sessions** to earn rewards and build network value.
 
 ---
 
-### Live System Status
+## 🔄 Reverse Mining Model
+
+A-Network introduces **Reverse Mining**:
+
+- Starts with controlled rewards
+- Scales with user growth
+- Prevents early dominance
+- Ensures long-term fairness
+
+---
+
+## 💰 Tokenomics — 100% Fair Mining
+
+```
+----------------------------------------
+TOKENOMICS ENGINE (PURE MINING MODEL)
+----------------------------------------
+
+> Max Supply     : 21,000,000 ANET
+> Mining Share   : 100%
+> Pre-Mine       : 0%
+> Team Allocation: 0%
+> Reserve        : 0%
+```
+
+---
+
+### 📊 Distribution Principles
+
+- ✅ All tokens are earned through mining
+- ✅ No pre-allocation or hidden supply
+- ✅ No investor or insider advantage
+- ✅ Fully participation-based economy
+
+---
+
+### 🧠 Founder Policy
+
+```
+> Founders = Miners
+> Developers = Participants
+> No privileged rewards
+```
+
+👉 Everyone earns equally through activity
+
+---
+
+### ⚡ Reward Model
+
+```
+> 1000 Sessions = 0.04888 ANET
+> Fixed emission per session
+> Anti-inflation design
+```
+
+---
+
+## 🧬 System Architecture
+
+```
+> Backend        : Node.js
+> Database       : PostgreSQL / MongoDB
+> App            : FlutterFlow
+> Network Model  : User-driven
+> Security       : Anti-cheat system
+```
+
+---
+
+## 🖥️ ANET Nodes (Future Layer)
+
+ANET Nodes will:
+
+- Validate transactions
+- Maintain decentralization
+- Secure the ecosystem
+- Enable full Web4 infrastructure
+
+---
+
+## 🌍 Web4 Evolution Roadmap
+
+```
+Phase 1: Web2 Session Mining
+Phase 2: Web3 Visibility (BNB Chain)
+Phase 3: ANET Node Network
+Phase 4: Full Web4 Decentralization
+```
+
+---
+
+## 📡 Live System Status
 
 <p align="center">
   <img src="https://img.shields.io/badge/System-ONLINE-00c6ff?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Users-ACTIVE-0072ff?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Engine-RUNNING-00ff87?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Mining-RUNNING-00ff87?style=for-the-badge" />
 </p>
 
-<div align="center">
+---
 
-<pre>
-> App Status        : OPERATIONAL
-> Reward Engine     : ACTIVE
-> Security Layer    : ENABLED
-> Activity State    : CONTINUOUS
-</pre>
+## ⚡ Key Features
 
-</div>
+```
+> Time-Based Mining Sessions
+> Progress Tracking System
+> Anti-Cheat Protection
+> Referral System (No Rewards Abuse)
+> Multi-language Support
+> Real-time Dashboard
+```
 
 ---
 
-### App Features
+## 📈 Economic Model
 
-<div align="center">
+A-Network separates:
 
-<pre>
-> Time-Based Sessions
-> Reward System
-> Optional Ad Boost
-> Clean Mobile Interface
-</pre>
+### 🔹 Token Economy
+- Fully decentralized
+- 100% mining-based
+- No manipulation
 
-</div>
+### 🔹 Business Model
+```
+> Ads (AdMob)
+> Optional Boost Features
+> Premium Services
+```
 
----
-
-### Monetization
-
-<div align="center">
-
-<pre>
-> Ad System       : Google AdMob Integration
-> Boost Feature   : Optional Reward Multiplier
-</pre>
-
-</div>
+👉 Revenue supports operations — NOT token supply
 
 ---
 
-### Disclaimer
+## 🧠 AI + Web4 Integration
 
-This application is a simulation-based system designed for entertainment purposes only.
+```
+> AI-Assisted Development
+> Autonomous System Design
+> Scalable Infrastructure
+```
 
-It does not provide real cryptocurrency, financial services, or investment opportunities. All rewards are virtual and have no real-world monetary value.
+A-Network combines:
+- Web2 monetization
+- Web3 ownership
+- Web4 decentralization
 
 ---
 
-### Privacy Policy
-<p>
-<a href="https://a-network.net/privacy.html">
+## ⚠️ Disclaimer
+
+This application is currently a **simulation-based system**.
+
+- Rewards are **virtual during testing phase**
+- No financial guarantees
+- Not an investment product
+
+---
+
+## 🔐 Privacy Policy
+
 https://a-network.net/privacy
-</a>
-</p>
 
 ---
 
-### Primary System: Reverse Mining
+## 🚀 Final Concept
+
+A-Network is not just an application.
+
+It is a:
+
+> 🧬 Living Digital Colony  
+> 🌐 Decentralized Infrastructure  
+> 🐜 Collective Intelligence System  
+
+---
 
 <div align="center">
 
-<pre>
-> System Type   : Web4 Mining Protocol
-> Core Focus    : Fair Distribution & Scalable Growth
-> Mining Cycle  : 6 Hours
-> Halving Rule  : Every 210,000 Users
-> Status        : ACTIVE DEVELOPMENT
-</pre>
-
-</div>
-
-Reverse Mining Protocol redefines traditional mining by starting with **low rewards**  
-and scaling through **controlled user growth**, preventing early dominance and ensuring fairness.
-
----
-
-### Live Network Status
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Mining%20Engine-ONLINE-00c6ff?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/User%20Growth-ACTIVE-0072ff?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Halving-USER%20BASED-00ff87?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/System%20Mode-SCALING-60efff?style=for-the-badge" />
-</p>
-
-<div align="center">
-
-<pre>
-> Node Status        : OPERATIONAL
-> Reward Engine      : OFF-CHAIN
-> Anti-Cheat Layer   : ENABLED
-> Activity State     : CONTINUOUS MINING
-</pre>
-
-</div>
-
----
-
-### Tokenomics Engine
-
-<div align="center">
-
-<pre>
-> Max Supply     : 21,000,000
-> Mining Share   : 70%
-> Ecosystem      : 15%
-> Marketing      : 10%
-> Reserve        : 5%
-</pre>
-
-</div>
-
----
-
-### System Modules
-
-<p align="center">
-  <img src="https://img.shields.io/badge/BLOCKCHAIN-Future_Layer-black?style=flat-square&logo=bitcoin&logoColor=white" />
-  <img src="https://img.shields.io/badge/ENGINE-Reverse_Mining-black?style=flat-square&logo=databricks&logoColor=white" />
-  <img src="https://img.shields.io/badge/NETWORK-User_Driven-black?style=flat-square&logo=cloudflare&logoColor=white" />
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/BACKEND-Node.js-black?style=flat-square&logo=node.js&logoColor=white" />
-  <img src="https://img.shields.io/badge/DATABASE-MongoDB-black?style=flat-square&logo=mongodb&logoColor=white" />
-  <img src="https://img.shields.io/badge/APP-FlutterFlow-black?style=flat-square&logo=flutter&logoColor=white" />
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/ADS-AdMob-black?style=flat-square&logo=googleads&logoColor=white" />
-  <img src="https://img.shields.io/badge/SYSTEM-Anti_Cheat-black?style=flat-square&logo=shield&logoColor=white" />
-  <img src="https://img.shields.io/badge/VERSION-Git-black?style=flat-square&logo=git&logoColor=white" />
-</p>
-
----
-
-### Revenue Layer
-
-<div align="center">
-
-<pre>
-> Ad System       : Google AdMob Integration
-> Boost Feature   : Reward Multiplier via Ads
-> Premium Layer   : Optional Upgrades
-</pre>
-
-</div>
-
----
-
-### AI + Web4 Integration
-
-<div align="center">
-
-<pre>
-> Development Mode : AI-Augmented System Design
-> Goal             : Sustainable & Scalable Web4 Ecosystem
-> Strategy         : Combine Web2 Monetization + Web3 Ownership
-</pre>
-
-</div>
-
-AI accelerates execution while maintaining strong backend logic and system integrity.
-
----
-
-### Final Transmission
-
-<div align="center">
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=12,20,24,30&height=60&section=footer&text=RMP_SYSTEM_ACTIVE&fontSize=16&fontColor=FFFFFF&stroke=FFFFFF&strokeWidth=1"/>
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=12,20,24,30&height=60&section=footer&text=ANTS_ECOSYSTEM_ACTIVE&fontSize=16&fontColor=FFFFFF&stroke=FFFFFF&strokeWidth=1"/>
 
 </div>
