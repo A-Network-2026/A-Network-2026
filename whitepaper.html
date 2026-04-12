@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>A-Network Whitepaper v1.0.3 | Web2 · Web3 · Web4 · ANET Core</title>
-  <meta name="description" content="The official A-Network v1.0.3 whitepaper covering Web2 session mining, ANTS-first accounting, delayed ANET conversion, Bitcoin-style halving by total sessions, smart login OTP, trusted device management, multilingual support, and the Web4 migration roadmap." />
+  <meta name="description" content="The official A-Network v1.0.3 whitepaper covering Web2 session mining, ANTS-first accounting, delayed ANET conversion, wallet seed encryption, one-time account restore, smart login OTP, limited referral activation credits, and the Web4 migration roadmap." />
   <meta name="theme-color" content="#07101a" />
   <meta property="og:title" content="A-Network Whitepaper" />
-  <meta property="og:description" content="Complete technical specification of the A-Network ecosystem: ANTS-first Web2 mining, session-based halving, supply controls, wallet migration design, Web4 Layer 1, ANET Core, and full roadmap." />
+  <meta property="og:description" content="Complete technical specification of the A-Network ecosystem: ANTS-first Web2 mining, session-based halving, encrypted wallet recovery controls, limited referral activation credits, wallet migration design, Web4 Layer 1, ANET Core, and full roadmap." />
   <meta property="og:url" content="https://a-network.net/whitepaper.html" />
   <meta property="og:image" content="https://a-network.net/logo.png" />
   <link rel="icon" type="image/png" href="logo.png" />
@@ -332,7 +332,7 @@
     <div class="hero">
       <div class="hero-badge">⚡ Official Technical Whitepaper</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A multi-phase ecosystem spanning Web2 proof-of-time session mining, Web3 visibility on BNB Chain, planned Web4 Layer 1 settlement, and ANET Core. Version 1.0.3 builds on the ANTS-first mining ledger with production backend hardening: smart login OTP risk detection, trusted device management, concurrent session claim protection via atomic transactions, BigInt-safe ANTS accounting, multilingual API responses (English + Filipino), 2-hour grace period claim window, and a live notification worker.</p>
+      <p class="hero-sub">A multi-phase ecosystem spanning Web2 proof-of-time session mining, Web3 visibility on BNB Chain, planned Web4 Layer 1 settlement, and ANET Core. Version 1.0.3 builds on the ANTS-first mining ledger with production backend hardening and wallet continuity controls: smart login OTP risk detection, trusted device management, one-time scheduled-account restore by email OTP, wallet PIN protection, encrypted seed phrase reveal with OTP verification, concurrent session claim protection via atomic transactions, BigInt-safe ANTS accounting, multilingual API responses (English + Filipino), a 2-hour grace period claim window, and a live notification worker.</p>
       <div class="hero-meta">
         <div class="hero-meta-item"><strong>Version</strong> — 1.0.3</div>
         <div class="hero-meta-item"><strong>Published</strong> — April 2026</div>
@@ -357,7 +357,7 @@
 
       <p>The network reward schedule follows a Bitcoin-style halving direction: the session reward starts at <strong>0.048828125 ANET</strong> per session and halves as the network's total completed session count reaches global milestones. Halving is not triggered by registration count, referrals, or wallet balance. It is triggered only by total verified sessions across the network.</p>
 
-      <p>A-Network deliberately excludes referral reward amplification. Growth may be tracked through F1 referrals, but rewards come only from actual mining participation. This positions the system as a merit-based ledger rather than an incentive pyramid.</p>
+      <p>A-Network deliberately excludes referral reward amplification. The live backend supports F1 tracking plus a narrow activation credit: when a referred user completes their first successful mining session, the referrer receives exactly <strong>+1 credited session</strong> once. There are no coin bonuses, no percentage commissions, and no multi-level trees. This preserves a merit-based ledger while still rewarding real user activation.</p>
 
       <div class="card-row">
         <div class="stat-card"><div class="sc-val">21M</div><div class="sc-label">Max Supply (ANET)</div></div>
@@ -588,7 +588,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <div class="section-label">§ 6</div>
       <h2>Web2 Phase — Time-Based Mobile Mining</h2>
 
-      <p>The Web2 phase is the entry point into the A-Network ecosystem. It requires only a smartphone and internet access. There is no GPU mining, no staking capital, and no specialized hardware. In v1.0.2, the Web2 backend acts as a server-validated ledger that records time-based contribution, ANTS accumulation, eligibility progress, and delayed ANET conversion.</p>
+      <p>The Web2 phase is the entry point into the A-Network ecosystem. It requires only a smartphone and internet access. There is no GPU mining, no staking capital, and no specialized hardware. In v1.0.3, the Web2 backend acts as a server-validated ledger that records time-based contribution, ANTS accumulation, eligibility progress, delayed ANET conversion, wallet continuity controls, and migration-ready account state.</p>
 
       <h3 id="session-model">The 6-Hour Session Model</h3>
       <p>Mining in A-Network is structured around fixed <strong>6-hour sessions</strong>. Each session is a discrete unit of validated participation. A user initiates a session, waits 6 hours, and completes it. On completion, the ledger credits ANTS rather than immediately issuing ANET. The session duration cannot be shortened, and instant completion attempts are rejected.</p>
@@ -840,6 +840,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <h3 id="wallet">Wallet Identity &amp; Migration Address</h3>
       <p>Each account can create a unique ANET wallet identity in-app. This wallet is linked to the miner profile and is used to display the user's currently claimed ANET while also preserving tracked ANTS for migration visibility.</p>
       <p>Users can also save a separate migration wallet address for future Web4 Layer 1 migration. This allows migration planning ahead of chain launch while preserving mining continuity and future identity portability.</p>
+      <p>In the current release, wallet custody is protected by layered controls: an optional wallet PIN, encrypted server-side seed storage, email OTP verification before seed reveal, and backward-compatible local fallback support for older users whose legacy seed was never migrated to encrypted storage.</p>
 
       <div class="panel panel-accent">
         <h4>Current Wallet Behavior</h4>
@@ -847,6 +848,9 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           <li><strong>Generate Wallet:</strong> Generates a unique ANET wallet identity for each user account.</li>
           <li><strong>Check Balance:</strong> Shows claimed ANET balance and tracked ANTS derived from the Web2 ledger.</li>
           <li><strong>Set Migration Wallet:</strong> Optional address field for future Web4 migration routing.</li>
+          <li><strong>Wallet PIN:</strong> Users can set, change, or recover a 4-8 digit wallet PIN through email OTP verification.</li>
+          <li><strong>Seed Recovery Flow:</strong> Seed phrase reveal requires a valid wallet PIN and an email OTP; legacy plaintext seed records are migrated on-demand into encrypted vault fields before reveal.</li>
+          <li><strong>Legacy Device Fallback:</strong> If no encrypted server seed exists, the app can fall back to older local device backups after verification.</li>
           <li><strong>Web3 Role:</strong> BNB Chain contract remains the ecosystem visibility layer while Web4 Layer 1 is prepared.</li>
         </ul>
       </div>
@@ -1077,14 +1081,15 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
     ────────────────────────────────── -->
     <section class="wp-section" id="referral">
       <div class="section-label">§ 12</div>
-      <h2>F1 Referral System — Tracking Only</h2>
+      <h2>F1 Referral System — Tracking First, Activation Credit Only</h2>
 
-      <p>A-Network includes a single-level (F1) referral tracking system for network growth transparency. There is <strong>no referral reward</strong> — no coin bonuses, no session boosts, no percentage cuts. This is an intentional design decision that separates A-Network from pyramid-incentive token schemes.</p>
+      <p>A-Network includes a single-level (F1) referral system primarily for network growth transparency. The live backend does <strong>not</strong> implement pyramid rewards, commissions, or multi-level earnings. It does, however, grant one narrow activation credit: when a referred miner completes their <strong>first successful session</strong>, the referrer receives exactly <strong>+1 credited session</strong> once.</p>
 
       <div class="panel">
         <h4>What the Referral System Does</h4>
         <ul>
           <li>Tracks who invited whom (one level deep, F1 only)</li>
+          <li>Grants a one-time <strong>+1 successful session</strong> to the referrer when the referred user finishes their first successful mining session</li>
           <li>Counts how many of your F1 referrals have completed ≥ 1,000 sessions</li>
           <li>Displays your personal session progress toward the 1,000-session level milestone</li>
           <li>Will be used in ANET Core governance weighting as a social graph signal</li>
@@ -1092,13 +1097,14 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
         <h4 style="margin-top: 16px;">What the Referral System Does NOT Do</h4>
         <ul>
           <li>❌ No coin rewards for referring</li>
+          <li>❌ No recurring session rewards per referral activity</li>
           <li>❌ No session multipliers</li>
           <li>❌ No multi-level (F2, F3...) chains</li>
           <li>❌ No influence farming via referral counts</li>
         </ul>
       </div>
 
-      <p>Why? Because A-Network believes that <strong>fake growth is worse than slow growth</strong>. Referral reward systems incentivize spam, bot account creation, and social pressure tactics. A-Network grows through genuine value: every new user who joins does so because the product is good — not because someone got paid to recruit them.</p>
+      <p>Why this design? Because A-Network believes that <strong>fake growth is worse than slow growth</strong>. A one-time first-session credit rewards real activation without opening the door to exponential referral farming. The system recognizes successful onboarding, but the ledger still depends overwhelmingly on the miner's own verified session history.</p>
     </section>
 
     <div class="divider"></div>
@@ -1114,8 +1120,8 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
       <div class="notice warn">
         <div class="notice-icon">🔐</div>
         <div class="notice-body">
-          <strong>Email Is Account Ownership Key</strong>
-          A-Network enforces email verification by OTP during registration as a one-time account activation step. If a user permanently loses access to their email and cannot recover it, they lose access to the account and mined ANET tied to that identity. In the Web4 migration model, ownership is anchored to <code>Email + Wallet Address</code> together.
+          <strong>Email Is The Primary Recovery Rail</strong>
+          A-Network enforces email verification by OTP during registration as the account activation step and uses the same email channel for sensitive recovery actions. In the current release, scheduled account deletion can be reversed exactly once through an email OTP restore flow before final deletion is completed. In the Web4 migration model, ownership remains anchored to <code>Email + Wallet Address</code> together.
         </div>
       </div>
 
@@ -1125,6 +1131,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
         <li><strong>Email OTP (Registration):</strong> Account activation requires OTP verification during registration — one-time ownership confirmation that works globally without SMS cost.</li>
         <li><strong>Smart Login OTP (v1.0.3):</strong> On every login attempt, the server evaluates risk signals — unrecognized <code>device_id</code>, new IP address, or <code>is_trusted_device = FALSE</code>. If any risk factor is detected, a 6-digit OTP is sent to the user's email and the login is held pending OTP verification via <code>POST /auth/verify-login-otp</code>. Successful verification marks the device as trusted for future logins.</li>
         <li><strong>Trusted Device Management (v1.0.3):</strong> Each device is flagged as trusted after first successful OTP verification. Subsequent logins from the same device bypass OTP unless a new IP is detected. OTP attempts are capped at 5 per token; exceeded attempts lock the OTP and require re-login.</li>
+        <li><strong>One-Time Account Restore:</strong> If an account is in the scheduled-deletion state, the owner can request an email OTP through <code>POST /auth/account-restore/request</code> and confirm it through <code>POST /auth/account-restore/confirm</code>. This recovery path is intentionally single-use.</li>
         <li><strong>Rate Limiting:</strong> Global baseline 100 requests per 15 minutes per IP, with additional route-specific throttles for auth/mining actions.</li>
         <li><strong>IP Logging:</strong> Last IP recorded per user for anomaly detection (not persisted in history, only current).</li>
         <li><strong>Multilingual Responses (v1.0.3):</strong> All API error and success messages are localized to the user's <code>preferred_language</code>. English (<code>en</code>) and Filipino (<code>tl</code>) are the launch locales. Users can update their language preference via <code>POST /auth/set-language</code>.</li>
@@ -1134,7 +1141,10 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
       <ul>
         <li>Passwords stored as bcrypt hashes (minimum 10 rounds) — plaintext never stored.</li>
         <li>Wallet identity is generated and linked at account level with server-validated uniqueness constraints.</li>
-        <li>Seed phrase is displayed to the user for backup and should be stored offline by the account owner.</li>
+        <li>Wallet PIN values are stored only as bcrypt hashes; plaintext PINs are never stored.</li>
+        <li>Seed phrase vault data is stored encrypted at rest using encrypted seed, IV, and authentication tag fields; legacy plaintext seed values are migrated on-demand and then removed.</li>
+        <li>Seed reveal requires both the wallet PIN and a time-limited email OTP, with retry caps enforced server-side.</li>
+        <li>Seed phrase should still be stored offline by the account owner after initial backup; server-assisted recovery is a continuity control, not a substitute for self-custody discipline.</li>
         <li>PostgreSQL with parameterized queries throughout — SQL injection surface is zero.</li>
       </ul>
 
@@ -1217,6 +1227,22 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
             <span class="rm-tag">i18n (en/tl) ✓</span>
             <span class="rm-tag">Notification Worker ✓</span>
             <span class="rm-tag">Dashboard API ✓</span>
+          </div>
+        </div>
+
+        <div class="rm-item">
+          <div class="rm-dot done"></div>
+          <div class="rm-phase">Phase 1d — Completed</div>
+          <div class="rm-title">Account Continuity, Wallet Recovery &amp; Open-Test Readiness</div>
+          <div class="rm-desc">
+            Release-ready update for closed-test expansion and open-testing preparation. Added one-time scheduled account restore by email OTP, wallet PIN set/change/reset flows, encrypted server-side seed phrase protection with OTP-gated reveal, backward-compatible legacy seed fallback handling, optional migration wallet persistence, and a refined investor-facing wallet and Web4 presentation inside the app.
+          </div>
+          <div class="rm-tags">
+            <span class="rm-tag">Account Restore ✓</span>
+            <span class="rm-tag">Wallet PIN ✓</span>
+            <span class="rm-tag">Seed OTP Reveal ✓</span>
+            <span class="rm-tag">Migration Wallet ✓</span>
+            <span class="rm-tag">Open-Test Ready ✓</span>
           </div>
         </div>
 
