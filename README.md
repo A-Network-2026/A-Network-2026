@@ -4,144 +4,132 @@
 
 ---
 
-# 🐜 A-Network — Web4 ANTS Ecosystem
+# A-Network — Web4 ANTS Ecosystem
 
-A-Network is a **Web4 decentralized ecosystem** inspired by **ant colonies**, where every participant contributes to building a **living digital network** through time-based sessions.
-
----
-
-## 🌐 Core Vision
-
-A-Network evolves beyond Web3 into **Web4**, where:
-
-- Users are not just participants — they are **infrastructure**
-- The system is **fully decentralized**
-- Growth is driven by **collective intelligence**
-- No central authority controls the network
+A-Network is a **Web4 decentralized ecosystem** inspired by the structure and efficiency of ant colonies.  
+It enables participants to collectively build a **living digital network** through time-based participation.
 
 ---
 
-## 🐜 ANTS Ecosystem Concept
+## Core Vision
 
-The system is modeled after **real ant colonies**:
+A-Network extends beyond Web3 into a new paradigm where:
 
-| Role | Description |
-|------|------------|
-| 🟢 Worker Ants | Users performing sessions |
-| 🔵 Builder Ants | Developers expanding the system |
-| 🟡 Guardian Ants | Node operators securing the network |
-| 🟣 Scout Ants | Early adopters growing the ecosystem |
-
-👉 Every user is an **ANT contributing to the colony**
+- Users function as **infrastructure**, not just participants  
+- The system operates with **full decentralization**  
+- Growth is driven by **collective intelligence and activity**  
+- No central authority governs the network  
 
 ---
 
-## ⚙️ Primary System — Session Mining
+## ANTS Ecosystem Model
 
-```
-> System Type   : Web4 Mining Protocol
-> Core Model    : Proof-of-Time (Session-Based)
-> Mining Cycle  : 6 Hours
-> Status        : ACTIVE DEVELOPMENT
-```
+The architecture is based on real-world ant colony dynamics:
 
-Users participate in **time-based sessions** to earn rewards and build network value.
+| Role | Function |
+|------|----------|
+| Worker | Executes sessions and contributes activity |
+| Builder | Develops and expands system infrastructure |
+| Guardian | Operates nodes and secures the network |
+| Scout | Drives adoption and ecosystem growth |
 
----
-
-## 🔄 Reverse Mining Model
-
-A-Network introduces **Reverse Mining**:
-
-- Starts with controlled rewards
-- Scales with user growth
-- Prevents early dominance
-- Ensures long-term fairness
+Every participant acts as a unit within a **coordinated decentralized system**.
 
 ---
 
-## 💰 Tokenomics — 100% Fair Mining
+## Session-Based Mining System
 
-```
-----------------------------------------
-TOKENOMICS ENGINE (PURE MINING MODEL)
-----------------------------------------
 
-> Max Supply     : 21,000,000 ANET
-> Mining Share   : 100%
-> Pre-Mine       : 0%
-> Team Allocation: 0%
-> Reserve        : 0%
-```
+System Type : Web4 Mining Protocol
+Model : Proof-of-Time (Session-Based)
+Cycle : 6 Hours
+Status : Active Development
+
+
+Users engage in structured sessions to generate value and contribute to network growth.
 
 ---
 
-### 📊 Distribution Principles
+## Reverse Mining Model
 
-- ✅ All tokens are earned through mining
-- ✅ No pre-allocation or hidden supply
-- ✅ No investor or insider advantage
-- ✅ Fully participation-based economy
+The protocol introduces a **Reverse Mining mechanism**:
 
----
-
-### 🧠 Founder Policy
-
-```
-> Founders = Miners
-> Developers = Participants
-> No privileged rewards
-```
-
-👉 Everyone earns equally through activity
+- Controlled initial emission  
+- Scales with user participation  
+- Limits early dominance  
+- Supports long-term distribution fairness  
 
 ---
 
-### ⚡ Reward Model
+## Tokenomics — 100% Mining-Based Distribution
 
-```
-> 1000 Sessions = 0.04888 ANET
-> Fixed emission per session
-> Anti-inflation design
-```
 
----
+Max Supply : 21,000,000 ANET
+Mining Share : 100%
+Pre-Mine : 0%
+Team Allocation : 0%
+Reserve : 0%
 
-## 🧬 System Architecture
 
-```
-> Backend        : Node.js
-> Database       : PostgreSQL / MongoDB
-> App            : FlutterFlow
-> Network Model  : User-driven
-> Security       : Anti-cheat system
-```
+### Distribution Principles
 
----
+- All tokens are earned through participation  
+- No pre-allocation or reserved supply  
+- No insider or investor advantage  
+- Fully activity-based emission model  
 
-## 🖥️ ANET Nodes (Future Layer)
+### Founder Policy
 
-ANET Nodes will:
 
-- Validate transactions
-- Maintain decentralization
-- Secure the ecosystem
-- Enable full Web4 infrastructure
+Founders and developers participate as standard users.
+No privileged allocation or reward mechanism exists.
 
----
 
-## 🌍 Web4 Evolution Roadmap
+### Reward Structure
 
-```
-Phase 1: Web2 Session Mining
-Phase 2: Web3 Visibility (BNB Chain)
-Phase 3: ANET Node Network
-Phase 4: Full Web4 Decentralization
-```
+
+1000 Sessions = 0.04888 ANET
+Fixed emission per session
+Time-based distribution model
+
 
 ---
 
-## 📡 Live System Status
+## System Architecture
+
+
+Backend : Node.js
+Database : PostgreSQL / MongoDB
+Application : FlutterFlow
+Network Model : User-driven
+Security : Anti-cheat and validation systems
+
+
+---
+
+## ANET Nodes (Future Layer)
+
+ANET Nodes will serve as the foundation of decentralization by:
+
+- Validating transactions  
+- Maintaining network integrity  
+- Supporting distributed infrastructure  
+- Enabling full Web4 operation  
+
+---
+
+## Development Roadmap
+
+
+Phase 1 : Web2 Session Mining
+Phase 2 : Web3 Visibility (BNB Chain)
+Phase 3 : ANET Node Deployment
+Phase 4 : Full Web4 Decentralization
+
+
+---
+
+## System Status
 
 <p align="center">
   <img src="https://img.shields.io/badge/System-ONLINE-00c6ff?style=for-the-badge" />
@@ -151,84 +139,80 @@ Phase 4: Full Web4 Decentralization
 
 ---
 
-## ⚡ Key Features
+## Key Features
 
-```
-> Time-Based Mining Sessions
-> Progress Tracking System
-> Anti-Cheat Protection
-> Referral System (No Rewards Abuse)
-> Multi-language Support
-> Real-time Dashboard
-```
 
----
+Time-based mining sessions
+Progress tracking system
+Anti-cheat protection
+Referral onboarding (no reward abuse)
+Multi-language support
+Real-time dashboard
 
-## 📈 Economic Model
-
-A-Network separates:
-
-### 🔹 Token Economy
-- Fully decentralized
-- 100% mining-based
-- No manipulation
-
-### 🔹 Business Model
-```
-> Ads (AdMob)
-> Optional Boost Features
-> Premium Services
-```
-
-👉 Revenue supports operations — NOT token supply
 
 ---
 
-## 🧠 AI + Web4 Integration
+## Economic Model
 
-```
-> AI-Assisted Development
-> Autonomous System Design
-> Scalable Infrastructure
-```
+A-Network separates system design into two layers:
 
-A-Network combines:
-- Web2 monetization
-- Web3 ownership
-- Web4 decentralization
+### Token Economy
+- Fully decentralized  
+- 100% mining-based  
+- No supply manipulation  
 
----
+### Business Model
 
-## ⚠️ Disclaimer
+Advertising (AdMob)
+Optional feature upgrades
+Premium services
 
-This application is currently a **simulation-based system**.
 
-- Rewards are **virtual during testing phase**
-- No financial guarantees
-- Not an investment product
+Operational revenue supports infrastructure — not token issuance.
 
 ---
 
-## 🔐 Privacy Policy
+## AI and Web4 Integration
+
+
+AI-assisted development
+Autonomous system logic
+Scalable decentralized infrastructure
+
+
+A-Network integrates:
+- Web2 monetization  
+- Web3 ownership  
+- Web4 decentralization  
+
+---
+
+## Disclaimer
+
+This system is currently in a **simulation phase**.
+
+- Rewards are virtual during testing  
+- No financial guarantees are provided  
+- Not intended as an investment product  
+
+---
+
+## Privacy Policy
 
 https://a-network.net/privacy
 
 ---
 
-## 🚀 Final Concept
+## Final Concept
 
-A-Network is not just an application.
+A-Network is designed as:
 
-It is a:
-
-> 🧬 Living Digital Colony  
-> 🌐 Decentralized Infrastructure  
-> 🐜 Collective Intelligence System  
+A decentralized infrastructure layer  
+A participation-driven digital system  
+A collective intelligence network  
 
 ---
 
 <div align="center">
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=12,20,24,30&height=60&section=footer&text=ANTS_ECOSYSTEM_ACTIVE&fontSize=16&fontColor=FFFFFF&stroke=FFFFFF&strokeWidth=1"/>
-
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=12,20,24,30&height=60&section=footer&text=ANTS_ECOSYSTEM_ACTIVE&fontSize=16&fontColor=FFFFFF&stroke=FFFFFF&strokeWidth=1"/>
 </div>
