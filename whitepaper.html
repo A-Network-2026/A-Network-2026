@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A-Network Whitepaper v1.0.2 | Web2 · Web3 · Web4 · ANET Core</title>
-  <meta name="description" content="The official A-Network v1.0.2 whitepaper covering Web2 session mining, ANTS-first accounting, delayed ANET conversion, Bitcoin-style halving by total sessions, Web3 visibility, and the Web4 migration roadmap." />
+  <title>A-Network Whitepaper v1.0.3 | Web2 · Web3 · Web4 · ANET Core</title>
+  <meta name="description" content="The official A-Network v1.0.3 whitepaper covering Web2 session mining, ANTS-first accounting, delayed ANET conversion, Bitcoin-style halving by total sessions, smart login OTP, trusted device management, multilingual support, and the Web4 migration roadmap." />
   <meta name="theme-color" content="#07101a" />
   <meta property="og:title" content="A-Network Whitepaper" />
   <meta property="og:description" content="Complete technical specification of the A-Network ecosystem: ANTS-first Web2 mining, session-based halving, supply controls, wallet migration design, Web4 Layer 1, ANET Core, and full roadmap." />
@@ -275,7 +275,7 @@
     <div class="sidebar-logo">
       <div>
         <span>A-NETWORK</span>
-        <sub>OFFICIAL WHITEPAPER v1.0.2 · 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v1.0.3 · 2026</sub>
       </div>
     </div>
 
@@ -332,9 +332,9 @@
     <div class="hero">
       <div class="hero-badge">⚡ Official Technical Whitepaper</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A multi-phase ecosystem spanning Web2 proof-of-time session mining, Web3 visibility on BNB Chain, planned Web4 Layer 1 settlement, and ANET Core. Version 1.0.2 defines A-Network as an ANTS-first mining ledger with delayed ANET conversion, strict session validation, heartbeat-backed proof-of-authenticity, and Bitcoin-style reward halving driven only by total network sessions.</p>
+      <p class="hero-sub">A multi-phase ecosystem spanning Web2 proof-of-time session mining, Web3 visibility on BNB Chain, planned Web4 Layer 1 settlement, and ANET Core. Version 1.0.3 builds on the ANTS-first mining ledger with production backend hardening: smart login OTP risk detection, trusted device management, concurrent session claim protection via atomic transactions, BigInt-safe ANTS accounting, multilingual API responses (English + Filipino), 2-hour grace period claim window, and a live notification worker.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> — 1.0.2</div>
+        <div class="hero-meta-item"><strong>Version</strong> — 1.0.3</div>
         <div class="hero-meta-item"><strong>Published</strong> — April 2026</div>
         <div class="hero-meta-item"><strong>Token</strong> — $ANET</div>
         <div class="hero-meta-item"><strong>Ledger Model</strong> — ANTS-first → ANET conversion after eligibility</div>
@@ -351,7 +351,7 @@
       <div class="section-label">§ 1</div>
       <h2>Abstract</h2>
 
-      <p>A-Network v1.0.2 defines the Web2 mining backend as a clean proof-of-time system. Users do not mine ANET directly at session completion. They mine <strong>ANTS</strong>, the smallest accounting unit of ANET, during validated 6-hour sessions. ANET becomes claimable only after a miner reaches the eligibility threshold of <strong>1,000 completed sessions</strong>.</p>
+      <p>A-Network v1.0.3 defines the Web2 mining backend as a hardened, production-grade proof-of-time system. Users do not mine ANET directly at session completion. They mine <strong>ANTS</strong>, the smallest accounting unit of ANET, during validated 6-hour sessions. ANET becomes claimable only after a miner reaches the eligibility threshold of <strong>1,000 completed sessions</strong>.</p>
 
       <p>The native currency is <strong>$ANET</strong>, capped at a hard maximum of <strong>21,000,000 ANET</strong>. The smallest indivisible unit is one <strong>Ant</strong>, where <strong>1 ANET = 100,000,000 Ants</strong>. Web2 mining therefore uses ANTS as the operating ledger unit and ANET as the delayed settlement unit. This avoids precision loss, supports future fee economics, and keeps the supply engine compatible with long-term Layer 1 settlement.</p>
 
@@ -652,9 +652,9 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
     ────────────────────────────────── -->
     <section class="wp-section" id="halving">
       <div class="section-label">§ 7</div>
-      <h2>Session Halving — The v1.0.2 Reward Formula</h2>
+      <h2>Session Halving — The v1.0.3 Reward Formula</h2>
 
-      <p>A-Network v1.0.2 uses a Bitcoin-style halving schedule at the application ledger layer. The reward starts at <strong>0.048828125 ANET</strong> per completed 6-hour session and halves each time the network reaches another <strong>500,000 total completed sessions</strong>. The trigger is not user count. The trigger is network activity.</p>
+      <p>A-Network v1.0.3 uses a Bitcoin-style halving schedule at the application ledger layer. The reward starts at <strong>0.048828125 ANET</strong> per completed 6-hour session and halves each time the network reaches another <strong>500,000 total completed sessions</strong>. The trigger is not user count. The trigger is network activity.</p>
 
       <p>This design makes the reward curve predictable, analytics-friendly, and resistant to vanity metrics. A user cannot unlock a higher reward tier through referrals, token purchases, or wallet size. The only driver is aggregated proof-of-time from the network as a whole.</p>
 
@@ -801,6 +801,10 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           <tr><td><strong>Unverified accounts</strong></td><td><code>email_verified</code> check on start/complete; suspicious attempts are flagged and logged</td></tr>
           <tr><td><strong>Session spoofing / inactivity</strong></td><td>Server validates <code>last_heartbeat</code> gap and minimum heartbeat count before reward completion</td></tr>
           <tr><td><strong>Risk-heavy claims</strong></td><td>Claim is blocked if account is flagged or risk score exceeds configured threshold</td></tr>
+          <tr><td><strong>Login from new device or IP</strong></td><td>Smart OTP risk detection: unrecognized <code>device_id</code>, new IP address, or <code>is_trusted_device = FALSE</code> triggers a 6-digit email OTP before JWT is issued</td></tr>
+          <tr><td><strong>OTP brute force</strong></td><td>Maximum 5 OTP attempts per OTP code; 5-minute expiry; account locked from OTP after exceeding limit</td></tr>
+          <tr><td><strong>Concurrent session double-claim</strong></td><td><code>SELECT ... FOR UPDATE</code> row lock inside a database transaction on every session claim prevents parallel requests from crediting ANTS twice</td></tr>
+          <tr><td><strong>Late claim abuse</strong></td><td>2-hour grace window: claims after 8h from session start are rejected as missed sessions</td></tr>
         </tbody>
       </table>
       </div>
@@ -1118,9 +1122,12 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
       <h3>Authentication Architecture</h3>
       <ul>
         <li><strong>JWT Tokens:</strong> All API endpoints require Bearer token authentication. Tokens expire and are refreshed on session activity.</li>
-        <li><strong>Email OTP:</strong> Account activation requires OTP verification during registration (one-time ownership confirmation) — a phone-accessible, infrastructure-light method that works globally without SMS cost.</li>
+        <li><strong>Email OTP (Registration):</strong> Account activation requires OTP verification during registration — one-time ownership confirmation that works globally without SMS cost.</li>
+        <li><strong>Smart Login OTP (v1.0.3):</strong> On every login attempt, the server evaluates risk signals — unrecognized <code>device_id</code>, new IP address, or <code>is_trusted_device = FALSE</code>. If any risk factor is detected, a 6-digit OTP is sent to the user's email and the login is held pending OTP verification via <code>POST /auth/verify-login-otp</code>. Successful verification marks the device as trusted for future logins.</li>
+        <li><strong>Trusted Device Management (v1.0.3):</strong> Each device is flagged as trusted after first successful OTP verification. Subsequent logins from the same device bypass OTP unless a new IP is detected. OTP attempts are capped at 5 per token; exceeded attempts lock the OTP and require re-login.</li>
         <li><strong>Rate Limiting:</strong> Global baseline 100 requests per 15 minutes per IP, with additional route-specific throttles for auth/mining actions.</li>
         <li><strong>IP Logging:</strong> Last IP recorded per user for anomaly detection (not persisted in history, only current).</li>
+        <li><strong>Multilingual Responses (v1.0.3):</strong> All API error and success messages are localized to the user's <code>preferred_language</code>. English (<code>en</code>) and Filipino (<code>tl</code>) are the launch locales. Users can update their language preference via <code>POST /auth/set-language</code>.</li>
       </ul>
 
       <h3>Database Security</h3>
@@ -1133,10 +1140,19 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
       <h3>Ledger Integrity</h3>
       <ul>
-        <li><code>DECIMAL(20,8)</code> balance type — no floating-point rounding errors in accounting.</li>
+        <li><code>DECIMAL(20,8)</code> balance type for legacy <code>ant_balance</code> field; v1.0.3 introduces parallel <code>ants_balance</code> stored as <code>BIGINT</code> for precision-safe integer arithmetic using BigInt literals.</li>
+        <li>All session claim operations are wrapped in a <strong>database transaction with row-level locking</strong> (<code>SELECT ... FOR UPDATE</code>) to prevent concurrent double-credit of ANTS from parallel API calls.</li>
+        <li>Backward-compatible ledger repair: on login and migration, <code>ants_balance</code> is set to <code>GREATEST(existing, sessions &times; 4888)</code> — never reduced, never overwritten unsafely.</li>
         <li>Database-level triggers ensure <code>updated_at</code> is always accurate.</li>
         <li>Cascade delete protections on mining session foreign keys.</li>
         <li>All balance changes are atomic SQL transactions — partial credit is impossible.</li>
+      </ul>
+
+      <h3>Session Lifecycle (v1.0.3)</h3>
+      <ul>
+        <li><strong>Session End Time:</strong> Every session claim sets <code>session_end_time = NOW() + 6h</code> for the next session window, enabling exact grace-period enforcement.</li>
+        <li><strong>Grace Period:</strong> 2-hour grace window after the 6h session window closes. Claims received between 6h and 8h are accepted. Claims after 8h are flagged as missed sessions.</li>
+        <li><strong>Notification Worker:</strong> A 60-second server interval worker polls for users whose <code>session_end_time &le; NOW()</code> and <code>notification_sent = FALSE</code>, triggering completion push notifications and dashboard failsafe updates.</li>
       </ul>
     </section>
 
@@ -1182,6 +1198,25 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
             <span class="rm-tag">Balance Sync ✓</span>
             <span class="rm-tag">Ad Stability ✓</span>
             <span class="rm-tag">Strict ANTS Rule ✓</span>
+          </div>
+        </div>
+
+        <div class="rm-item">
+          <div class="rm-dot done"></div>
+          <div class="rm-phase">Phase 1c — Completed</div>
+          <div class="rm-title">Production Backend Hardening (v1.0.3)</div>
+          <div class="rm-desc">
+            Complete security and reliability overhaul of the Web2 backend. Introduced smart login OTP risk detection — new device, new IP, or untrusted device triggers a 6-digit email OTP before JWT is issued. Trusted device management with 5-attempt OTP lockout. Concurrent session double-claim is fully prevented by <code>SELECT…FOR UPDATE</code> database transactions. ANTS balance uses BigInt arithmetic throughout, eliminating any precision risk. A 2-hour grace period window allows late session completion claims. Multilingual API responses in English and Filipino. 60-second notification worker processes expired sessions server-side. User dashboard endpoint with failsafe notification trigger. Comprehensive PostgreSQL schema migration with backward-compatible ledger repair.
+          </div>
+          <div class="rm-tags">
+            <span class="rm-tag">Smart OTP Login ✓</span>
+            <span class="rm-tag">Trusted Device ✓</span>
+            <span class="rm-tag">Atomic Claim TX ✓</span>
+            <span class="rm-tag">BigInt ANTS ✓</span>
+            <span class="rm-tag">Grace Period ✓</span>
+            <span class="rm-tag">i18n (en/tl) ✓</span>
+            <span class="rm-tag">Notification Worker ✓</span>
+            <span class="rm-tag">Dashboard API ✓</span>
           </div>
         </div>
 
@@ -1309,7 +1344,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <!-- FOOTER -->
     <div class="wp-footer">
-      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> · Official Whitepaper v1.0.2 · April 2026</p>
+      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> · Official Whitepaper v1.0.3 · April 2026</p>
       <p>Website: <a href="https://a-network.net">a-network.net</a> · Contract: <a href="https://bscscan.com/address/0x791055A7d52AA392eaE8De04250497f33807E46A">0x791055A7...E46A</a> · App: <a href="https://play.google.com/store">Google Play</a></p>
       <p style="margin-top: 10px;">© 2026 A-Network. All rights reserved. &nbsp;·&nbsp; <a href="https://a-network.net/privacy.html">Privacy</a> &nbsp;·&nbsp; <a href="https://a-network.net/terms.html">Terms</a></p>
     </div>
