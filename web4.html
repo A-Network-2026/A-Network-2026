@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network Web4 | ANTS Ecosystem</title>
+  <meta name="description" content="Explore the future A Network Web4 architecture: the ANTS Ecosystem, ANT Blockchain, ANET Nodes, decentralized habitat design, and the coordination model connecting Web2 activity with Web3 settlement.">
+  <meta name="theme-color" content="#050b12">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="A Network">
+  <meta property="og:title" content="A Network Web4 | ANTS Ecosystem">
+  <meta property="og:description" content="A vision page for the future ANTS Ecosystem, ANT Blockchain, ANET Nodes, and the decentralized ant-colony model behind A Network Web4.">
+  <meta property="og:url" content="https://a-network.net/web4.html">
+  <meta property="og:image" content="https://a-network.net/logo.png">
+  <link rel="canonical" href="https://a-network.net/web4.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #041019;
+      --bg-2: #081827;
+      --panel: rgba(10, 24, 39, 0.86);
+      --panel-strong: rgba(6, 15, 24, 0.96);
+      --line: rgba(113, 237, 178, 0.18);
+      --line-strong: rgba(113, 237, 178, 0.38);
+      --text: #eff6ff;
+      --muted: #9ab3c8;
+      --accent: #6ae7b1;
+      --accent-2: #59c9ff;
+      --accent-3: #ffc35d;
+      --accent-4: #d3ff78;
+      --shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(106, 231, 177, 0.1), transparent 28%),
+        radial-gradient(circle at top right, rgba(89, 201, 255, 0.12), transparent 24%),
+        linear-gradient(180deg, #07101a 0%, var(--bg) 100%);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0.85;
+      pointer-events: none;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(1220px, calc(100% - 28px));
+      margin: 0 auto;
+      padding-bottom: 56px;
+    }
+
+    header,
+    section,
+    footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      margin-top: 18px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: rgba(4, 10, 18, 0.72);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand-mark,
+    .brand-fallback {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid var(--line-strong);
+      background: linear-gradient(145deg, rgba(106, 231, 177, 0.12), rgba(89, 201, 255, 0.16));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .brand-mark { object-fit: cover; display: block; }
+    .brand-fallback {
+      display: none;
+      place-items: center;
+      font-family: "Orbitron", sans-serif;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      letter-spacing: 0.08em;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 14px;
+    }
+
+    nav a {
+      color: var(--accent-2);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+      align-items: stretch;
+      min-height: calc(100vh - 126px);
+      padding: 42px 0 26px;
+    }
+
+    .hero-copy,
+    .hero-grid,
+    .section-card,
+    .node-card,
+    .ant-card,
+    .power-card,
+    .road-card,
+    .stack-card,
+    .myth-card,
+    .timeline-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-copy {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      width: fit-content;
+    }
+
+    .hero h2,
+    .section-head h2 {
+      margin: 0;
+      font-family: "Orbitron", sans-serif;
+      line-height: 1.04;
+    }
+
+    .hero h2 {
+      font-size: clamp(2.3rem, 6.5vw, 4.7rem);
+    }
+
+    .hero h2 .accent-a { color: var(--accent); }
+    .hero h2 .accent-b { color: var(--accent-2); }
+    .hero h2 .accent-c { color: var(--accent-4); }
+
+    .hero p,
+    .section-copy,
+    .card-copy,
+    .timeline-card p,
+    .hero-note,
+    .stack-copy {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .hero-actions,
+    .card-links,
+    .section-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn,
+    .btn-secondary,
+    .chip-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.96rem;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .btn {
+      color: #041018;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      box-shadow: 0 12px 30px rgba(89, 201, 255, 0.22);
+    }
+
+    .btn-secondary,
+    .chip-link {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--line);
+    }
+
+    .btn:hover,
+    .btn-secondary:hover,
+    .chip-link:hover {
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+    }
+
+    .hero-note {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 195, 93, 0.08);
+      border: 1px solid rgba(255, 195, 93, 0.22);
+      color: #ffe0a6;
+      font-weight: 600;
+    }
+
+    .hero-grid {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-content: start;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric,
+    .mini-map,
+    .core-panel {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .metric h3,
+    .mini-map h3,
+    .core-panel h3,
+    .section-label,
+    .node-card h3,
+    .ant-card h3,
+    .power-card h3,
+    .stack-card h3,
+    .myth-card h3,
+    .timeline-card h3 {
+      margin: 0 0 10px;
+      color: var(--accent-2);
+      font-size: 0.86rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(1.15rem, 2vw, 1.5rem);
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .metric p,
+    .mini-map p,
+    .core-panel p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+    .mini-map {
+      grid-column: span 2;
+      min-height: 240px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(106, 231, 177, 0.12), transparent 34%),
+        rgba(255, 255, 255, 0.03);
+    }
+
+    .mini-cell {
+      border: 1px solid rgba(113, 237, 178, 0.16);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(5, 16, 25, 0.64);
+    }
+
+    .mini-cell strong {
+      display: block;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .mini-cell span { color: var(--muted); font-size: 0.92rem; }
+
+    .section {
+      padding: 22px 0;
+    }
+
+    .section-card {
+      padding: 24px;
+    }
+
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    .section-head h2 {
+      font-size: clamp(1.55rem, 3vw, 2.3rem);
+    }
+
+    .section-label {
+      display: inline-block;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .grid-3,
+    .grid-4,
+    .stack-grid,
+    .timeline-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .stack-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .timeline-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .node-card,
+    .ant-card,
+    .power-card,
+    .road-card,
+    .stack-card,
+    .myth-card,
+    .timeline-card {
+      padding: 18px;
+    }
+
+    .node-card strong,
+    .ant-card strong,
+    .power-card strong,
+    .road-card strong,
+    .stack-card strong,
+    .myth-card strong,
+    .timeline-card strong {
+      color: var(--text);
+    }
+
+    .road-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .road-card {
+      border-left: 3px solid var(--accent);
+      background: linear-gradient(90deg, rgba(106, 231, 177, 0.08), rgba(255,255,255,0.03));
+    }
+
+    .road-kicker {
+      font-size: 0.82rem;
+      color: var(--accent-3);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .quote-box {
+      padding: 22px;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 195, 93, 0.22);
+      background: rgba(255, 195, 93, 0.06);
+      font-size: 1.05rem;
+      color: #ffe4b0;
+      font-weight: 600;
+    }
+
+    .stack-card {
+      min-height: 220px;
+    }
+
+    .stack-title {
+      font-family: "Orbitron", sans-serif;
+      font-size: 1.15rem;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .legend span {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    footer {
+      padding: 26px 0 0;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    footer a {
+      color: var(--accent-2);
+      text-decoration: none;
+    }
+
+    @media (max-width: 1040px) {
+      .hero,
+      .grid-3,
+      .grid-4,
+      .stack-grid,
+      .timeline-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mini-map {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      nav {
+        justify-content: flex-start;
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mini-map {
+        grid-column: span 1;
+      }
+
+      .shell {
+        width: min(1220px, calc(100% - 18px));
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="ants-bg"></canvas>
+
+  <div class="shell">
+    <header>
+      <a class="brand" href="index.html">
+        <img class="brand-mark" src="logo.png" alt="A Network logo" onerror="this.style.display='none';document.getElementById('brandFallback').style.display='grid';">
+        <div class="brand-fallback" id="brandFallback">A</div>
+        <div>
+          <h1>A NETWORK</h1>
+          <p>Web4 | ANTS Ecosystem Vision</p>
+        </div>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#colony">Colony Model</a>
+        <a href="#ants">Ant Types</a>
+        <a href="#nodes">ANET Node</a>
+        <a href="whitepaper.html">Whitepaper</a>
+      </nav>
+    </header>
+
+    <section class="hero" id="top">
+      <div class="hero-copy">
+        <div class="eyebrow">Future Web4 Coordination Layer | ANTS Ecosystem</div>
+        <h2>
+          Building an <span class="accent-a">ANT habitat</span> for a
+          <span class="accent-b">fully decentralized</span>
+          <span class="accent-c">A Network future</span>.
+        </h2>
+        <p>
+          The ANTS Ecosystem is the long-range Web4 model behind A Network: a distributed habitat where user activity, node coordination, value accounting, migration logic, and on-chain settlement operate like a living colony. It is not just a wallet page or a mining app. It is a network design for how digital labor, identity, routing, and ownership can organize without a central keeper.
+        </p>
+        <div class="hero-actions">
+          <a class="btn" href="#architecture">Explore Architecture</a>
+          <a class="btn-secondary" href="whitepaper.html">Read Whitepaper</a>
+          <a class="btn-secondary" href="index.html#download">Download App</a>
+        </div>
+        <div class="hero-note">
+          Current A Network already uses ANTS-first accounting in the app economy. The ANT Blockchain and full ANET Node mesh described here are the next-stage Web4 direction: decentralized coordination, decentralized validation, decentralized migration, and decentralized habitat growth.
+        </div>
+      </div>
+
+      <div class="hero-grid">
+        <div class="metric">
+          <h3>Core Asset</h3>
+          <div class="metric-value">ANTS</div>
+          <p>The smallest productive unit in the A Network economy, tracked first before ANET representation.</p>
+        </div>
+        <div class="metric">
+          <h3>Settlement Asset</h3>
+          <div class="metric-value">ANET</div>
+          <p>The ecosystem token layer intended for broader settlement, migration, and long-range network utility.</p>
+        </div>
+        <div class="metric">
+          <h3>Future Chain</h3>
+          <div class="metric-value">ANT Blockchain</div>
+          <p>A purpose-built habitat chain for node coordination, resource routing, identity anchoring, and migration proofs.</p>
+        </div>
+        <div class="metric">
+          <h3>Future Infrastructure</h3>
+          <div class="metric-value">ANET Nodes</div>
+          <p>Distributed nodes that help the colony stay live, synchronized, and censorship-resistant without relying on one operator.</p>
+        </div>
+        <div class="mini-map">
+          <div class="mini-cell">
+            <strong>Web2 Activity Layer</strong>
+            <span>Mining sessions, account state, engagement logic, app-native productivity, and ANTS accumulation.</span>
+          </div>
+          <div class="mini-cell">
+            <strong>Web3 Ownership Layer</strong>
+            <span>Wallet identity, token settlement, asset control, migration destinations, and transparent contract state.</span>
+          </div>
+          <div class="mini-cell">
+            <strong>Web4 Coordination Layer</strong>
+            <span>ANT habitat routing, ANET Node consensus, colony intelligence, cross-layer synchronization, and future autonomous governance.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="architecture">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">What It Really Is</div>
+            <h2>The ANTS Ecosystem Is a Habitat Model, Not Just a Token Story</h2>
+            <p class="section-copy">
+              Ant colonies are powerful because they do not depend on one hero process. They survive through coordination, division of work, redundancy, adaptation, and constant feedback from the environment. That is the deeper logic behind the ANTS Ecosystem.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <article class="power-card">
+            <h3>Distributed Labor</h3>
+            <p class="card-copy"><strong>ANTS</strong> represent granular work units. In today’s app, they are accumulated through session mining logic. In the future habitat, they can also become the measurable unit of routing, node assistance, data relay, and ecosystem productivity.</p>
+          </article>
+          <article class="power-card">
+            <h3>Distributed Memory</h3>
+            <p class="card-copy">The colony becomes stronger when identity, migration mapping, state checkpoints, and network proofs are not owned by one server. The future ANT Blockchain is intended to carry this distributed memory layer.</p>
+          </article>
+          <article class="power-card">
+            <h3>Distributed Survival</h3>
+            <p class="card-copy">A fragile system dies if one node, one company, or one region fails. A real habitat survives because <strong>ANET Nodes</strong> keep the colony routable, visible, and recoverable from many directions at once.</p>
+          </article>
+        </div>
+
+        <div class="quote-box">
+          In simple terms: the ANTS Ecosystem is A Network’s blueprint for turning isolated user activity into a coordinated, decentralized living system where work, ownership, and future network intelligence reinforce each other.
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="colony">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">Habitat Logic</div>
+            <h2>Why the Ant Colony Metaphor Is So Powerful</h2>
+            <p class="section-copy">
+              The ant habitat is not branding decoration. It is the actual systems design metaphor for how A Network can scale into Web4.
+            </p>
+          </div>
+        </div>
+
+        <div class="road-list">
+          <div class="road-card">
+            <div class="road-kicker">1. Coordination Without Central Dependence</div>
+            <strong>Ants do not need a central announcer for every motion.</strong>
+            <p class="card-copy">That mirrors the future of ANET Nodes: local decision-making, distributed verification, and shared rules instead of one central machine deciding every state transition.</p>
+          </div>
+          <div class="road-card">
+            <div class="road-kicker">2. Small Units Create Large Systems</div>
+            <strong>One ant looks small. A colony can reshape terrain.</strong>
+            <p class="card-copy">One ANTS unit looks minor. But at ecosystem scale, ANTS-first accounting lets the network measure real accumulated activity before conversion, migration, or broader utility allocation.</p>
+          </div>
+          <div class="road-card">
+            <div class="road-kicker">3. Habitat Intelligence Emerges Over Time</div>
+            <strong>Colonies become powerful because signals compound.</strong>
+            <p class="card-copy">The same applies to Web4. Identity trails, participation history, session output, migration readiness, and node coordination can eventually form an intelligent network surface without creating a custodial system.</p>
+          </div>
+          <div class="road-card">
+            <div class="road-kicker">4. Strong Systems Are Redundant</div>
+            <strong>Redundancy is not waste. It is resilience.</strong>
+            <p class="card-copy">A fully decentralized future needs multiple nodes, replicated proofs, distributed routes, and recoverable state. That is why ANET Nodes matter more than a single backend ever could.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ants">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">Ant Roles</div>
+            <h2>Different Ants, Different Network Functions</h2>
+            <p class="section-copy">
+              Real ant societies work because different ants specialize. In the ANTS Ecosystem, this gives a useful mental model for future roles across the network.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid-4">
+          <article class="ant-card">
+            <h3>Worker Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> carrying, building, cleaning, feeding the colony.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> everyday participants whose sessions, activity, routing, and economic behavior keep the ecosystem alive.</p>
+          </article>
+          <article class="ant-card">
+            <h3>Soldier Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> defense and perimeter control.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> security-oriented node operators, validation layers, anti-spam control, and protective network behavior.</p>
+          </article>
+          <article class="ant-card">
+            <h3>Scout Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> exploration and discovery of routes or food sources.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> route discovery, network reachability, cross-chain intelligence, and ecosystem expansion into new environments.</p>
+          </article>
+          <article class="ant-card">
+            <h3>Builder Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> tunnel creation and habitat architecture.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> protocol builders, app developers, infrastructure contributors, and habitat-layer architects.</p>
+          </article>
+        </div>
+
+        <div class="grid-4" style="margin-top:14px;">
+          <article class="ant-card">
+            <h3>Farmer Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> cultivating fungus, maintaining productive systems.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> long-term yield, app ecosystems, service markets, and utility layers that produce recurring value.</p>
+          </article>
+          <article class="ant-card">
+            <h3>Nurse Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> caring for brood and ensuring colony continuity.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> onboarding, user education, tooling, UX safety, and continuity systems that make the network sustainable.</p>
+          </article>
+          <article class="ant-card">
+            <h3>Queen Ant</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> continuity, long-term survival, reproductive center.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> not a single ruler, but the idea of durable protocol continuity. In a decentralized habitat, the protocol itself must replace the need for a human queen.</p>
+          </article>
+          <article class="ant-card">
+            <h3>Swarm Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> collective movement under pressure.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> the network’s ability to coordinate quickly during migration windows, upgrades, node events, or ecosystem-wide shifts.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="nodes">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">Infrastructure Core</div>
+            <h2>What ANET Nodes Would Do in a Fully Decentralized Future</h2>
+            <p class="section-copy">
+              ANET Nodes are the habitat keepers of the future network. They are not meant to custody user keys. They are meant to coordinate, relay, verify, and preserve decentralized operability.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <article class="node-card">
+            <h3>State Relay</h3>
+            <p class="card-copy">Nodes can relay proof-bearing ecosystem state between the app layer, ANT Blockchain layer, and settlement destinations without taking ownership of user wallets.</p>
+          </article>
+          <article class="node-card">
+            <h3>Migration Coordination</h3>
+            <p class="card-copy">Nodes can witness and coordinate the mapping from mined ANTS history into future ANET rewards or Web4 migration claims, while still keeping user wallets non-custodial.</p>
+          </article>
+          <article class="node-card">
+            <h3>Consensus Surface</h3>
+            <p class="card-copy">As the ecosystem matures, ANET Nodes become the mesh that determines valid checkpoints, valid routes, valid proofs, and the durability of the habitat itself.</p>
+          </article>
+        </div>
+
+        <div class="stack-grid" style="margin-top:14px;">
+          <article class="stack-card">
+            <h3>Current Reality</h3>
+            <div class="stack-title">App + Backend + Web3 Bridge</div>
+            <p class="stack-copy">Today A Network uses an app-first model with session logic, ANTS-first accounting, wallet mapping, and a future migration direction. This is the colony in its early engineered phase.</p>
+            <div class="legend">
+              <span>ANTS-first accounting</span>
+              <span>session mining</span>
+              <span>migration wallet mapping</span>
+            </div>
+          </article>
+          <article class="stack-card">
+            <h3>Future Direction</h3>
+            <div class="stack-title">ANT Blockchain + ANET Node Habitat</div>
+            <p class="stack-copy">The future Web4 layer expands beyond one application stack into a node-based habitat where coordination, proofs, routing, and migration logic become decentralized network functions.</p>
+            <div class="legend">
+              <span>distributed nodes</span>
+              <span>proof routing</span>
+              <span>decentralized habitat memory</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="chain">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">Future Chain Design</div>
+            <h2>What the ANT Blockchain Represents</h2>
+            <p class="section-copy">
+              The ANT Blockchain is not just a place to hold balances. In the A Network vision, it becomes the habitat ledger for how work, migration, and coordination are organized at scale.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-grid">
+          <article class="timeline-card">
+            <h3>Identity Anchoring</h3>
+            <p>User-controlled wallets remain local and non-custodial, but the network can still anchor addresses, proofs, and migration references on a decentralized chain.</p>
+          </article>
+          <article class="timeline-card">
+            <h3>Habitat Proofs</h3>
+            <p>Network history, participation proofs, and migration state can live as durable records instead of depending on one database forever.</p>
+          </article>
+          <article class="timeline-card">
+            <h3>Autonomous Expansion</h3>
+            <p>Once the chain and nodes exist together, the colony can expand into service layers, AI routing, protocol governance, and multi-app ecosystem coordination.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="power">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">Why It Matters</div>
+            <h2>Why the ANTS Ecosystem Can Become So Powerful</h2>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <article class="myth-card">
+            <h3>Because It Starts Small but Compounds</h3>
+            <p class="card-copy">ANTS are small units. That is exactly why they are useful. Small measurable units allow disciplined accounting, disciplined growth, and disciplined migration into larger network value later.</p>
+          </article>
+          <article class="myth-card">
+            <h3>Because It Separates Work From Custody</h3>
+            <p class="card-copy">The user keeps custody of the wallet. The network only coordinates public state, mapping, and proofs. That separation is essential for a serious decentralized system.</p>
+          </article>
+          <article class="myth-card">
+            <h3>Because It Makes Web4 Concrete</h3>
+            <p class="card-copy">Web4 here is not vague hype. It means coordination: how identity, work, routing, migration, settlement, and intelligence connect across layers into one habitat.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="roadmap">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">Colony Evolution</div>
+            <h2>From Today’s App Economy to Tomorrow’s Decentralized Habitat</h2>
+            <p class="section-copy">
+              This is the logic line from the project you already built into the Web4 future this page describes.
+            </p>
+          </div>
+        </div>
+
+        <div class="road-list">
+          <div class="road-card">
+            <div class="road-kicker">Phase 1 | Active Today</div>
+            <strong>Web2 mining, ANTS-first accounting, session logic, and migration address preparation.</strong>
+            <p class="card-copy">The app already trains the economic discipline of the colony: activity, session completion, measured units, and future migration readiness.</p>
+          </div>
+          <div class="road-card">
+            <div class="road-kicker">Phase 2 | Transitional Web3 Surface</div>
+            <strong>User-controlled wallets, transparent ownership, and clearer migration rails.</strong>
+            <p class="card-copy">This phase strengthens wallet sovereignty, token presence, and settlement clarity while keeping user keys outside backend custody.</p>
+          </div>
+          <div class="road-card">
+            <div class="road-kicker">Phase 3 | Web4 Habitat Layer</div>
+            <strong>ANT Blockchain checkpoints, ANET Node participation, and decentralized habitat coordination.</strong>
+            <p class="card-copy">The colony graduates from app-state coordination into network-state coordination across nodes and shared rules.</p>
+          </div>
+          <div class="road-card">
+            <div class="road-kicker">Phase 4 | Autonomous Colony Expansion</div>
+            <strong>AI-assisted routing, service economies, protocol evolution, and multi-domain ecosystem growth.</strong>
+            <p class="card-copy">This is where the habitat becomes a wider digital organism: not just a token network, but an adaptive decentralized environment.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="section-actions" style="justify-content:center; margin-bottom:14px;">
+        <a class="chip-link" href="index.html">Home</a>
+        <a class="chip-link" href="whitepaper.html">Whitepaper</a>
+        <a class="chip-link" href="privacy.html">Privacy</a>
+        <a class="chip-link" href="terms.html">Terms</a>
+      </div>
+      <p>
+        A Network Web4 page. Built around the ANTS Ecosystem vision: non-custodial ownership, distributed coordination, ANT Blockchain habitat memory, and future ANET Node infrastructure.
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('ants-bg');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    const tunnelNodes = [];
+    const ants = [];
+    const antColors = ['#6ae7b1', '#59c9ff', '#d3ff78', '#ffc35d'];
+
+    for (let i = 0; i < 70; i += 1) {
+      tunnelNodes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.28,
+        vy: (Math.random() - 0.5) * 0.28,
+      });
+    }
+
+    for (let i = 0; i < 34; i += 1) {
+      ants.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 1.4,
+        vy: (Math.random() - 0.5) * 1.4,
+        hue: antColors[i % antColors.length],
+      });
+    }
+
+    function drawAnt(ant) {
+      ctx.save();
+      ctx.translate(ant.x, ant.y);
+      ctx.rotate(Math.atan2(ant.vy, ant.vx));
+      ctx.strokeStyle = ant.hue;
+      ctx.lineWidth = 1.2;
+
+      ctx.beginPath();
+      ctx.arc(-4, 0, 1.6, 0, Math.PI * 2);
+      ctx.arc(0, 0, 1.3, 0, Math.PI * 2);
+      ctx.arc(4, 0, 2, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(2, -2);
+      ctx.lineTo(5, -5);
+      ctx.moveTo(2, 2);
+      ctx.lineTo(5, 5);
+      ctx.moveTo(-1, -2.5);
+      ctx.lineTo(-3.5, -5);
+      ctx.moveTo(-1, 2.5);
+      ctx.lineTo(-3.5, 5);
+      ctx.moveTo(4, -1.5);
+      ctx.lineTo(7.5, -4);
+      ctx.moveTo(4, 1.5);
+      ctx.lineTo(7.5, 4);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(4, 16, 25, 0.24)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < tunnelNodes.length; i += 1) {
+        const node = tunnelNodes[i];
+        node.x += node.vx;
+        node.y += node.vy;
+
+        if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+        if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 1.8, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(106, 231, 177, 0.56)';
+        ctx.fill();
+
+        for (let j = i + 1; j < tunnelNodes.length; j += 1) {
+          const other = tunnelNodes[j];
+          const dx = node.x - other.x;
+          const dy = node.y - other.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 130) {
+            ctx.strokeStyle = `rgba(89, 201, 255, ${0.08 * (1 - distance / 130)})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(node.x, node.y);
+            ctx.lineTo(other.x, other.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      for (const ant of ants) {
+        ant.x += ant.vx;
+        ant.y += ant.vy;
+
+        if (ant.x < 12 || ant.x > canvas.width - 12) ant.vx *= -1;
+        if (ant.y < 12 || ant.y > canvas.height - 12) ant.vy *= -1;
+
+        if (Math.random() < 0.02) {
+          ant.vx += (Math.random() - 0.5) * 0.7;
+          ant.vy += (Math.random() - 0.5) * 0.7;
+        }
+
+        const speed = Math.max(0.6, Math.min(1.8, Math.hypot(ant.vx, ant.vy)));
+        ant.vx = (ant.vx / Math.hypot(ant.vx, ant.vy || 1)) * speed;
+        ant.vy = (ant.vy / Math.hypot(ant.vx || 1, ant.vy)) * speed;
+
+        drawAnt(ant);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
