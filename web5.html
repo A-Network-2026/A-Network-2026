@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network Web5 | Real-Time Blockchain Testnet</title>
+  <meta name="description" content="A Network Layer 1 Testnet Explorer: Real-time blocks, sessions, and miner activity.">
+  <meta name="theme-color" content="#050b12">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Space+Grotesk:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body { background: #041019; color: #eff6ff; font-family: 'Space Grotesk', sans-serif; margin: 0; }
+    h1 { font-family: 'Orbitron', sans-serif; font-size: 2.2rem; color: #6ae7b1; margin: 32px 0 12px 0; text-align: center; }
+    .subtitle { text-align: center; color: #9ab3c8; margin-bottom: 32px; }
+    .explorer-panel { background: rgba(10,24,39,0.92); border-radius: 18px; box-shadow: 0 8px 32px #0008; max-width: 700px; margin: 0 auto 32px auto; padding: 32px 24px; }
+    .stats { display: flex; justify-content: space-between; margin-bottom: 24px; }
+    .stat { text-align: center; flex: 1; }
+    .stat strong { display: block; font-size: 1.6rem; color: #6ae7b1; }
+    .stat label { color: #9ab3c8; font-size: 1rem; }
+    .blocks-table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+    .blocks-table th, .blocks-table td { padding: 8px 6px; text-align: left; }
+    .blocks-table th { color: #59c9ff; font-weight: 700; border-bottom: 1px solid #223; }
+    .blocks-table tr:nth-child(even) { background: #081827; }
+    .blocks-table tr:hover { background: #0e233a; }
+    .block-hash { font-family: monospace; font-size: 0.98rem; color: #d3ff78; }
+    .miner { color: #ffc35d; font-weight: 500; }
+    .timestamp { color: #9ab3c8; font-size: 0.97rem; }
+    .session { color: #6ae7b1; font-weight: 500; }
+    .live-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #6ae7b1; margin-right: 7px; animation: blink 1.2s infinite alternate; }
+    @keyframes blink { from { opacity: 1; } to { opacity: 0.3; } }
+  </style>
+</head>
+<body>
+  <h1>Web5: Real-Time Blockchain Testnet</h1>
+  <div class="subtitle">A Network Layer 1 — Live block explorer for all miners and sessions</div>
+  <div class="explorer-panel">
+    <div class="stats">
+      <div class="stat"><strong id="blockCount">0</strong><label>Blocks</label></div>
+      <div class="stat"><strong id="sessionCount">0</strong><label>Sessions</label></div>
+      <div class="stat"><strong id="minerCount">0</strong><label>Active Miners</label></div>
+    </div>
+    <div style="margin-bottom:10px; color:#59c9ff; font-size:1.1rem;"><span class="live-dot"></span>Live Testnet Data</div>
+    <table class="blocks-table">
+      <thead>
+        <tr><th>Block</th><th>Session</th><th>Miner</th><th>Timestamp</th></tr>
+      </thead>
+      <tbody id="blocksBody">
+        <tr><td colspan="4" style="text-align:center; color:#9ab3c8;">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    async function fetchBlocks() {
+      try {
+        const res = await fetch('/blockchain/testnet');
+        if (!res.ok) throw new Error('Network error');
+        const data = await res.json();
+        document.getElementById('blockCount').textContent = data.totalBlocks;
+        document.getElementById('sessionCount').textContent = data.totalSessions;
+        document.getElementById('minerCount').textContent = data.activeMiners;
+        const body = document.getElementById('blocksBody');
+        body.innerHTML = '';
+        for (const block of data.blocks) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td class="block-hash">${block.hash}</td><td class="session">${block.session}</td><td class="miner">${block.miner}</td><td class="timestamp">${block.timestamp}</td>`;
+          body.appendChild(tr);
+        }
+      } catch (e) {
+        document.getElementById('blocksBody').innerHTML = `<tr><td colspan="4" style="text-align:center; color:#f28b82;">Failed to load data</td></tr>`;
+      }
+    }
+    fetchBlocks();
+    setInterval(fetchBlocks, 5000);
+  </script>
+</body>
+</html>
