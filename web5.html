@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>A Network Web5 | Live Coordination Surface</title>
-  <meta name="description" content="A Network Web5 view of the live Layer 1 testnet: latest blocks, active validator participation, total sessions, and synchronized settlement data.">
+  <meta name="description" content="A Network Web5 view of the live Layer 1 testnet: event-driven settlement blocks, active validator participation, total sessions, and synchronized supply data.">
   <meta name="theme-color" content="#050b12">
   <meta property="og:type" content="website">
   <meta property="og:title" content="A Network Web5 | Live Coordination Surface">
-  <meta property="og:description" content="Live Web5-facing view of the A Network Layer 1 testnet using the current explorer APIs.">
+  <meta property="og:description" content="Live Web5-facing view of the A Network Layer 1 testnet with event-driven settlement blocks and synchronized supply data.">
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
@@ -298,10 +298,10 @@
         <div class="eyebrow">Live Web5 Surface</div>
         <h1>A Network Web5 Coordination View</h1>
         <p>
-          This page is a lightweight Web5-facing surface over the live A Network Layer 1 testnet. It reflects the current chain directly from the public explorer APIs: latest blocks, active validator participation, total sessions, and current transfer cadence.
+          This page is a lightweight Web5-facing surface over the live A Network Layer 1 testnet. It reflects the current chain directly from the public explorer APIs: latest event-driven settlement blocks, active validator participation, total sessions, and current transfer-window cadence.
         </p>
         <div class="hero-actions">
-          <a class="btn" href="/explorer">Open Explorer</a>
+          <a class="btn" href="https://explorer.a-network.net/explorer">Open Explorer</a>
           <a class="btn btn-ghost" href="whitepaper.html">Read Whitepaper</a>
         </div>
       </div>
@@ -315,7 +315,7 @@
           <strong id="cadence">Loading...</strong>
         </div>
         <div>
-          <span>Next Transfer Block</span>
+          <span>Current Settlement Window Ends</span>
           <strong id="epochEnd" class="mono">Loading...</strong>
         </div>
       </div>
@@ -325,7 +325,7 @@
       <article class="stat-card">
         <label>Latest Block</label>
         <strong id="blockCount">0</strong>
-        <div class="stat-copy">Current finalized block height.</div>
+        <div class="stat-copy">Most recent finalized settlement block.</div>
       </article>
       <article class="stat-card">
         <label>Total Sessions</label>
@@ -350,7 +350,7 @@
           <div class="eyebrow">Live Chain Feed</div>
           <h2>Recent Blocks</h2>
         </div>
-        <div class="table-note">Data source: <span class="mono">/blocks</span> and <span class="mono">/stats/investor</span></div>
+        <div class="table-note">Data source: <span class="mono">explorer.a-network.net/blocks</span> and <span class="mono">explorer.a-network.net/stats/investor</span></div>
       </div>
       <div id="errorBox" class="error" style="display:none;"></div>
       <table>
@@ -365,29 +365,38 @@
   </div>
 
   <script>
+    const EXPLORER_API_BASE = 'https://explorer.a-network.net';
+
+    function buildApiUrl(path) {
+      return new URL(path, `${EXPLORER_API_BASE}/`).toString();
+    }
+
     function formatCount(value) {
       return Number(value || 0).toLocaleString();
     }
 
     function formatCadence(seconds) {
       if (!seconds && seconds !== 0) return 'Unknown';
-      if (seconds === 1) return '1 Second Transfer Block';
-      if (seconds < 60) return `${seconds} Second Transfer Blocks`;
-      if (seconds === 60) return '1 Minute Transfer Blocks';
-      if (seconds < 3600) return `${Math.floor(seconds / 60)} Minute Transfer Blocks`;
-      return `${Math.floor(seconds / 3600)} Hour Transfer Blocks`;
+      if (seconds === 1) return '1 Second Settlement Window';
+      if (seconds < 60) return `${seconds} Second Settlement Windows`;
+      if (seconds === 60) return '1 Minute Settlement Window';
+      if (seconds < 3600) return `${Math.floor(seconds / 60)} Minute Settlement Windows`;
+      return `${Math.floor(seconds / 3600)} Hour Settlement Windows`;
     }
 
     async function fetchLiveData() {
       const errorBox = document.getElementById('errorBox');
       try {
         const [blocksRes, statsRes] = await Promise.all([
-          fetch('/blocks'),
-          fetch('/stats/investor', { headers: { 'Accept': 'application/json' } })
+          fetch(buildApiUrl('blocks'), { cache: 'no-store' }),
+          fetch(buildApiUrl('stats/investor'), {
+            cache: 'no-store',
+            headers: { 'Accept': 'application/json' }
+          })
         ]);
 
         if (!blocksRes.ok || !statsRes.ok) {
-          throw new Error('Failed to load live network data');
+          throw new Error('Failed to load live network data from explorer.a-network.net');
         }
 
         const blocks = await blocksRes.json();
@@ -409,7 +418,7 @@
 
         const recentBlocks = Array.isArray(blocks) ? blocks.slice(-12).reverse() : [];
         if (!recentBlocks.length) {
-          body.innerHTML = '<tr><td colspan="5" class="muted">No blocks yet.</td></tr>';
+          body.innerHTML = '<tr><td colspan="5" class="muted">No settlement blocks yet. A block appears when transfers or newly synchronized Web2 supply need settlement.</td></tr>';
           return;
         }
 
@@ -427,7 +436,7 @@
 
         errorBox.style.display = 'none';
       } catch (error) {
-        errorBox.textContent = error.message || 'Failed to load live network data';
+        errorBox.textContent = error.message || 'Failed to load live network data from explorer.a-network.net';
         errorBox.style.display = 'block';
         document.getElementById('blocksBody').innerHTML = '<tr><td colspan="5" class="muted">Live feed unavailable.</td></tr>';
       }
