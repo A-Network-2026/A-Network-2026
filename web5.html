@@ -160,6 +160,133 @@
       margin-bottom: 20px;
     }
 
+    .action-grid,
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .panel-head h2,
+    .panel-head h3 {
+      margin: 8px 0 0;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .action-card,
+    .info-card {
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .action-card h3,
+    .info-card h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .action-card p,
+    .info-card p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .tx-form {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .tx-form label {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .tx-form label.seed-field {
+      grid-column: span 2;
+    }
+
+    .tx-form button {
+      align-self: end;
+      min-height: 52px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px 18px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #041018;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tx-form input {
+      min-height: 48px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(3, 10, 18, 0.72);
+      color: var(--text);
+      padding: 12px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      outline: none;
+    }
+
+    .tx-form input:focus {
+      border-color: var(--line-strong);
+      box-shadow: 0 0 0 3px rgba(106, 231, 177, 0.08);
+    }
+
+    .tx-result {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .tx-result.ok {
+      border-color: rgba(106, 231, 177, 0.32);
+      background: rgba(106, 231, 177, 0.08);
+      color: #dffdf1;
+    }
+
+    .tx-result.error {
+      border-color: rgba(242, 139, 130, 0.32);
+      background: rgba(242, 139, 130, 0.08);
+      color: #ffd4cf;
+    }
+
     .stat-card {
       padding: 18px;
     }
@@ -257,8 +384,15 @@
 
     @media (max-width: 980px) {
       .hero,
-      .stats {
+      .stats,
+      .action-grid,
+      .info-grid,
+      .tx-form {
         grid-template-columns: 1fr;
+      }
+
+      .tx-form label.seed-field {
+        grid-column: span 1;
       }
     }
 
@@ -302,6 +436,8 @@
         </p>
         <div class="hero-actions">
           <a class="btn" href="https://explorer.a-network.net/explorer">Open Explorer</a>
+          <a class="btn btn-ghost" href="#worker-transfer">Worker Transfer</a>
+          <a class="btn btn-ghost" href="web4.html">Open Web4 Page</a>
           <a class="btn btn-ghost" href="whitepaper.html">Read Whitepaper</a>
         </div>
       </div>
@@ -344,6 +480,94 @@
       </article>
     </section>
 
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">Web5 Quick Access</div>
+          <h2>Fast Actions</h2>
+        </div>
+        <div class="table-note">Mirrors the quick-access direction now used in the app Web5 tab.</div>
+      </div>
+      <div class="action-grid">
+        <article class="action-card">
+          <h3>Worker Transfer</h3>
+          <p>Jump directly to the live Layer 1 transfer surface and submit ANT-denominated mempool transactions from the public explorer APIs.</p>
+          <a class="btn btn-block" href="#worker-transfer">Open Transfer</a>
+        </article>
+        <article class="action-card">
+          <h3>Live Explorer</h3>
+          <p>Open the full explorer dashboard for detailed block, wallet, validator, and on-chain settlement visibility.</p>
+          <a class="btn btn-block" href="https://explorer.a-network.net/explorer">Open Explorer</a>
+        </article>
+        <article class="action-card">
+          <h3>Web4 + Whitepaper</h3>
+          <p>Review the broader ecosystem context, migration framing, and current Layer 1 positioning through the public docs.</p>
+          <div class="hero-actions">
+            <a class="btn btn-ghost" href="web4.html">Web4 Page</a>
+            <a class="btn btn-ghost" href="whitepaper.html">Whitepaper</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">App Tools</div>
+          <h3>Wallet Security Shortcuts</h3>
+        </div>
+        <div class="table-note">These stay inside the mobile app because they depend on the signed-in wallet owner session.</div>
+      </div>
+      <div class="info-grid">
+        <article class="info-card">
+          <h3>View Seed</h3>
+          <p>The app Web5 tab now includes direct access to seed-phrase reveal so users do not need to swipe back to Web4 for wallet backup and migration checks.</p>
+        </article>
+        <article class="info-card">
+          <h3>Change PIN</h3>
+          <p>The app Web5 tab also duplicates the wallet PIN action for faster security access while keeping the reveal flow protected by the current wallet rules.</p>
+        </article>
+        <article class="info-card">
+          <h3>Why App-Only</h3>
+          <p>Seed reveal and PIN changes are intentionally tied to the authenticated app experience. The public Web5 page stays read-only plus transfer-capable.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="worker-transfer" class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">Worker Transfer</div>
+          <h2>Transfer</h2>
+        </div>
+        <div class="table-note">Submit an ANT-denominated transfer to the mempool for inclusion in the next fast transfer block.</div>
+      </div>
+      <form id="txForm" class="tx-form">
+        <label>
+          <span>From Wallet</span>
+          <input id="txFrom" placeholder="ANET..." required>
+        </label>
+        <label>
+          <span>To Wallet</span>
+          <input id="txTo" placeholder="ANET..." required>
+        </label>
+        <label>
+          <span>Amount (ANTS)</span>
+          <input id="txAmount" type="number" min="1" step="1" placeholder="4882812" required>
+        </label>
+        <label>
+          <span>Fee (ANTS)</span>
+          <input id="txFee" type="number" min="0" step="1" value="0" required>
+        </label>
+        <label class="seed-field">
+          <span>Sender Seed Phrase</span>
+          <input id="txSeed" type="password" placeholder="12-word wallet seed" required>
+        </label>
+        <button type="submit">Queue Transaction</button>
+      </form>
+      <div id="txResult" class="tx-result">Transactions remain in the mempool until the next TPoW transfer block is created. This Web5 page uses the same seed-based sender authorization as the public explorer for current testnet compatibility.</div>
+    </section>
+
     <section class="table-shell">
       <div class="table-head">
         <div>
@@ -366,9 +590,21 @@
 
   <script>
     const EXPLORER_API_BASE = 'https://explorer.a-network.net';
+    const txForm = document.getElementById('txForm');
+    const txFrom = document.getElementById('txFrom');
+    const txTo = document.getElementById('txTo');
+    const txAmount = document.getElementById('txAmount');
+    const txFee = document.getElementById('txFee');
+    const txSeed = document.getElementById('txSeed');
+    const txResult = document.getElementById('txResult');
 
     function buildApiUrl(path) {
       return new URL(path, `${EXPLORER_API_BASE}/`).toString();
+    }
+
+    function setTxMessage(message, tone = 'muted') {
+      txResult.textContent = message;
+      txResult.className = `tx-result${tone === 'muted' ? '' : ` ${tone}`}`;
     }
 
     function formatCount(value) {
@@ -382,6 +618,36 @@
       if (seconds === 60) return '1 Minute Settlement Window';
       if (seconds < 3600) return `${Math.floor(seconds / 60)} Minute Settlement Windows`;
       return `${Math.floor(seconds / 3600)} Hour Settlement Windows`;
+    }
+
+    async function submitTransfer(event) {
+      event.preventDefault();
+      setTxMessage('Submitting transfer to the colony mempool...');
+
+      try {
+        const response = await fetch(buildApiUrl('transactions'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: txFrom.value.trim(),
+            to: txTo.value.trim(),
+            amount_ants: Number(txAmount.value || 0),
+            fee_ants: Number(txFee.value || 0),
+            sender_seed: txSeed.value.trim(),
+          }),
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || 'Transaction request failed');
+        }
+
+        txResult.innerHTML = `Queued transaction <strong>${result.transaction_id}</strong>.`;
+        txResult.className = 'tx-result ok';
+        txSeed.value = '';
+      } catch (error) {
+        setTxMessage(error.message || 'Transaction request failed', 'error');
+      }
     }
 
     async function fetchLiveData() {
@@ -441,6 +707,14 @@
         document.getElementById('blocksBody').innerHTML = '<tr><td colspan="5" class="muted">Live feed unavailable.</td></tr>';
       }
     }
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('from')) txFrom.value = params.get('from');
+    if (params.get('to')) txTo.value = params.get('to');
+    if (params.get('amount_ants')) txAmount.value = params.get('amount_ants');
+    if (params.get('fee_ants')) txFee.value = params.get('fee_ants');
+
+    txForm?.addEventListener('submit', submitTransfer);
 
     fetchLiveData();
     setInterval(fetchLiveData, 5000);
