@@ -3,76 +3,438 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A Network Web5 | Real-Time Blockchain Testnet</title>
-  <meta name="description" content="A Network Layer 1 Testnet Explorer: Real-time blocks, sessions, and miner activity.">
+  <title>A Network Web5 | Live Coordination Surface</title>
+  <meta name="description" content="A Network Web5 view of the live Layer 1 testnet: latest blocks, active validator participation, total sessions, and synchronized settlement data.">
   <meta name="theme-color" content="#050b12">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="A Network Web5 | Live Coordination Surface">
+  <meta property="og:description" content="Live Web5-facing view of the A Network Layer 1 testnet using the current explorer APIs.">
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Space+Grotesk:wght@500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    body { background: #041019; color: #eff6ff; font-family: 'Space Grotesk', sans-serif; margin: 0; }
-    h1 { font-family: 'Orbitron', sans-serif; font-size: 2.2rem; color: #6ae7b1; margin: 32px 0 12px 0; text-align: center; }
-    .subtitle { text-align: center; color: #9ab3c8; margin-bottom: 32px; }
-    .explorer-panel { background: rgba(10,24,39,0.92); border-radius: 18px; box-shadow: 0 8px 32px #0008; max-width: 700px; margin: 0 auto 32px auto; padding: 32px 24px; }
-    .stats { display: flex; justify-content: space-between; margin-bottom: 24px; }
-    .stat { text-align: center; flex: 1; }
-    .stat strong { display: block; font-size: 1.6rem; color: #6ae7b1; }
-    .stat label { color: #9ab3c8; font-size: 1rem; }
-    .blocks-table { width: 100%; border-collapse: collapse; margin-top: 18px; }
-    .blocks-table th, .blocks-table td { padding: 8px 6px; text-align: left; }
-    .blocks-table th { color: #59c9ff; font-weight: 700; border-bottom: 1px solid #223; }
-    .blocks-table tr:nth-child(even) { background: #081827; }
-    .blocks-table tr:hover { background: #0e233a; }
-    .block-hash { font-family: monospace; font-size: 0.98rem; color: #d3ff78; }
-    .miner { color: #ffc35d; font-weight: 500; }
-    .timestamp { color: #9ab3c8; font-size: 0.97rem; }
-    .session { color: #6ae7b1; font-weight: 500; }
-    .live-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #6ae7b1; margin-right: 7px; animation: blink 1.2s infinite alternate; }
-    @keyframes blink { from { opacity: 1; } to { opacity: 0.3; } }
+    :root {
+      --bg: #041019;
+      --bg-2: #081827;
+      --panel: rgba(10, 24, 39, 0.9);
+      --line: rgba(89, 201, 255, 0.16);
+      --line-strong: rgba(106, 231, 177, 0.34);
+      --text: #eff6ff;
+      --muted: #9ab3c8;
+      --accent: #6ae7b1;
+      --accent-2: #59c9ff;
+      --accent-3: #d3ff78;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(106, 231, 177, 0.10), transparent 26%),
+        radial-gradient(circle at top right, rgba(89, 201, 255, 0.12), transparent 24%),
+        linear-gradient(180deg, #07101a 0%, var(--bg) 100%);
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    .hero,
+    .panel,
+    .stat-card,
+    .table-shell {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero {
+      padding: 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2rem, 5vw, 4.1rem);
+      line-height: 1.04;
+      background: linear-gradient(135deg, #ffffff 22%, var(--accent-2) 68%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p,
+    .stat-copy,
+    .table-note,
+    .muted {
+      color: var(--muted);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      color: #041018;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+    }
+
+    .hero-meta {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .hero-meta div {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .hero-meta span {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+    }
+
+    .hero-meta strong {
+      display: block;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      overflow-wrap: anywhere;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      padding: 18px;
+    }
+
+    .stat-card label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.2rem, 4vw, 2.3rem);
+      color: var(--text);
+      margin-bottom: 8px;
+      overflow-wrap: anywhere;
+    }
+
+    .table-shell {
+      padding: 22px;
+    }
+
+    .table-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      align-items: end;
+    }
+
+    .table-head h2 {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+    }
+
+    th,
+    td {
+      padding: 14px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--accent-2);
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    tbody tr {
+      background: rgba(255,255,255,0.035);
+    }
+
+    tbody td:first-child {
+      border-top-left-radius: 16px;
+      border-bottom-left-radius: 16px;
+    }
+
+    tbody td:last-child {
+      border-top-right-radius: 16px;
+      border-bottom-right-radius: 16px;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .kicker {
+      color: var(--accent-3);
+      font-weight: 700;
+    }
+
+    .error {
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(242, 139, 130, 0.32);
+      background: rgba(242, 139, 130, 0.08);
+      color: #ffd4cf;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .shell {
+        width: min(1180px, calc(100% - 18px));
+      }
+
+      table,
+      thead,
+      tbody,
+      th,
+      td,
+      tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tbody tr {
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      td {
+        padding: 10px 12px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Web5: Real-Time Blockchain Testnet</h1>
-  <div class="subtitle">A Network Layer 1 — Live block explorer for all miners and sessions</div>
-  <div class="explorer-panel">
-    <div class="stats">
-      <div class="stat"><strong id="blockCount">0</strong><label>Blocks</label></div>
-      <div class="stat"><strong id="sessionCount">0</strong><label>Sessions</label></div>
-      <div class="stat"><strong id="minerCount">0</strong><label>Active Miners</label></div>
-    </div>
-    <div style="margin-bottom:10px; color:#59c9ff; font-size:1.1rem;"><span class="live-dot"></span>Live Testnet Data</div>
-    <table class="blocks-table">
-      <thead>
-        <tr><th>Block</th><th>Session</th><th>Miner</th><th>Timestamp</th></tr>
-      </thead>
-      <tbody id="blocksBody">
-        <tr><td colspan="4" style="text-align:center; color:#9ab3c8;">Loading...</td></tr>
-      </tbody>
-    </table>
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Live Web5 Surface</div>
+        <h1>A Network Web5 Coordination View</h1>
+        <p>
+          This page is a lightweight Web5-facing surface over the live A Network Layer 1 testnet. It reflects the current chain directly from the public explorer APIs: latest blocks, active validator participation, total sessions, and current transfer cadence.
+        </p>
+        <div class="hero-actions">
+          <a class="btn" href="/explorer">Open Explorer</a>
+          <a class="btn btn-ghost" href="whitepaper.html">Read Whitepaper</a>
+        </div>
+      </div>
+      <div class="hero-meta">
+        <div>
+          <span>Current Mode</span>
+          <strong>Live Layer 1 Testnet</strong>
+        </div>
+        <div>
+          <span>Transfer Cadence</span>
+          <strong id="cadence">Loading...</strong>
+        </div>
+        <div>
+          <span>Next Transfer Block</span>
+          <strong id="epochEnd" class="mono">Loading...</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <article class="stat-card">
+        <label>Latest Block</label>
+        <strong id="blockCount">0</strong>
+        <div class="stat-copy">Current finalized block height.</div>
+      </article>
+      <article class="stat-card">
+        <label>Total Sessions</label>
+        <strong id="sessionCount">0</strong>
+        <div class="stat-copy">Completed Web2 mining sessions tracked by the live metrics feed.</div>
+      </article>
+      <article class="stat-card">
+        <label>Active Miners</label>
+        <strong id="minerCount">0</strong>
+        <div class="stat-copy">Workers actively mining in the current Web2 economy.</div>
+      </article>
+      <article class="stat-card">
+        <label>Activated Supply</label>
+        <strong id="activatedSupply">0</strong>
+        <div class="stat-copy">Current Layer 1 activated supply represented in ANET.</div>
+      </article>
+    </section>
+
+    <section class="table-shell">
+      <div class="table-head">
+        <div>
+          <div class="eyebrow">Live Chain Feed</div>
+          <h2>Recent Blocks</h2>
+        </div>
+        <div class="table-note">Data source: <span class="mono">/blocks</span> and <span class="mono">/stats/investor</span></div>
+      </div>
+      <div id="errorBox" class="error" style="display:none;"></div>
+      <table>
+        <thead>
+          <tr><th>Block</th><th>Hash</th><th>Validators</th><th>Transactions</th><th>Epoch End</th></tr>
+        </thead>
+        <tbody id="blocksBody">
+          <tr><td colspan="5" class="muted">Loading live block feed...</td></tr>
+        </tbody>
+      </table>
+    </section>
   </div>
+
   <script>
-    async function fetchBlocks() {
+    function formatCount(value) {
+      return Number(value || 0).toLocaleString();
+    }
+
+    function formatCadence(seconds) {
+      if (!seconds && seconds !== 0) return 'Unknown';
+      if (seconds === 1) return '1 Second Transfer Block';
+      if (seconds < 60) return `${seconds} Second Transfer Blocks`;
+      if (seconds === 60) return '1 Minute Transfer Blocks';
+      if (seconds < 3600) return `${Math.floor(seconds / 60)} Minute Transfer Blocks`;
+      return `${Math.floor(seconds / 3600)} Hour Transfer Blocks`;
+    }
+
+    async function fetchLiveData() {
+      const errorBox = document.getElementById('errorBox');
       try {
-        const res = await fetch('/blockchain/testnet');
-        if (!res.ok) throw new Error('Network error');
-        const data = await res.json();
-        document.getElementById('blockCount').textContent = data.totalBlocks;
-        document.getElementById('sessionCount').textContent = data.totalSessions;
-        document.getElementById('minerCount').textContent = data.activeMiners;
+        const [blocksRes, statsRes] = await Promise.all([
+          fetch('/blocks'),
+          fetch('/stats/investor', { headers: { 'Accept': 'application/json' } })
+        ]);
+
+        if (!blocksRes.ok || !statsRes.ok) {
+          throw new Error('Failed to load live network data');
+        }
+
+        const blocks = await blocksRes.json();
+        const investor = await statsRes.json();
+        const latestBlock = Array.isArray(blocks) && blocks.length ? blocks[blocks.length - 1] : null;
+
+        document.getElementById('blockCount').textContent = latestBlock ? `#${latestBlock.block_height}` : 'Pending';
+        document.getElementById('sessionCount').textContent = formatCount(investor.metrics?.total_sessions);
+        document.getElementById('minerCount').textContent = formatCount(investor.metrics?.total_active_miners);
+        document.getElementById('activatedSupply').textContent = `${investor.activated_supply_anet || '0'} ANET`;
+        const cadenceSeconds = latestBlock
+          ? Math.max(1, Math.round((new Date(latestBlock.epoch_end) - new Date(latestBlock.epoch_start)) / 1000))
+          : null;
+        document.getElementById('cadence').textContent = formatCadence(cadenceSeconds);
+        document.getElementById('epochEnd').textContent = investor.current_epoch_end || 'Unavailable';
+
         const body = document.getElementById('blocksBody');
         body.innerHTML = '';
-        for (const block of data.blocks) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td class="block-hash">${block.hash}</td><td class="session">${block.session}</td><td class="miner">${block.miner}</td><td class="timestamp">${block.timestamp}</td>`;
-          body.appendChild(tr);
+
+        const recentBlocks = Array.isArray(blocks) ? blocks.slice(-12).reverse() : [];
+        if (!recentBlocks.length) {
+          body.innerHTML = '<tr><td colspan="5" class="muted">No blocks yet.</td></tr>';
+          return;
         }
-      } catch (e) {
-        document.getElementById('blocksBody').innerHTML = `<tr><td colspan="4" style="text-align:center; color:#f28b82;">Failed to load data</td></tr>`;
+
+        for (const block of recentBlocks) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><span class="kicker">Block #${block.block_height}</span></td>
+            <td class="mono">${block.hash}</td>
+            <td>${formatCount(block.miners?.length || 0)}</td>
+            <td>${formatCount(block.transactions?.length || 0)}</td>
+            <td class="mono">${block.epoch_end}</td>
+          `;
+          body.appendChild(row);
+        }
+
+        errorBox.style.display = 'none';
+      } catch (error) {
+        errorBox.textContent = error.message || 'Failed to load live network data';
+        errorBox.style.display = 'block';
+        document.getElementById('blocksBody').innerHTML = '<tr><td colspan="5" class="muted">Live feed unavailable.</td></tr>';
       }
     }
-    fetchBlocks();
-    setInterval(fetchBlocks, 5000);
+
+    fetchLiveData();
+    setInterval(fetchLiveData, 5000);
   </script>
 </body>
 </html>
