@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network | ANTS Program</title>
+  <meta name="description" content="The A Network ANTS Program explains the ant-language community model, role names, Web2/Web3/Web5 separation, and how colony identity stays distinct from mining rewards and on-chain settlement.">
+  <meta name="theme-color" content="#06111d">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="A Network">
+  <meta property="og:title" content="A Network | ANTS Program">
+  <meta property="og:description" content="Understand the ANTS Program language for Worker Ants, Builder Ants, Scouts, Soldiers, and the future Web5 community layer.">
+  <meta property="og:url" content="https://a-network.net/ants-program.html">
+  <meta property="og:image" content="https://a-network.net/logo.png">
+  <link rel="canonical" href="https://a-network.net/ants-program.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #06111d;
+      --bg-2: #0a1827;
+      --panel: rgba(9, 22, 35, 0.9);
+      --panel-strong: rgba(6, 14, 23, 0.96);
+      --line: rgba(108, 231, 177, 0.2);
+      --line-strong: rgba(108, 231, 177, 0.42);
+      --text: #eef6ff;
+      --muted: #9db5ca;
+      --accent: #6ce7b1;
+      --accent-2: #58c5ff;
+      --accent-3: #ffca6e;
+      --shadow: 0 28px 88px rgba(0, 0, 0, 0.38);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(108, 231, 177, 0.08), transparent 28%),
+        radial-gradient(circle at top right, rgba(88, 197, 255, 0.12), transparent 24%),
+        linear-gradient(180deg, #07111b 0%, var(--bg) 100%);
+      line-height: 1.65;
+    }
+
+    .shell {
+      width: min(1200px, calc(100% - 28px));
+      margin: 0 auto;
+      padding-bottom: 48px;
+    }
+
+    header,
+    section,
+    footer {
+      position: relative;
+    }
+
+    header {
+      margin-top: 18px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: rgba(4, 10, 18, 0.72);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand img {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid var(--line-strong);
+      object-fit: cover;
+      background: linear-gradient(145deg, rgba(108, 231, 177, 0.12), rgba(88, 197, 255, 0.16));
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      letter-spacing: 0.08em;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: flex-end;
+    }
+
+    nav a,
+    .chip-link {
+      color: var(--accent-2);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+      min-height: calc(100vh - 126px);
+      align-items: stretch;
+      padding: 40px 0 28px;
+    }
+
+    .hero-copy,
+    .hero-side,
+    .section-card,
+    .role-card,
+    .stack-card,
+    .rule-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy,
+    .hero-side,
+    .section-card {
+      padding: 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    h2,
+    h3 {
+      font-family: "Orbitron", sans-serif;
+      line-height: 1.08;
+      margin: 0;
+    }
+
+    .hero h2 {
+      margin-top: 18px;
+      font-size: clamp(2.2rem, 6vw, 4.6rem);
+    }
+
+    .hero p,
+    .section-copy,
+    .rule-card p,
+    .stack-card p,
+    .role-card p {
+      color: var(--muted);
+    }
+
+    .hero-actions,
+    .chip-row,
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn,
+    .btn-secondary,
+    .chip-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 12px 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #031018;
+      border-color: transparent;
+      font-weight: 700;
+    }
+
+    .btn-secondary,
+    .chip-link {
+      color: var(--text);
+    }
+
+    .hero-side {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .stack-grid,
+    .rules-grid,
+    .roles-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .stack-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rules-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .roles-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .stack-card,
+    .rule-card,
+    .role-card {
+      padding: 18px;
+    }
+
+    .section {
+      margin-top: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .legend span {
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    footer {
+      margin: 28px 0 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .rules-grid,
+      .roles-grid,
+      .stack-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="index.html">
+        <img src="logo.png" alt="A Network logo">
+        <div>
+          <h1>A NETWORK</h1>
+          <p>ANTS Program | Ant-Language Community Model</p>
+        </div>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="#language">Language</a>
+        <a href="#roles">Ant Roles</a>
+        <a href="#layers">3 Layers</a>
+        <a href="web4.html">Web4</a>
+        <a href="whitepaper.html">Whitepaper</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">ANTS Program | View-Only Community Language</div>
+        <h2>Use <span style="color:var(--accent)">ant language</span> for community identity, not reward-program language.</h2>
+        <p>
+          The ANTS Program is the public naming layer for colony participation in A Network. It gives members a clear ant-language identity such as Worker Ants, Builder Ants, Scouts, Soldiers, Farmers, Nurses, Queen Ant, and Swarm Ants without mixing that identity into Web2 mining rewards, ANTS accounting, or ANET settlement rules.
+        </p>
+        <div class="hero-actions">
+          <a class="btn" href="#roles">View Ant Roles</a>
+          <a class="btn-secondary" href="web4.html">Open Web4</a>
+          <a class="btn-secondary" href="web5.html">Open Web5 Live View</a>
+        </div>
+        <div class="chip-row">
+          <a class="chip-link" href="index.html">Main Site</a>
+          <a class="chip-link" href="whitepaper.html">Whitepaper</a>
+          <a class="chip-link" href="privacy.html">Privacy</a>
+          <a class="chip-link" href="terms.html">Terms</a>
+        </div>
+      </div>
+
+      <div class="hero-side">
+        <div class="stack-card">
+          <h3>Why ANTS Program</h3>
+          <p>
+            "Reward program" language is too narrow and too easy to confuse with payout promises. "ANTS Program" matches the actual design better: ant-language identity, community coordination, transparent growth, and future Web5 participation.
+          </p>
+          <div class="legend">
+            <span>view-only identity</span>
+            <span>community-first</span>
+            <span>not mining rewards</span>
+            <span>not on-chain payout</span>
+          </div>
+        </div>
+        <div class="stack-card">
+          <h3>ANET-Chain Transparency</h3>
+          <p>
+            Members can inspect public blockchain activity through ANET-Chain. That chain view is for transparency, transfer visibility, and settlement observation. It does not convert the ANTS Program into an on-chain reward ledger.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="language">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2>Language Rules</h2>
+            <p class="section-copy">The terminology matters because the project now enforces separate economic layers.</p>
+          </div>
+        </div>
+        <div class="rules-grid">
+          <article class="rule-card">
+            <h3>Use ANTS Program</h3>
+            <p>Use ant-language labels for colony visibility, social structure, and future community participation.</p>
+          </article>
+          <article class="rule-card">
+            <h3>Do Not Say Reward Program</h3>
+            <p>That phrase implies fixed payouts or earnings logic. The current colony model is view-only and separate from mining rewards.</p>
+          </article>
+          <article class="rule-card">
+            <h3>Keep Layers Separate</h3>
+            <p>Web2 mining, Web3 visibility, and Web5 community coordination each have their own purpose and should not be conflated in user-facing language.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="roles">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2>Ant Roles</h2>
+            <p class="section-copy">These are identity and coordination roles for the ANTS Program and future ANET Core participation language.</p>
+          </div>
+        </div>
+        <div class="roles-grid">
+          <article class="role-card"><h3>Worker Ants</h3><p>Everyday builders of the colony through consistent participation.</p></article>
+          <article class="role-card"><h3>Builder Ants</h3><p>Infrastructure, design, tooling, and product contributors.</p></article>
+          <article class="role-card"><h3>Scout Ants</h3><p>Discovery, outreach, route finding, and ecosystem expansion.</p></article>
+          <article class="role-card"><h3>Soldier Ants</h3><p>Security-minded members focused on defense and resilience.</p></article>
+          <article class="role-card"><h3>Farmer Ants</h3><p>Long-term value gardeners who cultivate sustainable growth.</p></article>
+          <article class="role-card"><h3>Nurse Ants</h3><p>Onboarding, care, support, continuity, and education.</p></article>
+          <article class="role-card"><h3>Queen Ant</h3><p>A symbolic continuity role in the program language, not a centralized controller.</p></article>
+          <article class="role-card"><h3>Swarm Ants</h3><p>Collective movement during launches, migrations, and major community actions.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="layers">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2>The 3 Economic Layers</h2>
+            <p class="section-copy">The ANTS Program should reinforce this model, not blur it.</p>
+          </div>
+        </div>
+        <div class="stack-grid">
+          <article class="stack-card">
+            <h3>Web2 Economy</h3>
+            <p>Ant Work sessions, ANTS accounting, mined ANET ledger rules, anti-abuse checks, and app-native source-of-truth balances.</p>
+          </article>
+          <article class="stack-card">
+            <h3>Web3 Economy</h3>
+            <p>Public BNB Chain visibility, contract transparency, future partner entry, and future buy-side references for broader ecosystem participation.</p>
+          </article>
+          <article class="stack-card">
+            <h3>Web5 Economy</h3>
+            <p>Colony coordination, ANTS Program identity, future ANET Core participation, and community structure that connects the broader Web2 and Web4 / ANET-Chain direction.</p>
+          </article>
+          <article class="stack-card">
+            <h3>Current Rule</h3>
+            <p>The ANTS Program is currently view-only. Colony points, ranks, snapshots, and any future partner rewards must remain separate from Web2 mining rewards and separate from ANET / ANTS settlement.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-links">
+        <a class="chip-link" href="index.html">Home</a>
+        <a class="chip-link" href="web4.html">Web4</a>
+        <a class="chip-link" href="whitepaper.html">Whitepaper</a>
+        <a class="chip-link" href="privacy.html">Privacy</a>
+        <a class="chip-link" href="terms.html">Terms</a>
+      </div>
+      <p>ANTS Program page for A Network. Community language first, economic-layer separation intact, and ANET-Chain transparency available for public viewing.</p>
+    </footer>
+  </div>
+</body>
+</html>
