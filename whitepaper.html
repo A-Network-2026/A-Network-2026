@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>A-Network Whitepaper v1.0.5 | Web2 · Web3 · Web4 · Live Layer 1 Testnet</title>
-  <meta name="description" content="The official A-Network v1.0.5 whitepaper covering Web2 Ant Work, the 500,000-session launch tranche, the upgraded long-life reward schedule, ANTS-first accounting, delayed ANET conversion, hard-cap issuance-ended behavior, live Layer 1 testnet settlement, Web2-to-Layer1 synchronization, and the broader Web4 roadmap." />
+  <meta name="description" content="The official A-Network v1.0.5 whitepaper covering Web2 Ant Work, the 500,000-session launch tranche, the upgraded long-life distribution schedule, ANTS-first accounting, delayed ANET conversion, hard-cap issuance-ended behavior, live Layer 1 testnet settlement, Web2-to-Layer1 synchronization, and the broader Web4 roadmap." />
   <meta name="theme-color" content="#07101a" />
   <meta property="og:title" content="A-Network Whitepaper" />
   <meta property="og:description" content="Complete technical specification of the A-Network ecosystem: ANTS-first Web2 Ant Work, session-based halving, hard-cap issuance-ended behavior, 64-bit scale hardening, proxy-safe registration, wallet migration design, Web4 Layer 1, ANET Core, and full roadmap." />
@@ -285,8 +285,8 @@
     <a class="nav-item" href="#vision">The Vision</a>
     <a class="nav-item" href="#comparison">Web2 vs Web3 vs Web4</a>
 
-    <div class="nav-section">Token</div>
-    <a class="nav-item" href="#tokenomics">Tokenomics</a>
+    <div class="nav-section">Coin</div>
+    <a class="nav-item" href="#tokenomics">Coin Model</a>
     <a class="nav-item sub" href="#ants">Ants — Smallest Unit</a>
     <a class="nav-item sub" href="#supply">Max Supply Model</a>
 
@@ -295,7 +295,7 @@
     <a class="nav-item sub" href="#session-model">6-Hour Session Model</a>
     <a class="nav-item sub" href="#halving">Strict ANTS Halving</a>
     <a class="nav-item sub" href="#formula">Ant Work Formula</a>
-    <a class="nav-item sub" href="#reward-table">Reward Table</a>
+    <a class="nav-item sub" href="#reward-table">Distribution Table</a>
     <a class="nav-item sub" href="#anti-gaming">Anti-Gaming &amp; Fraud</a>
     <a class="nav-item sub" href="#risk-scoring">Risk Scoring Engine</a>
     <a class="nav-item sub" href="#fraud-detection">Fraud Cluster Detection</a>
@@ -340,7 +340,7 @@
       <div class="hero-meta">
         <div class="hero-meta-item"><strong>Version</strong> — 1.0.5</div>
         <div class="hero-meta-item"><strong>Published</strong> — April 2026</div>
-        <div class="hero-meta-item"><strong>Token</strong> — $ANET</div>
+        <div class="hero-meta-item"><strong>Coin</strong> — $ANET</div>
         <div class="hero-meta-item"><strong>Ledger Model</strong> — ANTS-first → ANET conversion after eligibility</div>
         <div class="hero-meta-item"><strong>Max Supply</strong> — 21,000,000 ANET</div>
         <div class="hero-meta-item"><strong>Smallest Unit</strong> — Ant (1 ANET = 100,000,000 Ants)</div>
@@ -359,19 +359,19 @@
 
       <p>The native currency is <strong>$ANET</strong>, capped at a hard maximum of <strong>21,000,000 ANET</strong>. The smallest indivisible unit is one <strong>Ant</strong>, where <strong>1 ANET = 100,000,000 Ants</strong>. Web2 Ant Work therefore uses ANTS as the operating ledger unit and ANET as the delayed settlement unit. This avoids precision loss, supports future fee economics, and keeps the supply engine compatible with long-term Layer 1 settlement.</p>
 
-      <p>The network reward schedule follows a Bitcoin-style halving direction with a preserved launch tranche. The first <strong>500,000 total completed sessions</strong> use the launch reward of <strong>0.04882812 ANET</strong> per session. After that tranche is exhausted, the upgraded long-life schedule begins at <strong>0.00262144 ANET</strong> per session and halves as the network's total completed session count reaches post-launch milestones. Halving is not triggered by registration count, colony size, or wallet balance. It is triggered only by total verified sessions across the network.</p>
+      <p>The network coin-distribution schedule follows a Bitcoin-style halving direction with a preserved launch tranche. The first <strong>500,000 total completed sessions</strong> use the launch session output of <strong>0.04882812 ANET</strong> per session. After that tranche is exhausted, the upgraded long-life schedule begins at <strong>0.00262144 ANET</strong> per session and halves as the network's total completed session count reaches post-launch milestones. Halving is not triggered by registration count, colony size, or wallet balance. It is triggered only by total verified sessions across the network.</p>
 
-      <p>Once the hard cap is reached, the issuance engine enters an <strong>issuance-ended</strong> state. No further mining rewards are minted, no new reward-bearing sessions start, and claim routes cannot create new ANET beyond the cap. The network remains active for identity, wallet continuity, migration, and future fee-based activity.</p>
+      <p>Once the hard cap is reached, the issuance engine enters an <strong>issuance-ended</strong> state. No further mining output is minted, no new issuance-bearing sessions start, and claim routes cannot create new ANET beyond the cap. The network remains active for identity, wallet continuity, migration, and future fee-based activity.</p>
 
       <p>The live backend is also hardened for public-scale participation. Growth-critical counters and identifiers use <strong>64-bit integer space</strong>, and registration is proxy-aware so users sharing the same carrier, school, office, or Render edge network are not falsely blocked purely because they appear behind a common upstream IP.</p>
 
-      <p>A-Network deliberately excludes colony reward amplification. The live backend treats Ant Codes as a colony-link system only. There are no coin bonuses, no session credits, no percentage commissions, and no multi-level trees. Every ANET must be earned through completed Ant Work sessions. This preserves a merit-based ledger where the only path to value is verified personal participation.</p>
+      <p>A-Network deliberately excludes colony distribution amplification. The live backend treats Ant Codes as a colony-link system only. There are no coin bonuses, no session credits, no percentage commissions, and no multi-level trees. Every ANET must be accumulated through completed Ant Work sessions and settled only through the governed claim flow. This preserves a merit-based ledger where the only path to value is verified personal participation.</p>
 
       <div class="card-row">
         <div class="stat-card"><div class="sc-val">21M</div><div class="sc-label">Max Supply (ANET)</div></div>
         <div class="stat-card"><div class="sc-val">100M</div><div class="sc-label">Ants per ANET</div></div>
         <div class="stat-card"><div class="sc-val">6h</div><div class="sc-label">Session Duration</div></div>
-        <div class="stat-card"><div class="sc-val">10</div><div class="sc-label">Reward Stages (0-9)</div></div>
+        <div class="stat-card"><div class="sc-val">10</div><div class="sc-label">Distribution Stages (0-9)</div></div>
         <div class="stat-card"><div class="sc-val">3.8B</div><div class="sc-label">Sessions per Halving</div></div>
         <div class="stat-card"><div class="sc-val">4</div><div class="sc-label">Ecosystem Phases</div></div>
       </div>
@@ -392,11 +392,11 @@
       <p>Web2 platforms have no scarcity model, no exit rights for participants, and no on-chain verifiability. Users cannot own their data, cannot monetize their contributions, and have no stake in the infrastructure they build with their time.</p>
 
       <h3>The Partial Solution of Web3</h3>
-      <p>Web3 introduced ownership through tokenization and smart contracts — a monumental step forward. However, most Web3 systems suffer from speculative tokenomics, Sybil attacks via colony farming, and technical complexity that excludes billions of potential participants who do not own crypto wallets, understand gas fees, or can afford hardware equipment.</p>
+      <p>Web3 introduced ownership through smart contracts and public ledgers. However, most Web3 systems still suffer from speculative behavior, Sybil attacks via colony farming, and technical complexity that excludes billions of potential participants who do not own crypto wallets, understand gas fees, or can afford hardware equipment.</p>
       <p>Web3 says <em>"You are the owner"</em> — but the entry barrier often ensures the same early-capital advantage that Web2 companies enjoy.</p>
 
       <h3>The A-Network Proposal</h3>
-      <p>A-Network proposes a complete stack: beginning with a zero-cost, smartphone-accessible mining phase (Web2 App), transitioning through BNB Chain token infrastructure (Web3), graduating to a community-built Layer 1 blockchain that rewards every registered miner with transaction fees (Web4), and ultimately culminating in ANET Core — a self-sovereign, AI-augmented identity and application layer (Web5).</p>
+      <p>A-Network proposes a complete stack: beginning with a zero-cost, smartphone-accessible mining phase (Web2 App), transitioning through BNB Chain visibility infrastructure (Web3), graduating to a community-built Layer 1 blockchain for settlement and transaction fees (Web4), and ultimately culminating in ANET Core plus the ANTS Program view layer (Web5).</p>
       <p>In this model: <strong>You are the value creator.</strong> Every action — every 6-hour session completed — contributes to a shared ledger that will persist across all future phases of the network.</p>
     </section>
 
@@ -410,14 +410,14 @@
       <div class="section-label">§ 3</div>
       <h2>The Vision</h2>
 
-      <p>A-Network is not a short-term token project. It is a multi-decade infrastructure commitment. The roadmap is designed to grow with the technology landscape, from today's mobile app to a fully sovereign blockchain with its own consensus mechanism, validator economy, and application ecosystem.</p>
+      <p>A-Network is not a short-term coin speculation project. It is a multi-decade infrastructure commitment. The roadmap is designed to grow with the technology landscape, from today's mobile app to a fully sovereign blockchain with its own consensus mechanism, validator economy, and application ecosystem.</p>
 
       <div class="panel panel-green">
         <h4>Core Principles</h4>
         <ul>
-          <li><strong>Absolute Scarcity:</strong> 21,000,000 ANET will ever exist. Not one more. Once the last Ant is mined, the issuance engine halts permanently, reward-bearing session starts stop, and the network transitions toward fee-only sustenance.</li>
+          <li><strong>Absolute Scarcity:</strong> 21,000,000 ANET will ever exist. Not one more. Once the last Ant is mined, the issuance engine halts permanently, issuance-bearing session starts stop, and the network transitions toward fee-only sustenance.</li>
           <li><strong>Participation-First:</strong> No purchasing required. No GPU required. Every smartphone on Earth is a valid mining device. Mining is time-based, not compute-based.</li>
-          <li><strong>Anti-Farming:</strong> No multi-level colony rewards. No whale accumulation through pyramid structures. Colony tracking exists purely for network growth transparency, not reward amplification.</li>
+          <li><strong>Anti-Farming:</strong> No multi-level colony distributions. No whale accumulation through pyramid structures. Colony tracking exists purely for network growth transparency, not distribution amplification.</li>
           <li><strong>Ledger Continuity:</strong> Every Web2 miner is a genesis participant. When Web4 Layer 1 launches, the Web2 ledger is migrated on-chain. No one is left behind. No one's sessions are erased.</li>
           <li><strong>Micro-Economic Precision:</strong> The Ant denomination (1/100,000,000th of an ANET) ensures the network remains economically viable even when ANET is highly valued — enabling micro-payments, gas fees, and nano-transactions without rounding errors.</li>
         </ul>
@@ -445,14 +445,14 @@
         <div class="cg-cell">Decentralized DAOs</div>
         <div class="cg-cell hi"><strong>Smart + Community</strong></div>
 
-        <div class="cg-cell"><strong>Earnings</strong></div>
-        <div class="cg-cell">Companies earn</div>
-        <div class="cg-cell">Users can earn</div>
-        <div class="cg-cell hi"><strong>Users earn by activity</strong></div>
+        <div class="cg-cell"><strong>Participation</strong></div>
+        <div class="cg-cell">Companies capture value</div>
+        <div class="cg-cell">Users gain ownership visibility</div>
+        <div class="cg-cell hi"><strong>Users accumulate coins through verified activity</strong></div>
 
         <div class="cg-cell"><strong>Focus</strong></div>
         <div class="cg-cell">Ads &amp; data</div>
-        <div class="cg-cell">Tokens &amp; ownership</div>
+        <div class="cg-cell">Ownership visibility</div>
         <div class="cg-cell hi"><strong>Real contribution</strong></div>
 
         <div class="cg-cell"><strong>Mining</strong></div>
@@ -494,27 +494,27 @@
 
 
     <!-- ──────────────────────────────────
-         § 5 TOKENOMICS
+         § 5 COIN MODEL
     ────────────────────────────────── -->
     <section class="wp-section" id="tokenomics">
       <div class="section-label">§ 5</div>
-      <h2>Tokenomics — $ANET</h2>
+      <h2>Coin Model — $ANET</h2>
 
-      <p>The ANET token is the universal currency across all four ecosystem phases. It is not pre-mined, not VC-allocated, and not team-reserved. Every single ANET in existence has been or will be earned through real mining activity by real participants until the network reaches the fixed cap.</p>
+      <p>The ANET coin is the universal settlement unit across the ecosystem phases. It is not pre-mined, not VC-allocated, and not team-reserved. Every single ANET in existence has been or will be accumulated through real mining activity by real participants until the network reaches the fixed cap.</p>
 
       <div class="panel">
         <div class="table-scroll">
         <table class="wp-table">
           <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
           <tbody>
-            <tr><td><strong>Token Name</strong></td><td>A-Network Token</td><td>Official full name</td></tr>
+            <tr><td><strong>Coin Name</strong></td><td>A-Network Coin</td><td>User-facing name</td></tr>
             <tr><td><strong>Ticker Symbol</strong></td><td>$ANET</td><td>Traded symbol</td></tr>
             <tr><td><strong>Maximum Supply</strong></td><td>21,000,000 ANET</td><td>Hard cap, identical philosophy to Bitcoin</td></tr>
             <tr><td><strong>Smallest Unit</strong></td><td>1 Ant</td><td>Like Bitcoin's Satoshi</td></tr>
             <tr><td><strong>Unit Ratio</strong></td><td>1 ANET = 100,000,000 Ants</td><td>8 decimal places of precision</td></tr>
             <tr><td><strong>Precision</strong></td><td>8 decimal places</td><td>Stored as DECIMAL(20,8) in ledger</td></tr>
             <tr><td><strong>Pre-mine</strong></td><td>0 ANET</td><td>No team allocation, no VC reserve</td></tr>
-            <tr><td><strong>Distribution</strong></td><td>100% via mining until cap</td><td>ANTS accumulate per session; ANET is claimed after eligibility until issuance ends at 21M</td></tr>
+            <tr><td><strong>Distribution</strong></td><td>100% via mining until cap</td><td>ANTS accumulate per session; ANET coins are claimed after eligibility until issuance ends at 21M</td></tr>
             <tr><td><strong>Network</strong></td><td>BNB Chain (Web3)</td><td>Contract: 0x791055A7d52AA392eaE8De04250497f33807E46A</td></tr>
             <tr><td><strong>Web4 Network</strong></td><td>ANET Layer 1</td><td>Designed — in development post max-supply</td></tr>
             <tr><td><strong>Issuance Model</strong></td><td>ANTS-first with delayed conversion</td><td>Ant Work credits ANTS first; ANET claim is supply-controlled and enters issuance-ended mode at max supply</td></tr>
@@ -563,7 +563,7 @@
       <!-- SUPPLY -->
       <h3 id="supply">Supply Exhaustion &amp; Hard Cap Enforcement</h3>
       <p>The <code>MAX_SUPPLY</code> constant is hardcoded in the Ant Work engine at exactly <strong>21,000,000 ANET</strong>. Session completion adds only ANTS to the user ledger. Supply protection becomes critical during claim, where a user's convertible ANET is capped so that <code>totalANETClaimed</code> can never exceed 21,000,000.</p>
-      <p>In v1.0.5, hard-cap enforcement is not limited to conversion math. The live backend explicitly switches to an issuance-ended state when supply is exhausted: reward-bearing session starts are refused, legacy minting routes return issuance-ended responses, and no new ANET can be created beyond the cap.</p>
+      <p>In v1.0.5, hard-cap enforcement is not limited to conversion math. The live backend explicitly switches to an issuance-ended state when supply is exhausted: issuance-bearing session starts are refused, legacy minting routes return issuance-ended responses, and no new ANET can be created beyond the cap.</p>
       <div class="formula-box">
     <span class="comment">// Safe conversion + issuance-ended protection (v1.0.5)</span>
 <span class="keyword">if</span> (user.totalSessions &lt; requiredSessionsForEligibility) {
@@ -587,7 +587,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
         <div class="notice-icon">⚠️</div>
         <div class="notice-body">
           <strong>Irreversible Hard Cap</strong>
-          Once the combination of claimed ANET and remaining claimable supply reaches the hard cap, no further ANET conversion or reward minting can occur. This preserves absolute scarcity across Web2 accounting and future chain settlement.
+          Once the combination of claimed ANET and remaining claimable supply reaches the hard cap, no further ANET conversion or coin minting can occur. This preserves absolute scarcity across Web2 accounting and future chain settlement.
         </div>
       </div>
     </section>
@@ -614,7 +614,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           <li><strong>Session Start:</strong> User taps "Start Ant Work". The server records <code>last_mining_start = NOW()</code>, writes a <code>mining_sessions</code> row, and sets <code>is_mining = TRUE</code>. If the network has already reached max supply, the start request is rejected with an issuance-ended response.</li>
           <li><strong>Active Phase (0–6 hours):</strong> Session runs server-side. App tracks countdown timer. Push notification is scheduled for the 6-hour mark.</li>
           <li><strong>Completion Eligible (≥ 6 hours):</strong> The server validates elapsed time. Only sessions where <code>NOW() - last_mining_start ≥ 21,600 seconds</code> are accepted.</li>
-          <li><strong>Reward Calculation:</strong> Halving stage is computed from total network sessions. Reward is calculated as an ANET-equivalent session reward, then credited to the user ledger in ANTS.</li>
+          <li><strong>Distribution Calculation:</strong> Halving stage is computed from total network sessions. Session output is calculated as an ANET-equivalent amount, then credited to the user ledger in ANTS.</li>
           <li><strong>Session Reset:</strong> <code>is_mining = FALSE</code>. User can immediately start next session.</li>
         </ol>
       </div>
@@ -659,15 +659,15 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       </div>
 
       <h3>App Delivery &amp; Monetization</h3>
-      <p>The mobile client includes live delivery infrastructure beyond the mining ledger itself. Notifications and advertising support are integrated in a way that does not change the core reward formula: the backend remains the sole source of truth for ANTS crediting, session eligibility, and ANET conversion.</p>
+      <p>The mobile client includes live delivery infrastructure beyond the mining ledger itself. Notifications and advertising support are integrated in a way that does not change the core distribution formula: the backend remains the sole source of truth for ANTS crediting, session eligibility, and ANET conversion.</p>
 
       <div class="panel panel-accent">
         <h4>Operational Client Stack</h4>
         <ul>
-          <li><strong>Local Session Notifications:</strong> The app schedules a local notification at session start for the expected 6-hour completion time, then shows an immediate completion notification after reward credit posts successfully.</li>
+          <li><strong>Local Session Notifications:</strong> The app schedules a local notification at session start for the expected 6-hour completion time, then shows an immediate completion notification after session credit posts successfully.</li>
           <li><strong>Server Notification Fallback:</strong> The backend runs a 60-second worker plus dashboard fallback checks so missed client notifications can still be marked and processed server-side.</li>
           <li><strong>AdMob Integration:</strong> Google Mobile Ads is initialized in the Flutter app with banner, interstitial, and rewarded inventory support.</li>
-          <li><strong>Live Placement Policy:</strong> The current mining flow uses banner and interstitial placements while mining rewards remain fully backend-calculated. Rewarded inventory exists in the shared ad service for controlled rollout rather than as an alternate reward ledger.</li>
+          <li><strong>Live Placement Policy:</strong> The current mining flow uses banner and interstitial placements while mining output remains fully backend-calculated. Rewarded inventory exists in the shared ad service for controlled rollout rather than as an alternate accounting ledger.</li>
           <li><strong>Runtime Control:</strong> Ads can be globally disabled with <code>ADS_ENABLED=false</code> and switched between production and test units with build-time flags such as <code>USE_TEST_ADS=true</code>.</li>
         </ul>
       </div>
@@ -689,11 +689,11 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
     ────────────────────────────────── -->
     <section class="wp-section" id="halving">
       <div class="section-label">§ 7</div>
-      <h2>Session Halving — The v1.0.5 Launch-Tranche Reward Formula</h2>
+      <h2>Session Halving — The v1.0.5 Launch-Tranche Distribution Formula</h2>
 
       <p>A-Network v1.0.5 keeps the original launch economics for the first <strong>500,000 total completed sessions</strong>, where each completed 6-hour session earns <strong>0.04882812 ANET</strong>. After that launch tranche is consumed, the upgraded long-life schedule begins at <strong>0.00262144 ANET</strong> per session and halves each time the network reaches another <strong>3,800,000,000 post-launch sessions</strong>. The trigger is not user count. The trigger is network activity.</p>
 
-      <p>This design makes the reward curve predictable, analytics-friendly, and resistant to vanity metrics. A user cannot unlock a higher reward tier through colony size, token purchases, or wallet size. The only driver is aggregated proof-of-time from the network as a whole.</p>
+      <p>This design makes the distribution curve predictable, analytics-friendly, and resistant to vanity metrics. A user cannot unlock a higher distribution tier through colony size, coin purchases, or wallet size. The only driver is aggregated proof-of-time from the network as a whole.</p>
 
       <p><strong>Dashboard interpretation:</strong> current mining output can be displayed in <strong>ANTS</strong> because ANTS is the smallest live accounting unit of ANET. Users may also see an estimated ANET equivalent, but the ledger source of truth during Web2 remains ANTS accumulation until claim eligibility is reached.</p>
 
@@ -725,7 +725,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
         <div class="notice-icon">💡</div>
         <div class="notice-body">
               <strong>Why Session-Based Halving?</strong>
-              Session-driven halving is easier to audit, harder to manipulate, and cleaner for analytics. It ties the reward schedule to actual throughput of the protocol instead of ambiguous growth metrics such as sign-ups or social expansion.
+              Session-driven halving is easier to audit, harder to manipulate, and cleaner for analytics. It ties the distribution schedule to actual throughput of the protocol instead of ambiguous growth metrics such as sign-ups or social expansion.
         </div>
       </div>
 
@@ -748,8 +748,8 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
         <span class="comment">// Stage 9 is the capped final halving stage in v1.0.5</span>
       </div>
 
-      <h3 id="reward-table">Complete Reward Table</h3>
-      <p>The v1.0.5 reward table preserves the original launch economics for the first 500,000 total sessions, then moves onto a slower and longer-lived post-launch curve. There is one launch tranche followed by ten post-launch stages, from Stage 0 to Stage 9, with each post-launch stage halving the session reward. This keeps the public API predictable while preventing supply exhaustion in only a few months under very large participation.</p>
+      <h3 id="reward-table">Complete Distribution Table</h3>
+      <p>The v1.0.5 distribution table preserves the original launch economics for the first 500,000 total sessions, then moves onto a slower and longer-lived post-launch curve. There is one launch tranche followed by ten post-launch stages, from Stage 0 to Stage 9, with each post-launch stage halving the session output. This keeps the public API predictable while preventing supply exhaustion in only a few months under very large participation.</p>
 
       <div class="panel">
         <div class="table-scroll">
@@ -772,7 +772,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
               <td>First 500,000 total sessions</td>
               <td><strong>0.04882812 ANET</strong></td>
               <td>4,882,812 Ants</td>
-              <td>Preserved launch reward</td>
+              <td>Preserved launch session output</td>
               <td><span class="tag tag-active">Launch Rate</span></td>
             </tr>
             <tr>
@@ -781,7 +781,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
               <td>Total sessions remain below 3,800,500,000</td>
               <td><strong>0.00262144 ANET</strong></td>
               <td>262,144 Ants</td>
-              <td>Upgraded long-life base reward</td>
+              <td>Upgraded long-life base output</td>
               <td><span class="tag tag-future">Post-Launch</span></td>
             </tr>
             <tr>
@@ -857,7 +857,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           <tr><td><strong>Multiple accounts per person</strong></td><td>Email OTP verification + device binding with configurable device account cap (default: 2)</td></tr>
           <tr><td><strong>Parallel session farming</strong></td><td><code>is_mining</code> boolean prevents starting second session</td></tr>
           <tr><td><strong>Daily farming loops</strong></td><td>Maximum 4 sessions per user per day</td></tr>
-          <tr><td><strong>Colony reward farming</strong></td><td>Ant Codes are tracking-only; zero reward amplification</td></tr>
+          <tr><td><strong>Colony distribution farming</strong></td><td>Ant Codes are tracking-only; zero distribution amplification</td></tr>
           <tr><td><strong>Instant completion attempts</strong></td><td>Server rejects completion before the full 6-hour window and flags suspicious behavior</td></tr>
           <tr><td><strong>Over-minting</strong></td><td>Hard supply cap enforced during ANET conversion; conversion truncates to remaining supply</td></tr>
           <tr><td><strong>Wallet ownership integrity</strong></td><td>Each account has a unique ANET wallet identity and can save a migration wallet for Web4</td></tr>
@@ -868,7 +868,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           <tr><td><strong>OTP brute force</strong></td><td>Maximum 5 OTP attempts per OTP code; 5-minute expiry; account locked from OTP after exceeding limit</td></tr>
           <tr><td><strong>Concurrent session double-claim</strong></td><td><code>SELECT ... FOR UPDATE</code> row lock inside a database transaction on every session claim prevents parallel requests from crediting ANTS twice</td></tr>
           <tr><td><strong>Late claim abuse</strong></td><td>2-hour grace window: claims after 8h from session start are rejected as missed sessions</td></tr>
-          <tr><td><strong>Banned accounts</strong></td><td>Accounts with <code>is_banned = TRUE</code> are blocked from starting sessions, completing sessions, claiming session rewards, and claiming ANET conversion</td></tr>
+          <tr><td><strong>Banned accounts</strong></td><td>Accounts with <code>is_banned = TRUE</code> are blocked from starting sessions, completing sessions, claiming session credit, and claiming ANET conversion</td></tr>
         </tbody>
       </table>
       </div>
@@ -1139,7 +1139,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <div class="section-label">§ 9</div>
       <h2>Web3 Phase — BNB Chain Integration</h2>
 
-      <p>Web3 is the visibility bridge between the A-Network Ant Work economy and the decentralized financial world. In the current product, Web2 remains the source of truth for Ant Work sessions and ANTS accumulation, while the BNB Chain presence provides public token visibility, wallet references, and ecosystem discovery.</p>
+      <p>Web3 is the visibility bridge between the A-Network Ant Work economy and the decentralized financial world. In the current product, Web2 remains the source of truth for Ant Work sessions and ANTS accumulation, while the BNB Chain presence provides public contract visibility, wallet references, and ecosystem discovery.</p>
 
       <h3 id="contract">ANET Token Contract</h3>
       <div class="panel panel-accent">
@@ -1157,15 +1157,15 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       </div>
 
       <h3 id="wallet">Wallet Identity &amp; Migration Address</h3>
-      <p>Each account can create a unique ANET wallet identity in-app. This wallet is linked to the miner profile and is used to display the user's currently claimed ANET while also preserving tracked ANTS for migration visibility.</p>
+      <p>Each account can create a unique ANET wallet identity in-app. This wallet is linked to the miner profile and is used to display the user's currently claimed ANET coins while also preserving tracked ANTS for migration visibility.</p>
       <p>Users can also save a separate migration wallet address for future Web4 Layer 1 migration. This allows migration planning ahead of chain launch while preserving mining continuity and future identity portability.</p>
-      <p>In the current release, wallet custody is protected by layered controls: an optional wallet PIN, encrypted server-side seed storage, email OTP verification before seed reveal, and backward-compatible local fallback support for older users whose legacy seed was never migrated to encrypted storage.</p>
+      <p>Users connect a Web3 wallet address only as a destination for controlled distributions or migration routing. A Network does not store private keys and does not ask for seed phrases to define wallet ownership. In the current release, wallet continuity is protected by layered controls: an optional wallet PIN, encrypted server-side seed continuity storage for in-app wallet recovery, email OTP verification before seed reveal, and backward-compatible local fallback support for older users whose legacy seed was never migrated to encrypted storage.</p>
 
       <div class="panel panel-accent">
         <h4>Current Wallet Behavior</h4>
         <ul>
           <li><strong>Generate Wallet:</strong> Generates a unique ANET wallet identity for each user account.</li>
-          <li><strong>Check Balance:</strong> Shows claimed ANET balance and tracked ANTS derived from the Web2 ledger.</li>
+          <li><strong>Check Balance:</strong> Shows claimed ANET coin balance and tracked ANTS derived from the Web2 ledger.</li>
           <li><strong>Set Migration Wallet:</strong> Optional address field for future Web4 migration routing.</li>
           <li><strong>Wallet PIN:</strong> Users can set, change, or recover a 4-8 digit wallet PIN through email OTP verification.</li>
           <li><strong>Seed Recovery Flow:</strong> Seed phrase reveal requires a valid wallet PIN and an email OTP; legacy plaintext seed records are migrated on-demand into encrypted vault fields before reveal.</li>
@@ -1178,7 +1178,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
         <div class="notice-icon">⚠️</div>
         <div class="notice-body">
           <strong>Seed Phrase Warning</strong>
-          Your seed phrase grants full access to your wallet. A-Network staff will NEVER ask for your seed phrase. Store it offline in at least two physical locations.
+          Your seed phrase grants full access to your wallet. A-Network staff will never ask for your seed phrase or private keys. Store the phrase offline in at least two physical locations.
         </div>
       </div>
     </section>
@@ -1193,13 +1193,13 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <div class="section-label">§ 10</div>
       <h2>Web4 Phase — ANET Layer 1 Blockchain</h2>
 
-      <p>A-Network now operates a <strong>live ANET Layer 1 testnet</strong> that extends the ANTS-first Web2 ledger into an on-chain settlement environment. This testnet already bootstraps chain genesis from the Web2 ledger, synchronizes activated balances into Layer 1 state, and runs wallet-to-wallet transfer blocks on a fast epoch cadence. The long-term milestone remains a broader production-grade Web4 activation after the Web2 issuance phase matures.</p>
+      <p>A-Network now operates a <strong>live ANET Layer 1 testnet</strong> that extends the ANTS-first Web2 ledger into an on-chain settlement environment. This testnet already bootstraps chain genesis from the Web2 ledger, synchronizes activated balances into Layer 1 state, and opens wallet-to-wallet settlement windows on a 2-second cadence. A new block is produced only when there is real chain work: a queued transfer or newly synchronized ANTS supply from the Web2 side. The long-term milestone remains a broader production-grade Web4 activation after the Web2 issuance phase matures.</p>
 
       <p>This is not a token swap. It is a <strong>ledger synchronization and chain genesis model</strong>. On the live testnet, wallet state, completed-session history, and activated ANTS balances from the Web2 database are imported into the Layer 1 genesis snapshot and can continue receiving periodic delta settlements while the chain is running.</p>
 
       <h3 id="tpow">Time-Based Proof-of-Work (TPoW)</h3>
       <p>Traditional Proof-of-Work (Bitcoin) requires computational work — hash calculations demanding specialized hardware (ASICs). This concentrates mining power with wealthy hardware operators and excludes the majority of Earth's population.</p>
-      <p>A-Network's <strong>Time-Based Proof-of-Work (TPoW)</strong> replaces computational work with committed time. In the Web2 phase, the "work" is a verified 6-hour active mining session. In the live Layer 1 testnet, transfer blocks are decoupled from that off-chain work window and currently finalize on fast epoch intervals while validator eligibility is synchronized from real Web2 session activity. This preserves permissionless participation and verifiable contribution while democratizing access to any participant with a mobile device.</p>
+      <p>A-Network's <strong>Time-Based Proof-of-Work (TPoW)</strong> replaces computational work with committed time. In the Web2 phase, the "work" is a verified 6-hour active mining session. In the live Layer 1 testnet, settlement windows are decoupled from that off-chain work window and reopen every 2 seconds, while blocks are emitted only when transfers or fresh synchronized ANTS supply exist. Validator eligibility is still synchronized from real Web2 session activity. This preserves permissionless participation and verifiable contribution while democratizing access to any participant with a mobile device.</p>
 
       <div class="panel panel-accent">
         <h4>TPoW vs Traditional PoW Comparison</h4>
@@ -1211,7 +1211,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
             <tr><td><strong>Hardware</strong></td><td>ASIC miners ($10k–$100k)</td><td>Any smartphone</td></tr>
             <tr><td><strong>Energy</strong></td><td>Enormous (gigawatts)</td><td>Negligible (background app)</td></tr>
             <tr><td><strong>Sybil resistance</strong></td><td>Hash rate cost</td><td>Email verification + time cost</td></tr>
-            <tr><td><strong>Block time</strong></td><td>~10 minutes</td><td>~2 second transfer blocks on live testnet; 6-hour Web2 mining sessions remain separate</td></tr>
+            <tr><td><strong>Block time</strong></td><td>~10 minutes</td><td>2-second settlement windows on live testnet; blocks are created only when transfers or new synchronized supply exist, while 6-hour Web2 mining sessions remain separate</td></tr>
             <tr><td><strong>Reward model</strong></td><td>Block reward + fees</td><td>Web2 session issuance off-chain; Layer 1 transfer blocks are fee-ready and settlement-focused</td></tr>
             <tr><td><strong>Decentralization</strong></td><td>Hardware-limited</td><td>Smartphone-universal</td></tr>
           </tbody>
@@ -1220,7 +1220,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       </div>
 
       <h3 id="blocks">Block Structure on ANET Layer 1</h3>
-      <p>On the live ANET Layer 1 testnet, each block represents a transfer epoch rather than a 6-hour mining window. Validator eligibility is still derived from completed Web2 mining participation, but wallet-to-wallet transfers settle on short Layer 1 epochs. The block contains:</p>
+      <p>On the live ANET Layer 1 testnet, each block represents a settlement event rather than a 6-hour mining window. Validator eligibility is still derived from completed Web2 mining participation, while wallet-to-wallet transfers settle inside short 2-second windows. If no transfer and no newly synchronized Web2 supply arrives in a window, no block is emitted. The block contains:</p>
 
       <div class="formula-box">
 <span class="comment">// ANET Layer 1 Block Structure (Conceptual)</span>
@@ -1228,6 +1228,7 @@ Block {
   <span class="keyword">blockNumber</span>:      uint64,
   <span class="keyword">epochStart</span>:       timestamp,       <span class="comment">// transfer epoch start</span>
   <span class="keyword">epochEnd</span>:         timestamp,       <span class="comment">// transfer epoch end</span>
+  <span class="keyword">activatedSupplyAnts</span>: uint64,        <span class="comment">// new Web2 supply settled in this block</span>
   <span class="keyword">miners</span>:           address[],       <span class="comment">// validator set synced from eligible Web2 miners</span>
   <span class="keyword">transactionRoot</span>:  bytes32,         <span class="comment">// Merkle root of txns</span>
   <span class="keyword">stateRoot</span>:        bytes32,         <span class="comment">// account state hash</span>
@@ -1239,17 +1240,17 @@ Block {
       </div>
 
       <h3 id="txfees">Transaction Fees — Paid in Ants</h3>
-      <p>After the max supply of 21,000,000 ANET is reached, no new ANET is created. The long-term network transitions from a <em>block-reward model</em> to a <em>fee-only model</em>. The live testnet already exercises the settlement side of this design by producing rapid transfer blocks, tracking validator sets, and accounting for transaction fees in Ants.</p>
+      <p>After the max supply of 21,000,000 ANET is reached, no new ANET is created. The long-term network transitions from a <em>block-reward model</em> to a <em>fee-only model</em>. The live testnet already exercises the settlement side of this design by opening 2-second transfer windows, emitting event-driven settlement blocks, tracking validator sets, and accounting for transaction fees in Ants.</p>
 
       <div class="panel panel-green">
         <h4>How Transaction Fees Work in Web4</h4>
         <ol>
           <li><strong>Any ANET transfer</strong> on the Layer 1 chain requires a small fee denominated in Ants.</li>
-          <li><strong>Fees accumulate</strong> in a block fee pool during each 6-hour epoch.</li>
-          <li><strong>At epoch close</strong>, all miners who completed TPoW in that block are eligible to split the fee pool equally — regardless of when they registered or how many total sessions they have.</li>
+          <li><strong>Fees accumulate</strong> only when transfers are actually included in a settlement block.</li>
+          <li><strong>At block close</strong>, all validators recorded in that settlement block are eligible to split the fee pool equally — regardless of when they registered or how many total sessions they have.</li>
           <li><strong>Pro-rata distribution</strong>: If 10,000 miners completed TPoW in a block and 5,000,000 Ants were collected in fees, each miner receives 500 Ants for that block.</li>
           <li><strong>No minimum stake required</strong>. Every verified miner with a completed session is eligible.</li>
-          <li><strong>Full ANTS role</strong>: Ants are the unit for fees, block-level accounting, micro-payments, and miner payout settlement across Layer 1.</li>
+          <li><strong>Full ANTS role</strong>: Ants are the unit for fees, block-level accounting, micro-payments, and miner settlement accounting across Layer 1.</li>
         </ol>
       </div>
 
@@ -1260,14 +1261,13 @@ Block {
 <span class="keyword">feePerMiner</span> = totalBlockFees (Ants) / activeMinerCount
 
 <span class="comment">// Example calculation</span>
-<span class="comment">// Block epoch collects:  10,000,000 Ants in fees</span>
+<span class="comment">// One settlement block collects: 10,000,000 Ants in fees</span>
 <span class="comment">// Active miners:         50,000</span>
 <span class="keyword">feePerMiner</span> = 10,000,000 / 50,000 = <span class="value">200 Ants</span>
 <span class="comment">// = 0.000002 ANET per miner per block</span>
 
-<span class="comment">// At 4 blocks per day (6h/block) = 800 Ants/day</span>
-<span class="comment">// = 292,000 Ants/year per consistently active miner</span>
-<span class="comment">// = 0.00292 ANET/year (at 50k miners and current estimate)</span>
+<span class="comment">// Daily fee income depends on real transfer activity</span>
+<span class="comment">// and the number of settlement blocks actually produced.</span>
 <span class="comment">// Fee income scales with ANET value × network activity</span>
       </div>
 
@@ -1275,7 +1275,7 @@ Block {
         <div class="notice-icon">✅</div>
         <div class="notice-body">
           <strong>Why Ants make this work</strong>
-          At a hypothetical $100 ANET price, 200 Ants = $0.0002. This is economically viable as a micro-reward for network participation. At $10,000/ANET (long-term), 200 Ants = $0.02 per block — meaningful daily income from fee mining alone, especially for participants in lower-cost economies.
+          At a hypothetical $100 ANET reference price, 200 Ants = $0.0002. This is economically viable as a micro-unit for network participation. At $10,000/ANET (long-term reference), 200 Ants = $0.02 per block. These examples are technical illustrations, not guaranteed returns or income projections.
         </div>
       </div>
 
@@ -1339,7 +1339,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
       <p>ANET Core is the fifth and final phase of the A-Network ecosystem. Where Web4 built the infrastructure (the chain), Web5 builds the intelligence and identity layer on top of it. ANET Core is not simply a product — it is a protocol for self-sovereign identity, decentralized AI services, and community governance.</p>
 
-      <p>The codename <strong>"ANET Core"</strong> reflects its role: the nucleus of the A-Network universe. All other phases — mining, token, chain — converge here.</p>
+      <p>The codename <strong>"ANET Core"</strong> reflects its role: the nucleus of the A-Network universe. All other phases — mining, visibility, settlement, and community identity — converge here.</p>
 
       <h3 id="anet-core-features">Core Features</h3>
 
@@ -1359,7 +1359,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
         <p>Mining history becomes governance weight. Miners with more completed sessions (and by extension, more ANET earned through genuine participation) have proportionally more influence in protocol upgrades, parameter changes, and ecosystem fund allocation.</p>
         <ul>
           <li><strong>Proposal threshold:</strong> Minimum 100 successful sessions to submit governance proposals</li>
-          <li><strong>Voting weight:</strong> Proportional to verified session count (not raw token balance, preventing whale dominance)</li>
+          <li><strong>Voting weight:</strong> Proportional to verified session count (not raw coin balance, preventing whale dominance)</li>
           <li><strong>Timelock:</strong> All approved protocol changes include a minimum 7-day timelock before execution</li>
         </ul>
       </div>
@@ -1403,7 +1403,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
       <div class="section-label">§ 12</div>
       <h2>Ant Code Colony System — Tracking First, Social Only</h2>
 
-      <p>A-Network includes a single-level colony system primarily for network growth transparency. The live backend does <strong>not</strong> implement pyramid rewards, commissions, session credits, or multi-level earnings. Ant Codes link colony membership only.</p>
+      <p>A-Network includes a single-level colony system primarily for network growth transparency. The live backend does <strong>not</strong> implement pyramid rewards, commissions, session credits, or multi-level returns. Ant Codes link colony membership only.</p>
 
       <div class="panel">
         <h4>What the Ant Code Colony System Does</h4>
@@ -1411,20 +1411,20 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
           <li>Tracks who joined whose colony (one level deep only)</li>
           <li>Counts how many of your direct colony ants have completed ≥ 1,000 sessions</li>
           <li>Displays your personal session progress toward the 1,000-session level milestone</li>
-          <li>Will be used in ANET Core governance weighting as a social graph signal</li>
+          <li>Supports Colony Points (CP) and social graph metrics as view-only community signals</li>
         </ul>
         <h4 style="margin-top: 16px;">What the Ant Code Colony System Does NOT Do</h4>
         <ul>
           <li>❌ No coin rewards for referring</li>
-          <li>❌ No session credits or session rewards for referring</li>
-          <li>❌ No recurring session rewards per colony activity</li>
+          <li>❌ No session credits or session distributions for referring</li>
+          <li>❌ No recurring session distributions per colony activity</li>
           <li>❌ No session multipliers</li>
           <li>❌ No multi-level (F2, F3...) chains</li>
           <li>❌ No influence farming via colony counts</li>
         </ul>
       </div>
 
-      <p>Why this design? Because A-Network believes that <strong>fake growth is worse than slow growth</strong>. Colony membership benefits are social only — not monetary. The system recognizes who activated whom, but the ledger depends entirely on the participant's own verified session history.</p>
+      <p>Why this design? Because A-Network believes that <strong>fake growth is worse than slow growth</strong>. Colony membership benefits are social only, and Colony Points (CP) measure performance rather than money, tokens, or guaranteed rewards. Any distribution mechanism is controlled, proportional, and not guaranteed. The system recognizes who activated whom, but the ledger depends entirely on the participant's own verified session history.</p>
     </section>
 
     <div class="divider"></div>
@@ -1707,8 +1707,9 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
       <div class="panel panel-red">
         <p><strong>This whitepaper is provided for informational purposes only.</strong> Nothing in this document constitutes financial advice, investment advice, or a solicitation to purchase any digital asset. Participation in A-Network mining involves risks including but not limited to: technological risk, regulatory risk, and market risk.</p>
-        <p>The ANET token is a utility token within the A-Network ecosystem. It is not a security, does not represent equity in any company, and does not entitle the holder to any dividend, profit share, or management rights.</p>
-        <p>The development timelines, technical specifications, and feature descriptions in this whitepaper represent current plans and intentions. They are subject to change as the project evolves. No guarantee is made regarding any specific future feature, capability, or timeline.</p>
+        <p>The ANET coin is a utility coin within the A-Network ecosystem. It is not a security, does not represent equity in any company, and does not entitle the holder to any dividend, profit share, or management rights.</p>
+        <p>The development timelines, technical specifications, and feature descriptions in this whitepaper represent current plans and intentions. They are subject to change as the project evolves. No guarantee is made regarding any specific future feature, capability, timeline, financial return, or controlled distribution outcome.</p>
+        <p>A Network does not guarantee financial returns. All values, metrics, and distributions described here are based on participation, system rules, and network conditions. The platform is designed for ecosystem participation, not speculative investment.</p>
         <p>Users are responsible for complying with all applicable laws and regulations in their jurisdiction. A-Network does not represent that participation is legal in any specific jurisdiction. Always conduct your own research (DYOR).</p>
         <p style="margin-bottom: 0;"><strong>By using the A-Network application or holding ANET, you acknowledge that you have read and understood this disclaimer.</strong></p>
       </div>
