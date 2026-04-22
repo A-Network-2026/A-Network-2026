@@ -491,7 +491,7 @@ Avoid claiming:
 
 - Email: `info@a-network.net`
 - GitHub: `https://github.com/A-Network-2026`
-- X: `https://x.com/AAlphaNetwork`
+- X: `https://x.com/ANetworkLLC`
 
 ## Summary
 
