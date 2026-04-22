@@ -1,1 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network | ANTS Program</title>
+  <meta name="description" content="The A Network ANTS Program explains the mining-first colony model, role names, contributor gateway rules, and how investors and developers participate as miners inside colony groups.">
+  <meta name="theme-color" content="#06111d">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="A Network">
+  <meta property="og:title" content="A Network | ANTS Program">
+  <meta property="og:description" content="Understand how the ANTS Program serves as the gateway for miners, contributors, investors, developers, and colony groups in A Network.">
+  <meta property="og:url" content="https://a-network.net/ants-program.html">
+  <meta property="og:image" content="https://a-network.net/logo.png">
+  <link rel="canonical" href="https://a-network.net/ants-program.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #06111d;
+      --bg-2: #0a1827;
+      --panel: rgba(9, 22, 35, 0.9);
+      --panel-strong: rgba(6, 14, 23, 0.96);
+      --line: rgba(108, 231, 177, 0.2);
+      --line-strong: rgba(108, 231, 177, 0.42);
+      --text: #eef6ff;
+      --muted: #9db5ca;
+      --accent: #6ce7b1;
+      --accent-2: #58c5ff;
+      --accent-3: #ffca6e;
+      --shadow: 0 28px 88px rgba(0, 0, 0, 0.38);
+    }
 
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(108, 231, 177, 0.08), transparent 28%),
+        radial-gradient(circle at top right, rgba(88, 197, 255, 0.12), transparent 24%),
+        linear-gradient(180deg, #07111b 0%, var(--bg) 100%);
+      line-height: 1.65;
+    }
+
+    .shell {
+      width: min(1200px, calc(100% - 28px));
+      margin: 0 auto;
+      padding-bottom: 48px;
+    }
+
+    header,
+    section,
+    footer {
+      position: relative;
+    }
+
+    header {
+      margin-top: 18px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: rgba(4, 10, 18, 0.72);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand img {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid var(--line-strong);
+      object-fit: cover;
+      background: linear-gradient(145deg, rgba(108, 231, 177, 0.12), rgba(88, 197, 255, 0.16));
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      letter-spacing: 0.08em;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: flex-end;
+    }
+
+    nav a,
+    .chip-link {
+      color: var(--accent-2);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+      min-height: calc(100vh - 126px);
+      align-items: stretch;
+      padding: 40px 0 28px;
+    }
+
+    .hero-copy,
+    .hero-side,
+    .section-card,
+    .role-card,
+    .stack-card,
+    .rule-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy,
+    .hero-side,
+    .section-card {
+      padding: 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    h2,
+    h3 {
+      font-family: "Orbitron", sans-serif;
+      line-height: 1.08;
+      margin: 0;
+    }
+
+    .hero h2 {
+      margin-top: 18px;
+      font-size: clamp(2.2rem, 6vw, 4.6rem);
+    }
+
+    .hero p,
+    .section-copy,
+    .rule-card p,
+    .stack-card p,
+    .role-card p {
+      color: var(--muted);
+    }
+
+    .hero-actions,
+    .chip-row,
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn,
+    .btn-secondary,
+    .chip-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 12px 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #031018;
+      border-color: transparent;
+      font-weight: 700;
+    }
+
+    .btn-secondary,
+    .chip-link {
+      color: var(--text);
+    }
+
+    .hero-side {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .stack-grid,
+    .rules-grid,
+    .roles-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .stack-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rules-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .roles-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .stack-card,
+    .rule-card,
+    .role-card {
+      padding: 18px;
+    }
+
+    .section {
+      margin-top: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .legend span {
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    footer {
+      margin: 28px 0 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .rules-grid,
+      .roles-grid,
+      .stack-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="index.html">
+        <img src="logo.png" alt="A Network logo">
+        <div>
+          <h1>A NETWORK</h1>
+          <p>ANTS Program | Mining Gateway And Colony Model</p>
+        </div>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="#language">Language</a>
+        <a href="#roles">Ant Roles</a>
+        <a href="#layers">4 Layers</a>
+        <a href="web4.html">Web4</a>
+        <a href="whitepaper.html">Whitepaper</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">ANTS Program | Mining Gateway And Colony Access</div>
+        <h2>Enter the network through the <span style="color:var(--accent)">ANTS Program</span> as a miner inside a colony group.</h2>
+        <p>
+          The ANTS Program is the participation gateway for people who want to help build A Network. Investors, developers, operators, and community contributors do not enter as passive observers. They enter as miners, join a colony group, build a participation record through validated sessions, and then coordinate their role through ant-language identities such as Worker Ants, Builder Ants, Scouts, Soldiers, Farmers, Nurses, Queen Ant, and Swarm Ants.
+        </p>
+        <div class="hero-actions">
+          <a class="btn" href="#roles">View Ant Roles</a>
+          <a class="btn-secondary" href="web4.html">Open Web4</a>
+          <a class="btn-secondary" href="web5.html">Open Web5 Live View</a>
+        </div>
+        <div class="chip-row">
+          <a class="chip-link" href="index.html">Main Site</a>
+          <a class="chip-link" href="whitepaper.html">Whitepaper</a>
+          <a class="chip-link" href="privacy.html">Privacy</a>
+          <a class="chip-link" href="terms.html">Terms</a>
+        </div>
+      </div>
+
+      <div class="hero-side">
+        <div class="stack-card">
+          <h3>Why ANTS Program</h3>
+          <p>
+            The ANTS Program is the gateway layer for serious contributors. It is where miners organize into colony groups, where developers prove commitment through participation, and where investors who want to support the ecosystem are expected to participate in the same mining culture instead of standing outside it.
+          </p>
+          <div class="legend">
+            <span>miners first</span>
+            <span>colony-group access</span>
+            <span>community-first</span>
+            <span>not guaranteed returns</span>
+          </div>
+        </div>
+        <div class="stack-card">
+          <h3>ANET-Chain Transparency</h3>
+          <p>
+            Members can inspect public blockchain activity through ANET-Chain. That chain view supports transparency, transfer visibility, and settlement observation, while the ANTS Program remains the human entry layer where miners, developers, and aligned backers organize through colony groups before broader Web4 settlement flows.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="language">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2>Language Rules</h2>
+            <p class="section-copy">The terminology matters because the project now enforces separate operating layers.</p>
+          </div>
+        </div>
+        <div class="rules-grid">
+          <article class="rule-card">
+            <h3>Use ANTS Program</h3>
+            <p>Use the ANTS Program as the mining-first gateway for colony visibility, social structure, contributor onboarding, and future community participation.</p>
+          </article>
+          <article class="rule-card">
+            <h3>Contributors Must Mine</h3>
+            <p>Investors, developers, and other contributors are expected to participate as miners. The culture of the network starts with validated mining activity rather than passive membership.</p>
+          </article>
+          <article class="rule-card">
+            <h3>Colony Group Required</h3>
+            <p>Participation should be organized through a colony group. Colony identity coordinates roles, accountability, contribution culture, and future governance pathways without becoming a guaranteed payout promise.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="roles">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2>Ant Roles</h2>
+            <p class="section-copy">These roles describe how miners organize inside colony groups. They signal contribution focus, operational responsibility, and community function rather than fixed payouts or passive status.</p>
+          </div>
+        </div>
+        <div class="roles-grid">
+          <article class="role-card"><h3>Worker Ants</h3><p>Core miners who prove consistency through repeated session participation inside their colony.</p></article>
+          <article class="role-card"><h3>Builder Ants</h3><p>Developers, designers, and infrastructure contributors who also participate as miners while building the network.</p></article>
+          <article class="role-card"><h3>Scout Ants</h3><p>Discovery-focused miners who expand routes, partnerships, awareness, and ecosystem reach for their colony group.</p></article>
+          <article class="role-card"><h3>Soldier Ants</h3><p>Security-minded miners and defenders focused on resilience, moderation, and protection of the colony.</p></article>
+          <article class="role-card"><h3>Farmer Ants</h3><p>Long-horizon contributors who cultivate sustainable growth, retention, and disciplined participation.</p></article>
+          <article class="role-card"><h3>Nurse Ants</h3><p>Support-focused miners who handle onboarding, education, care, and continuity for new colony members.</p></article>
+          <article class="role-card"><h3>Queen Ant</h3><p>A symbolic colony anchor for continuity and coordination, not a passive owner class or centralized controller.</p></article>
+          <article class="role-card"><h3>Swarm Ants</h3><p>Coordinated miner groups activated during launches, migrations, expansions, and major community operations.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="layers">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2>The 4 Operating Layers</h2>
+            <p class="section-copy">The ANTS Program should reinforce this model, not blur it.</p>
+          </div>
+        </div>
+        <div class="stack-grid">
+          <article class="stack-card">
+            <h3>Web2 Economy</h3>
+            <p>Ant Work sessions, ANTS accounting, anti-abuse checks, and app-native source-of-truth balances for participation history.</p>
+          </article>
+          <article class="stack-card">
+            <h3>Web3 Visibility</h3>
+            <p>Public BNB Chain visibility, contract transparency, wallet references, and broader ecosystem discovery without changing Web2 accounting.</p>
+          </article>
+          <article class="stack-card">
+            <h3>Web4 Settlement</h3>
+            <p>ANET-Chain settlement, transfer visibility, and long-range migration logic for Web4 without altering Web2 ANTS accounting rules.</p>
+          </article>
+          <article class="stack-card">
+            <h3>Web5 Community</h3>
+            <p>Colony coordination, ANTS Program identity, group structure, CP tracking, and future ANET Core participation. This layer is where miners organize themselves socially and strategically without replacing Web2 accounting, Web3 visibility, or Web4 settlement.</p>
+          </article>
+          <article class="stack-card">
+            <h3>Current Rule</h3>
+            <p>The ANTS Program is the gateway for contributors who want to enter the network culture. To participate meaningfully, members should mine, belong to a colony group, and build their standing through real contribution history while keeping Colony Points (CP), ranks, and snapshots separate from guaranteed returns or passive entitlement.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-links">
+        <a class="chip-link" href="index.html">Home</a>
+        <a class="chip-link" href="web4.html">Web4</a>
+        <a class="chip-link" href="whitepaper.html">Whitepaper</a>
+        <a class="chip-link" href="privacy.html">Privacy</a>
+        <a class="chip-link" href="terms.html">Terms</a>
+      </div>
+      <p>ANTS Program page for A Network. The program acts as the gateway for miners, developers, investors, and contributors who want to participate through colony groups rather than passive status. A Network does not guarantee financial returns. All values, metrics, access paths, and any controlled distributions depend on participation, system rules, and network conditions.</p>
+    </footer>
+  </div>
+</body>
+</html>
