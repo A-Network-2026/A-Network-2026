@@ -1,21 +1,110 @@
-# A-Network
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=12,20,24,30&height=220&section=header&text=A-Network&fontSize=54&fontAlignY=38&desc=WEB2_SESSION_MINING%20%7C%20WEB3_UTILITY_TOKEN%20%7C%20WEB4_LAYER1_PATH&descFontSize=18&fontColor=FFFFFF&stroke=FFFFFF&strokeWidth=1" alt="A-Network banner" />
+  <img src="docs/play-feature-graphic.png" alt="A-Network feature graphic" width="100%" />
+</div>
 
-A-Network is a full-stack application built around three linked product layers:
+---
+
+### Mainframe Protocol
+
+<div align="center">
+
+<pre>
+> Initiating A-Network startup sequence...
+> Loading mobile mining interface... [COMPLETE]
+> Connecting Fastify backend and PostgreSQL ledger... [ACTIVE]
+> Syncing Web3 utility-token visibility layer... [RUNNING]
+> Preparing Web4/Web5 migration narrative... [STAGED]
+> Mission: build a long-term mining ecosystem with real product surfaces.
+</pre>
+
+</div>
+
+---
+
+### Primary System: A-Network Stack
+
+<div align="center">
+
+<pre>
+> System Type   : Mobile Mining + Backend + Public Docs
+> Core Focus    : Session rewards, token visibility, future Layer 1 migration
+> Mission       : Connect app-native participation with broader network utility
+> Status        : LIVE DEVELOPMENT
+</pre>
+
+</div>
+
+A-Network is a full-stack product built around three linked layers:
 
 - Web2 off-chain application services
-- Web3 on-chain 21,000,000 ANET utility-token visibility and wallet integration on BNB Smart Chain
-- Web4/Web5 coordination concepts that connect the Web3 utility token to a separate ANTS-to-ANET Layer 1 mining economy
+- Web3 on-chain `21,000,000 ANET` utility-token visibility and wallet integration on BNB Smart Chain
+- Web4/Web5 coordination concepts connecting the Web3 utility token to a separate `ANTS -> ANET` Layer 1 mining economy
 
 The current product includes a Flutter app, a Node.js/Fastify backend, a PostgreSQL database, public legal pages, and a public website surface.
 
-Important notice:
+---
 
-- A-Network is a long-term ecosystem project.
-- It is not financial advice.
-- It does not promise guaranteed earnings, guaranteed returns, or token appreciation.
-- Store listing text, website text, and in-app text should remain factual, risk-aware, and compliant with Google Play and App Store policies.
+### Live System Status
 
-## Current Product Scope
+<p align="center">
+  <img src="https://img.shields.io/badge/Mobile_App-ONLINE-1f9d55?style=for-the-badge" alt="Mobile App Online" />
+  <img src="https://img.shields.io/badge/Fastify_API-ACTIVE-2563eb?style=for-the-badge" alt="Fastify API Active" />
+  <img src="https://img.shields.io/badge/Token_Visibility-BSC_READY-f59e0b?style=for-the-badge" alt="Token Visibility BSC Ready" />
+  <img src="https://img.shields.io/badge/Layer1_Path-STAGED-7c3aed?style=for-the-badge" alt="Layer1 Path Staged" />
+</p>
+
+<div align="center">
+
+<pre>
+> Node Status        : SYNCHRONIZED
+> Mining Sessions    : 6-HOUR VALIDATED CYCLES
+> Web3 Surface       : ANET CONTRACT LOOKUP ENABLED
+> Build State        : CONTINUOUS DELIVERY READY
+</pre>
+
+</div>
+
+---
+
+### System Modules
+
+<p align="center">
+  <img src="https://img.shields.io/badge/MOBILE-Flutter-111827?style=flat-square&logo=flutter&logoColor=white" alt="Flutter" />
+  <img src="https://img.shields.io/badge/BACKEND-Fastify-111827?style=flat-square&logo=fastify&logoColor=white" alt="Fastify" />
+  <img src="https://img.shields.io/badge/DATABASE-PostgreSQL-111827?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/AUTH-JWT-111827?style=flat-square&logo=jsonwebtokens&logoColor=white" alt="JWT" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/WEB3-BNB_Smart_Chain-111827?style=flat-square&logo=binance&logoColor=white" alt="BNB Smart Chain" />
+  <img src="https://img.shields.io/badge/REWARD_ENGINE-ANTS_First-111827?style=flat-square&logo=databricks&logoColor=white" alt="ANTS First" />
+  <img src="https://img.shields.io/badge/CLIENT-Dart-111827?style=flat-square&logo=dart&logoColor=white" alt="Dart" />
+  <img src="https://img.shields.io/badge/DOCS-Static_HTML-111827?style=flat-square&logo=html5&logoColor=white" alt="Static HTML" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/SECURITY-bcryptjs-111827?style=flat-square&logo=shield&logoColor=white" alt="bcryptjs" />
+  <img src="https://img.shields.io/badge/ADS-google_mobile_ads-111827?style=flat-square&logo=googleads&logoColor=white" alt="google mobile ads" />
+  <img src="https://img.shields.io/badge/VIDEO-video_player-111827?style=flat-square&logo=youtube&logoColor=white" alt="video player" />
+  <img src="https://img.shields.io/badge/WEBVIEW-webview_flutter-111827?style=flat-square&logo=googlechrome&logoColor=white" alt="webview flutter" />
+</p>
+
+---
+
+### Current Product Scope
+
+<div align="center">
+
+<pre>
+> Auth Layer        : REGISTER / LOGIN / JWT
+> Mining Engine     : SESSION-BASED OFF-CHAIN REWARD ACCOUNTING
+> Stats Surface     : GLOBAL STATS + LEADERBOARD ENDPOINTS
+> Wallet Layer      : ON-CHAIN ANET BALANCE LOOKUP
+> Docs Surface      : WEBSITE + PRIVACY + TERMS + WHITEPAPER
+</pre>
+
+</div>
 
 The codebase currently implements:
 
@@ -33,6 +122,28 @@ The codebase does not currently implement:
 - Brokerage or custodial financial services
 - Automatic off-chain to on-chain reward minting for users
 - A production claim bridge from off-chain app balance into on-chain wallet balance
+
+---
+
+### Policy Guardrails
+
+<div align="center">
+
+<pre>
+> Notice            : LONG-TERM ECOSYSTEM PROJECT
+> Financial Claim   : NOT INVESTMENT ADVICE
+> Return Guarantee  : NONE
+> Store Messaging   : FACTUAL / RISK-AWARE / POLICY-SAFE
+</pre>
+
+</div>
+
+Important notice:
+
+- A-Network is a long-term ecosystem project.
+- It is not financial advice.
+- It does not promise guaranteed earnings, guaranteed returns, or token appreciation.
+- Store listing text, website text, and in-app text should remain factual, risk-aware, and compliant with Google Play and App Store policies.
 
 ## Actual Tech Stack
 
