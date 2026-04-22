@@ -3,8 +3,8 @@
 A-Network is a full-stack application built around three linked product layers:
 
 - Web2 off-chain application services
-- Web3 on-chain ANET token visibility and wallet integration on BNB Smart Chain
-- Web4 coordination concepts that connect off-chain utility and on-chain ownership
+- Web3 on-chain 21,000,000 ANET utility-token visibility and wallet integration on BNB Smart Chain
+- Web4/Web5 coordination concepts that connect the Web3 utility token to a separate ANTS-to-ANET Layer 1 mining economy
 
 The current product includes a Flutter app, a Node.js/Fastify backend, a PostgreSQL database, public legal pages, and a public website surface.
 
@@ -100,29 +100,40 @@ The current backend mining rules are defined in:
 ### Base Rate
 
 ```text
-BASE_RATE = 0.001 ANET/second
+LAUNCH_REWARD_ANET = 0.04882812 ANET/session
+LAUNCH_REWARD_ANTS = 4,882,812 ants/session
+LAUNCH_PHASE_SESSIONS = 500,000 total sessions
+POST_LAUNCH_BASE_REWARD_ANET = 0.00262144 ANET/session
+POST_LAUNCH_BASE_REWARD_ANTS = 262,144 ants/session
+POST_LAUNCH_HALVING_INTERVAL = 3,800,000,000 total sessions
+MAX_HALVING_STAGE = 9
 MAX_SUPPLY = 21,000,000 ANET
 ```
 
 ### Current Rate Formula
 
 ```text
-currentRate = BASE_RATE x (1 + halvingCount)
+if totalSessions < 500000:
+  rewardPerSession = 0.04882812 ANET
+else:
+  halvingStage = min(floor((totalSessions - 500000) / 3800000000), 9)
+  rewardPerSession = 0.00262144 / (2 ^ halvingStage)
 ```
-
-This is a reverse-halving model in the current codebase because the rate increases as `halvingCount` increases.
 
 ### Reward Formula
 
 ```text
-reward = currentRate x 21,600
+rewardAnts = floor(rewardPerSession x 100,000,000)
+rewardAnet = rewardAnts / 100,000,000
 ```
 
 Examples:
 
-- `halvingCount = 0` -> `reward = 0.001 x 21,600 = 21.6 ANET`
-- `halvingCount = 1` -> `reward = 0.002 x 21,600 = 43.2 ANET`
-- `halvingCount = 2` -> `reward = 0.003 x 21,600 = 64.8 ANET`
+- `launch tranche` -> `0.04882812 ANET` (`4,882,812` ants) for the first `500,000` total sessions
+- `post-launch stage = 0` -> `0.00262144 ANET` (`262,144` ants)
+- `stage = 1` -> `0.00131072 ANET` (`131,072` ants)
+- `stage = 2` -> `0.00065536 ANET` (`65,536` ants)
+- `stage = 9` -> `0.00000512 ANET` (`512` ants, capped final stage)
 
 ### Eligibility Rule
 
@@ -132,18 +143,20 @@ A user becomes eligible for the network halving calculation only when:
 successful_sessions >= 1000
 ```
 
-### Halving Count Formula
+### Halving Stage Formula
 
 ```text
-eligibleUsers = count(users where successful_sessions >= 1000)
-halvingCount = floor(eligibleUsers / 210000)
+totalSessions = sum(users.successful_sessions)
+halvingStage = min(floor((max(totalSessions - 500000, 0)) / 3800000000), 9)
 ```
 
 Examples:
 
-- `0` to `209,999` eligible users -> `halvingCount = 0`
-- `210,000` to `419,999` eligible users -> `halvingCount = 1`
-- `420,000` to `629,999` eligible users -> `halvingCount = 2`
+- `0` to `499,999` sessions -> launch tranche reward
+- `500,000` to `3,800,499,999` sessions -> post-launch stage 0
+- `3,800,500,000` to `7,600,499,999` sessions -> stage 1
+- `7,600,500,000` to `11,400,499,999` sessions -> stage 2
+- `34,200,500,000+` sessions -> stage 9
 
 ### User Rules Enforced By The API
 
@@ -158,9 +171,19 @@ Examples:
 
 ### Supply Protection Rules
 
-- If `total_mined >= MAX_SUPPLY`, mining rewards stop
-- If `total_mined + reward > MAX_SUPPLY`, reward is reduced to the exact remaining supply
+- If `total_mined_ants >= MAX_SUPPLY_ANTS`, mining rewards stop
+- If `total_mined_ants + rewardAnts > MAX_SUPPLY_ANTS`, reward is reduced to the exact remaining supply
+- Claim conversion uses safe truncation to ensure total claimed ANET never exceeds max supply
 - When max supply is reached, `is_mining_active` is disabled in network stats
+
+## Security and Anti-Abuse (v1.0.2)
+
+- Device binding with configurable max accounts per device (default `2`)
+- Heartbeat-backed mining session validation before completion
+- Risk scoring and account/session flagging
+- Claim gate for flagged or high-risk accounts
+- Security audit logs for sensitive auth/mining events
+- Global API rate limiting baseline: `100 requests / 15 minutes / IP`
 
 ## Web2, Web3, and Web4 Positioning
 
@@ -170,7 +193,7 @@ The current application includes an off-chain session engine, user accounts, ran
 
 ### Web3 Layer
 
-The current application and website can read ANET token information from the deployed token contract on BNB Smart Chain.
+The current application and website can read ANET utility-token information from the deployed token contract on BNB Smart Chain. In the current public model, this Web3 token is a fixed-supply ecosystem utility asset with a total supply of `21,000,000 ANET` and a documented stewardship split of `50% owner / 50% founder` for ecosystem distribution, liquidity, partnerships, and long-term Layer 1 access planning.
 
 Contract address:
 
@@ -180,7 +203,40 @@ Contract address:
 
 ### Web4 Layer
 
-Web4 is currently presented as the coordination layer between off-chain utility and on-chain ownership. The product narrative is implemented in the Flutter app and website, but a full production claim bridge is not yet implemented in the backend.
+Web4 is currently presented as the coordination layer between off-chain utility and on-chain ownership. In the current project narrative, Web4/Web5 uses a separate Layer 1 ANET/ANTS mining economy: miners accumulate ANTS through validated 6-hour sessions, the first `1,000` completed sessions act as a non-spendable genesis threshold, and only after that threshold can ANTS be converted into spendable Layer 1 ANET through the governed migration flow. This Layer 1 mining economy is intended to be `100% mining-based` with `0% owner allocation` and `0% founder allocation`.
+
+## Token Model And Distribution
+
+### Web3 Utility Token On BNB Chain
+
+- Asset role: ecosystem utility token and external market visibility layer
+- Network: BNB Smart Chain
+- Supply: `21,000,000 ANET`
+- Stewardship: `50% owner / 50% founder`
+- Intended uses: ecosystem growth, market discovery, liquidity planning, partner distribution, and future buy-in rails for the Layer 1 economy
+- Current public contract:
+
+```text
+0x791055A7d52AA392eaE8De04250497f33807E46A
+```
+
+### Web4/Web5 Layer 1 Coin Economy
+
+- Separate from the BNB Chain utility token
+- Accounting model: users mine `ANTS` first and convert into Layer 1 `ANET` only after eligibility
+- Genesis threshold: the first `1,000` completed sessions are a non-spendable participation threshold
+- Conversion rule: after `1,000` completed sessions, miners become eligible to convert accumulated ANTS into spendable Layer 1 ANET through the project migration and settlement flow
+- Distribution: `100% mining/community distribution`
+- Founder allocation: `0%`
+- Owner allocation: `0%`
+- Economic principle: everyone participates as miners; the Layer 1 coin economy is not presented as a pre-allocated insider reserve
+
+### Roadmap Framing
+
+- The current codebase already implements the ANTS-first session ledger and the `1,000`-session eligibility threshold
+- The BNB Chain utility token is already visible through the current wallet and website surfaces
+- The broader Layer 1 public-release target is currently described as a roadmap goal with an approximate `8-month` objective, subject to technical readiness, security review, and market conditions
+- Any early Layer 1 starting price discussion should be treated as a non-guaranteed planning reference only; market price discovery will depend on open participation and liquidity at launch
 
 ## Backend Setup
 
@@ -225,6 +281,8 @@ BSCSCAN_API_KEY=
 ```bash
 npm start
 ```
+
+`npm start` now runs `backend/server.js` (Fastify API with ANTS-first mining, wallet, and forgot-password OTP routes).
 
 ## Flutter App Setup
 
@@ -300,16 +358,17 @@ Safe principles:
 
 - Describe the app as a long-term ecosystem or session-based reward product
 - Avoid promising profit, guaranteed income, or guaranteed token value
-- Clearly separate off-chain app balance from on-chain wallet balance
+- Clearly separate off-chain app balance, the BNB Chain utility token, and the future Layer 1 mining coin economy
 - Keep privacy and terms URLs public and accessible
-- Avoid unsupported tokenomics claims that do not exist in code
+- Label roadmap allocations and launch targets as roadmap items, not as already-enforced code behavior
 
 Avoid claiming:
 
 - guaranteed returns
 - guaranteed price growth
+- guaranteed launch price
 - financial services that are not implemented
-- unsupported token allocations not present in code
+- unsupported token allocations that are not documented in the official project materials
 - features that imply regulatory approval when none is shown in code or docs
 
 ## Legal Links
