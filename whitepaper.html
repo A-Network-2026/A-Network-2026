@@ -336,13 +336,13 @@
     <div class="hero">
       <div class="hero-badge">⚡ Official Technical Whitepaper</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A multi-phase ecosystem spanning Web2 proof-of-time Ant Work, Web3 visibility on BNB Chain, a live ANET Layer 1 testnet, and ANET Core. Version 1.0.5 extends the ANTS-first ledger with production backend hardening, proxy-safe registration behind reverse proxies, issuance-ended enforcement after max supply, 64-bit scale protection for user, session, and network counters, live Web2-to-Layer1 genesis synchronization, periodic activation delta settlement, and fast transfer-block epochs currently operating at ~2 seconds while Web2 mining sessions remain fixed at 6 hours. The live backend also retains wallet continuity controls and anti-abuse enforcement: multi-signal risk scoring, real-time bot pattern detection, fraud cluster analysis (IP, device, fingerprint), automated security audit logging, heartbeat-validated sessions, account ban/unban enforcement, smart login OTP risk detection, trusted device management, session-bound JWT authentication, one-time scheduled-account restore by email OTP, wallet PIN protection, encrypted seed phrase reveal with OTP verification, concurrent session claim protection via atomic transactions, BigInt-safe ANTS accounting, multilingual API responses (English + Filipino), a 2-hour grace period claim window, dual notification delivery, and configurable AdMob infrastructure.</p>
+      <p class="hero-sub">A multi-phase ecosystem spanning Web2 proof-of-time Ant Work, a 21,000,000 ANET Web3 utility token on BNB Chain, a separate ANTS-to-ANET Layer 1 mining economy, a live ANET Layer 1 testnet, and ANET Core. Version 1.0.5 extends the ANTS-first ledger with production backend hardening, proxy-safe registration behind reverse proxies, issuance-ended enforcement after max supply, 64-bit scale protection for user, session, and network counters, live Web2-to-Layer1 genesis synchronization, periodic activation delta settlement, and fast transfer-block epochs currently operating at ~2 seconds while Web2 mining sessions remain fixed at 6 hours. The live backend also retains wallet continuity controls and anti-abuse enforcement: multi-signal risk scoring, real-time bot pattern detection, fraud cluster analysis (IP, device, fingerprint), automated security audit logging, heartbeat-validated sessions, account ban/unban enforcement, smart login OTP risk detection, trusted device management, session-bound JWT authentication, one-time scheduled-account restore by email OTP, wallet PIN protection, encrypted seed phrase reveal with OTP verification, concurrent session claim protection via atomic transactions, BigInt-safe ANTS accounting, multilingual API responses (English + Filipino), a 2-hour grace period claim window, dual notification delivery, and configurable AdMob infrastructure.</p>
       <div class="hero-meta">
         <div class="hero-meta-item"><strong>Version</strong> — 1.0.5</div>
         <div class="hero-meta-item"><strong>Published</strong> — April 2026</div>
-        <div class="hero-meta-item"><strong>Coin</strong> — $ANET</div>
-        <div class="hero-meta-item"><strong>Ledger Model</strong> — ANTS-first → ANET conversion after eligibility</div>
-        <div class="hero-meta-item"><strong>Max Supply</strong> — 21,000,000 ANET</div>
+        <div class="hero-meta-item"><strong>Web3 Utility Token</strong> — 21,000,000 ANET on BNB Chain</div>
+        <div class="hero-meta-item"><strong>Layer 1 Coin Model</strong> — ANTS-first → ANET conversion after 1,000 sessions</div>
+        <div class="hero-meta-item"><strong>Allocation</strong> — Web3 token 50/50 founder-owner stewardship; Layer 1 coin 100% mining</div>
         <div class="hero-meta-item"><strong>Smallest Unit</strong> — Ant (1 ANET = 100,000,000 Ants)</div>
       </div>
     </div>
@@ -355,17 +355,21 @@
       <div class="section-label">§ 1</div>
       <h2>Abstract</h2>
 
-      <p>A-Network v1.0.5 defines the Web2 Ant Work backend as a hardened, production-grade proof-of-time system and pairs it with a live ANET Layer 1 testnet. Users do not receive ANET directly at session completion. They accumulate <strong>ANTS</strong>, the smallest accounting unit of ANET, during validated 6-hour sessions. ANET becomes claimable only after a participant reaches the eligibility threshold of <strong>1,000 completed sessions</strong>.</p>
+      <p>A-Network v1.0.5 defines the Web2 Ant Work backend as a hardened, production-grade proof-of-time system and pairs it with a live ANET Layer 1 testnet. Users do not receive spendable Layer 1 ANET directly at session completion. They accumulate <strong>ANTS</strong>, the smallest accounting unit of the Layer 1 coin economy, during validated 6-hour sessions. Layer 1 ANET becomes claimable only after a participant reaches the eligibility threshold of <strong>1,000 completed sessions</strong>.</p>
 
-      <p>The native currency is <strong>$ANET</strong>, capped at a hard maximum of <strong>21,000,000 ANET</strong>. The smallest indivisible unit is one <strong>Ant</strong>, where <strong>1 ANET = 100,000,000 Ants</strong>. Web2 Ant Work therefore uses ANTS as the operating ledger unit and ANET as the delayed settlement unit. This avoids precision loss, supports future fee economics, and keeps the supply engine compatible with long-term Layer 1 settlement.</p>
+      <p>A-Network uses a dual-asset architecture. The <strong>Web3 utility token</strong> is a fixed-supply <strong>21,000,000 ANET</strong> asset on BNB Chain. Separately, the <strong>Web4/Web5 Layer 1 coin economy</strong> uses ANTS as its operating unit and Layer 1 ANET as its delayed settlement unit. The smallest indivisible unit remains one <strong>Ant</strong>, where <strong>1 ANET = 100,000,000 Ants</strong>. This avoids precision loss, supports future fee economics, and keeps the mining ledger compatible with long-term Layer 1 settlement.</p>
 
-      <p>The network coin-distribution schedule follows a Bitcoin-style halving direction with a preserved launch tranche. The first <strong>500,000 total completed sessions</strong> use the launch session output of <strong>0.04882812 ANET</strong> per session. After that tranche is exhausted, the upgraded long-life schedule begins at <strong>0.00262144 ANET</strong> per session and halves as the network's total completed session count reaches post-launch milestones. Halving is not triggered by registration count, colony size, or wallet balance. It is triggered only by total verified sessions across the network.</p>
+      <p>The Layer 1 mining distribution schedule follows a Bitcoin-style halving direction with a preserved launch tranche. The first <strong>500,000 total completed sessions</strong> use the launch session output of <strong>0.04882812 ANET-equivalent</strong> per session. After that tranche is exhausted, the upgraded long-life schedule begins at <strong>0.00262144 ANET-equivalent</strong> per session and halves as the network's total completed session count reaches post-launch milestones. Halving is not triggered by registration count, colony size, or wallet balance. It is triggered only by total verified sessions across the network.</p>
 
-      <p>Once the hard cap is reached, the issuance engine enters an <strong>issuance-ended</strong> state. No further mining output is minted, no new issuance-bearing sessions start, and claim routes cannot create new ANET beyond the cap. The network remains active for identity, wallet continuity, migration, and future fee-based activity.</p>
+      <p>The BNB Chain utility token is documented as a <strong>50% owner / 50% founder</strong> stewardship pool for ecosystem utility, distribution planning, and Layer 1 access rails. By contrast, the Layer 1 mining coin has <strong>no owner allocation</strong> and <strong>no founder allocation</strong>: participants enter through work, not insider minting.</p>
+
+      <p>Once the mining hard cap is reached, the issuance engine enters an <strong>issuance-ended</strong> state. No further mining output is minted, no new issuance-bearing sessions start, and claim routes cannot create new Layer 1 ANET beyond the cap tracked by the mining ledger. The network remains active for identity, wallet continuity, migration, and future fee-based activity.</p>
+
+      <p>The roadmap currently targets a broader Layer 1 release window in roughly <strong>8 months</strong>, subject to engineering readiness. Project planning may reference an illustrative early price zone around <strong>$0.000001</strong> for initial Layer 1 market discovery, but that is not a guaranteed launch price and actual valuation will be determined by open market participation.</p>
 
       <p>The live backend is also hardened for public-scale participation. Growth-critical counters and identifiers use <strong>64-bit integer space</strong>, and registration is proxy-aware so users sharing the same carrier, school, office, or Render edge network are not falsely blocked purely because they appear behind a common upstream IP.</p>
 
-      <p>A-Network deliberately excludes colony distribution amplification. The live backend treats Ant Codes as a colony-link system only. There are no coin bonuses, no session credits, no percentage commissions, and no multi-level trees. Every ANET must be accumulated through completed Ant Work sessions and settled only through the governed claim flow. This preserves a merit-based ledger where the only path to value is verified personal participation.</p>
+      <p>A-Network deliberately excludes colony distribution amplification. The live backend treats Ant Codes as a colony-link system only. There are no coin bonuses, no session credits, no percentage commissions, and no multi-level trees. Every unit in the Layer 1 mining economy must be accumulated through completed Ant Work sessions and settled only through the governed claim flow. This preserves a merit-based ledger where the only path to value is verified personal participation.</p>
 
       <div class="card-row">
         <div class="stat-card"><div class="sc-val">21M</div><div class="sc-label">Max Supply (ANET)</div></div>
@@ -498,26 +502,31 @@
     ────────────────────────────────── -->
     <section class="wp-section" id="tokenomics">
       <div class="section-label">§ 5</div>
-      <h2>Coin Model — $ANET</h2>
+      <h2>Coin Model — Utility Token + Layer 1 Mining Coin</h2>
 
-      <p>The ANET coin is the universal settlement unit across the ecosystem phases. It is not pre-mined, not VC-allocated, and not team-reserved. Every single ANET in existence has been or will be accumulated through real mining activity by real participants until the network reaches the fixed cap.</p>
+      <p>A-Network separates its asset design into two linked but distinct layers. The first is the <strong>Web3 ANET utility token</strong> on BNB Chain, fixed at <strong>21,000,000 ANET</strong> and documented as a <strong>50% founder / 50% owner</strong> stewardship and distribution pool. The second is the <strong>Web4/Web5 Layer 1 mining coin economy</strong>, where users mine ANTS through verified participation and convert into spendable Layer 1 ANET only after the <strong>1,000-session genesis threshold</strong>.</p>
+
+      <p>The Web3 utility token is intended to serve as the ecosystem utility layer and long-term buy-in rail for the Layer 1 network. The Layer 1 coin economy is intentionally different: it is presented as <strong>100% mining-based</strong>, with <strong>0% founder allocation</strong> and <strong>0% owner allocation</strong>. In short, the utility token may be stewarded, but the Layer 1 coin is earned by miners.</p>
 
       <div class="panel">
         <div class="table-scroll">
         <table class="wp-table">
           <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
           <tbody>
-            <tr><td><strong>Coin Name</strong></td><td>A-Network Coin</td><td>User-facing name</td></tr>
-            <tr><td><strong>Ticker Symbol</strong></td><td>$ANET</td><td>Traded symbol</td></tr>
-            <tr><td><strong>Maximum Supply</strong></td><td>21,000,000 ANET</td><td>Hard cap, identical philosophy to Bitcoin</td></tr>
+            <tr><td><strong>Web3 Asset</strong></td><td>ANET Utility Token</td><td>BEP-20 ecosystem utility token on BNB Chain</td></tr>
+            <tr><td><strong>Web3 Utility Supply</strong></td><td>21,000,000 ANET</td><td>Fixed utility-token supply</td></tr>
+            <tr><td><strong>Web3 Stewardship</strong></td><td>50% founder / 50% owner</td><td>Documented ecosystem distribution and access planning split</td></tr>
+            <tr><td><strong>Layer 1 Asset</strong></td><td>ANET / ANTS mining economy</td><td>Separate from the Web3 utility token</td></tr>
+            <tr><td><strong>Genesis Threshold</strong></td><td>1,000 completed sessions</td><td>Non-spendable eligibility phase before conversion</td></tr>
             <tr><td><strong>Smallest Unit</strong></td><td>1 Ant</td><td>Like Bitcoin's Satoshi</td></tr>
             <tr><td><strong>Unit Ratio</strong></td><td>1 ANET = 100,000,000 Ants</td><td>8 decimal places of precision</td></tr>
             <tr><td><strong>Precision</strong></td><td>8 decimal places</td><td>Stored as DECIMAL(20,8) in ledger</td></tr>
-            <tr><td><strong>Pre-mine</strong></td><td>0 ANET</td><td>No team allocation, no VC reserve</td></tr>
-            <tr><td><strong>Distribution</strong></td><td>100% via mining until cap</td><td>ANTS accumulate per session; ANET coins are claimed after eligibility until issuance ends at 21M</td></tr>
-            <tr><td><strong>Network</strong></td><td>BNB Chain (Web3)</td><td>Contract: 0x791055A7d52AA392eaE8De04250497f33807E46A</td></tr>
-            <tr><td><strong>Web4 Network</strong></td><td>ANET Layer 1</td><td>Designed — in development post max-supply</td></tr>
-            <tr><td><strong>Issuance Model</strong></td><td>ANTS-first with delayed conversion</td><td>Ant Work credits ANTS first; ANET claim is supply-controlled and enters issuance-ended mode at max supply</td></tr>
+            <tr><td><strong>Layer 1 Founder Allocation</strong></td><td>0%</td><td>No founder mining reserve</td></tr>
+            <tr><td><strong>Layer 1 Owner Allocation</strong></td><td>0%</td><td>No owner mining reserve</td></tr>
+            <tr><td><strong>Layer 1 Distribution</strong></td><td>100% via mining</td><td>ANTS accumulate per session; spendable Layer 1 ANET begins after eligibility</td></tr>
+            <tr><td><strong>Web3 Network</strong></td><td>BNB Chain (Web3)</td><td>Contract: 0x791055A7d52AA392eaE8De04250497f33807E46A</td></tr>
+            <tr><td><strong>Web4 Network</strong></td><td>ANET Layer 1</td><td>Live testnet now; broader release targeted in roughly 8 months, subject to readiness</td></tr>
+            <tr><td><strong>Initial Market Reference</strong></td><td>~$0.000001</td><td>Illustrative early Layer 1 planning reference only, not a guaranteed launch price</td></tr>
           </tbody>
         </table>
         </div>
@@ -562,7 +571,7 @@
 
       <!-- SUPPLY -->
       <h3 id="supply">Supply Exhaustion &amp; Hard Cap Enforcement</h3>
-      <p>The <code>MAX_SUPPLY</code> constant is hardcoded in the Ant Work engine at exactly <strong>21,000,000 ANET</strong>. Session completion adds only ANTS to the user ledger. Supply protection becomes critical during claim, where a user's convertible ANET is capped so that <code>totalANETClaimed</code> can never exceed 21,000,000.</p>
+      <p>The <code>MAX_SUPPLY</code> constant is hardcoded in the Ant Work engine at exactly <strong>21,000,000 ANET-equivalent units</strong> for the Layer 1 mining ledger. Session completion adds only ANTS to the user ledger. Supply protection becomes critical during claim, where a user's convertible ANET is capped so that <code>totalANETClaimed</code> can never exceed the mining-ledger cap.</p>
       <p>In v1.0.5, hard-cap enforcement is not limited to conversion math. The live backend explicitly switches to an issuance-ended state when supply is exhausted: issuance-bearing session starts are refused, legacy minting routes return issuance-ended responses, and no new ANET can be created beyond the cap.</p>
       <div class="formula-box">
     <span class="comment">// Safe conversion + issuance-ended protection (v1.0.5)</span>
@@ -1139,7 +1148,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <div class="section-label">§ 9</div>
       <h2>Web3 Phase — BNB Chain Integration</h2>
 
-      <p>Web3 is the visibility bridge between the A-Network Ant Work economy and the decentralized financial world. In the current product, Web2 remains the source of truth for Ant Work sessions and ANTS accumulation, while the BNB Chain presence provides public contract visibility, wallet references, and ecosystem discovery.</p>
+      <p>Web3 is the utility and visibility bridge between the A-Network Ant Work economy and the decentralized financial world. In the current product, Web2 remains the source of truth for Ant Work sessions and ANTS accumulation, while the BNB Chain presence provides public contract visibility, wallet references, ecosystem discovery, and the external utility token used for long-term Layer 1 access planning.</p>
 
       <h3 id="contract">ANET Token Contract</h3>
       <div class="panel panel-accent">
@@ -1151,6 +1160,8 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
             <tr><td><strong>Network</strong></td><td>BNB Smart Chain (BSC) — Chain ID: 56</td></tr>
             <tr><td><strong>Standard</strong></td><td>BEP-20</td></tr>
             <tr><td><strong>Decimals</strong></td><td>8 (matching Ant precision)</td></tr>
+            <tr><td><strong>Total Supply</strong></td><td>21,000,000 ANET</td></tr>
+            <tr><td><strong>Documented Stewardship</strong></td><td>50% founder / 50% owner for ecosystem distribution</td></tr>
           </tbody>
         </table>
         </div>
@@ -1170,7 +1181,8 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           <li><strong>Wallet PIN:</strong> Users can set, change, or recover a 4-8 digit wallet PIN through email OTP verification.</li>
           <li><strong>Seed Recovery Flow:</strong> Seed phrase reveal requires a valid wallet PIN and an email OTP; legacy plaintext seed records are migrated on-demand into encrypted vault fields before reveal.</li>
           <li><strong>Legacy Device Fallback:</strong> If no encrypted server seed exists, the app can fall back to older local device backups after verification.</li>
-          <li><strong>Web3 Role:</strong> BNB Chain contract remains the ecosystem visibility layer while Web4 Layer 1 is prepared.</li>
+          <li><strong>Web3 Role:</strong> BNB Chain contract remains the ecosystem utility and visibility layer while Web4 Layer 1 is prepared.</li>
+          <li><strong>Utility Token Function:</strong> The Web3 token is intended to support ecosystem access and buy-in rails for the future Layer 1 economy.</li>
         </ul>
       </div>
 
@@ -1193,9 +1205,11 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <div class="section-label">§ 10</div>
       <h2>Web4 Phase — ANET Layer 1 Blockchain</h2>
 
-      <p>A-Network now operates a <strong>live ANET Layer 1 testnet</strong> that extends the ANTS-first Web2 ledger into an on-chain settlement environment. This testnet already bootstraps chain genesis from the Web2 ledger, synchronizes activated balances into Layer 1 state, and opens wallet-to-wallet settlement windows on a 2-second cadence. A new block is produced only when there is real chain work: a queued transfer or newly synchronized ANTS supply from the Web2 side. The long-term milestone remains a broader production-grade Web4 activation after the Web2 issuance phase matures.</p>
+      <p>A-Network now operates a <strong>live ANET Layer 1 testnet</strong> that extends the ANTS-first Web2 ledger into an on-chain settlement environment. This testnet already bootstraps chain genesis from the Web2 ledger, synchronizes activated balances into Layer 1 state, and opens wallet-to-wallet settlement windows on a 2-second cadence. A new block is produced only when there is real chain work: a queued transfer or newly synchronized ANTS supply from the Web2 side. The long-term milestone remains a broader production-grade Web4 activation targeted in roughly <strong>8 months</strong>, subject to engineering readiness and security review.</p>
 
-      <p>This is not a token swap. It is a <strong>ledger synchronization and chain genesis model</strong>. On the live testnet, wallet state, completed-session history, and activated ANTS balances from the Web2 database are imported into the Layer 1 genesis snapshot and can continue receiving periodic delta settlements while the chain is running.</p>
+      <p>This is not a token swap. It is a <strong>ledger synchronization and chain genesis model</strong>. On the live testnet, wallet state, completed-session history, and activated ANTS balances from the Web2 database are imported into the Layer 1 genesis snapshot and can continue receiving periodic delta settlements while the chain is running. The first <strong>1,000 completed sessions</strong> remain the genesis threshold for miners before spendable Layer 1 ANET conversion begins.</p>
+
+      <p>The Layer 1 coin model is designed so that all spendable network coin begins with miners. There is no founder mining reserve and no owner mining reserve. Users who reach the genesis threshold can convert mined ANTS to Layer 1 ANET and begin wallet-to-wallet value transfer on the chain. The separate Web3 utility token is intended to complement this flow by acting as an ecosystem utility and buy-in rail rather than as a substitute for miner-earned Layer 1 issuance.</p>
 
       <h3 id="tpow">Time-Based Proof-of-Work (TPoW)</h3>
       <p>Traditional Proof-of-Work (Bitcoin) requires computational work — hash calculations demanding specialized hardware (ASICs). This concentrates mining power with wealthy hardware operators and excludes the majority of Earth's population.</p>
@@ -1608,9 +1622,9 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
         <div class="rm-item">
           <div class="rm-dot"></div>
           <div class="rm-phase">Phase 3</div>
-          <div class="rm-title">Web3 Token Activation &amp; DEX Listing</div>
+          <div class="rm-title">Web3 Utility Token Activation &amp; DEX Listing</div>
           <div class="rm-desc">
-            Full activation of the BEP-20 ANET token on BNB Chain. Integration with decentralized exchanges (DEX). On-chain wallet balance verification within the app. ANET token visible and tradable on PancakeSwap and BSC explorers. Token price oracle integration.
+            Full activation of the BEP-20 ANET utility token on BNB Chain. Integration with decentralized exchanges (DEX). On-chain wallet balance verification within the app. The fixed 21,000,000 ANET utility token becomes visible and tradable on PancakeSwap and BSC explorers, while its documented 50/50 founder-owner stewardship supports ecosystem distribution and Layer 1 access planning.
           </div>
           <div class="rm-tags">
             <span class="rm-tag">BEP-20 Active</span>
@@ -1624,14 +1638,14 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
         <div class="rm-item">
           <div class="rm-dot"></div>
           <div class="rm-phase">Phase 4</div>
-          <div class="rm-title">Post-Launch Halving &amp; Supply Maturity</div>
+          <div class="rm-title">Genesis Threshold Expansion &amp; Layer 1 Preparation</div>
           <div class="rm-desc">
-            Network progresses beyond the preserved launch tranche and eventually reaches the later post-launch halving ranges, including the Stage 1 threshold at 3,800,500,000 total sessions and the capped Stage 9 range at 34,200,500,000 total sessions. Supply countdown becomes more visible and Web4 migration planning intensifies.
+            Network progresses beyond the preserved launch tranche while more miners reach the 1,000-session genesis threshold. Conversion planning, Layer 1 wallet readiness, and utility-token-supported ecosystem access become more visible while the mining-only distribution model remains intact for the Layer 1 coin economy.
           </div>
           <div class="rm-tags">
-            <span class="rm-tag">3.8005B Sessions</span>
-            <span class="rm-tag">Post-Launch Stage 1</span>
-            <span class="rm-tag">0.00131072 ANET/Session</span>
+            <span class="rm-tag">1,000 Session Threshold</span>
+            <span class="rm-tag">Miner Readiness</span>
+            <span class="rm-tag">Layer 1 Wallet Prep</span>
             <span class="rm-tag">Web4 Planning</span>
           </div>
         </div>
@@ -1639,17 +1653,17 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
         <div class="rm-item">
           <div class="rm-dot future"></div>
           <div class="rm-phase">Phase 5 — Key Milestone</div>
-          <div class="rm-title">Max Supply Reached — Web4 Layer 1 Activation</div>
+          <div class="rm-title">Layer 1 Release Candidate &amp; P2P Activation</div>
           <div class="rm-desc">
-            <strong>The most important milestone in A-Network's history.</strong> When the 21,000,000 ANET hard cap is reached, Web2 Ant Work halts permanently. The Web2 PostgreSQL ledger snapshot is taken, cryptographically signed, and published. The ANET Layer 1 genesis block is constructed from this snapshot. The node network (comprised of active Web2 participants) bootstraps the chain. Time-Based Proof-of-Work begins on Layer 1 — all participants earn transaction fees in Ants for every block they help validate.
+            <strong>The most important milestone in A-Network's history.</strong> Once engineering, security, and liquidity readiness are satisfied, the project targets a broader Layer 1 release window in roughly 8 months. Genesis-eligible miners who completed at least 1,000 sessions can convert mined ANTS into spendable Layer 1 ANET and begin peer-to-peer value transfer on-chain. The utility token remains the ecosystem access rail, while Layer 1 value creation continues to originate from miners.
           </div>
           <div class="rm-tags">
-            <span class="rm-tag">Max Supply Reached</span>
-            <span class="rm-tag">Ledger Snapshot</span>
-            <span class="rm-tag">Genesis Block</span>
+            <span class="rm-tag">~8 Month Target</span>
+            <span class="rm-tag">1,000 Sessions</span>
+            <span class="rm-tag">P2P Activation</span>
+            <span class="rm-tag">Genesis Conversion</span>
             <span class="rm-tag">TPoW Consensus</span>
             <span class="rm-tag">Fee Mining Begins</span>
-            <span class="rm-tag">Re-Org Sync</span>
           </div>
         </div>
 
