@@ -336,7 +336,7 @@
     <div class="hero">
       <div class="hero-badge">⚡ Official Technical Whitepaper</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A multi-phase ecosystem spanning Web2 proof-of-time Ant Work, a 21,000,000 ANET Web3 utility token on BNB Chain, a separate ANTS-to-ANET Layer 1 mining economy, a live ANET Layer 1 testnet, and ANET Core. Version 1.0.5 extends the ANTS-first ledger with production backend hardening, proxy-safe registration behind reverse proxies, issuance-ended enforcement after max supply, 64-bit scale protection for user, session, and network counters, live Web2-to-Layer1 genesis synchronization, periodic activation delta settlement, and fast transfer-block epochs currently operating at ~2 seconds while Web2 mining sessions remain fixed at 6 hours. The live backend also retains wallet continuity controls and anti-abuse enforcement: multi-signal risk scoring, real-time bot pattern detection, fraud cluster analysis (IP, device, fingerprint), automated security audit logging, heartbeat-validated sessions, account ban/unban enforcement, smart login OTP risk detection, trusted device management, session-bound JWT authentication, one-time scheduled-account restore by email OTP, wallet PIN protection, encrypted seed phrase reveal with OTP verification, concurrent session claim protection via atomic transactions, BigInt-safe ANTS accounting, multilingual API responses (English + Filipino), a 2-hour grace period claim window, dual notification delivery, and configurable AdMob infrastructure.</p>
+      <p class="hero-sub">A-Network is a time-based participation network. Users complete fixed 6-hour Ant Work sessions and accrue ANTS, the base unit of the Layer 1 economy. A separate 21,000,000 ANET utility token exists on BNB Chain, while the live ANET Layer 1 testnet records settlement and transfer activity. Version 1.0.5 strengthens the ledger with capped issuance enforcement, 64-bit-safe accounting, proxy-aware registration, genesis synchronization, periodic settlement updates, wallet continuity controls, and anti-abuse enforcement. Referral links expand the colony graph, but they do not create mining rewards. New supply is earned only through validated work and remains bounded by the network cap.</p>
       <div class="hero-meta">
         <div class="hero-meta-item"><strong>Version</strong> — 1.0.5</div>
         <div class="hero-meta-item"><strong>Published</strong> — April 2026</div>
@@ -355,11 +355,11 @@
       <div class="section-label">§ 1</div>
       <h2>Abstract</h2>
 
-      <p>A-Network v1.0.5 defines the Web2 Ant Work backend as a hardened, production-grade proof-of-time system and pairs it with a live ANET Layer 1 testnet. Users do not receive spendable Layer 1 ANET directly at session completion. They accumulate <strong>ANTS</strong>, the smallest accounting unit of the Layer 1 coin economy, during validated 6-hour sessions. Layer 1 ANET becomes claimable only after a participant reaches the eligibility threshold of <strong>1,000 completed sessions</strong>.</p>
+      <p>A-Network v1.0.5 defines a proof-of-time ledger backed by fixed 6-hour Ant Work sessions and a live ANET Layer 1 testnet. Session completion credits <strong>ANTS</strong>, the smallest accounting unit of the Layer 1 economy. Spendable Layer 1 ANET is not issued at session end and becomes claimable only after a participant reaches <strong>1,000 completed sessions</strong>.</p>
 
-      <p>A-Network uses a dual-asset architecture. The <strong>Web3 utility token</strong> is a fixed-supply <strong>21,000,000 ANET</strong> asset on BNB Chain. Separately, the <strong>Web4/Web5 Layer 1 coin economy</strong> uses ANTS as its operating unit and Layer 1 ANET as its delayed settlement unit. The smallest indivisible unit remains one <strong>Ant</strong>, where <strong>1 ANET = 100,000,000 Ants</strong>. This avoids precision loss, supports future fee economics, and keeps the mining ledger compatible with long-term Layer 1 settlement.</p>
+      <p>The system uses two distinct assets. The <strong>Web3 utility token</strong> is a fixed-supply <strong>21,000,000 ANET</strong> asset on BNB Chain. The <strong>Layer 1 coin economy</strong> uses ANTS as its operating unit and Layer 1 ANET as its settlement unit. One <strong>ANET = 100,000,000 Ants</strong>. This preserves precision and keeps the mining ledger compatible with future fee and settlement rules.</p>
 
-      <p>The Layer 1 mining distribution schedule follows a Bitcoin-style halving direction with a preserved launch tranche. The first <strong>500,000 total completed sessions</strong> use the launch session output of <strong>0.04882812 ANET-equivalent</strong> per session. After that tranche is exhausted, the upgraded long-life schedule begins at <strong>0.00262144 ANET-equivalent</strong> per session and halves as the network's total completed session count reaches post-launch milestones. Halving is not triggered by registration count, colony size, or wallet balance. It is triggered only by total verified sessions across the network.</p>
+      <p>The Layer 1 mining schedule follows a Bitcoin-like halving rule with a preserved launch tranche. The first <strong>500,000 total completed sessions</strong> use a launch output of <strong>0.04882812 ANET-equivalent</strong> per session. After that tranche, the long-life schedule begins at <strong>0.00262144 ANET-equivalent</strong> per session and halves only as the network reaches defined session milestones. Registration count, colony size, and wallet balance do not affect issuance.</p>
 
       <p>The BNB Chain utility token is documented as a <strong>50% owner / 50% founder</strong> stewardship pool for ecosystem utility, distribution planning, and Layer 1 access rails. By contrast, the Layer 1 mining coin has <strong>no owner allocation</strong> and <strong>no founder allocation</strong>: participants enter through work, not insider minting.</p>
 
@@ -369,7 +369,7 @@
 
       <p>The live backend is also hardened for public-scale participation. Growth-critical counters and identifiers use <strong>64-bit integer space</strong>, and registration is proxy-aware so users sharing the same carrier, school, office, or Render edge network are not falsely blocked purely because they appear behind a common upstream IP.</p>
 
-      <p>A-Network deliberately excludes colony distribution amplification. The live backend treats Ant Codes as a colony-link system only. There are no coin bonuses, no session credits, no percentage commissions, and no multi-level trees. Every unit in the Layer 1 mining economy must be accumulated through completed Ant Work sessions and settled only through the governed claim flow. This preserves a merit-based ledger where the only path to value is verified personal participation.</p>
+      <p>A-Network deliberately excludes referral-based issuance. Ant Codes are colony links only. They do not create coin bonuses, session credits, percentage commissions, or multi-level rewards. Every unit in the Layer 1 mining economy must arise from completed Ant Work sessions and pass through the governed claim flow.</p>
 
       <div class="card-row">
         <div class="stat-card"><div class="sc-val">21M</div><div class="sc-label">Max Supply (ANET)</div></div>
@@ -1415,17 +1415,19 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
     ────────────────────────────────── -->
     <section class="wp-section" id="referral">
       <div class="section-label">§ 12</div>
-      <h2>Ant Code Colony System — Tracking First, Social Only</h2>
+      <h2>Ant Code Colony System — Mining Gateway And Colony Coordination</h2>
 
-      <p>A-Network includes a single-level colony system primarily for network growth transparency. The live backend does <strong>not</strong> implement pyramid rewards, commissions, session credits, or multi-level returns. Ant Codes link colony membership only.</p>
+      <p>A-Network includes a single-level colony system that acts as the entry structure for community coordination. Contributors, developers, and aligned investors who want to participate in the network are expected to do so as miners inside colony groups rather than as passive members. The live backend still does <strong>not</strong> implement pyramid rewards, commissions, session credits, or multi-level returns. Ant Codes link colony membership, miner identity, and community structure only.</p>
 
       <div class="panel">
         <h4>What the Ant Code Colony System Does</h4>
         <ul>
+          <li>Acts as the gateway for contributors who want to enter the network through real mining participation</li>
           <li>Tracks who joined whose colony (one level deep only)</li>
+          <li>Organizes miners, builders, and supporters into colony groups for accountability and coordination</li>
           <li>Counts how many of your direct colony ants have completed ≥ 1,000 sessions</li>
           <li>Displays your personal session progress toward the 1,000-session level milestone</li>
-          <li>Supports Colony Points (CP) and social graph metrics as view-only community signals</li>
+          <li>Supports Colony Points (CP) and social graph metrics as participation signals rather than passive entitlements</li>
         </ul>
         <h4 style="margin-top: 16px;">What the Ant Code Colony System Does NOT Do</h4>
         <ul>
@@ -1438,7 +1440,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
         </ul>
       </div>
 
-      <p>Why this design? Because A-Network believes that <strong>fake growth is worse than slow growth</strong>. Colony membership benefits are social only, and Colony Points (CP) measure performance rather than money, tokens, or guaranteed rewards. Any distribution mechanism is controlled, proportional, and not guaranteed. The system recognizes who activated whom, but the ledger depends entirely on the participant's own verified session history.</p>
+      <p>Why this design? Because A-Network believes that <strong>fake growth is worse than slow growth</strong>. Colony membership is meant to represent active miners and real contributors, not passive spectators. Colony Points (CP) measure performance rather than money, tokens, or guaranteed rewards. Any distribution mechanism is controlled, proportional, and not guaranteed. The system recognizes who activated whom, but the ledger depends entirely on the participant's own verified session history and real mining participation.</p>
     </section>
 
     <div class="divider"></div>
