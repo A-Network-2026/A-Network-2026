@@ -855,7 +855,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <div class="section-label">§ 8</div>
       <h2>Anti-Gaming, Fraud Detection &amp; Enforcement</h2>
 
-      <p>Mining systems are natural targets for automation abuse, multi-accounting, and session manipulation. A-Network therefore uses a defense-in-depth design with <strong>five layers</strong>: preventive controls, real-time risk scoring, heartbeat validation, automated pattern detection, and admin investigation with enforcement.</p>
+      <p>Because issuance depends on verified sessions, the mining ledger must assume attempted automation, multi-accounting, and session manipulation. The defensive model is layered: preventive controls, risk scoring, heartbeat validation, pattern detection, and admin enforcement.</p>
 
       <h3>Layer 1 — Preventive Controls</h3>
       <div class="table-scroll">
@@ -882,12 +882,14 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       </table>
       </div>
 
+      <p>These controls are intended to block the most common abuse paths before reward calculation occurs. They do not replace later checks; they reduce the number of invalid sessions that reach later stages of the pipeline.</p>
+
       <h3 id="risk-scoring">Layer 2 — Real-Time Risk Scoring Engine</h3>
-      <p>Every mining action (start, heartbeat, complete) passes through a multi-signal security evaluation pipeline that calculates a cumulative risk score per user. When the risk score exceeds a configurable threshold, actions are blocked automatically. Risk points are persistent — they accumulate across sessions and do not reset.</p>
+      <p>Every mining action passes through a multi-signal evaluation pipeline that computes a cumulative risk score per account. When that score reaches a configured threshold, mining actions are blocked. Risk points persist across sessions.</p>
 
       <div class="panel panel-amber">
         <h4>Security Signal Evaluation</h4>
-        <p>On every mining request, the server evaluates the following signals before allowing the action to proceed:</p>
+        <p>The current implementation evaluates the following signals before allowing a mining action to proceed:</p>
         <ul>
           <li><strong>Device Fingerprint Presence:</strong> Missing fingerprint → +2 risk points</li>
           <li><strong>Fingerprint Format Validation:</strong> Invalid or malformed fingerprint → +2 risk points</li>
@@ -896,12 +898,12 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           <li><strong>Runtime Validation:</strong> Unexpected runtime mode → +1 risk point; missing runtime header → +2 points and action blocked</li>
           <li><strong>Emulator / Rooted Device:</strong> Detected insecure runtime → +5 risk points and action blocked (configurable: <code>BLOCK_INSECURE_RUNTIME</code>)</li>
         </ul>
-        <p style="margin-bottom:0;">When the cumulative risk score reaches or exceeds <strong>5 points</strong> (configurable: <code>ANTI_ABUSE_RISK_BLOCK_THRESHOLD</code>), the user's mining actions are blocked and their account is flagged for admin review.</p>
+        <p style="margin-bottom:0;">At the default threshold of <strong>5 points</strong> (configurable through <code>ANTI_ABUSE_RISK_BLOCK_THRESHOLD</code>), mining actions are blocked and the account is flagged for review.</p>
       </div>
 
       <div class="panel panel-accent">
         <h4>Dynamic Risk Evaluation per Session</h4>
-        <p>Beyond security signals, each session is also evaluated for risk during its lifecycle:</p>
+        <p>Risk evaluation also continues during the session lifecycle:</p>
         <ul>
           <li><strong>IP Cluster Risk:</strong> If the user's IP address is shared by 8+ accounts → +2 risk points (configurable: <code>IP_CLUSTER_ACCOUNT_THRESHOLD</code>)</li>
           <li><strong>Device Cluster Risk:</strong> If the user's device is linked to more accounts than allowed → +1 per excess account, +4 if exceeding hard limit (configurable: <code>DEVICE_MAX_ACCOUNTS</code>)</li>
@@ -911,7 +913,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       </div>
 
       <h3>Layer 3 — Heartbeat Validation &amp; Bot Pattern Detection</h3>
-      <p>Active sessions are monitored through a heartbeat protocol. The server tracks the last heartbeat timestamp and the total heartbeat count for each session. Sessions that show signs of automation are flagged or terminated.</p>
+      <p>Active sessions are monitored through a heartbeat protocol. The server tracks heartbeat timing and count for each session. Sessions that diverge from the expected pattern may be flagged or terminated.</p>
 
       <div class="panel">
         <h4>Heartbeat Validation Rules</h4>
@@ -920,16 +922,16 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           <li><strong>Minimum Heartbeat Count:</strong> Sessions running 6+ hours must have at least 2 heartbeats recorded. Sessions with fewer are rejected (configurable: <code>MINING_HEARTBEAT_MIN_REQUIRED</code>)</li>
         </ul>
         <h4 style="margin-top: 16px;">Bot Pattern Detection</h4>
-        <p>The backend scans each user's recent session history (last 8 sessions by default) for two automated farming signatures:</p>
+        <p>The backend scans recent session history for two common automation signatures:</p>
         <ul>
           <li><strong>Identical Start Times:</strong> 4+ sessions with start times within a 2-minute window of each other → suspicious automation pattern</li>
           <li><strong>Perfect Duration Pattern:</strong> 4+ sessions with completion times falling within a narrow 21,300–21,900 second band (5.92–6.08 hours) → robotic precision inconsistent with human behavior</li>
         </ul>
-        <p style="margin-bottom:0;">Detection triggers a +2 risk score increase and the account is flagged for admin review.</p>
+        <p style="margin-bottom:0;">A positive match adds risk points and surfaces the account for review.</p>
       </div>
 
       <h3>Layer 4 — Security Audit Logging</h3>
-      <p>Every significant mining event is recorded in a dedicated <code>security_audit_logs</code> table with full forensic context. Audit entries capture:</p>
+      <p>Significant mining events are recorded in a dedicated <code>security_audit_logs</code> table. The log is intended for forensic review and enforcement support.</p>
 
       <div class="table-scroll">
       <table class="wp-table">
@@ -948,10 +950,10 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       </table>
       </div>
 
-      <p>The audit log is indexed by <code>user_id</code>, <code>event_type</code>, and <code>created_at</code> for efficient forensic queries. Admin endpoints surface these logs alongside user profiles for investigation.</p>
+      <p>The audit log is indexed by <code>user_id</code>, <code>event_type</code>, and <code>created_at</code>. Admin endpoints surface these records alongside user profiles.</p>
 
       <h3>Suspicious Activity Tracking</h3>
-      <p>In parallel with the risk scoring engine, a separate <strong>suspicious flags counter</strong> tracks specific rule violations per account. Each violation increments <code>suspicious_flags</code> and records the reason:</p>
+      <p>In parallel with the risk score, a separate <strong>suspicious_flags</strong> counter records explicit rule violations per account.</p>
 
       <div class="panel panel-red">
         <h4>Events That Increment Suspicious Flags</h4>
@@ -969,22 +971,22 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       </div>
 
       <h3 id="fraud-detection">Layer 5 — Fraud Cluster Detection &amp; Bot Cleanup</h3>
-      <p>The backend provides admin-only endpoints that analyze the entire user base for multi-account abuse patterns. These are not triggered automatically — they are tools for admin investigation and enforcement.</p>
+      <p>The backend also provides admin-only endpoints for cluster analysis and cleanup. These tools are not fully automatic; they are intended to support manual investigation and controlled enforcement.</p>
 
       <div class="panel panel-accent">
         <h4>Fraud Cluster Analysis</h4>
-        <p>Three cluster detection queries identify accounts sharing the same infrastructure — a strong signal of multi-accounting or farming operations:</p>
+        <p>Three cluster queries identify shared infrastructure patterns that may indicate multi-accounting:</p>
         <ul>
           <li><strong>IP Clusters:</strong> Groups of 3+ active accounts sharing a single IP address, ranked by cluster size (top 50)</li>
           <li><strong>Device ID Clusters:</strong> Groups of 2+ active accounts sharing the same device identifier (top 50)</li>
           <li><strong>Fingerprint Clusters:</strong> Groups of 2+ active accounts sharing the same device fingerprint hash (top 50)</li>
         </ul>
-        <p style="margin-bottom:0;">Cluster results are returned to the admin and used as input for ban/cleanup decisions. Appearing in a cluster does not automatically result in enforcement — it requires admin review.</p>
+        <p style="margin-bottom:0;">Cluster appearance is not itself a conviction rule. Results are returned to an admin and require review before enforcement.</p>
       </div>
 
       <div class="panel panel-green">
         <h4>Bot Cleanup System</h4>
-        <p>A two-phase preview-and-apply cleanup pipeline identifies and soft-deletes accounts matching automated farming patterns. The system targets <strong>unverified accounts</strong> that match any of the following heuristics:</p>
+        <p>A preview-and-apply cleanup pipeline identifies accounts that match automated farming heuristics. The automated cleanup target is limited to <strong>unverified accounts</strong> matching one or more of the following rules:</p>
         <ul>
           <li><strong>Stale Unverified:</strong> Unverified account with no sessions, no claimed ANET, and registered more than 72 hours ago</li>
           <li><strong>IP Farm:</strong> Unverified account on an IP shared by 8+ accounts</li>
@@ -992,12 +994,12 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           <li><strong>Fingerprint Farm:</strong> Unverified account on a fingerprint shared by 4+ accounts</li>
           <li><strong>Flagged + Low Activity:</strong> Unverified account that is either flagged or has risk score ≥ 8, with ≤ 1 session and no claimed ANET</li>
         </ul>
-        <p style="margin-bottom:0;">Cleanup requires a confirmation token (<code>DELETE_SUSPICIOUS_UNVERIFIED_USERS</code>) to execute. Affected accounts are soft-deleted (<code>is_deleted = TRUE</code>) and their active sessions are cancelled.</p>
+        <p style="margin-bottom:0;">Execution requires a confirmation token (<code>DELETE_SUSPICIOUS_UNVERIFIED_USERS</code>). Affected accounts are soft-deleted and any active sessions are cancelled.</p>
       </div>
 
       <div class="panel panel-purple">
         <h4>Verified Account Review</h4>
-        <p>Email-verified accounts with fraud indicators are surfaced separately for manual admin review. Verified accounts are never auto-deleted but may be flagged for investigation when they match:</p>
+        <p>Email-verified accounts with fraud indicators are surfaced separately for manual review. Verified accounts are not auto-deleted, but they may be flagged for investigation when they match:</p>
         <ul>
           <li>Risk score ≥ 8 or <code>is_flagged = TRUE</code></li>
           <li>Device cluster size ≥ 2 accounts</li>
@@ -1009,11 +1011,11 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       </div>
 
       <h3 id="admin-dashboard">Admin Dashboard — Eligible Users &amp; Cheater Detection</h3>
-      <p>Admin users (identified by <code>ADMIN_USER_IDS</code> environment variable) have access to a dedicated dashboard suite through the <code>/admin</code> route prefix. All admin endpoints require JWT authentication and admin user verification.</p>
+      <p>Admin users identified by <code>ADMIN_USER_IDS</code> have access to a restricted dashboard suite through the <code>/admin</code> route prefix. All admin endpoints require JWT authentication and explicit admin verification.</p>
 
       <div class="panel panel-accent">
         <h4>Eligible Users Dashboard (<code>GET /admin/dashboard</code>)</h4>
-        <p>Displays all users who have reached or exceeded the 1,000-session eligibility threshold. Each user record includes:</p>
+        <p>Displays users who have reached or exceeded the 1,000-session eligibility threshold. Each record includes:</p>
         <ul>
           <li>Account ID, email, and registration date</li>
           <li>Total <code>successful_sessions</code> and actual verified completed sessions (cross-referenced from <code>mining_sessions</code> table)</li>
@@ -1022,12 +1024,12 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           <li>Flagged status, ban status, and risk score</li>
           <li>Device ID, country, and last activity timestamp</li>
         </ul>
-        <p style="margin-bottom:0;">A summary panel shows: <strong>total eligible count</strong>, <strong>already claimed count</strong>, <strong>banned count</strong>, and <strong>flagged count</strong> among eligible users.</p>
+        <p style="margin-bottom:0;">A summary panel also reports eligible count, claimed count, banned count, and flagged count.</p>
       </div>
 
       <div class="panel panel-red">
         <h4>Cheater Detection Engine (<code>GET /admin/cheaters</code>)</h4>
-        <p>Runs five independent detection heuristics across the entire user base and returns categorized results:</p>
+        <p>Runs five independent detection heuristics across the user base and returns categorized results:</p>
         <ol>
           <li><strong>Inflated Sessions:</strong> Users whose <code>successful_sessions</code> count exceeds their actual verified <code>mining_sessions</code> completed count — indicating historical session inflation or database manipulation</li>
           <li><strong>High Risk Score:</strong> Users with <code>risk_score ≥ 5</code>, sorted by severity — accounts that have accumulated risk points from security signal violations</li>
@@ -1035,12 +1037,12 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           <li><strong>Daily Limit Abuse:</strong> Users who have completed more than 4 sessions in a single calendar day at any point — indicating bypass of the daily session cap</li>
           <li><strong>Multi-Account Device Clusters:</strong> Devices shared by 2+ accounts, with full account details per cluster — indicating multiple accounts operated from the same device</li>
         </ol>
-        <p style="margin-bottom:0;">Results are returned with full user context (email, sessions, risk score, ban status, device ID, IP, country) to enable informed enforcement decisions.</p>
+        <p style="margin-bottom:0;">Results are returned with user context sufficient for enforcement review.</p>
       </div>
 
       <div class="panel">
         <h4>User Deep Investigation (<code>GET /admin/user/:id</code>)</h4>
-        <p>Provides a comprehensive profile view of any individual user for detailed admin review:</p>
+        <p>Provides a detailed profile view for an individual user under review:</p>
         <ul>
           <li><strong>Profile Data:</strong> Email, sessions, balance, claim status, wallet addresses, country, device identifiers, flagged/banned status, risk score, suspicious flags history</li>
           <li><strong>Session History:</strong> Last 50 mining sessions with start time, end time, duration (hours), reward amount, halving level, heartbeat count, flagged status, completion status, and start/completion IP addresses</li>
@@ -1049,11 +1051,11 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       </div>
 
       <h3 id="ban-system">Account Ban &amp; Enforcement System</h3>
-      <p>Admin users can permanently or temporarily remove bad actors from the network through the ban system. Banning is a manual, deliberate action — no user is ever auto-banned. The system provides both ban and unban capabilities.</p>
+      <p>The ban system is manual. No user is permanently banned by an automated rule. The system provides both ban and unban operations for admin use.</p>
 
       <div class="panel panel-red">
         <h4>Ban Mechanics (<code>POST /admin/ban</code>)</h4>
-        <p>When an admin bans a user:</p>
+        <p>When an admin bans a user, the system performs the following actions:</p>
         <ol>
           <li>The user's <code>is_banned</code> flag is set to <code>TRUE</code></li>
           <li>A <code>banned_at</code> timestamp and <code>ban_reason</code> text are recorded</li>
@@ -1068,19 +1070,19 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           <li>❌ Claim session rewards to ANTS balance (<code>POST /mining/session/claim</code>)</li>
           <li>❌ Convert ANTS to ANET (<code>POST /mining/claim</code>)</li>
         </ul>
-        <p style="margin-bottom:0;">The banned user sees: <em>"Your account has been suspended. Contact support."</em> on all mining actions.</p>
+        <p style="margin-bottom:0;">Banned users receive a suspension response on protected mining actions.</p>
       </div>
 
       <div class="panel panel-green">
         <h4>Unban Mechanics (<code>POST /admin/unban</code>)</h4>
-        <p>Admins can reverse a ban if the investigation concludes the user was flagged incorrectly or has appealed successfully. Unbanning clears the <code>is_banned</code> flag, <code>banned_at</code> timestamp, and <code>ban_reason</code>. The user can immediately resume mining.</p>
+        <p>Admins can reverse a ban if review concludes that the account was flagged incorrectly or the restriction should be lifted. Unbanning clears the <code>is_banned</code> flag, <code>banned_at</code>, and <code>ban_reason</code>.</p>
       </div>
 
       <div class="notice warn">
         <div class="notice-icon">⚠️</div>
         <div class="notice-body">
           <strong>No Automatic Bans</strong>
-          The ban system is admin-initiated only. The risk scoring engine flags and blocks suspicious actions in real-time, but permanent account bans require deliberate admin investigation and action. This prevents false positives from harming legitimate users.
+          The risk engine may block actions in real time, but permanent bans remain admin-initiated. This separates temporary protective controls from irreversible enforcement.
         </div>
       </div>
 
@@ -1457,25 +1459,27 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
         <div class="notice-icon">🔐</div>
         <div class="notice-body">
           <strong>Email Is The Primary Recovery Rail</strong>
-          A-Network enforces email verification by OTP during registration as the account activation step and uses the same email channel for sensitive recovery actions. In the current release, scheduled account deletion can be reversed exactly once through an email OTP restore flow before final deletion is completed. In the Web4 migration model, ownership remains anchored to <code>Email + Wallet Address</code> together.
+          Registration requires email OTP verification, and the same channel is used for sensitive recovery actions. In the current release, scheduled account deletion may be reversed once through an email OTP restore flow. In the migration model, ownership remains anchored to <code>Email + Wallet Address</code> together.
         </div>
       </div>
 
       <h3>Authentication Architecture</h3>
+      <p>The authentication model combines bearer-token access, device-aware checks, and OTP-based challenge flows for elevated-risk actions.</p>
       <ul>
         <li><strong>JWT Tokens:</strong> All protected API endpoints require Bearer token authentication. Tokens are issued after password or OTP verification and are signed with a 7-day lifetime.</li>
-        <li><strong>Session Binding (v1.0.3):</strong> Every issued token is bound to <code>session_nonce</code>, <code>device_id</code>, and <code>device_fingerprint</code>. Middleware rejects copied or stale tokens when nonce or device context no longer matches the stored user session.</li>
+        <li><strong>Session Binding:</strong> Every issued token is bound to <code>session_nonce</code>, <code>device_id</code>, and <code>device_fingerprint</code>. Middleware rejects copied or stale tokens when nonce or device context no longer matches stored session state.</li>
         <li><strong>Email OTP (Registration):</strong> Account activation requires OTP verification during registration — one-time ownership confirmation that works globally without SMS cost.</li>
-        <li><strong>Smart Login OTP (v1.0.3):</strong> On every login attempt, the server evaluates risk signals — unrecognized <code>device_id</code>, new IP address, or <code>is_trusted_device = FALSE</code>. If any risk factor is detected, a 6-digit OTP is sent to the user's email and the login is held pending OTP verification via <code>POST /auth/verify-login-otp</code>. Successful verification marks the device as trusted for future logins.</li>
-        <li><strong>Trusted Device Management (v1.0.3):</strong> Each device is flagged as trusted after first successful OTP verification. Subsequent logins from the same device bypass OTP unless a new IP is detected. OTP attempts are capped at 5 per token; exceeded attempts lock the OTP and require re-login.</li>
+        <li><strong>Smart Login OTP:</strong> On login, the server evaluates device and IP risk. If risk is detected, a 6-digit email OTP is required through <code>POST /auth/verify-login-otp</code>.</li>
+        <li><strong>Trusted Device Management:</strong> Devices become trusted after successful OTP verification. Subsequent logins from the same device may bypass OTP unless the IP context changes. OTP attempts are capped.</li>
         <li><strong>One-Time Account Restore:</strong> If an account is in the scheduled-deletion state, the owner can request an email OTP through <code>POST /auth/account-restore/request</code> and confirm it through <code>POST /auth/account-restore/confirm</code>. This recovery path is intentionally single-use.</li>
         <li><strong>Rate Limiting:</strong> Global baseline 100 requests per 15 minutes per IP, with additional route-specific throttles for auth/mining actions.</li>
         <li><strong>IP Logging:</strong> Last IP recorded per user for anomaly detection (not persisted in history, only current).</li>
-        <li><strong>Multilingual Responses (v1.0.3):</strong> All API error and success messages are localized to the user's <code>preferred_language</code>. English (<code>en</code>) and Filipino (<code>tl</code>) are the launch locales. Users can update their language preference via <code>POST /auth/set-language</code>.</li>
+        <li><strong>Multilingual Responses:</strong> API error and success messages are localized to the user's <code>preferred_language</code>. English (<code>en</code>) and Filipino (<code>tl</code>) are the launch locales.</li>
         <li><strong>Rejected-Token Audit Trail:</strong> Failed token validations are logged as <code>auth_token_rejected</code> events with device and IP context for forensic review.</li>
       </ul>
 
       <h3>Database Security</h3>
+      <p>The database security model emphasizes hashed secrets, encrypted recovery material, constrained admin access, and parameterized queries.</p>
       <ul>
         <li>Passwords stored as bcrypt hashes (minimum 10 rounds) — plaintext never stored.</li>
         <li>Wallet identity is generated and linked at account level with server-validated uniqueness constraints.</li>
@@ -1489,8 +1493,9 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
       </ul>
 
       <h3>Ledger Integrity</h3>
+      <p>Ledger integrity depends on precision-safe storage, transactional mutation, and row-level locking around reward-sensitive operations.</p>
       <ul>
-        <li><code>DECIMAL(20,8)</code> balance type for legacy <code>ant_balance</code> field; v1.0.3 introduces parallel <code>ants_balance</code> stored as <code>BIGINT</code> for precision-safe integer arithmetic using BigInt literals.</li>
+        <li><code>DECIMAL(20,8)</code> balance type for legacy <code>ant_balance</code>; a parallel <code>ants_balance</code> field stored as <code>BIGINT</code> is used for precision-safe integer arithmetic.</li>
         <li>All session claim operations are wrapped in a <strong>database transaction with row-level locking</strong> (<code>SELECT ... FOR UPDATE</code>) to prevent concurrent double-credit of ANTS from parallel API calls.</li>
         <li>Backward-compatible ledger repair: on login and migration, <code>ants_balance</code> is set to <code>GREATEST(existing, sessions &times; 4888)</code> — never reduced, never overwritten unsafely.</li>
         <li>Database-level triggers ensure <code>updated_at</code> is always accurate.</li>
@@ -1498,7 +1503,8 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
         <li>All balance changes are atomic SQL transactions — partial credit is impossible.</li>
       </ul>
 
-      <h3>Session Lifecycle (v1.0.3)</h3>
+      <h3>Session Lifecycle</h3>
+      <p>The session model also includes explicit timing rules for claim windows, notification handling, and dormant-account cleanup.</p>
       <ul>
         <li><strong>Session End Time:</strong> Every session claim sets <code>session_end_time = NOW() + 6h</code> for the next session window, enabling exact grace-period enforcement.</li>
         <li><strong>Grace Period:</strong> 2-hour grace window after the 6h session window closes. Claims received between 6h and 8h are accepted. Claims after 8h are flagged as missed sessions.</li>
