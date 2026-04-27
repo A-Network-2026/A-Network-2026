@@ -225,6 +225,10 @@ function getCurrentTxid(payment) {
   return payment?.transaction?.txid || payment?.transaction?.tx_id || payment?.txid || null;
 }
 
+function isDeveloperCompleted(payment) {
+  return boolCandidate(payment, ['developer_completed', 'developerCompleted']);
+}
+
 function isAllowedMetadataPurpose(metadataPurpose) {
   const allowedPurposes = new Set([PI_ALLOWED_METADATA_PURPOSE]);
 
@@ -321,28 +325,35 @@ async function completePayment(paymentId, txid) {
   }
 
   const existingTxid = getCurrentTxid(payment);
-  if (existingTxid) {
-    const unlock = isDexUnlockPayment(payment) ? upsertLifetimeUnlock(payment, paymentId, existingTxid) : null;
+  if (isDeveloperCompleted(payment)) {
+    const unlock = isDexUnlockPayment(payment) ? upsertLifetimeUnlock(payment, paymentId, existingTxid || txid || null) : null;
     return {
       ok: true,
       paymentId,
-      txid: existingTxid,
+      txid: existingTxid || txid || null,
       ...(unlock ? { unlock } : {}),
       skipped: true,
       reason: 'Payment already completed'
     };
   }
 
+  const finalTxid = txid || existingTxid;
+  if (!finalTxid) {
+    const error = new Error('txid is required to complete payment');
+    error.status = 400;
+    throw error;
+  }
+
   const completed = await piRequest(`/v2/payments/${encodeURIComponent(paymentId)}/complete`, {
     method: 'POST',
-    body: JSON.stringify({ txid })
+    body: JSON.stringify({ txid: finalTxid })
   });
 
-  const unlock = isDexUnlockPayment(payment) ? upsertLifetimeUnlock(payment, paymentId, txid) : null;
+  const unlock = isDexUnlockPayment(payment) ? upsertLifetimeUnlock(payment, paymentId, finalTxid) : null;
   return {
     ok: true,
     paymentId,
-    txid,
+    txid: finalTxid,
     completed,
     ...(unlock ? { unlock } : {})
   };
