@@ -17,6 +17,7 @@ const dexSubmitBtn = dexForm.querySelector('button[type="submit"]');
 const quoteBtn = document.getElementById('quoteBtn');
 
 const DEFAULT_BACKEND_BASE_URL = 'https://pi-backend-q2ye.onrender.com';
+const NETWORK_TIMEOUT_MS = 15000;
 
 const urlParams = new URLSearchParams(window.location.search);
 const modeParam = String(urlParams.get('mode') || '').toLowerCase();
@@ -44,11 +45,25 @@ function safeJsonParse(value) {
 }
 
 async function postJson(url, payload) {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), NETWORK_TIMEOUT_MS);
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error(`Request timeout after ${NETWORK_TIMEOUT_MS / 1000}s: ${url}`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const bodyText = await response.text();
   const body = bodyText ? safeJsonParse(bodyText) || bodyText : null;
@@ -61,7 +76,21 @@ async function postJson(url, payload) {
 }
 
 async function getJson(url) {
-  const response = await fetch(url);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), NETWORK_TIMEOUT_MS);
+
+  let response;
+  try {
+    response = await fetch(url, { signal: controller.signal });
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error(`Request timeout after ${NETWORK_TIMEOUT_MS / 1000}s: ${url}`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
   const bodyText = await response.text();
   const body = bodyText ? safeJsonParse(bodyText) || bodyText : null;
 
@@ -201,6 +230,13 @@ function initPiSdk(sandboxMode) {
   Pi.init({ version: '2.0', sandbox: sandboxMode });
   sdkStatus.textContent = `SDK: Ready in ${sandboxMode ? 'sandbox' : 'production'} mode`;
   return true;
+}
+
+async function warmBackend(backendBaseUrl) {
+  await Promise.all([
+    getJson(`${backendBaseUrl}/health`),
+    getJson(`${backendBaseUrl}/api/pi/config`)
+  ]);
 }
 
 async function initializePiFromBackendConfig() {
@@ -374,19 +410,33 @@ async function startPayment(event) {
   metadata.pi_uid = piUser.uid || metadata.pi_uid || '';
   metadata.pi_username = piUser.username || metadata.pi_username || '';
 
-  setLog(paymentResult, 'Opening Pi payment sheet...');
+  setLog(paymentResult, 'Preparing for payment: checking backend health and config...');
 
   try {
+    await warmBackend(backendBaseUrl);
+
+    setLog(paymentResult, 'Opening Pi payment sheet...');
+
     let completionResponse = null;
     const createdPayment = await Pi.createPayment({ amount, memo, metadata }, {
       onReadyForServerApproval: async (paymentId) => {
         setLog(paymentResult, `Payment created. Awaiting server approval for paymentId ${paymentId}...`);
-        return approvePaymentOnBackend(backendBaseUrl, paymentId);
+        try {
+          return await approvePaymentOnBackend(backendBaseUrl, paymentId);
+        } catch (error) {
+          setLog(paymentResult, `Approval failed for ${paymentId}: ${error.message}`, true);
+          throw error;
+        }
       },
       onReadyForServerCompletion: async (paymentId, txid) => {
         setLog(paymentResult, `Approved. Completing paymentId ${paymentId} with txid ${txid}...`);
-        completionResponse = await completePaymentOnBackend(backendBaseUrl, paymentId, txid);
-        return completionResponse;
+        try {
+          completionResponse = await completePaymentOnBackend(backendBaseUrl, paymentId, txid);
+          return completionResponse;
+        } catch (error) {
+          setLog(paymentResult, `Completion failed for ${paymentId}: ${error.message}`, true);
+          throw error;
+        }
       },
       onCancel: (paymentId) => {
         setLog(paymentResult, `User canceled payment: ${paymentId || 'unknown payment id'}`);
@@ -429,6 +479,9 @@ async function runSimplePiPayment() {
   }
 
   try {
+    setLog(payWithPiResult, 'Preparing for payment: checking backend health and config...');
+    await warmBackend(backendBaseUrl);
+
     await ensurePiUserAuthenticated();
 
     const amount = requiredAmount;
@@ -441,12 +494,22 @@ async function runSimplePiPayment() {
     const payment = await Pi.createPayment({ amount, memo, metadata }, {
       onReadyForServerApproval: async (paymentId) => {
         setLog(payWithPiResult, `Payment created. Sending ${paymentId} to /approve...`);
-        return approvePaymentOnBackend(backendBaseUrl, paymentId);
+        try {
+          return await approvePaymentOnBackend(backendBaseUrl, paymentId);
+        } catch (error) {
+          setLog(payWithPiResult, `Approval failed for ${paymentId}: ${error.message}`, true);
+          throw error;
+        }
       },
       onReadyForServerCompletion: async (paymentId, txid) => {
         setLog(payWithPiResult, `Payment approved. Sending ${paymentId} and ${txid} to /complete...`);
-        completionResponse = await completePaymentOnBackend(backendBaseUrl, paymentId, txid);
-        return completionResponse;
+        try {
+          completionResponse = await completePaymentOnBackend(backendBaseUrl, paymentId, txid);
+          return completionResponse;
+        } catch (error) {
+          setLog(payWithPiResult, `Completion failed for ${paymentId}: ${error.message}`, true);
+          throw error;
+        }
       },
       onCancel: (paymentId) => {
         setLog(payWithPiResult, `Payment canceled by user. Payment id: ${paymentId || 'unknown'}`);
