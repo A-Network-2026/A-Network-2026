@@ -348,6 +348,43 @@ async function completePayment(paymentId, txid) {
   };
 }
 
+async function resolveIncompletePayment(paymentId) {
+  const initialPayment = unwrapPayment(await verifyPaymentExists(paymentId));
+  const response = {
+    ok: true,
+    paymentId,
+    approved: false,
+    completed: false,
+    txid: getCurrentTxid(initialPayment) || null,
+    requiresUserAction: false,
+    unlock: null
+  };
+
+  if (!boolCandidate(initialPayment, ['developer_approved', 'developerApproved'])) {
+    await piRequest(`/v2/payments/${encodeURIComponent(paymentId)}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({})
+    });
+    response.approved = true;
+  }
+
+  const refreshedPayment = unwrapPayment(await verifyPaymentExists(paymentId));
+  const txid = getCurrentTxid(refreshedPayment);
+  response.txid = txid || null;
+
+  if (!txid) {
+    response.requiresUserAction = true;
+    response.reason = 'Payment is approved but still waiting for user-side blockchain confirmation';
+    return response;
+  }
+
+  const completion = await completePayment(paymentId, txid);
+  response.completed = !completion.skipped;
+  response.unlock = completion.unlock || null;
+  response.reason = completion.reason || 'Payment resolved';
+  return response;
+}
+
 app.post('/approve', async (req, res) => {
   const { paymentId } = req.body || {};
   if (!paymentId) {
@@ -388,6 +425,24 @@ app.post('/complete', async (req, res) => {
   }
 });
 
+app.post('/resolve-incomplete', async (req, res) => {
+  const { paymentId } = req.body || {};
+  if (!paymentId) {
+    return res.status(400).json({ ok: false, error: 'paymentId is required' });
+  }
+
+  try {
+    return res.json(await resolveIncompletePayment(paymentId));
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      ok: false,
+      paymentId,
+      error: error.message,
+      details: error.body || null
+    });
+  }
+});
+
 app.post('/api/pi/payments/approve', async (req, res) => {
   const { paymentId } = req.body || {};
   if (!paymentId) {
@@ -422,6 +477,24 @@ app.post('/api/pi/payments/complete', async (req, res) => {
       ok: false,
       paymentId,
       txid,
+      error: error.message,
+      details: error.body || null
+    });
+  }
+});
+
+app.post('/api/pi/payments/resolve-incomplete', async (req, res) => {
+  const { paymentId } = req.body || {};
+  if (!paymentId) {
+    return res.status(400).json({ ok: false, error: 'paymentId is required' });
+  }
+
+  try {
+    return res.json(await resolveIncompletePayment(paymentId));
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      ok: false,
+      paymentId,
       error: error.message,
       details: error.body || null
     });

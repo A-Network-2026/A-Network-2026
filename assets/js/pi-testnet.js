@@ -101,10 +101,43 @@ async function getJson(url) {
   return body;
 }
 
-function handleIncompletePayment(payment) {
+async function handleIncompletePayment(payment) {
   setLog(paymentResult, `Incomplete payment found: ${JSON.stringify(payment, null, 2)}`);
   if (payWithPiResult) {
     setLog(payWithPiResult, `Incomplete payment found: ${JSON.stringify(payment, null, 2)}`);
+  }
+
+  const paymentId = payment?.identifier || payment?.paymentId || payment?.id;
+  if (!paymentId) {
+    return;
+  }
+
+  const backendBaseUrl = getBackendBaseUrl();
+  if (!backendBaseUrl) {
+    return;
+  }
+
+  try {
+    setLog(paymentResult, `Attempting to resolve pending payment ${paymentId} on backend...`);
+    const resolved = await postJson(`${backendBaseUrl}/resolve-incomplete`, { paymentId });
+
+    if (resolved?.unlock) {
+      setDexUnlocked(resolved.unlock);
+    }
+
+    const message = resolved?.requiresUserAction
+      ? `Pending payment ${paymentId} is approved. Please retry after Pi blockchain confirmation.`
+      : `Pending payment ${paymentId} resolved. You can retry payment now.`;
+
+    setLog(paymentResult, `${message}\n${JSON.stringify(resolved, null, 2)}`);
+    if (payWithPiResult) {
+      setLog(payWithPiResult, `${message}\n${JSON.stringify(resolved, null, 2)}`);
+    }
+  } catch (error) {
+    setLog(paymentResult, `Could not auto-resolve pending payment ${paymentId}: ${error.message}`, true);
+    if (payWithPiResult) {
+      setLog(payWithPiResult, `Could not auto-resolve pending payment ${paymentId}: ${error.message}`, true);
+    }
   }
 }
 
