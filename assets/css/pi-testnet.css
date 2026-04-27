@@ -1,0 +1,241 @@
+:root {
+  --bg-0: #08101a;
+  --bg-1: #0f2236;
+  --bg-2: #0a1624;
+  --line: rgba(141, 182, 231, 0.28);
+  --text-0: #e9f3ff;
+  --text-1: #bbd3f0;
+  --accent-0: #4dd2ff;
+  --accent-1: #5dffb0;
+  --danger: #ff8a8a;
+  --panel: rgba(8, 20, 34, 0.7);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Chakra Petch", sans-serif;
+  color: var(--text-0);
+  background: radial-gradient(circle at 18% 10%, #163a5f 0%, transparent 40%),
+              radial-gradient(circle at 80% 18%, #103d32 0%, transparent 38%),
+              linear-gradient(160deg, var(--bg-0), var(--bg-1) 55%, var(--bg-2));
+}
+
+.aurora {
+  position: fixed;
+  inset: -20%;
+  background: conic-gradient(from 180deg at 50% 50%, rgba(77, 210, 255, 0.12), rgba(93, 255, 176, 0.08), rgba(77, 210, 255, 0.12));
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+.grid-noise {
+  position: fixed;
+  inset: 0;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(circle at 50% 40%, black, transparent 80%);
+  pointer-events: none;
+}
+
+.app-shell {
+  width: min(980px, 92vw);
+  margin: 28px auto 48px;
+  position: relative;
+  z-index: 1;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.brand {
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand img {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+
+.brand h1 {
+  margin: 0;
+  font-family: "Oxanium", sans-serif;
+  letter-spacing: 0.06em;
+  font-size: 1.2rem;
+}
+
+.brand p {
+  margin: 0;
+  color: var(--text-1);
+  font-size: 0.92rem;
+}
+
+.hero {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+}
+
+.hero-copy,
+.hero-card,
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 20px;
+  backdrop-filter: blur(6px);
+}
+
+.eyebrow {
+  color: var(--accent-1);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero h2,
+.panel h3 {
+  margin: 8px 0 10px;
+  font-family: "Oxanium", sans-serif;
+  letter-spacing: 0.03em;
+}
+
+.hero p,
+.muted {
+  color: var(--text-1);
+}
+
+.status-pill {
+  margin-top: 14px;
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(77, 210, 255, 0.08);
+  color: var(--accent-0);
+}
+
+.hero-card ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--text-1);
+}
+
+.hero-card li.active {
+  color: var(--accent-1);
+}
+
+.panel {
+  margin-top: 16px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+button,
+.ghost {
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  padding: 10px 14px;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text-0);
+  transition: transform 140ms ease, border-color 140ms ease, background-color 140ms ease;
+}
+
+.primary {
+  background: linear-gradient(120deg, #1674a8, #16a873);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.ghost {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+button:hover,
+.ghost:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.payment-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.payment-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-1);
+}
+
+.payment-form label:nth-child(3),
+.payment-form label:nth-child(4),
+.payment-form button {
+  grid-column: 1 / -1;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(1, 7, 14, 0.68);
+  color: var(--text-0);
+  padding: 10px;
+  font: inherit;
+}
+
+.log {
+  margin: 10px 0 0;
+  min-height: 70px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  color: #9ae7ff;
+  font-size: 0.9rem;
+}
+
+.log.error {
+  color: var(--danger);
+}
+
+.endpoints {
+  padding-left: 18px;
+  color: var(--text-1);
+}
+
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-form {
+    grid-template-columns: 1fr;
+  }
+}

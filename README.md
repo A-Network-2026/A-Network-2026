@@ -5,6 +5,59 @@
 
 ---
 
+### Pi Testnet App Starter
+
+A Pi Browser-ready starter page is now included at `pi-testnet.html`.
+
+What it includes:
+
+- Pi SDK initialization in sandbox mode (`Pi.init({ version: '2.0', sandbox: true })`)
+- Pi user authentication (`username` + `payments` scopes)
+- Test payment creation flow (`Pi.createPayment`)
+- Callback hooks for approval and completion against your backend
+
+Required backend endpoints:
+
+- `POST /api/pi/payments/approve`
+- `POST /api/pi/payments/complete`
+
+The page posts `paymentId` and `txid` (when available) to those endpoints. Your server must validate and finalize payments with your Pi app credentials before returning success.
+
+Included backend starter:
+
+- Folder: `pi-backend/`
+- Health endpoint: `GET /health`
+- Pi SDK config endpoint: `GET /api/pi/config`
+- Payment endpoints:
+  - `POST /api/pi/payments/approve`
+  - `POST /api/pi/payments/complete`
+
+Backend policy controls (`pi-backend/.env`):
+
+- `PI_SANDBOX=true|false` (controls frontend Pi SDK mode through `/api/pi/config`)
+- `PI_ALLOWED_METADATA_APP` (expected `metadata.app` value)
+- `PI_ALLOWED_MEMO_PREFIX` (required prefix in payment memo)
+- `PI_APP_WALLET` (optional destination wallet match)
+- `PI_MIN_AMOUNT` and `PI_MAX_AMOUNT` (allowed payment amount range)
+
+Quick start:
+
+1. Copy `pi-backend/.env.example` to `pi-backend/.env`
+2. Set your real `PI_API_KEY` from Pi Developer Portal
+3. Install and run backend:
+
+```bash
+cd pi-backend
+npm install
+npm run start
+```
+
+4. Open `pi-testnet.html` in Pi Browser sandbox and keep `Backend Base URL` as `http://localhost:3001` for local testing, or change it to your deployed backend URL.
+
+Use this page in Pi Browser sandbox mode first, then switch to production mode when checklist validation is complete.
+
+---
+
 ### Mainframe Protocol
 
 <div align="center">

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network Testnet | Pi App Starter</title>
+  <meta name="description" content="A Network Testnet Pi app starter with Pi authentication and payment transaction flow.">
+  <meta name="theme-color" content="#0c1828">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="A Network Testnet | Pi App Starter">
+  <meta property="og:description" content="Authenticate with Pi and process a test user-to-app transaction.">
+  <meta property="og:image" content="https://a-network.net/logo.png">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700;800&family=Chakra+Petch:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/pi-testnet.css">
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="grid-noise" aria-hidden="true"></div>
+
+  <main class="app-shell">
+    <header class="app-header">
+      <a class="brand" href="index.html">
+        <img src="logo.png" alt="A Network logo">
+        <div>
+          <h1>A Network</h1>
+          <p>Testnet</p>
+        </div>
+      </a>
+      <a class="ghost" href="index.html">Back to Main Site</a>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Pi Browser Ready</div>
+        <h2>Pi App Starter Surface</h2>
+        <p>
+          This page initializes the Pi SDK in sandbox mode, authenticates the current Pi user,
+          and starts a test payment flow so you can complete checklist item 10.
+        </p>
+        <div class="status-pill" id="sdkStatus">SDK: Initializing...</div>
+      </div>
+      <div class="hero-card">
+        <h3>App Checklist Bridge</h3>
+        <ul>
+          <li>App setup completed</li>
+          <li>Wallet connected</li>
+          <li>Production URL configured</li>
+          <li class="active">Process a transaction: in progress</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3>1) Authenticate Pi User</h3>
+      <p class="muted">Run this inside Pi Browser sandbox mode for full Pi context.</p>
+      <div class="row">
+        <button id="authBtn" class="primary">Connect With Pi</button>
+        <button id="disconnectBtn" class="ghost">Clear Session</button>
+      </div>
+      <pre id="authResult" class="log">No Pi user connected yet.</pre>
+    </section>
+
+    <section class="panel">
+      <h3>2) Process Test Transaction</h3>
+      <p class="muted">Creates a user-to-app payment and sends approval/completion callbacks to your backend.</p>
+
+      <form id="paymentForm" class="payment-form">
+        <label>
+          Amount (Pi)
+          <input id="amount" type="number" min="0.01" step="0.01" value="0.01" required>
+        </label>
+        <label>
+          Memo
+          <input id="memo" type="text" value="A Network Testnet payment validation" maxlength="140" required>
+        </label>
+        <label>
+          Metadata (JSON)
+          <textarea id="metadata" rows="4">{"app":"a-network-testnet","purpose":"checklist-step-10"}</textarea>
+        </label>
+        <label>
+          Backend Base URL
+          <input id="backendBaseUrl" type="url" value="http://localhost:3001" placeholder="https://your-domain.com" required>
+        </label>
+        <button type="submit" class="primary">Start Pi Payment</button>
+      </form>
+
+      <pre id="paymentResult" class="log">Payment not started.</pre>
+    </section>
+
+    <section class="panel">
+      <h3>Backend Endpoints Required</h3>
+      <p class="muted">Create these endpoints on your server so Pi can finalize transactions:</p>
+      <ul class="endpoints">
+        <li><strong>POST</strong> /api/pi/payments/approve</li>
+        <li><strong>POST</strong> /api/pi/payments/complete</li>
+      </ul>
+      <p class="muted">Both endpoints should validate payment IDs server-side with your Pi API key before returning success.</p>
+    </section>
+  </main>
+
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <script src="assets/js/pi-testnet.js" defer></script>
+</body>
+</html>
