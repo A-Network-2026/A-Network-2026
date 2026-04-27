@@ -8,6 +8,10 @@ const disconnectBtn = document.getElementById('disconnectBtn');
 const paymentForm = document.getElementById('paymentForm');
 const backendBaseUrlInput = document.getElementById('backendBaseUrl');
 
+const urlParams = new URLSearchParams(window.location.search);
+const modeParam = String(urlParams.get('mode') || '').toLowerCase();
+const initialSandboxMode = modeParam !== 'prod';
+
 let piUser = null;
 let piInitialized = false;
 let requiredAmount = 1;
@@ -114,25 +118,30 @@ function initPiSdk(sandboxMode) {
 }
 
 async function initializePiFromBackendConfig() {
+  if (!piInitialized) {
+    piInitialized = initPiSdk(initialSandboxMode);
+    if (!piInitialized) {
+      return;
+    }
+  }
+
   const backendBaseUrl = backendBaseUrlInput.value.trim().replace(/\/$/, '');
 
   if (!backendBaseUrl) {
-    sdkStatus.textContent = 'SDK: Backend URL missing. Using sandbox mode.';
+    sdkStatus.textContent = `SDK: Ready in ${initialSandboxMode ? 'sandbox' : 'production'} mode (backend URL missing).`;
     sdkStatus.style.color = '#ff8a8a';
-    piInitialized = initPiSdk(true);
     return;
   }
 
   if (looksLikeLocalhostUrl(backendBaseUrl) && window.location.hostname !== 'localhost') {
     sdkStatus.textContent = 'SDK: Localhost backend not reachable from Pi Browser. Using sandbox mode.';
     sdkStatus.style.color = '#ff8a8a';
-    piInitialized = initPiSdk(true);
     return;
   }
 
   try {
     const config = await fetchSdkConfig(backendBaseUrl);
-    const sandboxMode = Boolean(config?.sdk?.sandbox);
+    const backendSandboxMode = Boolean(config?.sdk?.sandbox);
     requiredAmount = Number(config?.policy?.requiredAmount || 1);
 
     const amountInput = document.getElementById('amount');
@@ -140,11 +149,13 @@ async function initializePiFromBackendConfig() {
     amountInput.min = String(requiredAmount);
     amountInput.max = String(requiredAmount);
 
-    piInitialized = initPiSdk(sandboxMode);
+    if (backendSandboxMode !== initialSandboxMode) {
+      sdkStatus.textContent = `SDK: Running in ${initialSandboxMode ? 'sandbox' : 'production'} mode (backend config suggests ${backendSandboxMode ? 'sandbox' : 'production'}).`;
+      sdkStatus.style.color = '#ffbf73';
+    }
   } catch (error) {
-    sdkStatus.textContent = `SDK: Config fetch failed (${error.message}). Using sandbox fallback.`;
+    sdkStatus.textContent = `SDK: Config fetch failed (${error.message}). Running in ${initialSandboxMode ? 'sandbox' : 'production'} mode.`;
     sdkStatus.style.color = '#ff8a8a';
-    piInitialized = initPiSdk(true);
   }
 }
 
