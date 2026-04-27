@@ -77,11 +77,28 @@ function handleIncompletePayment(payment) {
 }
 
 async function fetchSdkConfig(backendBaseUrl) {
-  const response = await fetch(`${backendBaseUrl}/api/pi/config`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+  const response = await fetch(`${backendBaseUrl}/api/pi/config`, {
+    signal: controller.signal
+  });
+
+  clearTimeout(timeoutId);
+
   if (!response.ok) {
     throw new Error(`Config fetch failed with status ${response.status}`);
   }
   return response.json();
+}
+
+function looksLikeLocalhostUrl(urlValue) {
+  try {
+    const parsed = new URL(urlValue);
+    return parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+  } catch {
+    return false;
+  }
 }
 
 function initPiSdk(sandboxMode) {
@@ -100,8 +117,16 @@ async function initializePiFromBackendConfig() {
   const backendBaseUrl = backendBaseUrlInput.value.trim().replace(/\/$/, '');
 
   if (!backendBaseUrl) {
-    sdkStatus.textContent = 'SDK: Backend Base URL is required for mode detection.';
+    sdkStatus.textContent = 'SDK: Backend URL missing. Using sandbox mode.';
     sdkStatus.style.color = '#ff8a8a';
+    piInitialized = initPiSdk(true);
+    return;
+  }
+
+  if (looksLikeLocalhostUrl(backendBaseUrl) && window.location.hostname !== 'localhost') {
+    sdkStatus.textContent = 'SDK: Localhost backend not reachable from Pi Browser. Using sandbox mode.';
+    sdkStatus.style.color = '#ff8a8a';
+    piInitialized = initPiSdk(true);
     return;
   }
 
