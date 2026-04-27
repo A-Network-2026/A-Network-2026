@@ -35,10 +35,17 @@ Included backend starter:
 Backend policy controls (`pi-backend/.env`):
 
 - `PI_SANDBOX=true|false` (controls frontend Pi SDK mode through `/api/pi/config`)
+- `PI_REQUIRED_AMOUNT` (exact Pi amount required before mining access is unlocked)
 - `PI_ALLOWED_METADATA_APP` (expected `metadata.app` value)
 - `PI_ALLOWED_MEMO_PREFIX` (required prefix in payment memo)
 - `PI_APP_WALLET` (optional destination wallet match)
 - `PI_MIN_AMOUNT` and `PI_MAX_AMOUNT` (allowed payment amount range)
+
+Current default policy for testnet:
+
+- Mining access requires an exact `1 Pi` payment
+- Frontend enforces exact amount based on backend `/api/pi/config`
+- Backend enforces exact amount and metadata/memo validation before approval and completion
 
 Quick start:
 

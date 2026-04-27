@@ -1,6 +1,7 @@
 const sdkStatus = document.getElementById('sdkStatus');
 const authResult = document.getElementById('authResult');
 const paymentResult = document.getElementById('paymentResult');
+const miningAccessResult = document.getElementById('miningAccessResult');
 
 const authBtn = document.getElementById('authBtn');
 const disconnectBtn = document.getElementById('disconnectBtn');
@@ -9,10 +10,43 @@ const backendBaseUrlInput = document.getElementById('backendBaseUrl');
 
 let piUser = null;
 let piInitialized = false;
+let requiredAmount = 1;
 
 function setLog(target, value, isError = false) {
   target.textContent = value;
   target.classList.toggle('error', isError);
+}
+
+function markMiningAccessUnlocked(paymentId) {
+  const payload = {
+    unlocked: true,
+    paymentId,
+    at: new Date().toISOString()
+  };
+  try {
+    localStorage.setItem('anet_mining_access', JSON.stringify(payload));
+  } catch {
+    // Ignore storage errors and still reflect UI state for current session.
+  }
+  setLog(miningAccessResult, `Mining access: unlocked. Payment id: ${paymentId}`);
+}
+
+function renderMiningAccessState() {
+  try {
+    const raw = localStorage.getItem('anet_mining_access');
+    if (!raw) {
+      setLog(miningAccessResult, 'Mining access: locked (payment required).');
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if (parsed?.unlocked) {
+      setLog(miningAccessResult, `Mining access: unlocked. Payment id: ${parsed.paymentId || 'stored'}`);
+      return;
+    }
+  } catch {
+    // Fall through to locked state when parsing fails.
+  }
+  setLog(miningAccessResult, 'Mining access: locked (payment required).');
 }
 
 function safeJsonParse(value) {
@@ -74,6 +108,13 @@ async function initializePiFromBackendConfig() {
   try {
     const config = await fetchSdkConfig(backendBaseUrl);
     const sandboxMode = Boolean(config?.sdk?.sandbox);
+    requiredAmount = Number(config?.policy?.requiredAmount || 1);
+
+    const amountInput = document.getElementById('amount');
+    amountInput.value = String(requiredAmount);
+    amountInput.min = String(requiredAmount);
+    amountInput.max = String(requiredAmount);
+
     piInitialized = initPiSdk(sandboxMode);
   } catch (error) {
     sdkStatus.textContent = `SDK: Config fetch failed (${error.message}). Using sandbox fallback.`;
@@ -138,6 +179,11 @@ async function startPayment(event) {
     return;
   }
 
+  if (Math.abs(amount - requiredAmount) > 0.000001) {
+    setLog(paymentResult, `Amount must be exactly ${requiredAmount} Pi for mining access.`, true);
+    return;
+  }
+
   const paymentData = {
     amount,
     memo,
@@ -147,7 +193,7 @@ async function startPayment(event) {
   setLog(paymentResult, 'Opening Pi payment sheet...');
 
   try {
-    await Pi.createPayment(paymentData, {
+    const createdPayment = await Pi.createPayment(paymentData, {
       onReadyForServerApproval: async (paymentId) => {
         setLog(paymentResult, `Payment created. Awaiting server approval for paymentId ${paymentId}...`);
         return postJson(`${backendBaseUrl}/api/pi/payments/approve`, { paymentId });
@@ -168,7 +214,9 @@ async function startPayment(event) {
       }
     });
 
-    setLog(paymentResult, 'Payment flow submitted. Check backend logs for final settlement state.');
+    const paymentId = createdPayment?.identifier || createdPayment?.paymentId || createdPayment?.id || 'unknown';
+    markMiningAccessUnlocked(paymentId);
+    setLog(paymentResult, 'Payment completed and mining access unlocked.');
   } catch (error) {
     setLog(paymentResult, `Failed to create payment: ${error.message}`, true);
   }
@@ -179,3 +227,4 @@ disconnectBtn.addEventListener('click', clearSession);
 paymentForm.addEventListener('submit', startPayment);
 backendBaseUrlInput.addEventListener('change', initializePiFromBackendConfig);
 initializePiFromBackendConfig();
+renderMiningAccessState();

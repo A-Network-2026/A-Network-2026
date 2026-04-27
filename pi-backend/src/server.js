@@ -13,6 +13,7 @@ const PI_SANDBOX = (process.env.PI_SANDBOX || 'true').toLowerCase() === 'true';
 const PI_ALLOWED_METADATA_APP = process.env.PI_ALLOWED_METADATA_APP || 'a-network-testnet';
 const PI_ALLOWED_MEMO_PREFIX = process.env.PI_ALLOWED_MEMO_PREFIX || 'A Network';
 const PI_APP_WALLET = process.env.PI_APP_WALLET || '';
+const PI_REQUIRED_AMOUNT = Number(process.env.PI_REQUIRED_AMOUNT || 1);
 const PI_MIN_AMOUNT = Number(process.env.PI_MIN_AMOUNT || 0.01);
 const PI_MAX_AMOUNT = Number(process.env.PI_MAX_AMOUNT || 1000);
 
@@ -35,6 +36,7 @@ app.get('/api/pi/config', (_req, res) => {
       sandbox: PI_SANDBOX
     },
     policy: {
+      requiredAmount: PI_REQUIRED_AMOUNT,
       minAmount: PI_MIN_AMOUNT,
       maxAmount: PI_MAX_AMOUNT,
       memoPrefix: PI_ALLOWED_MEMO_PREFIX,
@@ -117,6 +119,10 @@ function validatePaymentForApp(payment) {
 
   if (amount < PI_MIN_AMOUNT || amount > PI_MAX_AMOUNT) {
     return `Payment amount ${amount} is outside allowed range ${PI_MIN_AMOUNT} - ${PI_MAX_AMOUNT}`;
+  }
+
+  if (Math.abs(amount - PI_REQUIRED_AMOUNT) > 0.000001) {
+    return `Payment amount must be exactly ${PI_REQUIRED_AMOUNT} Pi`;
   }
 
   if (PI_ALLOWED_MEMO_PREFIX && !memo.startsWith(PI_ALLOWED_MEMO_PREFIX)) {
