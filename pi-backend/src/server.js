@@ -11,7 +11,9 @@ const port = Number(process.env.PORT || 3001);
 const PI_API_KEY = process.env.PI_API_KEY || '';
 const PI_API_BASE_URL = (process.env.PI_API_BASE_URL || 'https://api.minepi.com').replace(/\/$/, '');
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
-const PI_SANDBOX = (process.env.PI_SANDBOX || 'true').toLowerCase() === 'true';
+const PI_SANDBOX = (process.env.PI_SANDBOX || 'false').toLowerCase() === 'true';
+const PI_ENABLE_TEST_ADMIN = (process.env.PI_ENABLE_TEST_ADMIN || (PI_SANDBOX ? 'true' : 'false')).toLowerCase() === 'true';
+const PI_ALLOW_TEST_ASSET_MINT = (process.env.PI_ALLOW_TEST_ASSET_MINT || (PI_SANDBOX ? 'true' : 'false')).toLowerCase() === 'true';
 const PI_ALLOWED_METADATA_APP = process.env.PI_ALLOWED_METADATA_APP || 'a-network-testnet';
 const PI_ALLOWED_METADATA_PURPOSE = process.env.PI_ALLOWED_METADATA_PURPOSE || 'dex-lifetime-unlock';
 const PI_ALLOWED_SANDBOX_METADATA_PURPOSE = process.env.PI_ALLOWED_SANDBOX_METADATA_PURPOSE || 'sandbox-test-payment';
@@ -121,6 +123,10 @@ app.get('/health', (_req, res) => {
 // Admin-only: force-persist a lifetime unlock without a live Pi payment.
 // Requires PI_ADMIN_KEY env var to be set. Use only for test/bootstrap purposes.
 app.post('/api/pi/admin/force-unlock', (req, res) => {
+  if (!PI_ENABLE_TEST_ADMIN) {
+    return res.status(403).json({ ok: false, error: 'Admin force-unlock is disabled in this environment' });
+  }
+
   if (!PI_ADMIN_KEY) {
     return res.status(503).json({ ok: false, error: 'PI_ADMIN_KEY is not configured on this deployment' });
   }
@@ -167,7 +173,9 @@ app.get('/api/pi/config', (_req, res) => {
       metadataPurpose: PI_ALLOWED_METADATA_PURPOSE,
       sandboxMetadataPurpose: PI_ALLOWED_SANDBOX_METADATA_PURPOSE,
       lifetimeDexUnlockEnabled: true,
-      appWalletCheckEnabled: Boolean(PI_APP_WALLET)
+      appWalletCheckEnabled: Boolean(PI_APP_WALLET),
+      testAdminEnabled: PI_ENABLE_TEST_ADMIN,
+      testAssetMintEnabled: PI_ALLOW_TEST_ASSET_MINT
     }
   });
 });
@@ -711,6 +719,9 @@ app.post('/api/pi/dex/bootstrap', async (req, res) => {
 
     const actions = [];
     if (mintTestAssets) {
+      if (!PI_ALLOW_TEST_ASSET_MINT) {
+        return res.status(403).json({ ok: false, error: 'mint_test_assets is disabled in this environment' });
+      }
       if (!ANET_L1_DEX_ADMIN_KEY) {
         return res.status(400).json({ ok: false, error: 'ANET_L1_DEX_ADMIN_KEY is required when mint_test_assets=true' });
       }
