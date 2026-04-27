@@ -78,6 +78,73 @@ function normalizePositiveInteger(value) {
   return Number.isInteger(amount) && amount > 0 ? amount : null;
 }
 
+function safeIsoDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function normalizeDirection(anetToToken) {
+  return anetToToken ? 'ANET_TO_TOKEN' : 'TOKEN_TO_ANET';
+}
+
+function getPiExplorerTransactionUrl(txid) {
+  const value = String(txid || '').trim();
+  if (!value) {
+    return null;
+  }
+
+  const path = PI_SANDBOX ? 'testnet' : 'mainnet';
+  return `https://blockexplorer.minepi.com/${path}/transactions/${encodeURIComponent(value)}`;
+}
+
+function recentUnlockProof(limit = 20) {
+  return Object.values(cashoutState.lifetimeUnlocks || {})
+    .filter((entry) => entry && typeof entry === 'object')
+    .map((entry) => ({
+      uid: normalizePiUid(entry.uid),
+      username: String(entry.username || '').trim(),
+      unlocked: Boolean(entry.unlocked),
+      unlockedAt: safeIsoDate(entry.unlockedAt),
+      paymentId: String(entry.paymentId || '').trim() || null,
+      txid: String(entry.txid || '').trim() || null,
+      piExplorerTransactionUrl: getPiExplorerTransactionUrl(entry.txid)
+    }))
+    .sort((left, right) => {
+      const leftTs = left.unlockedAt ? Date.parse(left.unlockedAt) : 0;
+      const rightTs = right.unlockedAt ? Date.parse(right.unlockedAt) : 0;
+      return rightTs - leftTs;
+    })
+    .slice(0, limit);
+}
+
+function recentDexProof(limit = 30) {
+  return (cashoutState.cashoutRequests || [])
+    .filter((entry) => entry && typeof entry === 'object')
+    .map((entry) => ({
+      id: String(entry.id || '').trim() || null,
+      uid: normalizePiUid(entry.uid),
+      username: String(entry.username || '').trim(),
+      trader: String(entry.trader || '').trim().toUpperCase(),
+      tokenSymbol: String(entry.token_symbol || '').trim().toUpperCase(),
+      amountIn: normalizePositiveInteger(entry.amount_in),
+      direction: normalizeDirection(Boolean(entry.anet_to_token)),
+      requestedAt: safeIsoDate(entry.requestedAt),
+      chainResponse: entry.chainResponse && typeof entry.chainResponse === 'object'
+        ? {
+          pairId: String(entry.chainResponse.pair_id || '').trim() || null,
+          amountOut: String(entry.chainResponse.amount_out || '').trim() || null,
+          feePaid: String(entry.chainResponse.fee_paid || '').trim() || null
+        }
+        : null
+    }))
+    .sort((left, right) => {
+      const leftTs = left.requestedAt ? Date.parse(left.requestedAt) : 0;
+      const rightTs = right.requestedAt ? Date.parse(right.requestedAt) : 0;
+      return rightTs - leftTs;
+    })
+    .slice(0, limit);
+}
+
 function extractPaymentIdentity(payment) {
   const metadata = payment?.metadata && typeof payment.metadata === 'object' ? payment.metadata : {};
   return {
@@ -177,6 +244,91 @@ app.get('/api/pi/config', (_req, res) => {
       testAdminEnabled: PI_ENABLE_TEST_ADMIN,
       testAssetMintEnabled: PI_ALLOW_TEST_ASSET_MINT
     }
+  });
+});
+
+app.get('/api/public/verification', async (req, res) => {
+  const uid = normalizePiUid(req.query?.uid);
+  let chainHealth = null;
+  let chainLatestHeight = null;
+  let chainId = null;
+  let poolsCount = null;
+
+  if (ANET_CHAIN_API_BASE_URL) {
+    try {
+      chainHealth = await getFromLayer1('/health');
+      chainId = String(chainHealth?.chain_id || '').trim() || null;
+      chainLatestHeight = Number.isFinite(Number(chainHealth?.latest_block_height))
+        ? Number(chainHealth.latest_block_height)
+        : null;
+    } catch {
+      chainHealth = null;
+    }
+
+    try {
+      const pools = await getFromLayer1('/dex/pools');
+      poolsCount = Array.isArray(pools) ? pools.length : null;
+    } catch {
+      poolsCount = null;
+    }
+  }
+
+  const unlockProof = recentUnlockProof();
+  const dexProof = recentDexProof();
+  const uidUnlock = uid ? getLifetimeUnlock(uid) : null;
+
+  return res.json({
+    ok: true,
+    network: {
+      anet: {
+        label: 'A Network Private Mainnet',
+        chainId: chainId || 'anet-private-mainnet-1',
+        explorerBaseUrl: ANET_CHAIN_API_BASE_URL || null,
+        latestBlockHeight: chainLatestHeight
+      },
+      pi: {
+        mode: PI_SANDBOX ? 'sandbox' : 'mainnet',
+        sdkVersion: '2.0',
+        apiBaseUrl: PI_API_BASE_URL,
+        metadataApp: PI_ALLOWED_METADATA_APP,
+        metadataPurpose: PI_ALLOWED_METADATA_PURPOSE
+      }
+    },
+    publicVerification: {
+      summary: 'This service bridges Pi payments to A Network Private Mainnet native L1 DEX access records.',
+      howToVerify: [
+        `${req.protocol}://${req.get('host')}/api/pi/config`,
+        `${req.protocol}://${req.get('host')}/api/public/verification`,
+        ANET_CHAIN_API_BASE_URL ? `${ANET_CHAIN_API_BASE_URL}/health` : null,
+        ANET_CHAIN_API_BASE_URL ? `${ANET_CHAIN_API_BASE_URL}/blocks` : null,
+        ANET_CHAIN_API_BASE_URL ? `${ANET_CHAIN_API_BASE_URL}/dex/pools` : null
+      ].filter(Boolean)
+    },
+    metrics: {
+      lifetimeUnlockRecords: Object.keys(cashoutState.lifetimeUnlocks || {}).length,
+      dexExecutionRecords: (cashoutState.cashoutRequests || []).length,
+      recentPoolCount: poolsCount
+    },
+    recentProof: {
+      unlocks: unlockProof,
+      dexExecutions: dexProof
+    },
+    uidStatus: uid
+      ? {
+        uid,
+        unlocked: Boolean(uidUnlock),
+        unlock: uidUnlock
+          ? {
+            uid: normalizePiUid(uidUnlock.uid),
+            username: String(uidUnlock.username || '').trim(),
+            unlockedAt: safeIsoDate(uidUnlock.unlockedAt),
+            paymentId: String(uidUnlock.paymentId || '').trim() || null,
+            txid: String(uidUnlock.txid || '').trim() || null,
+            piExplorerTransactionUrl: getPiExplorerTransactionUrl(uidUnlock.txid)
+          }
+          : null
+      }
+      : null
   });
 });
 
