@@ -16,6 +16,8 @@ const paymentSubmitBtn = paymentForm.querySelector('button[type="submit"]');
 const dexSubmitBtn = dexForm.querySelector('button[type="submit"]');
 const quoteBtn = document.getElementById('quoteBtn');
 
+const DEFAULT_BACKEND_BASE_URL = 'https://pi-backend-q2ye.onrender.com';
+
 const urlParams = new URLSearchParams(window.location.search);
 const modeParam = String(urlParams.get('mode') || '').toLowerCase();
 const initialSandboxMode = modeParam !== 'prod';
@@ -181,7 +183,12 @@ function looksLikeLocalhostUrl(urlValue) {
 }
 
 function getBackendBaseUrl() {
-  return backendBaseUrlInput.value.trim().replace(/\/$/, '');
+  const value = backendBaseUrlInput.value.trim().replace(/\/$/, '');
+  if (value === 'https://a-network.net') {
+    backendBaseUrlInput.value = DEFAULT_BACKEND_BASE_URL;
+    return DEFAULT_BACKEND_BASE_URL;
+  }
+  return value;
 }
 
 function initPiSdk(sandboxMode) {
@@ -550,5 +557,8 @@ backendBaseUrlInput.addEventListener('change', async () => {
 });
 
 updatePaymentMetadataDefaults();
+if (!backendBaseUrlInput.value.trim() || backendBaseUrlInput.value.trim() === 'https://a-network.net') {
+  backendBaseUrlInput.value = DEFAULT_BACKEND_BASE_URL;
+}
 initializePiFromBackendConfig();
 renderDexAccessState();
