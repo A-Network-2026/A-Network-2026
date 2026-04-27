@@ -21,6 +21,7 @@ const PI_REQUIRED_AMOUNT = Number(process.env.PI_REQUIRED_AMOUNT || 1);
 const PI_MIN_AMOUNT = Number(process.env.PI_MIN_AMOUNT || 1);
 const PI_MAX_AMOUNT = Number(process.env.PI_MAX_AMOUNT || 1);
 const PI_CASHOUT_STATE_PATH = process.env.PI_CASHOUT_STATE_PATH || path.join(__dirname, '..', 'data', 'dex-access-state.json');
+const PI_ADMIN_KEY = process.env.PI_ADMIN_KEY || '';
 const ANET_CHAIN_API_BASE_URL = (process.env.ANET_CHAIN_API_BASE_URL || '').replace(/\/$/, '');
 const ANET_L1_DEX_ADMIN_KEY = process.env.ANET_L1_DEX_ADMIN_KEY || '';
 
@@ -116,6 +117,39 @@ app.use(express.json());
 app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'a-network-pi-backend' });
 });
+
+// Admin-only: force-persist a lifetime unlock without a live Pi payment.
+// Requires PI_ADMIN_KEY env var to be set. Use only for test/bootstrap purposes.
+app.post('/api/pi/admin/force-unlock', (req, res) => {
+  if (!PI_ADMIN_KEY) {
+    return res.status(503).json({ ok: false, error: 'PI_ADMIN_KEY is not configured on this deployment' });
+  }
+
+  const providedKey = String(req.body?.admin_key || '').trim();
+  if (providedKey !== PI_ADMIN_KEY) {
+    return res.status(401).json({ ok: false, error: 'Invalid admin key' });
+  }
+
+  const uid = normalizePiUid(req.body?.uid);
+  const username = String(req.body?.username || '').trim();
+  if (!uid) {
+    return res.status(400).json({ ok: false, error: 'uid is required' });
+  }
+
+  const syntheticPayment = {
+    uid,
+    user_uid: uid,
+    username,
+    user_username: username,
+    metadata: { pi_uid: uid, pi_username: username },
+    amount: 1,
+    memo: 'admin-force-unlock'
+  };
+
+  const record = upsertLifetimeUnlock(syntheticPayment, 'admin-force-unlock', null);
+  return res.status(200).json({ ok: true, unlock: record });
+});
+
 
 app.get('/api/pi/config', (_req, res) => {
   res.json({
