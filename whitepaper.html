@@ -50,7 +50,7 @@
 
       --text: #eff6ff;
 
-      --muted: #b6c8dc;
+      --muted: #9eb2c9;
 
       --accent: #58c5ff;
 
@@ -118,19 +118,19 @@
 
     }
 
-    .sidebar-logo span { font-family: "Orbitron", sans-serif; font-size: 16px; font-weight: 700; color: var(--accent); }
+    .sidebar-logo span { font-family: "Orbitron", sans-serif; font-size: 15px; font-weight: 700; color: var(--accent); }
 
-    .sidebar-logo sub { font-size: 10px; color: var(--muted); font-family: "Space Grotesk", sans-serif; display: block; margin-top: 2px; }
+    .sidebar-logo sub { font-size: 9px; color: var(--muted); font-family: "Space Grotesk", sans-serif; display: block; margin-top: 2px; }
 
-    .nav-section { padding: 0 16px 6px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 14px; }
+    .nav-section { padding: 0 16px 4px; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 14px; }
 
-    .nav-item { display: block; padding: 8px 24px; font-size: 14px; color: #c1d5ea; text-decoration: none; border-left: 3px solid transparent; transition: all .2s; line-height: 1.45; }
+    .nav-item { display: block; padding: 7px 24px; font-size: 13px; color: #b0c8e0; text-decoration: none; border-left: 3px solid transparent; transition: all .2s; line-height: 1.4; }
 
     .nav-item:hover { color: var(--accent); border-left-color: var(--accent); background: rgba(88,197,255,.06); }
 
     .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(88,197,255,.10); }
 
-    .nav-item.sub { padding-left: 36px; font-size: 13px; color: #9ab2c9; }
+    .nav-item.sub { padding-left: 36px; font-size: 12px; color: #8aa0b8; }
 
     .nav-item.sub:hover { color: var(--accent-2); border-left-color: var(--accent-2); }
 
@@ -138,11 +138,9 @@
 
     /* â”€â”€ MAIN â”€â”€ */
 
-    .main { flex: 1; min-width: 0; width: 100%; padding: 0 72px 96px; max-width: 940px; margin: 0 auto; }
+    .main { flex: 1; min-width: 0; width: 100%; padding: 0 48px 80px; max-width: 960px; margin: 0 auto; }
 
-    @media (max-width: 1200px) { .main { padding: 0 56px 84px; } }
-
-    @media (max-width: 1000px) { .main { padding: 0 28px 64px; } }
+    @media (max-width: 1000px) { .main { padding: 0 22px 60px; } }
 
 
 
@@ -180,11 +178,11 @@
 
     }
 
-    .hero-sub { font-size: 21px; color: var(--muted); max-width: 760px; line-height: 1.75; margin-bottom: 34px; }
+    .hero-sub { font-size: 21px; color: var(--muted); max-width: 680px; line-height: 1.68; margin-bottom: 28px; }
 
     .hero-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 20px; }
 
-    .hero-meta-item { font-size: 15px; color: var(--muted); min-width: 0; line-height: 1.65; }
+    .hero-meta-item { font-size: 13px; color: var(--muted); min-width: 0; }
 
     .hero-meta-item strong { color: var(--text); }
 
@@ -196,7 +194,7 @@
 
     .section-label {
 
-      display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .12em;
+      display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .12em;
 
       text-transform: uppercase; color: var(--accent-2); margin-bottom: 10px;
 
@@ -218,17 +216,17 @@
 
     .wp-section h4 {
 
-      font-size: 17px; font-weight: 700; color: var(--accent-2); margin: 24px 0 10px; text-transform: uppercase; letter-spacing: .06em;
+      font-size: 14px; font-weight: 700; color: var(--accent-2); margin: 22px 0 8px; text-transform: uppercase; letter-spacing: .06em;
 
     }
 
-    .wp-section p { color: var(--muted); margin-bottom: 18px; font-size: 18px; line-height: 1.86; }
+    .wp-section p { color: var(--muted); margin-bottom: 16px; font-size: 18px; line-height: 1.86; }
 
     .wp-section p strong { color: var(--text); }
 
-    .wp-section ul, .wp-section ol { color: var(--muted); padding-left: 24px; margin-bottom: 18px; font-size: 18px; line-height: 1.8; }
+    .wp-section ul, .wp-section ol { color: var(--muted); padding-left: 22px; margin-bottom: 16px; font-size: 18px; }
 
-    .wp-section li { margin-bottom: 8px; line-height: 1.8; }
+    .wp-section li { margin-bottom: 8px; line-height: 1.86; }
 
     .wp-section li strong { color: var(--text); }
 
@@ -240,7 +238,7 @@
 
       background: var(--panel); border: 1px solid var(--line);
 
-      border-radius: 16px; padding: 36px 44px; margin-bottom: 28px; width: 100%; max-width: 100%; min-width: 0;
+      border-radius: 16px; padding: 36px 44px; margin-bottom: 24px; width: 100%; max-width: 100%; min-width: 0;
 
     }
 
@@ -264,7 +262,7 @@
 
       border-radius: 12px; padding: 22px 28px; margin: 20px 0;
 
-      font-family: "JetBrains Mono", monospace; font-size: 15px;
+      font-family: "JetBrains Mono", monospace; font-size: 14px;
 
       color: var(--accent-2); overflow-x: auto; width: 100%; max-width: 100%; min-width: 0; white-space: pre-wrap; word-break: break-word;
 
@@ -298,13 +296,13 @@
 
     }
 
-    .wp-table { width: 100%; min-width: 700px; border-collapse: collapse; margin: 24px 0; font-size: 16px; display: table; white-space: normal; }
+    .wp-table { width: 100%; min-width: 640px; border-collapse: collapse; margin: 20px 0; font-size: 14px; display: table; white-space: normal; }
 
     .wp-table.table-wide { min-width: 900px; }
 
-    .wp-table th { background: rgba(88,197,255,.12); color: var(--accent); font-weight: 700; padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--line-strong); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+    .wp-table th { background: rgba(88,197,255,.12); color: var(--accent); font-weight: 700; padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line-strong); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
 
-    .wp-table td { padding: 14px 18px; border-bottom: 1px solid var(--line); color: var(--muted); vertical-align: top; line-height: 1.7; }
+    .wp-table td { padding: 11px 16px; border-bottom: 1px solid var(--line); color: var(--muted); vertical-align: top; line-height: 1.55; }
 
     .wp-table tr:hover td { background: rgba(88,197,255,.04); }
 
@@ -342,9 +340,9 @@
 
     .compare-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 24px 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 
-    .cg-header { background: rgba(88,197,255,.12); padding: 14px 16px; font-size: 13px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+    .cg-header { background: rgba(88,197,255,.12); padding: 12px 14px; font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
 
-    .cg-cell { padding: 14px 16px; border-top: 1px solid var(--line); font-size: 15px; color: var(--muted); min-width: 0; word-break: break-word; line-height: 1.7; }
+    .cg-cell { padding: 12px 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); min-width: 0; word-break: break-word; }
 
     .cg-cell strong { color: var(--text); }
 
@@ -412,9 +410,9 @@
 
     .rm-phase { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-3); margin-bottom: 4px; }
 
-    .rm-title { font-size: 19px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    .rm-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 
-    .rm-desc { font-size: 16px; color: var(--muted); line-height: 1.75; }
+    .rm-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
 
     .rm-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 
@@ -424,7 +422,7 @@
 
     /* â”€â”€ NOTICE â”€â”€ */
 
-    .notice { display: flex; gap: 14px; padding: 20px 24px; border-radius: 12px; margin: 28px 0; font-size: 16px; align-items: flex-start; line-height: 1.75; }
+    .notice { display: flex; gap: 14px; padding: 18px 22px; border-radius: 12px; margin: 24px 0; font-size: 14px; align-items: flex-start; }
 
     .notice-icon {
 
@@ -460,7 +458,7 @@
 
     /* â”€â”€ FOOTER â”€â”€ */
 
-    .wp-footer { border-top: 1px solid var(--line); padding-top: 44px; margin-top: 64px; color: var(--muted); font-size: 15px; }
+    .wp-footer { border-top: 1px solid var(--line); padding-top: 40px; margin-top: 60px; color: var(--muted); font-size: 13px; }
 
     .wp-footer a { color: var(--accent); text-decoration: none; }
 
@@ -490,23 +488,11 @@
 
     @media (max-width: 500px) {
 
-      .panel { padding: 24px 22px; }
+      .panel { padding: 18px 18px; }
 
-      .formula-box { padding: 16px 18px; font-size: 13px; }
+      .formula-box { padding: 16px 18px; font-size: 12px; }
 
-      .hero h1 { font-size: clamp(30px, 8vw, 40px); }
-
-      .hero-sub { font-size: 17px; line-height: 1.7; }
-
-      .wp-section h2 { font-size: clamp(24px, 6vw, 30px); }
-
-      .wp-section h3 { font-size: 21px; }
-
-      .wp-section h4 { font-size: 15px; }
-
-      .wp-section p, .wp-section ul, .wp-section ol { font-size: 16px; line-height: 1.75; }
-
-      .hero-meta-item { font-size: 14px; }
+      .hero-sub { font-size: 15px; }
 
       .hero-meta { grid-template-columns: 1fr; gap: 10px; }
 
@@ -528,7 +514,7 @@
 
       .table-scroll { margin: 0 -4px; }
 
-      .wp-table { min-width: 620px; font-size: 14px; }
+      .wp-table { min-width: 620px; font-size: 13px; }
 
       .wp-table.table-wide { min-width: 860px; }
 
@@ -741,16 +727,6 @@
       </div>
     </div>
 
-        <div class="hero-meta-item"><strong>Layer 1 Coin Model</strong> &mdash; ANTS-first &rarr; ANET conversion after 1,000 sessions</div>
-
-        <div class="hero-meta-item"><strong>Allocation</strong> &mdash; Web3 token 50/50 founder-owner stewardship; Layer 1 coin 100% mining</div>
-
-        <div class="hero-meta-item"><strong>Smallest Unit</strong> &mdash; Ant (1 ANET = 100,000,000 Ants)</div>
-
-      </div>
-
-    </div>
-
 
 
 
@@ -763,7 +739,7 @@
 
     <section class="wp-section" id="abstract">
 
-      <div class="section-label">Section  1</div>
+      <div class="section-label">Section 1</div>
 
       <h2>Abstract</h2>
 
@@ -835,7 +811,7 @@
 
     <section class="wp-section" id="introduction">
 
-      <div class="section-label">Section  2</div>
+      <div class="section-label">Section 2</div>
 
       <h2>Introduction</h2>
 
@@ -881,7 +857,7 @@
 
     <section class="wp-section" id="vision">
 
-      <div class="section-label">Section  3</div>
+      <div class="section-label">Section 3</div>
 
       <h2>The Vision</h2>
 
@@ -929,7 +905,7 @@
 
     <section class="wp-section" id="comparison">
 
-      <div class="section-label">Section  4</div>
+      <div class="section-label">Section 4</div>
 
       <h2>Web2 vs Web3 vs Web4 vs ANET Core</h2>
 
@@ -1061,7 +1037,7 @@
 
     <section class="wp-section" id="tokenomics">
 
-      <div class="section-label">Section  5</div>
+      <div class="section-label">Section 5</div>
 
       <h2>Coin Model &mdash; Utility Token + Layer 1 Mining Coin</h2>
 
@@ -1389,7 +1365,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
     <section class="wp-section" id="web2-mining">
 
-      <div class="section-label">Section  6</div>
+      <div class="section-label">Section 6</div>
 
       <h2>Web2 Phase &mdash; Time-Based Mobile Ant Work</h2>
 
@@ -1567,7 +1543,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
     <section class="wp-section" id="halving">
 
-      <div class="section-label">Section  7</div>
+      <div class="section-label">Section 7</div>
 
       <h2>Session Halving &mdash; The v1.0.6 Launch-Tranche Distribution Formula</h2>
 
@@ -1877,7 +1853,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
     <section class="wp-section" id="anti-gaming">
 
-      <div class="section-label">Section  8</div>
+      <div class="section-label">Section 8</div>
 
       <h2>Anti-Gaming, Fraud Detection &amp; Enforcement</h2>
 
@@ -2467,7 +2443,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
     <section class="wp-section" id="web3">
 
-      <div class="section-label">Section  9</div>
+      <div class="section-label">Section 9</div>
 
       <h2>Web3 Phase &mdash; BNB Chain Integration</h2>
 
@@ -2581,13 +2557,13 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
     <section class="wp-section" id="web4">
 
-      <div class="section-label">Section  10</div>
+      <div class="section-label">Section 10</div>
 
       <h2>Web4 Phase &mdash; ANET Layer 1 Blockchain</h2>
 
 
 
-      <p>A-Network now operates a <strong>live ANET Layer 1 private mainnet</strong> that extends the ANTS-first Web2 ledger into an on-chain settlement environment. the private-mainnet chain bootstraps genesis from the Web2 ledger, synchronizes activated balances into Layer 1 state, and opens wallet-to-wallet settlement windows on a 2-second cadence. A block is produced only when chain work exists, such as a queued transfer or newly synchronized ANTS supply from Web2. The broader production-grade Web4 activation remains a future milestone subject to engineering readiness and security review.</p>
+      <p>A-Network now operates a <strong>live ANET Layer 1 private mainnet</strong> that extends the ANTS-first Web2 ledger into an on-chain settlement environment. The private-mainnet chain bootstraps genesis from the Web2 ledger, synchronizes activated balances into Layer 1 state, and opens wallet-to-wallet settlement windows on a 2-second cadence. A block is produced only when chain work exists, such as a queued transfer or newly synchronized ANTS supply from Web2. The broader production-grade Web4 activation remains a future milestone subject to engineering readiness and security review.</p>
 
 
 
@@ -2873,7 +2849,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <section class="wp-section" id="anet-core">
 
-      <div class="section-label">Section  11</div>
+      <div class="section-label">Section 11</div>
 
       <h2>ANET Core &mdash; Web5 Layer</h2>
 
@@ -3005,7 +2981,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <section class="wp-section" id="referral">
 
-      <div class="section-label">Section  12</div>
+      <div class="section-label">Section 12</div>
 
       <h2>Ant Code Colony System &mdash; Mining Gateway And Colony Coordination</h2>
 
@@ -3077,7 +3053,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <section class="wp-section" id="security">
 
-      <div class="section-label">Section  13</div>
+      <div class="section-label">Section 13</div>
 
       <h2>Security Model</h2>
 
@@ -3364,7 +3340,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <section class="wp-section" id="legal">
 
-      <div class="section-label">Section  15</div>
+      <div class="section-label">Section 15</div>
 
       <h2>Legal Disclaimer</h2>
 
