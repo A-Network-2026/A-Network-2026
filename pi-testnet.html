@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A Network Testnet | Pi App Starter</title>
-  <meta name="description" content="A Network Testnet Pi app starter with Pi authentication and payment transaction flow.">
+  <title>A Network Pi DEX Access | Lifetime Unlock</title>
+  <meta name="description" content="Authenticate with Pi, pay a one-time 1 Pi lifetime DEX access fee, then quote and execute Layer 1 swaps.">
   <meta name="theme-color" content="#0c1828">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="A Network Testnet | Pi App Starter">
-  <meta property="og:description" content="Authenticate with Pi and process a test user-to-app transaction.">
+  <meta property="og:title" content="A Network Pi DEX Access | Lifetime Unlock">
+  <meta property="og:description" content="Authenticate with Pi, unlock lifetime DEX access once, then quote and execute Layer 1 swaps.">
   <meta property="og:image" content="https://a-network.net/logo.png">
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -37,10 +37,11 @@
     <section class="hero">
       <div class="hero-copy">
         <div class="eyebrow">Pi Browser Ready</div>
-        <h2>Pi App Starter Surface</h2>
+        <h2>Pi DEX Access Surface</h2>
         <p>
           This page initializes the Pi SDK in sandbox mode, authenticates the current Pi user,
-          and starts a test payment flow so you can complete checklist item 10.
+          charges a one-time 1 Pi lifetime DEX access fee, and then lets that user quote and
+          execute Layer 1 ANET swaps through your backend.
         </p>
         <div class="status-pill" id="sdkStatus">SDK: Initializing...</div>
       </div>
@@ -50,9 +51,23 @@
           <li>App setup completed</li>
           <li>Wallet connected</li>
           <li>Production URL configured</li>
-          <li class="active">Process a transaction: in progress</li>
+          <li class="active">Lifetime DEX unlock + swap flow</li>
         </ul>
       </div>
+    </section>
+
+    <section class="panel">
+      <h3>Process A Transaction On The App</h3>
+      <p class="muted">
+        This is the minimal Pi SDK sandbox payment example for
+        <strong>https://a-network.net/pi-testnet</strong>. It initializes the SDK in the browser,
+        authenticates the Pi user, opens the Pi payment sheet, then sends callback data to your
+        backend <strong>/approve</strong> and <strong>/complete</strong> endpoints.
+      </p>
+      <div class="row">
+        <button id="payWithPiBtn" class="primary">Pay with Pi</button>
+      </div>
+      <pre id="payWithPiResult" class="log">Click "Pay with Pi" to run a sandbox user-to-app transaction.</pre>
     </section>
 
     <section class="panel">
@@ -66,8 +81,8 @@
     </section>
 
     <section class="panel">
-      <h3>2) Pay Mining Access Fee (1 Pi)</h3>
-      <p class="muted">Creates a Pi-only user-to-app payment and sends approval/completion callbacks to your backend before mining access is unlocked.</p>
+      <h3>2) Pay Lifetime DEX Access Fee (1 Pi Once)</h3>
+      <p class="muted">Creates a Pi-only user-to-app payment and sends approval/completion callbacks to your backend before lifetime DEX access is unlocked.</p>
 
       <form id="paymentForm" class="payment-form">
         <label>
@@ -76,31 +91,74 @@
         </label>
         <label>
           Memo
-          <input id="memo" type="text" value="A Network Mining Access Fee" maxlength="140" required>
+          <input id="memo" type="text" value="A Network Lifetime DEX Access" maxlength="140" required>
         </label>
         <label>
           Metadata (JSON)
-          <textarea id="metadata" rows="4">{"app":"a-network-testnet","purpose":"mining-access","plan":"1-pi"}</textarea>
+          <textarea id="metadata" rows="4">{"app":"a-network-testnet","purpose":"dex-lifetime-unlock","plan":"lifetime","pi_uid":"","pi_username":""}</textarea>
         </label>
         <label>
           Backend Base URL
           <input id="backendBaseUrl" type="url" value="https://a-network.net" placeholder="https://your-domain.com" required>
         </label>
-        <button type="submit" class="primary">Pay 1 Pi And Unlock Mining</button>
+        <button type="submit" class="primary">Pay 1 Pi Once For Lifetime DEX Access</button>
       </form>
 
       <pre id="paymentResult" class="log">Payment not started.</pre>
-      <pre id="miningAccessResult" class="log">Mining access: locked (payment required).</pre>
+      <pre id="dexAccessResult" class="log">Lifetime DEX access: locked (1 Pi payment required).</pre>
+    </section>
+
+    <section class="panel">
+      <h3>3) Quote And Execute Layer 1 Swap</h3>
+      <p class="muted">After the one-time lifetime unlock is paid, the Pi app can request a quote and execute a Layer 1 ANET swap through your backend and DEX node.</p>
+
+      <form id="dexForm" class="payment-form">
+        <label>
+          ANET Wallet
+          <input id="traderWallet" type="text" placeholder="ANET..." maxlength="40" required>
+        </label>
+        <label>
+          Seed Phrase
+          <input id="senderSeed" type="password" placeholder="12-word ANET seed phrase" required>
+        </label>
+        <label>
+          Token Symbol
+          <input id="tokenSymbol" type="text" value="USDA" maxlength="16" required>
+        </label>
+        <label>
+          Amount In
+          <input id="amountIn" type="number" min="1" step="1" value="100000000" required>
+        </label>
+        <label>
+          Direction
+          <select id="swapDirection">
+            <option value="anet-to-token">ANET to Token</option>
+            <option value="token-to-anet">Token to ANET</option>
+          </select>
+        </label>
+        <div class="row action-row">
+          <button id="quoteBtn" type="button" class="ghost">Get Quote</button>
+          <button type="submit" class="primary">Execute Swap</button>
+        </div>
+      </form>
+
+      <pre id="dexQuoteResult" class="log">Swap quote not requested.</pre>
+      <pre id="dexExecuteResult" class="log">Swap not executed.</pre>
     </section>
 
     <section class="panel">
       <h3>Backend Endpoints Required</h3>
-      <p class="muted">Create these endpoints on your server so Pi can finalize transactions:</p>
+      <p class="muted">Create these endpoints on your server so Pi can finalize the unlock payment and then bridge DEX quotes and swaps into your Layer 1 node:</p>
       <ul class="endpoints">
+        <li><strong>POST</strong> /approve</li>
+        <li><strong>POST</strong> /complete</li>
+        <li><strong>GET</strong> /api/pi/dex/status/:uid</li>
         <li><strong>POST</strong> /api/pi/payments/approve</li>
         <li><strong>POST</strong> /api/pi/payments/complete</li>
+        <li><strong>POST</strong> /api/pi/dex/quote</li>
+        <li><strong>POST</strong> /api/pi/dex/execute</li>
       </ul>
-      <p class="muted">Both endpoints should validate payment IDs server-side with your Pi API key before returning success.</p>
+      <p class="muted">Your backend should validate payment IDs server-side with your Pi API key, persist the user's one-time unlock, and only then forward quote and swap requests to your Layer 1 <strong>/dex/swap/quote</strong> and <strong>/dex/swap/execute</strong> routes.</p>
     </section>
   </main>
 
