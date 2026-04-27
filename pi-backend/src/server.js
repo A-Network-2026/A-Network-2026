@@ -243,6 +243,15 @@ function isDexUnlockPayment(payment) {
   return String(payment?.metadata?.purpose || '') === PI_ALLOWED_METADATA_PURPOSE;
 }
 
+function canUnlockDexForSandbox(payment) {
+  if (!PI_SANDBOX) {
+    return false;
+  }
+
+  const purpose = String(payment?.metadata?.purpose || '');
+  return isAllowedMetadataPurpose(purpose);
+}
+
 function validatePaymentForApp(payment) {
   const amount = Number(payment?.amount);
   const memo = String(payment?.memo || '');
@@ -326,7 +335,10 @@ async function completePayment(paymentId, txid) {
 
   const existingTxid = getCurrentTxid(payment);
   if (isDeveloperCompleted(payment)) {
-    const unlock = isDexUnlockPayment(payment) ? upsertLifetimeUnlock(payment, paymentId, existingTxid || txid || null) : null;
+    let unlock = null;
+    if (isDexUnlockPayment(payment) || canUnlockDexForSandbox(payment)) {
+      unlock = upsertLifetimeUnlock(payment, paymentId, existingTxid || txid || null);
+    }
     return {
       ok: true,
       paymentId,
@@ -349,7 +361,10 @@ async function completePayment(paymentId, txid) {
     body: JSON.stringify({ txid: finalTxid })
   });
 
-  const unlock = isDexUnlockPayment(payment) ? upsertLifetimeUnlock(payment, paymentId, finalTxid) : null;
+  let unlock = null;
+  if (isDexUnlockPayment(payment) || canUnlockDexForSandbox(payment)) {
+    unlock = upsertLifetimeUnlock(payment, paymentId, finalTxid);
+  }
   return {
     ok: true,
     paymentId,
@@ -390,7 +405,7 @@ async function resolveIncompletePayment(paymentId) {
   }
 
   const completion = await completePayment(paymentId, txid);
-  response.completed = !completion.skipped;
+  response.completed = true;
   response.unlock = completion.unlock || null;
   response.reason = completion.reason || 'Payment resolved';
   return response;
