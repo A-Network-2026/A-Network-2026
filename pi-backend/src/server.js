@@ -22,6 +22,7 @@ const PI_MIN_AMOUNT = Number(process.env.PI_MIN_AMOUNT || 1);
 const PI_MAX_AMOUNT = Number(process.env.PI_MAX_AMOUNT || 1);
 const PI_CASHOUT_STATE_PATH = process.env.PI_CASHOUT_STATE_PATH || path.join(__dirname, '..', 'data', 'dex-access-state.json');
 const ANET_CHAIN_API_BASE_URL = (process.env.ANET_CHAIN_API_BASE_URL || '').replace(/\/$/, '');
+const ANET_L1_DEX_ADMIN_KEY = process.env.ANET_L1_DEX_ADMIN_KEY || '';
 
 if (!PI_API_KEY) {
   console.warn('[WARN] PI_API_KEY is not set. Pi API calls will fail until configured.');
@@ -556,6 +557,50 @@ async function postToLayer1(pathname, payload) {
   return body;
 }
 
+async function getFromLayer1(pathname) {
+  if (!ANET_CHAIN_API_BASE_URL) {
+    throw new Error('Layer 1 DEX bridge is not configured');
+  }
+
+  const response = await fetch(`${ANET_CHAIN_API_BASE_URL}${pathname}`, {
+    method: 'GET'
+  });
+
+  const text = await response.text();
+  let body;
+  try {
+    body = text ? JSON.parse(text) : {};
+  } catch {
+    body = { raw: text };
+  }
+
+  if (!response.ok) {
+    const error = new Error(`Layer 1 request failed (${response.status})`);
+    error.status = response.status;
+    error.body = body;
+    throw error;
+  }
+
+  return body;
+}
+
+async function getLatestLayer1BlockHeight() {
+  try {
+    const blocks = await getFromLayer1('/blocks');
+    if (Array.isArray(blocks) && blocks.length > 0) {
+      const heights = blocks
+        .map((b) => Number(b?.block_height))
+        .filter((value) => Number.isFinite(value));
+      if (heights.length > 0) {
+        return Math.max(...heights);
+      }
+    }
+  } catch {
+    // Ignore read errors and return null when chain height cannot be read.
+  }
+  return null;
+}
+
 app.post('/api/pi/dex/quote', async (req, res) => {
   const uid = normalizePiUid(req.body?.uid);
   const username = String(req.body?.username || '').trim();
@@ -586,6 +631,117 @@ app.post('/api/pi/dex/quote', async (req, res) => {
     });
 
     return res.status(200).json({ ok: true, unlock, quote });
+  } catch (requestError) {
+    return res.status(requestError.status || 500).json({
+      ok: false,
+      error: requestError.message,
+      details: requestError.body || null
+    });
+  }
+});
+
+app.post('/api/pi/dex/bootstrap', async (req, res) => {
+  const uid = normalizePiUid(req.body?.uid);
+  const username = String(req.body?.username || '').trim();
+  const provider = String(req.body?.provider || '').trim().toUpperCase();
+  const senderSeed = String(req.body?.sender_seed || '').trim();
+  const tokenSymbol = String(req.body?.token_symbol || 'USDA').trim().toUpperCase();
+  const anetAmountAnts = normalizePositiveInteger(req.body?.anet_amount_ants ?? 2000);
+  const tokenAmountUnits = normalizePositiveInteger(req.body?.token_amount_units ?? 2000);
+  const feeBps = Number.isInteger(Number(req.body?.fee_bps)) ? Number(req.body?.fee_bps) : 30;
+  const mintTestAssets = Boolean(req.body?.mint_test_assets);
+
+  if (!uid) {
+    return res.status(400).json({ ok: false, error: 'uid is required' });
+  }
+  if (!provider) {
+    return res.status(400).json({ ok: false, error: 'provider is required' });
+  }
+  if (!senderSeed) {
+    return res.status(400).json({ ok: false, error: 'sender_seed is required' });
+  }
+  if (!tokenSymbol) {
+    return res.status(400).json({ ok: false, error: 'token_symbol is required' });
+  }
+  if (!anetAmountAnts || !tokenAmountUnits) {
+    return res.status(400).json({ ok: false, error: 'anet_amount_ants and token_amount_units must be positive integers' });
+  }
+
+  const { unlock, error } = requireUnlock(uid, username);
+  if (error) {
+    return res.status(403).json({ ok: false, error });
+  }
+
+  try {
+    const beforeHeight = await getLatestLayer1BlockHeight();
+
+    const actions = [];
+    if (mintTestAssets) {
+      if (!ANET_L1_DEX_ADMIN_KEY) {
+        return res.status(400).json({ ok: false, error: 'ANET_L1_DEX_ADMIN_KEY is required when mint_test_assets=true' });
+      }
+
+      const mintedAnet = await postToLayer1('/admin/anet/mint', {
+        address: provider,
+        amount_ants: anetAmountAnts,
+        admin_key: ANET_L1_DEX_ADMIN_KEY
+      });
+      actions.push({ type: 'admin_mint_anet', result: mintedAnet });
+
+      const mintedAsset = await postToLayer1('/dex/assets/mint', {
+        address: provider,
+        token_symbol: tokenSymbol,
+        amount: tokenAmountUnits,
+        admin_key: ANET_L1_DEX_ADMIN_KEY
+      });
+      actions.push({ type: 'dex_mint_asset', result: mintedAsset });
+    }
+
+    let poolExists = false;
+    try {
+      const pool = await getFromLayer1(`/dex/pools/${encodeURIComponent(tokenSymbol)}`);
+      poolExists = Boolean(pool);
+    } catch (readError) {
+      if (readError?.status !== 404) {
+        throw readError;
+      }
+    }
+
+    if (!poolExists) {
+      const created = await postToLayer1('/dex/pools/create', {
+        provider,
+        sender_seed: senderSeed,
+        token_symbol: tokenSymbol,
+        anet_amount_ants: anetAmountAnts,
+        token_amount_units: tokenAmountUnits,
+        fee_bps: feeBps
+      });
+      actions.push({ type: 'create_pool', result: created });
+    } else {
+      const added = await postToLayer1('/dex/pools/add-liquidity', {
+        provider,
+        sender_seed: senderSeed,
+        token_symbol: tokenSymbol,
+        anet_amount_ants: anetAmountAnts,
+        token_amount_units: tokenAmountUnits
+      });
+      actions.push({ type: 'add_liquidity', result: added });
+    }
+
+    const afterHeight = await getLatestLayer1BlockHeight();
+    return res.status(200).json({
+      ok: true,
+      unlock,
+      token_symbol: tokenSymbol,
+      anet_amount_ants: anetAmountAnts,
+      token_amount_units: tokenAmountUnits,
+      block_height_before: beforeHeight,
+      block_height_after: afterHeight,
+      block_advanced: Number.isFinite(beforeHeight) && Number.isFinite(afterHeight)
+        ? afterHeight > beforeHeight
+        : null,
+      actions
+    });
   } catch (requestError) {
     return res.status(requestError.status || 500).json({
       ok: false,

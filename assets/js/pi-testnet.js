@@ -3,6 +3,7 @@ const authResult = document.getElementById('authResult');
 const payWithPiResult = document.getElementById('payWithPiResult');
 const paymentResult = document.getElementById('paymentResult');
 const dexAccessResult = document.getElementById('dexAccessResult');
+const dexBootstrapResult = document.getElementById('dexBootstrapResult');
 const dexQuoteResult = document.getElementById('dexQuoteResult');
 const dexExecuteResult = document.getElementById('dexExecuteResult');
 
@@ -14,6 +15,7 @@ const dexForm = document.getElementById('dexForm');
 const backendBaseUrlInput = document.getElementById('backendBaseUrl');
 const paymentSubmitBtn = paymentForm.querySelector('button[type="submit"]');
 const dexSubmitBtn = dexForm.querySelector('button[type="submit"]');
+const bootstrapBtn = document.getElementById('bootstrapBtn');
 const quoteBtn = document.getElementById('quoteBtn');
 
 const DEFAULT_BACKEND_BASE_URL = 'https://pi-backend-q2ye.onrender.com';
@@ -194,6 +196,7 @@ function renderDexAccessState() {
   }
 
   dexSubmitBtn.disabled = !piUser || !lifetimeDexUnlocked;
+  bootstrapBtn.disabled = !piUser || !lifetimeDexUnlocked;
   quoteBtn.disabled = !piUser || !lifetimeDexUnlocked;
 }
 
@@ -395,6 +398,7 @@ function clearSession() {
   dexUnlockRecord = null;
   setLog(authResult, 'Session cleared.');
   setLog(paymentResult, 'Payment not started.');
+  setLog(dexBootstrapResult, 'DEX pool bootstrap not requested.');
   setLog(dexQuoteResult, 'Swap quote not requested.');
   setLog(dexExecuteResult, 'Swap not executed.');
   updatePaymentMetadataDefaults();
@@ -606,6 +610,45 @@ async function requestDexQuote() {
   }
 }
 
+async function bootstrapDexPool() {
+  if (!piUser) {
+    setLog(dexBootstrapResult, 'Authenticate Pi user first.', true);
+    return;
+  }
+
+  if (!lifetimeDexUnlocked) {
+    setLog(dexBootstrapResult, 'Pay the 1 Pi lifetime DEX access fee first.', true);
+    return;
+  }
+
+  const payload = getDexPayload();
+  if (!payload.trader || !payload.sender_seed) {
+    setLog(dexBootstrapResult, 'ANET wallet and seed phrase are required to bootstrap pool.', true);
+    return;
+  }
+
+  const backendBaseUrl = getBackendBaseUrl();
+
+  try {
+    setLog(dexBootstrapResult, 'Bootstrapping DEX pool on ANET L1...');
+    const response = await postJson(`${backendBaseUrl}/api/pi/dex/bootstrap`, {
+      uid: piUser.uid,
+      username: piUser.username,
+      provider: payload.trader,
+      sender_seed: payload.sender_seed,
+      token_symbol: payload.token_symbol,
+      anet_amount_ants: payload.amount_in,
+      token_amount_units: payload.amount_in,
+      fee_bps: 30,
+      mint_test_assets: true
+    });
+
+    setLog(dexBootstrapResult, JSON.stringify(response, null, 2));
+  } catch (error) {
+    setLog(dexBootstrapResult, `DEX pool bootstrap failed: ${error.message}`, true);
+  }
+}
+
 async function submitDexSwap(event) {
   event.preventDefault();
 
@@ -646,6 +689,7 @@ payWithPiBtn.addEventListener('click', runSimplePiPayment);
 disconnectBtn.addEventListener('click', clearSession);
 paymentForm.addEventListener('submit', startPayment);
 dexForm.addEventListener('submit', submitDexSwap);
+bootstrapBtn.addEventListener('click', bootstrapDexPool);
 quoteBtn.addEventListener('click', requestDexQuote);
 backendBaseUrlInput.addEventListener('change', async () => {
   await initializePiFromBackendConfig();
