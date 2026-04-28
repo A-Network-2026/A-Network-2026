@@ -26,6 +26,9 @@ const PI_CASHOUT_STATE_PATH = process.env.PI_CASHOUT_STATE_PATH || path.join(__d
 const PI_ADMIN_KEY = process.env.PI_ADMIN_KEY || '';
 const ANET_CHAIN_API_BASE_URL = (process.env.ANET_CHAIN_API_BASE_URL || '').replace(/\/$/, '');
 const ANET_L1_DEX_ADMIN_KEY = process.env.ANET_L1_DEX_ADMIN_KEY || '';
+const PI_REQUIRED_SESSIONS = Number(process.env.PI_REQUIRED_SESSIONS || 1000);
+const ANET_TESTNET_COIN_LABEL = process.env.ANET_TESTNET_COIN_LABEL || 'ANET_TEST';
+const ANET_MAINNET_COIN_LABEL = process.env.ANET_MAINNET_COIN_LABEL || 'ANET';
 
 if (!PI_API_KEY) {
   console.warn('[WARN] PI_API_KEY is not set. Pi API calls will fail until configured.');
@@ -238,11 +241,17 @@ app.get('/api/pi/config', (_req, res) => {
       memoPrefix: PI_ALLOWED_MEMO_PREFIX,
       metadataApp: PI_ALLOWED_METADATA_APP,
       metadataPurpose: PI_ALLOWED_METADATA_PURPOSE,
+      requiredSessionsForPrivateMainnet: PI_REQUIRED_SESSIONS,
       sandboxMetadataPurpose: PI_ALLOWED_SANDBOX_METADATA_PURPOSE,
       lifetimeDexUnlockEnabled: true,
       appWalletCheckEnabled: Boolean(PI_APP_WALLET),
       testAdminEnabled: PI_ENABLE_TEST_ADMIN,
-      testAssetMintEnabled: PI_ALLOW_TEST_ASSET_MINT
+      testAssetMintEnabled: PI_ALLOW_TEST_ASSET_MINT,
+      coinAccess: {
+        testnetLabel: ANET_TESTNET_COIN_LABEL,
+        mainnetLabel: ANET_MAINNET_COIN_LABEL,
+        model: 'testnet-always-mainnet-after-session-threshold'
+      }
     }
   });
 });
@@ -332,30 +341,48 @@ app.get('/api/public/verification', async (req, res) => {
   });
 });
 
-function sendUnlockStatus(res, uid) {
+async function sendUnlockStatus(res, uid, walletAddress) {
   const unlock = getLifetimeUnlock(uid);
-  return res.json({
+  const response = {
     ok: true,
     uid,
     unlocked: Boolean(unlock),
+    requiredSessionsForPrivateMainnet: PI_REQUIRED_SESSIONS,
+    coinAccess: buildCoinAccess(false),
     ...(unlock || {})
+  };
+
+  if (walletAddress) {
+    const eligibility = await getSessionEligibility(walletAddress);
+    if (!eligibility.error) {
+      response.eligibility = eligibility;
+      response.coinAccess = buildCoinAccess(eligibility.eligible);
+    } else {
+      response.eligibilityError = eligibility.error;
+    }
+  }
+
+  return res.json({
+    ...response
   });
 }
 
-app.get('/api/pi/dex/status/:uid', (req, res) => {
+app.get('/api/pi/dex/status/:uid', async (req, res) => {
   const uid = normalizePiUid(req.params?.uid);
+  const walletAddress = String(req.query?.wallet || '').trim().toUpperCase();
   if (!uid) {
     return res.status(400).json({ ok: false, error: 'uid is required' });
   }
-  return sendUnlockStatus(res, uid);
+  return sendUnlockStatus(res, uid, walletAddress);
 });
 
-app.get('/api/pi/cashout/status/:uid', (req, res) => {
+app.get('/api/pi/cashout/status/:uid', async (req, res) => {
   const uid = normalizePiUid(req.params?.uid);
+  const walletAddress = String(req.query?.wallet || '').trim().toUpperCase();
   if (!uid) {
     return res.status(400).json({ ok: false, error: 'uid is required' });
   }
-  return sendUnlockStatus(res, uid);
+  return sendUnlockStatus(res, uid, walletAddress);
 });
 
 async function piRequest(pathname, options = {}) {
@@ -496,6 +523,87 @@ function requireUnlock(uid, username) {
   }
 
   return { unlock };
+}
+
+function buildCoinAccess(eligibleForMainnet) {
+  return {
+    testnet: {
+      enabled: true,
+      label: ANET_TESTNET_COIN_LABEL
+    },
+    mainnet: {
+      enabled: Boolean(eligibleForMainnet),
+      label: ANET_MAINNET_COIN_LABEL
+    }
+  };
+}
+
+async function getSessionEligibility(walletAddress) {
+  const normalizedWallet = String(walletAddress || '').trim().toUpperCase();
+  if (!normalizedWallet) {
+    return { error: 'wallet address is required for eligibility checks', status: 400 };
+  }
+
+  if (!ANET_CHAIN_API_BASE_URL) {
+    return { error: 'Layer 1 DEX bridge is not configured', status: 503 };
+  }
+
+  try {
+    const account = await getFromLayer1(`/accounts/${encodeURIComponent(normalizedWallet)}`);
+    const sessions = Number.isFinite(Number(account?.sessions)) ? Number(account.sessions) : 0;
+    const requiredSessions = Number.isFinite(PI_REQUIRED_SESSIONS) && PI_REQUIRED_SESSIONS > 0
+      ? PI_REQUIRED_SESSIONS
+      : 1000;
+    const eligible = sessions >= requiredSessions;
+
+    return {
+      wallet: normalizedWallet,
+      sessions,
+      requiredSessions,
+      eligible,
+      remainingSessions: Math.max(0, requiredSessions - sessions)
+    };
+  } catch (error) {
+    return {
+      error: error?.message || 'Unable to verify session eligibility',
+      status: error?.status || 502
+    };
+  }
+}
+
+async function requireUnlockAndEligibility(uid, username, walletAddress) {
+  const unlockResult = requireUnlock(uid, username);
+  if (unlockResult.error) {
+    return {
+      error: unlockResult.error,
+      status: 403
+    };
+  }
+
+  const eligibility = await getSessionEligibility(walletAddress);
+  if (eligibility.error) {
+    return {
+      error: eligibility.error,
+      status: eligibility.status || 502,
+      unlock: unlockResult.unlock
+    };
+  }
+
+  if (!eligibility.eligible) {
+    return {
+      error: `You need to complete at least ${eligibility.requiredSessions} sessions before using swap/bridge on private mainnet`,
+      status: 403,
+      unlock: unlockResult.unlock,
+      eligibility,
+      coinAccess: buildCoinAccess(false)
+    };
+  }
+
+  return {
+    unlock: unlockResult.unlock,
+    eligibility,
+    coinAccess: buildCoinAccess(true)
+  };
 }
 
 async function approvePayment(paymentId) {
@@ -798,6 +906,7 @@ async function getLatestLayer1BlockHeight() {
 app.post('/api/pi/dex/quote', async (req, res) => {
   const uid = normalizePiUid(req.body?.uid);
   const username = String(req.body?.username || '').trim();
+  const walletAddress = String(req.body?.wallet_address || req.body?.trader || req.body?.provider || '').trim().toUpperCase();
   const tokenSymbol = String(req.body?.token_symbol || '').trim().toUpperCase();
   const amountIn = normalizePositiveInteger(req.body?.amount_in);
   const anetToToken = Boolean(req.body?.anet_to_token);
@@ -811,10 +920,19 @@ app.post('/api/pi/dex/quote', async (req, res) => {
   if (!amountIn) {
     return res.status(400).json({ ok: false, error: 'amount_in must be a positive integer' });
   }
+  if (!walletAddress) {
+    return res.status(400).json({ ok: false, error: 'wallet_address is required for eligibility checks' });
+  }
 
-  const { unlock, error } = requireUnlock(uid, username);
-  if (error) {
-    return res.status(403).json({ ok: false, error });
+  const access = await requireUnlockAndEligibility(uid, username, walletAddress);
+  if (access.error) {
+    return res.status(access.status || 403).json({
+      ok: false,
+      error: access.error,
+      unlock: access.unlock || null,
+      eligibility: access.eligibility || null,
+      coinAccess: access.coinAccess || buildCoinAccess(false)
+    });
   }
 
   try {
@@ -824,7 +942,13 @@ app.post('/api/pi/dex/quote', async (req, res) => {
       anet_to_token: anetToToken
     });
 
-    return res.status(200).json({ ok: true, unlock, quote });
+    return res.status(200).json({
+      ok: true,
+      unlock: access.unlock,
+      eligibility: access.eligibility,
+      coinAccess: access.coinAccess,
+      quote
+    });
   } catch (requestError) {
     return res.status(requestError.status || 500).json({
       ok: false,
@@ -861,9 +985,15 @@ app.post('/api/pi/dex/bootstrap', async (req, res) => {
     return res.status(400).json({ ok: false, error: 'anet_amount_ants and token_amount_units must be positive integers' });
   }
 
-  const { unlock, error } = requireUnlock(uid, username);
-  if (error) {
-    return res.status(403).json({ ok: false, error });
+  const access = await requireUnlockAndEligibility(uid, username, provider);
+  if (access.error) {
+    return res.status(access.status || 403).json({
+      ok: false,
+      error: access.error,
+      unlock: access.unlock || null,
+      eligibility: access.eligibility || null,
+      coinAccess: access.coinAccess || buildCoinAccess(false)
+    });
   }
 
   try {
@@ -928,7 +1058,9 @@ app.post('/api/pi/dex/bootstrap', async (req, res) => {
     const afterHeight = await getLatestLayer1BlockHeight();
     return res.status(200).json({
       ok: true,
-      unlock,
+      unlock: access.unlock,
+      eligibility: access.eligibility,
+      coinAccess: access.coinAccess,
       token_symbol: tokenSymbol,
       anet_amount_ants: anetAmountAnts,
       token_amount_units: tokenAmountUnits,
@@ -973,9 +1105,15 @@ app.post('/api/pi/dex/execute', async (req, res) => {
     return res.status(400).json({ ok: false, error: 'amount_in must be a positive integer' });
   }
 
-  const { unlock, error } = requireUnlock(uid, username);
-  if (error) {
-    return res.status(403).json({ ok: false, error });
+  const access = await requireUnlockAndEligibility(uid, username, trader);
+  if (access.error) {
+    return res.status(access.status || 403).json({
+      ok: false,
+      error: access.error,
+      unlock: access.unlock || null,
+      eligibility: access.eligibility || null,
+      coinAccess: access.coinAccess || buildCoinAccess(false)
+    });
   }
 
   try {
@@ -990,7 +1128,7 @@ app.post('/api/pi/dex/execute', async (req, res) => {
     const requestRecord = {
       id: `dex_${Date.now()}`,
       uid,
-      username: unlock.username || username,
+      username: access.unlock.username || username,
       trader,
       token_symbol: tokenSymbol,
       amount_in: amountIn,
@@ -1002,7 +1140,14 @@ app.post('/api/pi/dex/execute', async (req, res) => {
     cashoutState.cashoutRequests.push(requestRecord);
     persistState();
 
-    return res.status(200).json({ ok: true, unlock, request: requestRecord, swap });
+    return res.status(200).json({
+      ok: true,
+      unlock: access.unlock,
+      eligibility: access.eligibility,
+      coinAccess: access.coinAccess,
+      request: requestRecord,
+      swap
+    });
   } catch (requestError) {
     return res.status(requestError.status || 500).json({
       ok: false,
