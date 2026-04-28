@@ -30,6 +30,13 @@ const PI_REQUIRED_SESSIONS = Number(process.env.PI_REQUIRED_SESSIONS || 1000);
 const ANET_TESTNET_COIN_LABEL = process.env.ANET_TESTNET_COIN_LABEL || 'ANET_TEST';
 const ANET_MAINNET_COIN_LABEL = process.env.ANET_MAINNET_COIN_LABEL || 'ANET';
 const PI_ENFORCE_PRIMARY_WALLET_BINDING = (process.env.PI_ENFORCE_PRIMARY_WALLET_BINDING || 'true').toLowerCase() === 'true';
+const BTC_RPC_URL = String(process.env.BTC_RPC_URL || '').trim();
+const BTC_RPC_USER = String(process.env.BTC_RPC_USER || '').trim();
+const BTC_RPC_PASSWORD = String(process.env.BTC_RPC_PASSWORD || '').trim();
+const BTC_NETWORK = String(process.env.BTC_NETWORK || 'mainnet').trim().toLowerCase();
+const BTC_REQUIRED_CONFIRMATIONS = Math.max(1, Number(process.env.BTC_REQUIRED_CONFIRMATIONS || 1));
+const BTC_EXPLORER_BASE_URL = String(process.env.BTC_EXPLORER_BASE_URL || '').trim().replace(/\/$/, '');
+const BTC_ENABLE_TEST_ADMIN = (process.env.BTC_ENABLE_TEST_ADMIN || 'false').toLowerCase() === 'true';
 
 if (!PI_API_KEY) {
   console.warn('[WARN] PI_API_KEY is not set. Pi API calls will fail until configured.');
@@ -40,7 +47,9 @@ function initialState() {
     lifetimeUnlocks: {},
     cashoutRequests: [],
     settlementTransactions: [],
-    walletBindings: {}
+    walletBindings: {},
+    btcPaymentRequests: {},
+    btcSettlementTransactions: []
   };
 }
 
@@ -60,7 +69,9 @@ function loadState() {
       lifetimeUnlocks: parsed?.lifetimeUnlocks && typeof parsed.lifetimeUnlocks === 'object' ? parsed.lifetimeUnlocks : {},
       cashoutRequests: Array.isArray(parsed?.cashoutRequests) ? parsed.cashoutRequests : [],
       settlementTransactions: Array.isArray(parsed?.settlementTransactions) ? parsed.settlementTransactions : [],
-      walletBindings: parsed?.walletBindings && typeof parsed.walletBindings === 'object' ? parsed.walletBindings : {}
+      walletBindings: parsed?.walletBindings && typeof parsed.walletBindings === 'object' ? parsed.walletBindings : {},
+      btcPaymentRequests: parsed?.btcPaymentRequests && typeof parsed.btcPaymentRequests === 'object' ? parsed.btcPaymentRequests : {},
+      btcSettlementTransactions: Array.isArray(parsed?.btcSettlementTransactions) ? parsed.btcSettlementTransactions : []
     };
   } catch (error) {
     console.warn(`[WARN] Failed to read DEX state: ${error.message}`);
@@ -103,6 +114,214 @@ function getPiExplorerTransactionUrl(txid) {
 
   const path = PI_SANDBOX ? 'testnet' : 'mainnet';
   return `https://blockexplorer.minepi.com/${path}/transactions/${encodeURIComponent(value)}`;
+}
+
+function resolveBtcExplorerBaseUrl() {
+  if (BTC_EXPLORER_BASE_URL) {
+    return BTC_EXPLORER_BASE_URL;
+  }
+  if (BTC_NETWORK === 'testnet') {
+    return 'https://mempool.space/testnet';
+  }
+  if (BTC_NETWORK === 'signet') {
+    return 'https://mempool.space/signet';
+  }
+  return 'https://mempool.space';
+}
+
+function getBtcExplorerTransactionUrl(txid) {
+  const value = String(txid || '').trim();
+  if (!value) {
+    return null;
+  }
+  return `${resolveBtcExplorerBaseUrl()}/tx/${encodeURIComponent(value)}`;
+}
+
+function getBtcExplorerAddressUrl(address) {
+  const value = String(address || '').trim();
+  if (!value) {
+    return null;
+  }
+  return `${resolveBtcExplorerBaseUrl()}/address/${encodeURIComponent(value)}`;
+}
+
+function formatBtcAmountFromSats(sats) {
+  const value = Number.isFinite(Number(sats)) ? Number(sats) : 0;
+  return (value / 100000000).toFixed(8);
+}
+
+function parseBtcToSats(value) {
+  const text = String(value || '').trim();
+  if (!text) {
+    return null;
+  }
+
+  const normalized = text.replace(/,/g, '');
+  if (!/^\d+(\.\d{1,8})?$/.test(normalized)) {
+    return null;
+  }
+
+  const [wholePart, fracPartRaw = ''] = normalized.split('.');
+  const fracPart = `${fracPartRaw}00000000`.slice(0, 8);
+  const whole = BigInt(wholePart || '0');
+  const fractional = BigInt(fracPart || '0');
+  const sats = (whole * 100000000n) + fractional;
+  if (sats <= 0n) {
+    return null;
+  }
+  if (sats > BigInt(Number.MAX_SAFE_INTEGER)) {
+    return null;
+  }
+  return Number(sats);
+}
+
+function ensureBtcCollections() {
+  if (!cashoutState.btcPaymentRequests || typeof cashoutState.btcPaymentRequests !== 'object') {
+    cashoutState.btcPaymentRequests = {};
+  }
+  if (!Array.isArray(cashoutState.btcSettlementTransactions)) {
+    cashoutState.btcSettlementTransactions = [];
+  }
+}
+
+function saveBtcPaymentRequest(record) {
+  ensureBtcCollections();
+  cashoutState.btcPaymentRequests[String(record.id)] = record;
+  persistState();
+  return record;
+}
+
+function getBtcPaymentRequest(requestId) {
+  ensureBtcCollections();
+  return cashoutState.btcPaymentRequests[String(requestId || '').trim()] || null;
+}
+
+function recentBtcPaymentProof(limit = 30) {
+  ensureBtcCollections();
+  return Object.values(cashoutState.btcPaymentRequests || {})
+    .filter((entry) => entry && typeof entry === 'object')
+    .map((entry) => ({
+      id: String(entry.id || '').trim() || null,
+      uid: normalizePiUid(entry.uid),
+      username: String(entry.username || '').trim(),
+      address: String(entry.address || '').trim(),
+      amountBtc: String(entry.amountBtc || '').trim() || formatBtcAmountFromSats(entry.amountSats),
+      amountSats: normalizePositiveInteger(entry.amountSats),
+      status: String(entry.status || 'pending').trim().toLowerCase(),
+      txid: String(entry.txid || '').trim() || null,
+      confirmations: Number.isFinite(Number(entry.confirmations)) ? Number(entry.confirmations) : 0,
+      createdAt: safeIsoDate(entry.createdAt),
+      verifiedAt: safeIsoDate(entry.verifiedAt),
+      expiresAt: safeIsoDate(entry.expiresAt),
+      btcExplorerTransactionUrl: getBtcExplorerTransactionUrl(entry.txid),
+      btcExplorerAddressUrl: getBtcExplorerAddressUrl(entry.address)
+    }))
+    .sort((left, right) => {
+      const leftTs = left.createdAt ? Date.parse(left.createdAt) : 0;
+      const rightTs = right.createdAt ? Date.parse(right.createdAt) : 0;
+      return rightTs - leftTs;
+    })
+    .slice(0, limit);
+}
+
+function ensureBtcRpcConfigured() {
+  if (!BTC_RPC_URL || !BTC_RPC_USER || !BTC_RPC_PASSWORD) {
+    const error = new Error('BTC RPC is not configured. Set BTC_RPC_URL, BTC_RPC_USER, and BTC_RPC_PASSWORD.');
+    error.status = 503;
+    throw error;
+  }
+}
+
+async function bitcoinRpc(method, params = []) {
+  ensureBtcRpcConfigured();
+
+  const response = await fetch(BTC_RPC_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${Buffer.from(`${BTC_RPC_USER}:${BTC_RPC_PASSWORD}`).toString('base64')}`
+    },
+    body: JSON.stringify({
+      jsonrpc: '1.0',
+      id: `btc_${Date.now()}`,
+      method,
+      params
+    })
+  });
+
+  const text = await response.text();
+  let body;
+  try {
+    body = text ? JSON.parse(text) : {};
+  } catch {
+    body = { raw: text };
+  }
+
+  if (!response.ok) {
+    const error = new Error(`Bitcoin RPC failed (${response.status})`);
+    error.status = response.status;
+    error.body = body;
+    throw error;
+  }
+
+  if (body?.error) {
+    const message = String(body.error?.message || 'Bitcoin RPC error');
+    const error = new Error(message);
+    error.status = 502;
+    error.body = body;
+    throw error;
+  }
+
+  return body?.result;
+}
+
+async function evaluateBtcTransactionForRequest(requestRecord, txid) {
+  const normalizedTxid = String(txid || '').trim();
+  if (!normalizedTxid) {
+    const error = new Error('txid is required');
+    error.status = 400;
+    throw error;
+  }
+
+  const tx = await bitcoinRpc('gettransaction', [normalizedTxid, true]);
+  const confirmations = Number.isFinite(Number(tx?.confirmations)) ? Number(tx.confirmations) : 0;
+  const details = Array.isArray(tx?.details) ? tx.details : [];
+  const expectedAddress = String(requestRecord?.address || '').trim();
+
+  let receivedBtc = 0;
+  for (const detail of details) {
+    const category = String(detail?.category || '').trim().toLowerCase();
+    const amount = Number(detail?.amount || 0);
+    const address = String(detail?.address || '').trim();
+    if ((category === 'receive' || amount > 0) && amount > 0) {
+      if (!expectedAddress || address === expectedAddress) {
+        receivedBtc += amount;
+      }
+    }
+  }
+
+  if (receivedBtc <= 0 && Number(tx?.amount || 0) > 0) {
+    receivedBtc = Number(tx.amount);
+  }
+
+  const receivedSats = Math.max(0, Math.round(receivedBtc * 100000000));
+  const expectedSats = Number.isFinite(Number(requestRecord?.amountSats)) ? Number(requestRecord.amountSats) : 0;
+  const paidEnough = expectedSats > 0 ? receivedSats >= expectedSats : receivedSats > 0;
+  const confirmed = paidEnough && confirmations >= BTC_REQUIRED_CONFIRMATIONS;
+
+  return {
+    txid: normalizedTxid,
+    confirmations,
+    requiredConfirmations: BTC_REQUIRED_CONFIRMATIONS,
+    receivedSats,
+    receivedBtc: formatBtcAmountFromSats(receivedSats),
+    expectedSats,
+    expectedBtc: formatBtcAmountFromSats(expectedSats),
+    paidEnough,
+    confirmed,
+    status: confirmed ? 'confirmed' : (paidEnough ? 'seen' : 'pending'),
+    btcExplorerTransactionUrl: getBtcExplorerTransactionUrl(normalizedTxid)
+  };
 }
 
 function recentUnlockProof(limit = 20) {
@@ -257,7 +476,14 @@ app.get('/api/pi/config', (_req, res) => {
         mainnetLabel: ANET_MAINNET_COIN_LABEL,
         model: 'testnet-always-mainnet-after-session-threshold'
       },
-      enforcePrimaryWalletBinding: PI_ENFORCE_PRIMARY_WALLET_BINDING
+      enforcePrimaryWalletBinding: PI_ENFORCE_PRIMARY_WALLET_BINDING,
+      bitcoin: {
+        enabled: Boolean(BTC_RPC_URL && BTC_RPC_USER && BTC_RPC_PASSWORD),
+        network: BTC_NETWORK,
+        requiredConfirmations: BTC_REQUIRED_CONFIRMATIONS,
+        explorerBaseUrl: resolveBtcExplorerBaseUrl(),
+        testAdminEnabled: BTC_ENABLE_TEST_ADMIN
+      }
     }
   });
 });
@@ -290,6 +516,7 @@ app.get('/api/public/verification', async (req, res) => {
 
   const unlockProof = recentUnlockProof();
   const dexProof = recentDexProof();
+  const btcPaymentProof = recentBtcPaymentProof();
   const uidUnlock = uid ? getLifetimeUnlock(uid) : null;
 
   return res.json({
@@ -307,13 +534,20 @@ app.get('/api/public/verification', async (req, res) => {
         apiBaseUrl: PI_API_BASE_URL,
         metadataApp: PI_ALLOWED_METADATA_APP,
         metadataPurpose: PI_ALLOWED_METADATA_PURPOSE
+      },
+      bitcoin: {
+        enabled: Boolean(BTC_RPC_URL && BTC_RPC_USER && BTC_RPC_PASSWORD),
+        network: BTC_NETWORK,
+        requiredConfirmations: BTC_REQUIRED_CONFIRMATIONS,
+        explorerBaseUrl: resolveBtcExplorerBaseUrl()
       }
     },
     publicVerification: {
-      summary: 'This service bridges Pi payments to A Network Private Mainnet native L1 DEX access records.',
+      summary: 'This service bridges Pi/Bitcoin payments to A Network Private Mainnet native L1 DEX access records.',
       howToVerify: [
         `${req.protocol}://${req.get('host')}/api/pi/config`,
         `${req.protocol}://${req.get('host')}/api/public/verification`,
+        `${req.protocol}://${req.get('host')}/api/btc/payment/recent`,
         ANET_CHAIN_API_BASE_URL ? `${ANET_CHAIN_API_BASE_URL}/health` : null,
         ANET_CHAIN_API_BASE_URL ? `${ANET_CHAIN_API_BASE_URL}/blocks` : null,
         ANET_CHAIN_API_BASE_URL ? `${ANET_CHAIN_API_BASE_URL}/dex/pools` : null
@@ -322,11 +556,13 @@ app.get('/api/public/verification', async (req, res) => {
     metrics: {
       lifetimeUnlockRecords: Object.keys(cashoutState.lifetimeUnlocks || {}).length,
       dexExecutionRecords: (cashoutState.cashoutRequests || []).length,
+      btcPaymentRecords: Object.keys(cashoutState.btcPaymentRequests || {}).length,
       recentPoolCount: poolsCount
     },
     recentProof: {
       unlocks: unlockProof,
-      dexExecutions: dexProof
+      dexExecutions: dexProof,
+      btcPayments: btcPaymentProof
     },
     uidStatus: uid
       ? {
@@ -1288,6 +1524,218 @@ app.post('/api/pi/dex/execute', async (req, res) => {
   }
 });
 
+app.get('/api/btc/config', (_req, res) => {
+  return res.status(200).json({
+    ok: true,
+    bitcoin: {
+      enabled: Boolean(BTC_RPC_URL && BTC_RPC_USER && BTC_RPC_PASSWORD),
+      network: BTC_NETWORK,
+      requiredConfirmations: BTC_REQUIRED_CONFIRMATIONS,
+      explorerBaseUrl: resolveBtcExplorerBaseUrl(),
+      testAdminEnabled: BTC_ENABLE_TEST_ADMIN
+    }
+  });
+});
+
+app.post('/api/btc/payment/request', async (req, res) => {
+  try {
+    const uid = normalizePiUid(req.body?.uid);
+    const username = String(req.body?.username || '').trim();
+    const memo = String(req.body?.memo || 'a-network-unlock').trim();
+    const amountSatsInput = normalizePositiveInteger(req.body?.amount_sats);
+    const amountSats = amountSatsInput || parseBtcToSats(req.body?.amount_btc);
+    const expiresMinutes = Math.max(1, Math.min(1440, Number(req.body?.expires_minutes || 120)));
+
+    if (!uid) {
+      return res.status(400).json({ ok: false, error: 'uid is required' });
+    }
+    if (!amountSats) {
+      return res.status(400).json({ ok: false, error: 'amount_btc or amount_sats is required' });
+    }
+
+    const addressLabel = `anet-${uid}-${Date.now()}`;
+    const address = await bitcoinRpc('getnewaddress', [addressLabel, 'bech32']);
+    const id = `btcpay_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const nowIso = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + (expiresMinutes * 60 * 1000)).toISOString();
+
+    const requestRecord = saveBtcPaymentRequest({
+      id,
+      uid,
+      username,
+      memo,
+      amountSats,
+      amountBtc: formatBtcAmountFromSats(amountSats),
+      address: String(address || '').trim(),
+      status: 'pending',
+      txid: null,
+      confirmations: 0,
+      createdAt: nowIso,
+      expiresAt,
+      verifiedAt: null
+    });
+
+    return res.status(200).json({
+      ok: true,
+      paymentRequest: {
+        ...requestRecord,
+        btcExplorerAddressUrl: getBtcExplorerAddressUrl(requestRecord.address)
+      }
+    });
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      ok: false,
+      error: error.message,
+      details: error.body || null
+    });
+  }
+});
+
+app.post('/api/btc/payment/verify', async (req, res) => {
+  try {
+    const requestId = String(req.body?.request_id || '').trim();
+    const txid = String(req.body?.txid || '').trim();
+    if (!requestId) {
+      return res.status(400).json({ ok: false, error: 'request_id is required' });
+    }
+    if (!txid) {
+      return res.status(400).json({ ok: false, error: 'txid is required' });
+    }
+
+    const requestRecord = getBtcPaymentRequest(requestId);
+    if (!requestRecord) {
+      return res.status(404).json({ ok: false, error: 'BTC payment request not found' });
+    }
+
+    const txCheck = await evaluateBtcTransactionForRequest(requestRecord, txid);
+    const updatedRecord = {
+      ...requestRecord,
+      txid: txCheck.txid,
+      confirmations: txCheck.confirmations,
+      status: txCheck.status,
+      verifiedAt: txCheck.confirmed ? new Date().toISOString() : requestRecord.verifiedAt || null,
+      lastCheckedAt: new Date().toISOString()
+    };
+    saveBtcPaymentRequest(updatedRecord);
+
+    return res.status(200).json({
+      ok: true,
+      paymentRequest: {
+        ...updatedRecord,
+        btcExplorerAddressUrl: getBtcExplorerAddressUrl(updatedRecord.address),
+        btcExplorerTransactionUrl: getBtcExplorerTransactionUrl(updatedRecord.txid)
+      },
+      txCheck
+    });
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      ok: false,
+      error: error.message,
+      details: error.body || null
+    });
+  }
+});
+
+app.get('/api/btc/payment/status/:requestId', async (req, res) => {
+  try {
+    const requestId = String(req.params?.requestId || '').trim();
+    const txid = String(req.query?.txid || '').trim();
+    if (!requestId) {
+      return res.status(400).json({ ok: false, error: 'requestId is required' });
+    }
+
+    const requestRecord = getBtcPaymentRequest(requestId);
+    if (!requestRecord) {
+      return res.status(404).json({ ok: false, error: 'BTC payment request not found' });
+    }
+
+    const trackedTxid = txid || String(requestRecord.txid || '').trim();
+    let txCheck = null;
+    let updatedRecord = requestRecord;
+
+    if (trackedTxid) {
+      txCheck = await evaluateBtcTransactionForRequest(requestRecord, trackedTxid);
+      updatedRecord = {
+        ...requestRecord,
+        txid: txCheck.txid,
+        confirmations: txCheck.confirmations,
+        status: txCheck.status,
+        verifiedAt: txCheck.confirmed ? new Date().toISOString() : requestRecord.verifiedAt || null,
+        lastCheckedAt: new Date().toISOString()
+      };
+      saveBtcPaymentRequest(updatedRecord);
+    }
+
+    return res.status(200).json({
+      ok: true,
+      paymentRequest: {
+        ...updatedRecord,
+        btcExplorerAddressUrl: getBtcExplorerAddressUrl(updatedRecord.address),
+        btcExplorerTransactionUrl: getBtcExplorerTransactionUrl(updatedRecord.txid)
+      },
+      txCheck
+    });
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      ok: false,
+      error: error.message,
+      details: error.body || null
+    });
+  }
+});
+
+app.get('/api/btc/payment/recent', (_req, res) => {
+  const records = recentBtcPaymentProof(50);
+  return res.status(200).json({
+    ok: true,
+    payments: records,
+    count: records.length
+  });
+});
+
+app.post('/api/btc/admin/force-confirm', (req, res) => {
+  if (!BTC_ENABLE_TEST_ADMIN) {
+    return res.status(403).json({ ok: false, error: 'BTC admin force-confirm is disabled in this environment' });
+  }
+  if (!PI_ADMIN_KEY) {
+    return res.status(503).json({ ok: false, error: 'PI_ADMIN_KEY is not configured on this deployment' });
+  }
+
+  const providedKey = String(req.body?.admin_key || '').trim();
+  if (providedKey !== PI_ADMIN_KEY) {
+    return res.status(401).json({ ok: false, error: 'Invalid admin key' });
+  }
+
+  const requestId = String(req.body?.request_id || '').trim();
+  if (!requestId) {
+    return res.status(400).json({ ok: false, error: 'request_id is required' });
+  }
+
+  const existing = getBtcPaymentRequest(requestId);
+  if (!existing) {
+    return res.status(404).json({ ok: false, error: 'BTC payment request not found' });
+  }
+
+  const updated = {
+    ...existing,
+    status: 'confirmed',
+    confirmations: Math.max(BTC_REQUIRED_CONFIRMATIONS, Number(existing.confirmations || 0)),
+    txid: String(req.body?.txid || existing.txid || `admin_btc_${Date.now()}`).trim(),
+    verifiedAt: new Date().toISOString(),
+    lastCheckedAt: new Date().toISOString()
+  };
+  saveBtcPaymentRequest(updated);
+
+  return res.status(200).json({
+    ok: true,
+    paymentRequest: {
+      ...updated,
+      btcExplorerAddressUrl: getBtcExplorerAddressUrl(updated.address),
+      btcExplorerTransactionUrl: getBtcExplorerTransactionUrl(updated.txid)
+    }
+  });
+});
+
 app.post('/api/pi/settlement/record', (req, res) => {
   try {
     const piPaymentId = String(req.body?.pi_payment_id || '').trim();
@@ -1345,6 +1793,72 @@ app.post('/api/pi/settlement/record', (req, res) => {
 app.get('/api/pi/settlement/recent', (_req, res) => {
   try {
     const settlements = (cashoutState.settlementTransactions || [])
+      .slice(-50)
+      .reverse();
+    return res.status(200).json({
+      ok: true,
+      settlements,
+      count: settlements.length
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/btc/settlement/record', (req, res) => {
+  try {
+    const btcTxid = String(req.body?.btc_txid || '').trim();
+    const btcAmount = String(req.body?.btc_amount || '').trim();
+    const fromAddress = String(req.body?.from_address || '').trim();
+    const toAddress = String(req.body?.to_address || '').trim();
+    const l1BlockHeight = Number.isInteger(Number(req.body?.l1_block_height)) ? Number(req.body.l1_block_height) : null;
+    const l1BlockEvent = String(req.body?.l1_block_event || 'Bitcoin: Payment Settlement').trim();
+
+    if (!btcTxid || !btcAmount || !fromAddress || !toAddress) {
+      return res.status(400).json({
+        ok: false,
+        error: 'btc_txid, btc_amount, from_address, and to_address are required'
+      });
+    }
+
+    ensureBtcCollections();
+    const settlementRecord = {
+      id: `btc_settlement_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
+      btcTxid,
+      btcAmount,
+      fromAddress,
+      toAddress,
+      l1BlockHeight,
+      l1BlockEvent,
+      confirmations: Number.isFinite(Number(req.body?.confirmations)) ? Number(req.body.confirmations) : null,
+      recordedAt: new Date().toISOString(),
+      btcExplorerTransactionUrl: getBtcExplorerTransactionUrl(btcTxid),
+      btcExplorerAddressUrl: getBtcExplorerAddressUrl(toAddress)
+    };
+
+    cashoutState.btcSettlementTransactions.push(settlementRecord);
+    persistState();
+
+    return res.status(200).json({
+      ok: true,
+      settlement: settlementRecord,
+      message: `Settlement recorded: BTC tx ${btcTxid} settled on L1 at block ${l1BlockHeight}`
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/btc/settlement/recent', (_req, res) => {
+  try {
+    ensureBtcCollections();
+    const settlements = (cashoutState.btcSettlementTransactions || [])
       .slice(-50)
       .reverse();
     return res.status(200).json({
