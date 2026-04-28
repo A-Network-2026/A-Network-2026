@@ -29,6 +29,7 @@ const ANET_L1_DEX_ADMIN_KEY = process.env.ANET_L1_DEX_ADMIN_KEY || '';
 const PI_REQUIRED_SESSIONS = Number(process.env.PI_REQUIRED_SESSIONS || 1000);
 const ANET_TESTNET_COIN_LABEL = process.env.ANET_TESTNET_COIN_LABEL || 'ANET_TEST';
 const ANET_MAINNET_COIN_LABEL = process.env.ANET_MAINNET_COIN_LABEL || 'ANET';
+const PI_ENFORCE_PRIMARY_WALLET_BINDING = (process.env.PI_ENFORCE_PRIMARY_WALLET_BINDING || 'true').toLowerCase() === 'true';
 
 if (!PI_API_KEY) {
   console.warn('[WARN] PI_API_KEY is not set. Pi API calls will fail until configured.');
@@ -37,7 +38,9 @@ if (!PI_API_KEY) {
 function initialState() {
   return {
     lifetimeUnlocks: {},
-    cashoutRequests: []
+    cashoutRequests: [],
+    settlementTransactions: [],
+    walletBindings: {}
   };
 }
 
@@ -55,7 +58,9 @@ function loadState() {
     const parsed = JSON.parse(fs.readFileSync(PI_CASHOUT_STATE_PATH, 'utf8'));
     return {
       lifetimeUnlocks: parsed?.lifetimeUnlocks && typeof parsed.lifetimeUnlocks === 'object' ? parsed.lifetimeUnlocks : {},
-      cashoutRequests: Array.isArray(parsed?.cashoutRequests) ? parsed.cashoutRequests : []
+      cashoutRequests: Array.isArray(parsed?.cashoutRequests) ? parsed.cashoutRequests : [],
+      settlementTransactions: Array.isArray(parsed?.settlementTransactions) ? parsed.settlementTransactions : [],
+      walletBindings: parsed?.walletBindings && typeof parsed.walletBindings === 'object' ? parsed.walletBindings : {}
     };
   } catch (error) {
     console.warn(`[WARN] Failed to read DEX state: ${error.message}`);
@@ -251,7 +256,8 @@ app.get('/api/pi/config', (_req, res) => {
         testnetLabel: ANET_TESTNET_COIN_LABEL,
         mainnetLabel: ANET_MAINNET_COIN_LABEL,
         model: 'testnet-always-mainnet-after-session-threshold'
-      }
+      },
+      enforcePrimaryWalletBinding: PI_ENFORCE_PRIMARY_WALLET_BINDING
     }
   });
 });
@@ -343,12 +349,25 @@ app.get('/api/public/verification', async (req, res) => {
 
 async function sendUnlockStatus(res, uid, walletAddress) {
   const unlock = getLifetimeUnlock(uid);
+  const walletBinding = getPublicWalletBinding(uid);
+  const providedWallet = normalizeWalletAddress(walletAddress);
+  const boundWalletMismatch = Boolean(
+    PI_ENFORCE_PRIMARY_WALLET_BINDING &&
+    walletBinding &&
+    providedWallet &&
+    normalizeWalletAddress(walletBinding.primaryWallet) !== providedWallet
+  );
   const response = {
     ok: true,
     uid,
     unlocked: Boolean(unlock),
     requiredSessionsForPrivateMainnet: PI_REQUIRED_SESSIONS,
     coinAccess: buildCoinAccess(false),
+    walletBindingPolicy: {
+      enforcePrimaryWalletBinding: PI_ENFORCE_PRIMARY_WALLET_BINDING
+    },
+    walletBinding,
+    boundWalletMismatch,
     ...(unlock || {})
   };
 
@@ -525,6 +544,95 @@ function requireUnlock(uid, username) {
   return { unlock };
 }
 
+function normalizeWalletAddress(address) {
+  return String(address || '').trim().toUpperCase();
+}
+
+function getWalletBinding(uid) {
+  return cashoutState.walletBindings?.[normalizePiUid(uid)] || null;
+}
+
+function getPublicWalletBinding(uid) {
+  const binding = getWalletBinding(uid);
+  if (!binding) {
+    return null;
+  }
+  return {
+    primaryWallet: normalizeWalletAddress(binding.primaryWallet),
+    wallets: Array.isArray(binding.wallets)
+      ? binding.wallets.map((wallet) => normalizeWalletAddress(wallet)).filter(Boolean)
+      : [normalizeWalletAddress(binding.primaryWallet)].filter(Boolean),
+    createdAt: safeIsoDate(binding.createdAt),
+    updatedAt: safeIsoDate(binding.updatedAt)
+  };
+}
+
+function enforceWalletBinding(uid, username, walletAddress) {
+  if (!PI_ENFORCE_PRIMARY_WALLET_BINDING) {
+    return {
+      ok: true,
+      binding: getPublicWalletBinding(uid),
+      walletBoundNow: false
+    };
+  }
+
+  const normalizedUid = normalizePiUid(uid);
+  const normalizedWallet = normalizeWalletAddress(walletAddress);
+  if (!normalizedUid) {
+    return { error: 'uid is required for wallet binding checks', status: 400 };
+  }
+  if (!normalizedWallet) {
+    return { error: 'wallet_address is required for wallet binding checks', status: 400 };
+  }
+
+  const existing = getWalletBinding(normalizedUid);
+  if (!existing) {
+    const now = new Date().toISOString();
+    const record = {
+      uid: normalizedUid,
+      username: String(username || '').trim(),
+      primaryWallet: normalizedWallet,
+      wallets: [normalizedWallet],
+      createdAt: now,
+      updatedAt: now
+    };
+    cashoutState.walletBindings[normalizedUid] = record;
+    persistState();
+    return {
+      ok: true,
+      walletBoundNow: true,
+      binding: getPublicWalletBinding(normalizedUid)
+    };
+  }
+
+  const primaryWallet = normalizeWalletAddress(existing.primaryWallet);
+  if (primaryWallet !== normalizedWallet) {
+    return {
+      error: `This Pi user is bound to wallet ${primaryWallet}. Use the primary wallet for private mainnet swap/bridge requests.`,
+      status: 403,
+      binding: getPublicWalletBinding(normalizedUid)
+    };
+  }
+
+  const mergedWallets = new Set(Array.isArray(existing.wallets) ? existing.wallets.map((wallet) => normalizeWalletAddress(wallet)) : []);
+  mergedWallets.add(primaryWallet);
+  const nextRecord = {
+    ...existing,
+    username: String(existing.username || '').trim() || String(username || '').trim(),
+    primaryWallet,
+    wallets: [...mergedWallets],
+    updatedAt: new Date().toISOString()
+  };
+  cashoutState.walletBindings[normalizedUid] = nextRecord;
+  persistState();
+
+  return {
+    ok: true,
+    walletBoundNow: false,
+    binding: getPublicWalletBinding(normalizedUid)
+  };
+}
+
 function buildCoinAccess(eligibleForMainnet) {
   return {
     testnet: {
@@ -580,12 +688,23 @@ async function requireUnlockAndEligibility(uid, username, walletAddress) {
     };
   }
 
+  const bindingResult = enforceWalletBinding(uid, username, walletAddress);
+  if (bindingResult.error) {
+    return {
+      error: bindingResult.error,
+      status: bindingResult.status || 403,
+      unlock: unlockResult.unlock,
+      walletBinding: bindingResult.binding || getPublicWalletBinding(uid) || null
+    };
+  }
+
   const eligibility = await getSessionEligibility(walletAddress);
   if (eligibility.error) {
     return {
       error: eligibility.error,
       status: eligibility.status || 502,
-      unlock: unlockResult.unlock
+      unlock: unlockResult.unlock,
+      walletBinding: bindingResult.binding || null
     };
   }
 
@@ -595,14 +714,17 @@ async function requireUnlockAndEligibility(uid, username, walletAddress) {
       status: 403,
       unlock: unlockResult.unlock,
       eligibility,
-      coinAccess: buildCoinAccess(false)
+      coinAccess: buildCoinAccess(false),
+      walletBinding: bindingResult.binding || null
     };
   }
 
   return {
     unlock: unlockResult.unlock,
     eligibility,
-    coinAccess: buildCoinAccess(true)
+    coinAccess: buildCoinAccess(true),
+    walletBinding: bindingResult.binding || null,
+    walletBoundNow: Boolean(bindingResult.walletBoundNow)
   };
 }
 
@@ -931,7 +1053,8 @@ app.post('/api/pi/dex/quote', async (req, res) => {
       error: access.error,
       unlock: access.unlock || null,
       eligibility: access.eligibility || null,
-      coinAccess: access.coinAccess || buildCoinAccess(false)
+      coinAccess: access.coinAccess || buildCoinAccess(false),
+      walletBinding: access.walletBinding || getPublicWalletBinding(uid) || null
     });
   }
 
@@ -947,6 +1070,8 @@ app.post('/api/pi/dex/quote', async (req, res) => {
       unlock: access.unlock,
       eligibility: access.eligibility,
       coinAccess: access.coinAccess,
+      walletBinding: access.walletBinding || null,
+      walletBoundNow: Boolean(access.walletBoundNow),
       quote
     });
   } catch (requestError) {
@@ -992,7 +1117,8 @@ app.post('/api/pi/dex/bootstrap', async (req, res) => {
       error: access.error,
       unlock: access.unlock || null,
       eligibility: access.eligibility || null,
-      coinAccess: access.coinAccess || buildCoinAccess(false)
+      coinAccess: access.coinAccess || buildCoinAccess(false),
+      walletBinding: access.walletBinding || getPublicWalletBinding(uid) || null
     });
   }
 
@@ -1061,6 +1187,8 @@ app.post('/api/pi/dex/bootstrap', async (req, res) => {
       unlock: access.unlock,
       eligibility: access.eligibility,
       coinAccess: access.coinAccess,
+      walletBinding: access.walletBinding || null,
+      walletBoundNow: Boolean(access.walletBoundNow),
       token_symbol: tokenSymbol,
       anet_amount_ants: anetAmountAnts,
       token_amount_units: tokenAmountUnits,
@@ -1112,7 +1240,8 @@ app.post('/api/pi/dex/execute', async (req, res) => {
       error: access.error,
       unlock: access.unlock || null,
       eligibility: access.eligibility || null,
-      coinAccess: access.coinAccess || buildCoinAccess(false)
+      coinAccess: access.coinAccess || buildCoinAccess(false),
+      walletBinding: access.walletBinding || getPublicWalletBinding(uid) || null
     });
   }
 
@@ -1145,6 +1274,8 @@ app.post('/api/pi/dex/execute', async (req, res) => {
       unlock: access.unlock,
       eligibility: access.eligibility,
       coinAccess: access.coinAccess,
+      walletBinding: access.walletBinding || null,
+      walletBoundNow: Boolean(access.walletBoundNow),
       request: requestRecord,
       swap
     });
