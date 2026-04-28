@@ -5,7 +5,7 @@
 
 ---
 
-### Pi Testnet App Starter
+### Pi DEX Access App
 
 A Pi Browser-ready starter page is now included at `pi-testnet.html`.
 
@@ -13,39 +13,50 @@ What it includes:
 
 - Pi SDK initialization in sandbox mode (`Pi.init({ version: '2.0', sandbox: true })`)
 - Pi user authentication (`username` + `payments` scopes)
-- Test payment creation flow (`Pi.createPayment`)
+- One-time lifetime DEX access unlock payment (`Pi.createPayment`, exact `1 Pi`)
+- Backend DEX-status lookup per Pi user
+- Layer 1 swap quote and execute after unlock
 - Callback hooks for approval and completion against your backend
 
 Required backend endpoints:
 
+- `GET /api/pi/dex/status/:uid`
 - `POST /api/pi/payments/approve`
 - `POST /api/pi/payments/complete`
+- `POST /api/pi/dex/quote`
+- `POST /api/pi/dex/execute`
 
-The page posts `paymentId` and `txid` (when available) to those endpoints. Your server must validate and finalize payments with your Pi app credentials before returning success.
+The page posts `paymentId` and `txid` to finalize the one-time lifetime unlock, then posts swap quote and execute data to your backend. Your server must validate the Pi payment, persist the lifetime unlock, and then forward approved requests to your Layer 1 `POST /dex/swap/quote` and `POST /dex/swap/execute` routes.
 
 Included backend starter:
 
 - Folder: `pi-backend/`
 - Health endpoint: `GET /health`
 - Pi SDK config endpoint: `GET /api/pi/config`
+- DEX status endpoint: `GET /api/pi/dex/status/:uid`
 - Payment endpoints:
   - `POST /api/pi/payments/approve`
   - `POST /api/pi/payments/complete`
+  - `POST /api/pi/dex/quote`
+  - `POST /api/pi/dex/execute`
 
 Backend policy controls (`pi-backend/.env`):
 
 - `PI_SANDBOX=true|false` (controls frontend Pi SDK mode through `/api/pi/config`)
 - `PI_REQUIRED_AMOUNT` (exact Pi amount required before mining access is unlocked)
+- `PI_ALLOWED_METADATA_PURPOSE` (expected `metadata.purpose` value, default `dex-lifetime-unlock`)
 - `PI_ALLOWED_METADATA_APP` (expected `metadata.app` value)
 - `PI_ALLOWED_MEMO_PREFIX` (required prefix in payment memo)
 - `PI_APP_WALLET` (optional destination wallet match)
 - `PI_MIN_AMOUNT` and `PI_MAX_AMOUNT` (allowed payment amount range)
+- `PI_CASHOUT_STATE_PATH` (persistent JSON file for lifetime DEX unlock records)
+- `ANET_CHAIN_API_BASE_URL` (Layer 1 DEX bridge)
 
 Current default policy for testnet:
 
-- Mining access requires an exact `1 Pi` payment
+- Lifetime DEX access unlock requires an exact `1 Pi` payment only once per Pi user
 - Frontend enforces exact amount based on backend `/api/pi/config`
-- Backend enforces exact amount and metadata/memo validation before approval and completion
+- Backend enforces exact amount, metadata/memo validation, stores the unlock, and then uses that unlock to authorize later DEX quote and swap requests
 
 Quick start:
 
@@ -59,7 +70,7 @@ npm install
 npm run start
 ```
 
-4. Open `pi-testnet.html` in Pi Browser sandbox and keep `Backend Base URL` as `http://localhost:3001` for local testing, or change it to your deployed backend URL.
+4. Open `pi-testnet.html` in Pi Browser sandbox and set `Backend Base URL` to your local or deployed backend URL.
 
 Use this page in Pi Browser sandbox mode first, then switch to production mode when checklist validation is complete.
 

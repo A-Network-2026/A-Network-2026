@@ -151,6 +151,10 @@ body {
   margin: 10px 0;
 }
 
+.action-row {
+  grid-column: 1 / -1;
+}
+
 button,
 .ghost {
   border-radius: 12px;
@@ -198,7 +202,8 @@ button:hover,
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 10px;

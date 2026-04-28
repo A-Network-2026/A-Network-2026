@@ -1012,6 +1012,78 @@ app.post('/api/pi/dex/execute', async (req, res) => {
   }
 });
 
+app.post('/api/pi/settlement/record', (req, res) => {
+  try {
+    const piPaymentId = String(req.body?.pi_payment_id || '').trim();
+    const piTxid = String(req.body?.pi_txid || '').trim();
+    const piAmount = String(req.body?.pi_amount || '').trim();
+    const fromAddress = String(req.body?.from_address || '').trim();
+    const toAddress = String(req.body?.to_address || '').trim();
+    const l1BlockHeight = Number.isInteger(Number(req.body?.l1_block_height)) ? Number(req.body?.l1_block_height) : null;
+    const l1BlockEvent = String(req.body?.l1_block_event || 'Pi: Payment Settlement').trim();
+
+    if (!piPaymentId || !piTxid || !piAmount || !fromAddress || !toAddress) {
+      return res.status(400).json({
+        ok: false,
+        error: 'pi_payment_id, pi_txid, pi_amount, from_address, and to_address are required'
+      });
+    }
+
+    // Initialize settlement transactions array if not present
+    if (!cashoutState.settlementTransactions) {
+      cashoutState.settlementTransactions = [];
+    }
+
+    const settlementRecord = {
+      id: `settlement_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      piPaymentId,
+      piTxid,
+      piAmount,
+      fromAddress,
+      toAddress,
+      l1BlockHeight,
+      l1BlockEvent,
+      recordedAt: new Date().toISOString(),
+      piExplorerUrl: getPiExplorerTransactionUrl(piTxid)
+    };
+
+    cashoutState.settlementTransactions.push(settlementRecord);
+    persistState();
+
+    console.log(`[SETTLEMENT] Recorded Pi→L1 settlement: ${piPaymentId} (${piTxid})`);
+
+    return res.status(200).json({
+      ok: true,
+      settlement: settlementRecord,
+      message: `Settlement recorded: Pi payment ${piPaymentId} settled on L1 at block ${l1BlockHeight}`
+    });
+  } catch (error) {
+    console.error(`[ERROR] Settlement recording failed: ${error.message}`);
+    return res.status(500).json({
+      ok: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/pi/settlement/recent', (_req, res) => {
+  try {
+    const settlements = (cashoutState.settlementTransactions || [])
+      .slice(-50)
+      .reverse();
+    return res.status(200).json({
+      ok: true,
+      settlements,
+      count: settlements.length
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error.message
+    });
+  }
+});
+
 app.post('/api/pi/cashout/request', (_req, res) => {
   return res.status(410).json({
     ok: false,
