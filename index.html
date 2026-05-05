@@ -509,6 +509,7 @@
       filter: drop-shadow(0 0 16px rgba(88, 197, 255, 0.36));
       transition: fill 0.25s ease, stroke 0.25s ease;
       transform-origin: center;
+      cursor: pointer;
     }
 
     .ants-bubble.alt {
@@ -523,6 +524,34 @@
       letter-spacing: 0.04em;
       fill: #d7ebff;
       pointer-events: none;
+    }
+
+    .ants-chain-link {
+      stroke: rgba(88, 197, 255, 0.42);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-dasharray: 7 7;
+      animation: antsChainFlow 7s linear infinite;
+      opacity: 0.8;
+    }
+
+    .ants-chain-link.active {
+      stroke: rgba(34, 231, 184, 0.9);
+      stroke-width: 2.8;
+      opacity: 1;
+      filter: drop-shadow(0 0 10px rgba(34, 231, 184, 0.45));
+    }
+
+    .ants-bubble.is-selected {
+      stroke: #f1fdff;
+      stroke-width: 2.6;
+      fill: rgba(255, 255, 255, 0.2);
+    }
+
+    .ants-bubble:focus-visible {
+      outline: none;
+      stroke: #f1fdff;
+      stroke-width: 2.6;
     }
 
     .ants-map-info {
@@ -566,6 +595,41 @@
       background: rgba(255, 255, 255, 0.03);
       color: var(--muted);
       font-size: 0.9rem;
+    }
+
+    .ants-legend button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: none;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font: inherit;
+      padding: 0;
+      text-align: left;
+    }
+
+    .ants-legend button:hover,
+    .ants-legend button:focus-visible {
+      color: var(--text);
+      outline: none;
+    }
+
+    .ants-legend li.is-selected {
+      border-color: rgba(34, 231, 184, 0.55);
+      background: rgba(34, 231, 184, 0.08);
+    }
+
+    .ants-map-detail {
+      min-height: 180px;
+    }
+
+    @keyframes antsChainFlow {
+      from { stroke-dashoffset: 0; }
+      to { stroke-dashoffset: -140; }
     }
 
     .ants-legend span:last-child {
@@ -766,38 +830,47 @@
               <title id="antsMapTitle">ANTS Colony Bubbles Map</title>
               <desc id="antsMapDesc">Each bubble represents a colony zone and relative active miner concentration.</desc>
 
+              <g id="antsChainLinks">
+                <line class="ants-chain-link" data-link="hive-core atlas-node" x1="170" y1="140" x2="355" y2="120"></line>
+                <line class="ants-chain-link" data-link="atlas-node kite-route" x1="355" y1="120" x2="570" y2="150"></line>
+                <line class="ants-chain-link" data-link="hive-core forge-south" x1="170" y1="140" x2="260" y2="330"></line>
+                <line class="ants-chain-link" data-link="forge-south delta-mesh" x1="260" y1="330" x2="455" y2="300"></line>
+                <line class="ants-chain-link" data-link="atlas-node delta-mesh" x1="355" y1="120" x2="455" y2="300"></line>
+                <line class="ants-chain-link" data-link="delta-mesh ridge-link" x1="455" y1="300" x2="675" y2="322"></line>
+              </g>
+
               <g>
-                <circle class="ants-bubble" data-value="1260" cx="170" cy="140" r="78"></circle>
+                <circle class="ants-bubble" data-id="hive-core" data-value="1260" cx="170" cy="140" r="78" tabindex="0" role="button" aria-label="Hive Core colony zone"></circle>
                 <text class="ants-bubble-label" x="170" y="138" text-anchor="middle">Hive Core</text>
                 <text class="ants-bubble-label" x="170" y="158" text-anchor="middle">1260</text>
               </g>
 
               <g>
-                <circle class="ants-bubble alt" data-value="910" cx="355" cy="120" r="64"></circle>
+                <circle class="ants-bubble alt" data-id="atlas-node" data-value="910" cx="355" cy="120" r="64" tabindex="0" role="button" aria-label="Atlas Node colony zone"></circle>
                 <text class="ants-bubble-label" x="355" y="118" text-anchor="middle">Atlas Node</text>
                 <text class="ants-bubble-label" x="355" y="138" text-anchor="middle">910</text>
               </g>
 
               <g>
-                <circle class="ants-bubble" data-value="720" cx="570" cy="150" r="54"></circle>
+                <circle class="ants-bubble" data-id="kite-route" data-value="720" cx="570" cy="150" r="54" tabindex="0" role="button" aria-label="Kite Route colony zone"></circle>
                 <text class="ants-bubble-label" x="570" y="148" text-anchor="middle">Kite Route</text>
                 <text class="ants-bubble-label" x="570" y="168" text-anchor="middle">720</text>
               </g>
 
               <g>
-                <circle class="ants-bubble alt" data-value="840" cx="260" cy="330" r="59"></circle>
+                <circle class="ants-bubble alt" data-id="forge-south" data-value="840" cx="260" cy="330" r="59" tabindex="0" role="button" aria-label="Forge South colony zone"></circle>
                 <text class="ants-bubble-label" x="260" y="328" text-anchor="middle">Forge South</text>
                 <text class="ants-bubble-label" x="260" y="348" text-anchor="middle">840</text>
               </g>
 
               <g>
-                <circle class="ants-bubble" data-value="980" cx="455" cy="300" r="68"></circle>
+                <circle class="ants-bubble" data-id="delta-mesh" data-value="980" cx="455" cy="300" r="68" tabindex="0" role="button" aria-label="Delta Mesh colony zone"></circle>
                 <text class="ants-bubble-label" x="455" y="298" text-anchor="middle">Delta Mesh</text>
                 <text class="ants-bubble-label" x="455" y="318" text-anchor="middle">980</text>
               </g>
 
               <g>
-                <circle class="ants-bubble alt" data-value="560" cx="675" cy="322" r="47"></circle>
+                <circle class="ants-bubble alt" data-id="ridge-link" data-value="560" cx="675" cy="322" r="47" tabindex="0" role="button" aria-label="Ridge Link colony zone"></circle>
                 <text class="ants-bubble-label" x="675" y="320" text-anchor="middle">Ridge Link</text>
                 <text class="ants-bubble-label" x="675" y="340" text-anchor="middle">560</text>
               </g>
@@ -814,6 +887,12 @@
             <article class="ants-map-kpi">
               <h3>Zone Snapshot</h3>
               <ul class="ants-legend" id="antsLegend"></ul>
+            </article>
+
+            <article class="ants-map-kpi ants-map-detail" id="antsBubbleDetail" aria-live="polite">
+              <h3 id="antsDetailTitle">Tap a bubble to inspect</h3>
+              <p class="tiny" id="antsDetailMeta">Select any colony node to inspect live chain links and inside status.</p>
+              <p class="section-copy" id="antsDetailBody">Each bubble represents a zone. Click one to display active miners, conversion state, and zone purpose.</p>
             </article>
           </div>
         </div>
@@ -1057,23 +1136,106 @@
 
     function initAntsBubbleMap() {
       const bubbles = Array.from(document.querySelectorAll('#antsBubbleMap .ants-bubble'));
+      const links = Array.from(document.querySelectorAll('#antsChainLinks .ants-chain-link'));
       const legend = document.getElementById('antsLegend');
       const totalEl = document.getElementById('antsMapTotal');
-      if (!bubbles.length || !legend || !totalEl) {
+      const detailTitle = document.getElementById('antsDetailTitle');
+      const detailMeta = document.getElementById('antsDetailMeta');
+      const detailBody = document.getElementById('antsDetailBody');
+      if (!bubbles.length || !legend || !totalEl || !detailTitle || !detailMeta || !detailBody) {
         return;
       }
 
+      const zoneInsights = {
+        'hive-core': {
+          role: 'Primary coordination hub',
+          body: 'Handles colony routing, session heartbeat alignment, and entry-level ANTS reputation scoring for new miners.'
+        },
+        'atlas-node': {
+          role: 'Validation corridor',
+          body: 'Focuses on cross-zone validation and anti-abuse consensus signals before ANTS progress is accepted network-wide.'
+        },
+        'kite-route': {
+          role: 'Transit channel',
+          body: 'Routes activity toward high-liquidity utility paths and helps model conversion pressure for Layer 1 readiness.'
+        },
+        'forge-south': {
+          role: 'Growth basin',
+          body: 'Represents expanding miner clusters and onboarding throughput where colony teams coordinate long-session consistency.'
+        },
+        'delta-mesh': {
+          role: 'Settlement mesh',
+          body: 'Links upstream mining reputation with downstream settlement logic, helping shape ANTS-to-ANET conversion confidence.'
+        },
+        'ridge-link': {
+          role: 'Edge relay',
+          body: 'Captures outer-zone performance and relays verified work back into the core chain for unified progression.'
+        }
+      };
+
+      const zoneNameById = {};
+
       let total = 0;
       const legendHtml = bubbles.map((bubble, index) => {
+        const zoneId = bubble.dataset.id || `zone-${index + 1}`;
         const value = Number(bubble.dataset.value || 0);
         total += value;
         const zone = bubble.parentElement.querySelector('text')?.textContent || `Zone ${index + 1}`;
+        zoneNameById[zoneId] = zone;
         bubble.dataset.baseRadius = bubble.getAttribute('r') || '40';
-        return `<li><span>${zone}</span><span>${value.toLocaleString()}</span></li>`;
+        return `<li data-zoneid="${zoneId}"><button type="button"><span>${zone}</span><span>${value.toLocaleString()}</span></button></li>`;
       }).join('');
 
       totalEl.textContent = total.toLocaleString();
       legend.innerHTML = legendHtml;
+
+      const legendItems = Array.from(legend.querySelectorAll('li'));
+
+      function setActiveZone(zoneId) {
+        bubbles.forEach((bubble) => {
+          bubble.classList.toggle('is-selected', bubble.dataset.id === zoneId);
+        });
+
+        legendItems.forEach((item) => {
+          item.classList.toggle('is-selected', item.dataset.zoneid === zoneId);
+        });
+
+        links.forEach((line) => {
+          const pair = (line.dataset.link || '').split(' ');
+          line.classList.toggle('active', pair.includes(zoneId));
+        });
+
+        const zoneName = zoneNameById[zoneId] || 'Unknown Zone';
+        const selectedBubble = bubbles.find((bubble) => bubble.dataset.id === zoneId);
+        const value = Number(selectedBubble?.dataset.value || 0).toLocaleString();
+        const insight = zoneInsights[zoneId] || {
+          role: 'Colony node',
+          body: 'Zone details will appear here once configured.'
+        };
+
+        detailTitle.textContent = `${zoneName} | Inside View`;
+        detailMeta.textContent = `${insight.role} | Active miners: ${value} | Connected links highlighted on-chain map.`;
+        detailBody.textContent = insight.body;
+      }
+
+      bubbles.forEach((bubble) => {
+        bubble.addEventListener('click', () => {
+          setActiveZone(bubble.dataset.id || '');
+        });
+
+        bubble.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            setActiveZone(bubble.dataset.id || '');
+          }
+        });
+      });
+
+      legendItems.forEach((item) => {
+        item.querySelector('button')?.addEventListener('click', () => {
+          setActiveZone(item.dataset.zoneid || '');
+        });
+      });
 
       let phase = 0;
       function pulse() {
@@ -1087,6 +1249,7 @@
       }
 
       pulse();
+      setActiveZone(bubbles[0]?.dataset.id || '');
     }
 
     initAntsBubbleMap();
