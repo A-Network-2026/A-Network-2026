@@ -542,20 +542,23 @@
     }
 
     .ants-avatar-core {
-      width: 56%;
-      height: 56%;
+      width: 62%;
+      height: 62%;
       border-radius: 999px;
       overflow: hidden;
       border: 2px solid rgba(255, 255, 255, 0.72);
       box-shadow: 0 2px 7px rgba(10, 22, 44, 0.2);
-      background: #ffffff;
+      background: rgba(255, 255, 255, 0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6%;
     }
 
-    .ants-avatar-core img {
+    .ants-avatar-core svg {
+      display: block;
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      display: block;
     }
 
     .ants-cloud-link {
@@ -1141,6 +1144,34 @@
         return x - Math.floor(x);
       }
 
+      function generateAntSvg(colorIndex) {
+        const bodies = ['#1a1a1a','#8b1a0a','#5c3010','#2a5a1a','#c47a2a','#3a1a6e','#1a3520','#6b3a1a'];
+        const legs  = ['#2a2a2a','#a02800','#7a4818','#3a7a28','#e09040','#4a2a8a','#28483a','#8b5220'];
+        const ci = Math.abs(Math.floor(colorIndex * 100)) % bodies.length;
+        const b = bodies[ci], l = legs[ci];
+        return `<svg width="100%" height="100%" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" overflow="visible">`
+          + `<line x1="22" y1="8" x2="14" y2="2" stroke="${l}" stroke-width="1.4" stroke-linecap="round"/>`
+          + `<circle cx="13.5" cy="1.5" r="1.6" fill="${b}"/>`
+          + `<line x1="28" y1="8" x2="36" y2="2" stroke="${l}" stroke-width="1.4" stroke-linecap="round"/>`
+          + `<circle cx="36.5" cy="1.5" r="1.6" fill="${b}"/>`
+          + `<circle cx="25" cy="13" r="6" fill="${b}"/>`
+          + `<circle cx="22" cy="11.5" r="1.4" fill="rgba(255,255,255,0.85)"/>`
+          + `<circle cx="28" cy="11.5" r="1.4" fill="rgba(255,255,255,0.85)"/>`
+          + `<circle cx="22.4" cy="11.7" r="0.7" fill="#111"/>`
+          + `<circle cx="28.4" cy="11.7" r="0.7" fill="#111"/>`
+          + `<line x1="25" y1="19" x2="25" y2="21" stroke="${l}" stroke-width="2"/>`
+          + `<circle cx="25" cy="25" r="5.2" fill="${b}"/>`
+          + `<line x1="19.8" y1="22.5" x2="8" y2="18" stroke="${l}" stroke-width="1.5" stroke-linecap="round"/>`
+          + `<line x1="19.8" y1="25" x2="8" y2="25" stroke="${l}" stroke-width="1.5" stroke-linecap="round"/>`
+          + `<line x1="19.8" y1="27.5" x2="8" y2="32" stroke="${l}" stroke-width="1.5" stroke-linecap="round"/>`
+          + `<line x1="30.2" y1="22.5" x2="42" y2="18" stroke="${l}" stroke-width="1.5" stroke-linecap="round"/>`
+          + `<line x1="30.2" y1="25" x2="42" y2="25" stroke="${l}" stroke-width="1.5" stroke-linecap="round"/>`
+          + `<line x1="30.2" y1="27.5" x2="42" y2="32" stroke="${l}" stroke-width="1.5" stroke-linecap="round"/>`
+          + `<line x1="25" y1="30.2" x2="25" y2="32.5" stroke="${l}" stroke-width="1.8"/>`
+          + `<ellipse cx="25" cy="41" rx="5.8" ry="8" fill="${b}"/>`
+          + `</svg>`;
+      }
+
       const bubblesData = [];
       const bubbleCount = 92;
       for (let i = 0; i < bubbleCount; i++) {
@@ -1160,7 +1191,7 @@
           zoneName,
           role: `${zoneName} colony`,
           inside: `Inside this bubble: miner pods, session reliability score, ANTS pressure index, and conversion readiness signals for ${zoneName}.`,
-          avatar: `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(id)}`
+          colorIndex: seededRandom((i + 1) * 3.7)
         });
       }
 
@@ -1172,7 +1203,7 @@
         return `
           <button class="ants-avatar-bubble" role="listitem" data-id="${item.id}" data-value="${item.value}" data-zone="${item.zoneName}" aria-label="${item.zoneName} bubble"
             style="left:${left}%;top:${top}%;width:${item.size}px;height:${item.size}px;--float-delay:${delay}s;--float-duration:${duration}s;">
-            <span class="ants-avatar-core"><img loading="lazy" src="${item.avatar}" alt="${item.zoneName} avatar"></span>
+            <span class="ants-avatar-core">${generateAntSvg(item.colorIndex)}</span>
           </button>`;
       }).join('');
 
