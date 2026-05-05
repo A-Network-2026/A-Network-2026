@@ -750,6 +750,117 @@
       line-height: 1.35;
     }
 
+    .decent-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .decent-card {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .decent-card h3 {
+      margin: 0 0 10px;
+      font-size: 0.86rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .decent-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .decent-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .decent-compare-col {
+      padding: 16px 18px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .decent-compare-col h4 {
+      margin: 0 0 10px;
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.82rem;
+      letter-spacing: 0.05em;
+      color: var(--accent-2);
+    }
+
+    .decent-compare-col ul {
+      margin: 0;
+      padding: 0 0 0 16px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.8;
+    }
+
+    .decent-roadmap {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .decent-step {
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .decent-step .step-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .decent-step .step-title {
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.82rem;
+      color: var(--text);
+    }
+
+    .decent-step p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .decent-step.is-active {
+      border-color: rgba(34, 231, 184, 0.45);
+      background: rgba(34, 231, 184, 0.05);
+    }
+
+    .decent-step.is-active .step-label {
+      color: var(--accent-2);
+    }
+
+    @media (max-width: 980px) {
+      .decent-grid,
+      .decent-compare,
+      .decent-roadmap {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @keyframes antsChainFlow {
       from { stroke-dashoffset: 0; }
       to { stroke-dashoffset: -140; }
@@ -838,6 +949,7 @@
         <a href="#economies">Economies</a>
         <a href="#ants-map">ANTS Map</a>
         <a href="#developers">Developers</a>
+        <a href="#decentralization">Decentralization</a>
         <a href="#dyor">DYOR</a>
         <a href="ants-program.html">ANTS Program</a>
         <a href="whitepaper.html">Whitepaper</a>
@@ -1034,6 +1146,79 @@
             <h3>Long-Term Product Focus</h3>
             <p class="dev-copy">The ambition is ecosystem design, not short-term speculation. Release work now includes account continuity, wallet recovery controls, and open-test readiness alongside contract visibility.</p>
           </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="decentralization">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2>Decentralization: Participation First</h2>
+            <div class="section-copy-card">
+              <p class="section-copy">Decentralization is not binary — it is a process. A Network decentralizes who can participate from day one, then progressively decentralizes who validates the ledger.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="decent-grid">
+          <article class="decent-card">
+            <h3>Participation Layer — Decentralized Now</h3>
+            <p>From day one, no single entity controls who can join, contribute, or earn. Mining runs on individual smartphones through Proof-of-Time (TPoW) 6-hour verified sessions. No ASIC machines. No capital barrier. Global accessibility by default. Participation is already distributed across every miner running a session.</p>
+          </article>
+          <article class="decent-card">
+            <h3>Validation Layer — Decentralizing Over Time</h3>
+            <p>Early-stage validation is currently coordinated to enforce fairness: anti-bot protection, one-user-per-participant integrity, and abuse-resistant session scoring. This is a deliberate design choice — not a shortcut. As the network matures, seed nodes evolve into public validators, verification rules become open, and consensus shifts from coordinated to network-driven.</p>
+          </article>
+          <article class="decent-card">
+            <h3>Why Coordinated Validation Now</h3>
+            <p>Without structured enforcement in early stages, networks are vulnerable to bot farming, multi-account abuse, and unfair accumulation. The current validation layer protects the integrity of every honest miner's session history and ANTS balance — so that the eventual fully-decentralized ledger is built on clean, fair data from the start.</p>
+          </article>
+          <article class="decent-card">
+            <h3>Seed Nodes and the Path Forward</h3>
+            <p>The current private mainnet operates through coordinated seed nodes that enforce settlement blocks and session validation. These are the foundation that will progressively open to public validators as the network reaches the readiness thresholds defined in the roadmap. The end goal: no single authority decides the ledger.</p>
+          </article>
+        </div>
+
+        <div class="accent-line"></div>
+
+        <div class="decent-compare">
+          <div class="decent-compare-col">
+            <h4>Bitcoin</h4>
+            <ul>
+              <li>Decentralized participation + validation from day one</li>
+              <li>Secured by Proof-of-Work (energy + computation)</li>
+              <li>High hardware and capital requirements</li>
+              <li>Limited accessibility for everyday users</li>
+            </ul>
+          </div>
+          <div class="decent-compare-col">
+            <h4>A Network</h4>
+            <ul>
+              <li>Participation decentralized from day one via TPoW</li>
+              <li>Validation decentralizes progressively over time</li>
+              <li>Secured by verified participation — no hardware required</li>
+              <li>Smartphone-accessible from any country</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="decent-roadmap">
+          <div class="decent-step is-active">
+            <span class="step-label">Now — Active</span>
+            <span class="step-title">Participation Decentralized</span>
+            <p>TPoW mining open to all. Session validation enforced centrally for integrity. Seed nodes power the private mainnet.</p>
+          </div>
+          <div class="decent-step">
+            <span class="step-label">Next — Transitioning</span>
+            <span class="step-title">Seed Nodes Open</span>
+            <p>Seed nodes begin transitioning toward public validators. Verification rules become inspectable. Multiple independent parties participate in settlement.</p>
+          </div>
+          <div class="decent-step">
+            <span class="step-label">End Goal — Target</span>
+            <span class="step-title">Both Layers Decentralized</span>
+            <p>Decentralized validators, public consensus rules, independent verification, and no reliance on a central server. Participation and validation both fully distributed.</p>
+          </div>
         </div>
       </div>
     </section>
