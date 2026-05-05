@@ -657,6 +657,99 @@
       min-height: 180px;
     }
 
+    .ants-updated-at {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .ants-hover-card {
+      position: absolute;
+      z-index: 3;
+      width: min(240px, calc(100% - 20px));
+      border-radius: 16px;
+      border: 1px solid rgba(138, 128, 235, 0.35);
+      background: rgba(245, 245, 255, 0.95);
+      box-shadow: 0 16px 32px rgba(62, 56, 112, 0.28);
+      color: #2b2a3f;
+      padding: 10px 12px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .ants-hover-card.is-visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .ants-hover-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .ants-hover-head .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid rgba(138, 128, 235, 0.45);
+      background: rgba(255, 255, 255, 0.92);
+      display: grid;
+      place-items: center;
+      padding: 4px;
+    }
+
+    .ants-hover-head .title {
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.77rem;
+      letter-spacing: 0.02em;
+      color: #3c3870;
+    }
+
+    .ants-hover-head .sub {
+      font-size: 0.72rem;
+      color: #68638f;
+    }
+
+    .ants-hover-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .ants-hover-stat {
+      border-radius: 10px;
+      background: rgba(121, 112, 208, 0.08);
+      padding: 6px;
+    }
+
+    .ants-hover-stat small {
+      display: block;
+      font-size: 0.62rem;
+      color: #7e79a3;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .ants-hover-stat strong {
+      display: block;
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.79rem;
+      color: #3f3a72;
+    }
+
+    .ants-hover-card p {
+      margin: 0;
+      font-size: 0.72rem;
+      color: #625d89;
+      line-height: 1.35;
+    }
+
     @keyframes antsChainFlow {
       from { stroke-dashoffset: 0; }
       to { stroke-dashoffset: -140; }
@@ -863,6 +956,7 @@
           <div class="ants-map-surface" aria-label="ANTS colony bubble map">
             <svg id="antsBubbleLinks" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true"></svg>
             <div id="antsBubbleCloud" role="list" aria-label="ANTS avatar bubbles"></div>
+            <aside class="ants-hover-card" id="antsHoverCard" aria-hidden="true"></aside>
           </div>
 
           <div class="ants-map-info">
@@ -870,6 +964,7 @@
               <h3>Estimated Active Miner Units</h3>
               <div class="ants-total" id="antsMapTotal">0</div>
               <p class="tiny">Live from backend stats: active miners and verified user distribution snapshots.</p>
+              <span class="ants-updated-at" id="antsMapUpdatedAt">Last updated: pending...</span>
             </article>
 
             <article class="ants-map-kpi">
@@ -1153,7 +1248,9 @@
       const detailTitle = document.getElementById('antsDetailTitle');
       const detailMeta = document.getElementById('antsDetailMeta');
       const detailBody = document.getElementById('antsDetailBody');
-      if (!cloud || !linksSvg || !legend || !totalEl || !detailTitle || !detailMeta || !detailBody) {
+      const updatedAtEl = document.getElementById('antsMapUpdatedAt');
+      const hoverCard = document.getElementById('antsHoverCard');
+      if (!cloud || !linksSvg || !legend || !totalEl || !detailTitle || !detailMeta || !detailBody || !updatedAtEl || !hoverCard) {
         return;
       }
 
@@ -1208,6 +1305,15 @@
           + `<line x1="25" y1="30.2" x2="25" y2="32.5" stroke="${l}" stroke-width="1.8"/>`
           + `<ellipse cx="25" cy="41" rx="5.8" ry="8" fill="${b}"/>`
           + `</svg>`;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
       }
 
       const bubblesData = [];
@@ -1350,6 +1456,56 @@
 
       const legendItems = Array.from(legend.querySelectorAll('li'));
 
+      function setLastUpdatedLabel(dateValue) {
+        const date = dateValue ? new Date(dateValue) : new Date();
+        updatedAtEl.textContent = `Last updated: ${date.toLocaleString()}`;
+      }
+
+      function positionHoverCard(x, y) {
+        const cardWidth = hoverCard.offsetWidth || 230;
+        const cardHeight = hoverCard.offsetHeight || 160;
+        const maxLeft = 1000 - cardWidth - 8;
+        const maxTop = 560 - cardHeight - 8;
+        const left = Math.min(Math.max(8, x), maxLeft);
+        const top = Math.min(Math.max(8, y), maxTop);
+
+        hoverCard.style.left = `${left}px`;
+        hoverCard.style.top = `${top}px`;
+      }
+
+      function showHoverCard(selected) {
+        const connections = linkEls.filter((line) => line.dataset.a === selected.id || line.dataset.b === selected.id).length;
+        hoverCard.innerHTML = `
+          <div class="ants-hover-head">
+            <span class="avatar">${generateAntSvg(selected.colorIndex)}</span>
+            <div>
+              <div class="title">${escapeHtml(selected.zoneName)}</div>
+              <div class="sub">${escapeHtml(selected.country || 'Unknown')} | ${escapeHtml(selected.source === 'live' ? 'Live backend' : 'Fallback')}</div>
+            </div>
+          </div>
+          <div class="ants-hover-grid">
+            <div class="ants-hover-stat"><small>Active miners</small><strong>${Number(selected.value || 0).toLocaleString()}</strong></div>
+            <div class="ants-hover-stat"><small>Live links</small><strong>${connections.toLocaleString()}</strong></div>
+          </div>
+          <p>${escapeHtml(selected.inside)}</p>
+        `;
+
+        const bubbleX = selected.x + (selected.size / 2);
+        const bubbleY = selected.y + (selected.size / 2);
+        const preferRight = bubbleX < 640;
+        const cardX = preferRight ? bubbleX + 24 : bubbleX - 250;
+        const cardY = bubbleY - 72;
+        positionHoverCard(cardX, cardY);
+
+        hoverCard.classList.add('is-visible');
+        hoverCard.setAttribute('aria-hidden', 'false');
+      }
+
+      function hideHoverCard() {
+        hoverCard.classList.remove('is-visible');
+        hoverCard.setAttribute('aria-hidden', 'true');
+      }
+
       function setActiveZone(zoneId) {
         bubbles.forEach((bubble) => {
           bubble.classList.toggle('is-selected', bubble.dataset.id === zoneId);
@@ -1376,9 +1532,14 @@
         detailTitle.textContent = `${selected.zoneName} | Inside View`;
         detailMeta.textContent = `${role} | Active miners: ${selected.value.toLocaleString()} | Live links: ${connections}${countryLabel} | Source: ${sourceLabel}`;
         detailBody.textContent = selected.inside;
+        showHoverCard(selected);
       }
 
       bubbles.forEach((bubble) => {
+        bubble.addEventListener('mouseenter', () => {
+          setActiveZone(bubble.dataset.id || '');
+        });
+
         bubble.addEventListener('click', () => {
           setActiveZone(bubble.dataset.id || '');
         });
@@ -1391,6 +1552,17 @@
         });
       });
 
+      cloud.addEventListener('mouseleave', () => {
+        hideHoverCard();
+      });
+
+      cloud.addEventListener('touchstart', (event) => {
+        const touchedBubble = event.target.closest('.ants-avatar-bubble');
+        if (!touchedBubble) {
+          hideHoverCard();
+        }
+      }, { passive: true });
+
       legendItems.forEach((item) => {
         item.querySelector('button')?.addEventListener('click', () => {
           setActiveZone(item.dataset.zoneid || '');
@@ -1398,6 +1570,7 @@
       });
 
       setActiveZone(bubbles[0]?.dataset.id || '');
+      setLastUpdatedLabel(networkStats?.snapshotComputedAt || networkStats?.updatedAt || Date.now());
 
       if (statsFetchError) {
         detailMeta.textContent = 'Backend stats unavailable now. Showing fallback estimates.';
