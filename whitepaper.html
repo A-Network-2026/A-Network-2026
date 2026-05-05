@@ -1157,13 +1157,13 @@
 
         <tbody>
 
-          <tr><td>$ANET</td><td>â‰ˆ</td><td>BTC</td></tr>
+          <tr><td>$ANET</td><td>&asymp;</td><td>BTC</td></tr>
 
-          <tr><td>Ant</td><td>â‰ˆ</td><td>Satoshi (Sat)</td></tr>
+          <tr><td>Ant</td><td>&asymp;</td><td>Satoshi (Sat)</td></tr>
 
           <tr><td>100,000,000 Ants</td><td>= 1 ANET</td><td>100,000,000 Sats = 1 BTC</td></tr>
 
-          <tr><td>21,000,000 ANET max</td><td>â‰¡</td><td>21,000,000 BTC max</td></tr>
+          <tr><td>21,000,000 ANET max</td><td>&#8801;</td><td>21,000,000 BTC max</td></tr>
 
         </tbody>
 
@@ -1819,7 +1819,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
 
 
-<span class="keyword">totalSessionsToExhaustCap</span> â‰ˆ <span class="value">247,394,628,907</span>
+<span class="keyword">totalSessionsToExhaustCap</span> &asymp; <span class="value">247,394,628,907</span>
 
 
 
@@ -2133,7 +2133,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
           <li><strong>Fingerprint Farm:</strong> Unverified account on a fingerprint shared by 4+ accounts</li>
 
-          <li><strong>Flagged + Low Activity:</strong> Unverified account that is either flagged or has risk score &ge; 8, with â‰¤ 1 session and no claimed ANET</li>
+          <li><strong>Flagged + Low Activity:</strong> Unverified account that is either flagged or has risk score &ge; 8, with &le; 1 session and no claimed ANET</li>
 
         </ul>
 
@@ -3167,7 +3167,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
         <li><strong>Notification Worker:</strong> A 60-second server interval worker polls for users whose <code>session_end_time &le; NOW()</code> and <code>notification_sent = FALSE</code>, triggering completion processing and dashboard failsafe updates even if the client missed the local reminder.</li>
 
-        <li><strong>Dormancy Cleanup:</strong> A background cleanup service can soft-delete verified accounts that remain inactive for 30+ days and return their unclaimed ANTS to the ecosystem ledger for redistribution.</li>
+        <li><strong>Dormancy Cleanup:</strong> A background cleanup service may soft-delete accounts that have never claimed any ANET and have zero completed session history, after 90+ days of inactivity. This only affects genuinely empty/abandoned accounts — accounts with any claimed ANET balance or any session history are never affected. Users receive an in-app notification prior to any dormancy action, and any ANTS returned to the ecosystem ledger come only from accounts with zero recorded earnings.</li>
 
       </ul>
 
@@ -3374,7 +3374,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
 
 
-      <p>Full legal documents: <a href="https://a-network.net/privacy.html" style="color: var(--accent);">Privacy Policy</a> Â· <a href="https://a-network.net/terms.html" style="color: var(--accent);">Terms of Service</a> Â· <a href="https://a-network.net/delete-account.html" style="color: var(--accent);">Account Deletion</a></p>
+      <p>Full legal documents: <a href="https://a-network.net/privacy.html" style="color: var(--accent);">Privacy Policy</a> &middot; <a href="https://a-network.net/terms.html" style="color: var(--accent);">Terms of Service</a> &middot; <a href="https://a-network.net/delete-account.html" style="color: var(--accent);">Account Deletion</a></p>
 
     </section>
 
@@ -3386,13 +3386,13 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <div class="wp-footer">
 
-      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> Â· Official Whitepaper v2.1 Â· April 29, 2026</p>
+      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> &middot; Official Whitepaper v2.1 &middot; April 29, 2026</p>
 
-      <p>Website: <a href="https://a-network.net">a-network.net</a> Â· Contract: <a href="https://bscscan.com/address/0x791055A7d52AA392eaE8De04250497f33807E46A">0x791055A7...E46A</a> Â· App: <a href="https://play.google.com/store">Google Play</a></p>
+      <p>Website: <a href="https://a-network.net">a-network.net</a> &middot; Contract: <a href="https://bscscan.com/address/0x791055A7d52AA392eaE8De04250497f33807E46A">0x791055A7...E46A</a> &middot; App: <a href="https://play.google.com/store/apps/details?id=com.anetwork.app">Google Play</a></p>
 
-      <p>A Network LLC Â· California LLC Â· Entity No. 20260170159</p>
+      <p>A Network LLC &middot; California LLC &middot; Entity No. 20260170159</p>
 
-      <p style="margin-top: 10px;">Â© 2026 A-Network. All rights reserved. &nbsp;Â·&nbsp; <a href="https://a-network.net/privacy.html">Privacy</a> &nbsp;Â·&nbsp; <a href="https://a-network.net/terms.html">Terms</a></p>
+      <p style="margin-top: 10px;">&copy; 2026 A-Network. All rights reserved. &nbsp;&middot;&nbsp; <a href="https://a-network.net/privacy.html">Privacy</a> &nbsp;&middot;&nbsp; <a href="https://a-network.net/terms.html">Terms</a></p>
 
     </div>
 
