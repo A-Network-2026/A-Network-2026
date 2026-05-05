@@ -1462,12 +1462,13 @@
       }
 
       function positionHoverCard(x, y) {
-        const cardWidth = hoverCard.offsetWidth || 230;
+        const surface = hoverCard.parentElement;
+        const surfaceW = surface.offsetWidth || 600;
+        const surfaceH = surface.offsetHeight || 460;
+        const cardWidth = hoverCard.offsetWidth || 240;
         const cardHeight = hoverCard.offsetHeight || 160;
-        const maxLeft = 1000 - cardWidth - 8;
-        const maxTop = 560 - cardHeight - 8;
-        const left = Math.min(Math.max(8, x), maxLeft);
-        const top = Math.min(Math.max(8, y), maxTop);
+        const left = Math.min(Math.max(8, x), surfaceW - cardWidth - 8);
+        const top = Math.min(Math.max(8, y), surfaceH - cardHeight - 8);
 
         hoverCard.style.left = `${left}px`;
         hoverCard.style.top = `${top}px`;
@@ -1490,10 +1491,13 @@
           <p>${escapeHtml(selected.inside)}</p>
         `;
 
-        const bubbleX = selected.x + (selected.size / 2);
-        const bubbleY = selected.y + (selected.size / 2);
-        const preferRight = bubbleX < 640;
-        const cardX = preferRight ? bubbleX + 24 : bubbleX - 250;
+        const surface = hoverCard.parentElement;
+        const surfaceW = surface.offsetWidth || 600;
+        const surfaceH = surface.offsetHeight || 460;
+        const bubbleX = ((selected.x + selected.size / 2) / 1000) * surfaceW;
+        const bubbleY = ((selected.y + selected.size / 2) / 560) * surfaceH;
+        const preferRight = bubbleX < surfaceW * 0.64;
+        const cardX = preferRight ? bubbleX + 16 : bubbleX - 256;
         const cardY = bubbleY - 72;
         positionHoverCard(cardX, cardY);
 
