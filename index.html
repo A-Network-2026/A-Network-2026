@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>A Network | Web2 + Web3 + Web4 + Live Layer 1</title>
-  <meta name="description" content="A Network combines Web2 6-hour mining sessions, ANTS-first accounting, Web3 visibility, a live Layer 1 testnet with event-driven settlement blocks, wallet recovery controls, and a long-term Web4 roadmap.">
+  <meta name="description" content="A Network combines Web2 6-hour mining sessions, a 21M Web3 utility token on BNB Chain, a separate ANTS-to-ANET Layer 1 mining economy, wallet recovery controls, and a Live Layer 1 Private Mainnet with event-driven settlement blocks.">
   <meta name="theme-color" content="#07101a">
   <meta name="apple-mobile-web-app-title" content="A Network">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="A Network">
   <meta property="og:title" content="A Network | Web2 + Web3 + Web4 + Live Layer 1">
-  <meta property="og:description" content="Explore A Network's current release: 6-hour session mining, ANTS-first accounting, wallet continuity controls, Web3 visibility, and a live Layer 1 testnet with event-driven settlement blocks.">
+  <meta property="og:description" content="Explore A Network's current release: 6-hour session mining, a 21M BNB Chain utility token, a separate mining-only Layer 1 coin economy, wallet continuity controls, and a Live Layer 1 Private Mainnet.">
   <meta property="og:url" content="https://a-network.net/">
   <meta property="og:image" content="https://a-network.net/logo.png">
   <meta property="og:image:width" content="1254">
@@ -18,7 +18,7 @@
   <meta property="og:image:alt" content="A Network logo">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="A Network | Web2 + Web3 + Web4 + Live Layer 1">
-  <meta name="twitter:description" content="Explore A Network's current release with ANTS-first mining, wallet continuity controls, legal pages, whitepaper, Web4 vision, Web5 live chain view, and event-driven settlement blocks.">
+  <meta name="twitter:description" content="Explore A Network's current release with ANTS-first mining, a BNB Chain utility token, a separate mined Layer 1 coin model, wallet continuity controls, legal pages, and a Live Layer 1 Private Mainnet.">
   <meta name="twitter:image" content="https://a-network.net/logo.png">
   <link rel="canonical" href="https://a-network.net/">
   <link rel="icon" type="image/png" href="logo.png">
@@ -26,9 +26,608 @@
   <link rel="manifest" href="site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://api.dexscreener.com" crossorigin>
+  <link rel="preconnect" href="https://dexscreener.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <link rel="stylesheet" href="assets/css/index.css" />
+  <style>
+    :root {
+      --bg: #050b12;
+      --bg-2: #091725;
+      --panel: rgba(10, 24, 39, 0.86);
+      --panel-strong: rgba(7, 17, 29, 0.96);
+      --line: rgba(88, 197, 255, 0.18);
+      --line-strong: rgba(88, 197, 255, 0.35);
+      --text: #eff6ff;
+      --muted: #9eb2c9;
+      --accent: #58c5ff;
+      --accent-2: #22e7b8;
+      --warn: #ffbc5c;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(34, 231, 184, 0.08), transparent 28%),
+        radial-gradient(circle at top right, rgba(88, 197, 255, 0.18), transparent 24%),
+        radial-gradient(circle at 50% 120%, rgba(255, 188, 92, 0.09), transparent 36%),
+        linear-gradient(180deg, #07101a 0%, var(--bg) 100%);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::before {
+      background:
+        radial-gradient(circle at 20% 18%, rgba(88, 197, 255, 0.12), transparent 28%),
+        radial-gradient(circle at 78% 26%, rgba(34, 231, 184, 0.10), transparent 30%),
+        radial-gradient(circle at 48% 76%, rgba(255, 188, 92, 0.07), transparent 26%);
+      filter: blur(6px);
+    }
+
+    body::after {
+      background-image:
+        linear-gradient(rgba(88, 197, 255, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(88, 197, 255, 0.045) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 92%);
+      opacity: 0.35;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0.9;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header,
+    section,
+    footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      margin-top: 18px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: rgba(4, 10, 18, 0.68);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand-mark,
+    .brand-fallback {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid var(--line-strong);
+      background: linear-gradient(145deg, rgba(34, 231, 184, 0.1), rgba(88, 197, 255, 0.15));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .brand-mark {
+      object-fit: cover;
+      display: block;
+    }
+
+    .brand-fallback {
+      display: none;
+      place-items: center;
+      font-family: "Orbitron", sans-serif;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      letter-spacing: 0.08em;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 14px;
+    }
+
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      align-items: center;
+      min-height: calc(100vh - 120px);
+      padding: 46px 0 40px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--accent-2);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .hero h2 {
+      margin: 18px 0 14px;
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(2.4rem, 7vw, 5.2rem);
+      line-height: 1.03;
+      letter-spacing: 0.04em;
+    }
+
+    .hero h2 span {
+      color: var(--accent);
+      text-shadow: 0 0 24px rgba(88, 197, 255, 0.25);
+    }
+
+    .hero p {
+      max-width: 720px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.7vw, 1.15rem);
+    }
+
+    .text-card,
+    .section-copy-card,
+    .footer-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .text-card {
+      padding: 16px 18px;
+    }
+
+    .section-copy-card {
+      padding: 12px 14px;
+      max-width: 860px;
+    }
+
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .cta-row,
+    .quick-links,
+    .action-row,
+    .social-links,
+    .legal-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn,
+    .btn-secondary,
+    .chip-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.96rem;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    button.btn,
+    button.btn-secondary {
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn {
+      color: #02111d;
+      background: linear-gradient(90deg, var(--accent-2), var(--accent));
+      box-shadow: 0 12px 30px rgba(88, 197, 255, 0.25);
+    }
+
+    .btn-secondary,
+    .chip-link {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--line);
+    }
+
+    .btn:hover,
+    .btn-secondary:hover,
+    .chip-link:hover {
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+    }
+
+    .hero-panel,
+    .section-card,
+    .stat-card,
+    .economy-card,
+    .dev-card,
+    .dyor-card,
+    .market-card,
+    .social-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-panel {
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-card {
+      padding: 16px;
+      min-height: 118px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .stat-card h3,
+    .section-head h3,
+    .economy-card h3,
+    .dev-card h3,
+    .dyor-card h3,
+    .market-card h3,
+    .social-card h3 {
+      margin: 0 0 10px;
+      font-size: 0.86rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .stat-value {
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(1.1rem, 2vw, 1.45rem);
+      word-break: break-word;
+    }
+
+    .stat-note,
+    .tiny,
+    .section-copy,
+    .market-copy,
+    .dev-copy,
+    .dyor-copy {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .hero-note {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 188, 92, 0.08);
+      border: 1px solid rgba(255, 188, 92, 0.2);
+      color: #ffd6a4;
+      font-weight: 600;
+    }
+
+    .section {
+      padding: 28px 0;
+    }
+
+    .section-card {
+      padding: 24px;
+    }
+
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+    }
+
+    .economy-grid,
+    .dev-grid,
+    .dyor-grid,
+    .social-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .economy-card,
+    .dev-card,
+    .dyor-card,
+    .social-card,
+    .market-card {
+      padding: 18px;
+    }
+
+    .accent-line {
+      height: 1px;
+      margin: 14px 0;
+      background: linear-gradient(90deg, transparent, rgba(88, 197, 255, 0.4), transparent);
+    }
+
+    .market-wrap {
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 14px;
+    }
+
+    .chart-box {
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      min-height: 540px;
+    }
+
+    .chart-box iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 540px;
+      border: none;
+      background: #06101a;
+    }
+
+    .social-links a,
+    .legal-links a,
+    .quick-links a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .contract-box {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      font-size: 0.92rem;
+      color: var(--muted);
+      word-break: break-all;
+    }
+
+    .ants-map-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .ants-map-surface {
+      position: relative;
+      min-height: 460px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 18% 20%, rgba(34, 231, 184, 0.14), transparent 28%),
+        radial-gradient(circle at 82% 24%, rgba(88, 197, 255, 0.16), transparent 32%),
+        linear-gradient(180deg, rgba(8, 19, 33, 0.85), rgba(5, 11, 18, 0.94));
+      overflow: hidden;
+      padding: 12px;
+    }
+
+    .ants-map-surface::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(88, 197, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(88, 197, 255, 0.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent 100%);
+      pointer-events: none;
+    }
+
+    #antsBubbleMap {
+      width: 100%;
+      height: 100%;
+      min-height: 430px;
+      display: block;
+      position: relative;
+      z-index: 1;
+    }
+
+    .ants-bubble {
+      fill: rgba(88, 197, 255, 0.2);
+      stroke: rgba(88, 197, 255, 0.92);
+      stroke-width: 1.5;
+      filter: drop-shadow(0 0 16px rgba(88, 197, 255, 0.36));
+      transition: fill 0.25s ease, stroke 0.25s ease;
+      transform-origin: center;
+    }
+
+    .ants-bubble.alt {
+      fill: rgba(34, 231, 184, 0.22);
+      stroke: rgba(34, 231, 184, 0.9);
+      filter: drop-shadow(0 0 16px rgba(34, 231, 184, 0.34));
+    }
+
+    .ants-bubble-label {
+      font-family: "Orbitron", sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      fill: #d7ebff;
+      pointer-events: none;
+    }
+
+    .ants-map-info {
+      display: grid;
+      gap: 14px;
+    }
+
+    .ants-map-kpi {
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .ants-map-kpi h3 {
+      margin: 0 0 8px;
+    }
+
+    .ants-total {
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(1.35rem, 3vw, 2rem);
+      color: var(--accent-2);
+    }
+
+    .ants-legend {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .ants-legend li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(88, 197, 255, 0.2);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .ants-legend span:last-child {
+      color: var(--text);
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.85rem;
+    }
+
+    footer {
+      padding: 24px 0 48px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .footer-card {
+      margin: 0 auto;
+      max-width: 980px;
+      padding: 14px 16px;
+      text-align: left;
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .market-wrap,
+      .ants-map-layout,
+      .economy-grid,
+      .dev-grid,
+      .dyor-grid,
+      .social-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      nav {
+        justify-content: flex-start;
+      }
+
+      .panel-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .shell {
+        width: min(1200px, calc(100% - 20px));
+      }
+
+      .hero {
+        min-height: auto;
+        padding-top: 28px;
+      }
+    }
+  </style>
 </head>
 <body>
   <canvas id="bg"></canvas>
@@ -45,9 +644,9 @@
       </a>
       <nav>
         <a href="#economies">Economies</a>
+        <a href="#ants-map">ANTS Map</a>
         <a href="#developers">Developers</a>
         <a href="#dyor">DYOR</a>
-        <a href="pi-testnet.html">Pi Testnet App</a>
         <a href="ants-program.html">ANTS Program</a>
         <a href="whitepaper.html">Whitepaper</a>
         <a href="web4.html">Web4</a>
@@ -58,16 +657,17 @@
 
     <section class="hero" id="top">
       <div class="hero-copy">
-        <div class="eyebrow">v1.0.5 Live | ANTS-First Ledger | Layer 1 Testnet Active</div>
+        <div class="eyebrow">v1.0.5 Live | Two-Asset Model | Layer 1 Private Mainnet Active</div>
         <h2>Where <span>Web2</span>, <span>Web3</span>, and <span>Web4</span> meet.</h2>
-        <p>A Network now combines 6-hour proof-of-time mining, ANTS-first ledger accounting, claimed ANET visibility, a live Layer 1 testnet with event-driven settlement blocks, optional migration wallet mapping, one-time account restore by email OTP, wallet PIN protection, and seed phrase continuity controls inside a single release path that leads toward Web4 migration.</p>
+        <div class="text-card">
+          <p>A Network now combines 6-hour proof-of-time mining, a fixed-supply <strong>21,000,000 ANET</strong> utility token on BNB Chain, and a separate Web4/Web5 Layer 1 mining economy where miners accumulate ANTS first and convert to spendable Layer 1 ANET after the <strong>1,000-session</strong> genesis threshold. The ANTS Program also acts as the gateway for contributors: developers, aligned investors, and community builders are expected to participate as miners and organize through colony groups rather than remain passive observers. The current release also includes a Live Layer 1 Private Mainnet with event-driven settlement blocks, optional migration wallet mapping, one-time account restore by email OTP, wallet PIN protection, and seed phrase continuity controls.</p>
+        </div>
         <div class="cta-row">
           <a class="btn" href="#dyor">Start DYOR</a>
           <a class="btn-secondary" href="https://bscscan.com/token/0x791055A7d52AA392eaE8De04250497f33807E46A" target="_blank" rel="noopener noreferrer">View Contract</a>
           <a class="btn-secondary" href="https://github.com/A-Network-2026" target="_blank" rel="noopener noreferrer">Explore GitHub</a>
         </div>
         <div class="quick-links">
-          <a class="chip-link" href="pi-testnet.html">Pi Testnet App</a>
           <a class="chip-link" href="whitepaper.html">Whitepaper</a>
           <a class="chip-link" href="ants-program.html">ANTS Program</a>
           <a class="chip-link" href="web4.html">Web4 Vision</a>
@@ -78,7 +678,7 @@
           <a class="chip-link" href="terms.html">Terms of Service</a>
           <a class="chip-link" href="delete-account.html">Delete Account</a>
         </div>
-        <div class="hero-note">A Network is not a guaranteed-return product. Mining progress depends on verified session participation, current backend rules, supply controls, and long-term ecosystem execution.</div>
+        <div class="hero-note">A Network is not a guaranteed-return product. The BNB Chain utility token and the Layer 1 mining coin are separate economic layers, and any future Layer 1 launch pricing or release timing remains subject to readiness and open market discovery.</div>
       </div>
 
       <div class="hero-panel">
@@ -86,22 +686,22 @@
           <div class="stat-card">
             <h3>Wallet</h3>
             <div class="stat-value" id="wallet">Not Connected</div>
-            <p class="stat-note">BNB Chain visibility and migration-ready identity</p>
+            <p class="stat-note">BNB Chain utility-token visibility and migration-ready identity</p>
           </div>
           <div class="stat-card">
-            <h3>ANET Balance</h3>
+            <h3>Utility Token Balance</h3>
             <div class="stat-value" id="balance">-</div>
-            <p class="stat-note">Claimed ANET visibility layer</p>
+            <p class="stat-note">BEP-20 ANET on BNB Chain</p>
           </div>
           <div class="stat-card">
-            <h3>ANET Price</h3>
+            <h3>Utility Token Price</h3>
             <div class="stat-value" id="price">-</div>
-            <p class="stat-note">Live pair price from DEXScreener</p>
+            <p class="stat-note">Live BEP-20 market data from DEXScreener</p>
           </div>
           <div class="stat-card">
             <h3>Architecture</h3>
             <div class="stat-value">ANTS-First</div>
-            <p class="stat-note">6h sessions, delayed ANET claim, event-driven Layer 1 settlement</p>
+            <p class="stat-note">Web3 utility token plus mining-only Layer 1 coin economy</p>
           </div>
         </div>
 
@@ -126,22 +726,123 @@
         <div class="section-head">
           <div>
             <h2>Three Linked Economies</h2>
-            <p class="section-copy">A clearer model helps users, builders, and researchers understand what is off-chain, what is visible on-chain, and how the long-term Web4 layer ties both together through migration-ready state.</p>
+            <div class="section-copy-card">
+              <p class="section-copy">A clearer model helps users, builders, and researchers understand what is off-chain, what is visible on-chain, and how the long-term Web4 layer ties both together through migration-ready state.</p>
+            </div>
           </div>
         </div>
 
         <div class="economy-grid">
           <article class="economy-card">
             <h3>Web2 Economy</h3>
-            <p>App-native mining sessions, ANTS accumulation, account recovery rails, wallet continuity controls, language-aware responses, and abuse-resistant server validation. This is the current source-of-truth ledger.</p>
+            <p>App-native mining sessions, ANTS accumulation, account recovery rails, wallet continuity controls, language-aware responses, and abuse-resistant server validation. The first 1,000 completed sessions form the non-spendable genesis threshold for future Layer 1 conversion.</p>
           </article>
           <article class="economy-card">
             <h3>Web3 Economy</h3>
-            <p>The visibility bridge of A Network. Wallet ownership, transparent contract references, claimed ANET viewing, and migration wallet preparation live here and anchor ecosystem trust.</p>
+            <p>The external utility layer of A Network. The deployed BNB Chain ANET token has a fixed supply of 21,000,000 and is stewarded 50/50 by the owner and founder for ecosystem distribution, liquidity planning, and long-term Layer 1 access.</p>
           </article>
           <article class="economy-card">
             <h3>Web4 Economy</h3>
-            <p>The coordination layer. Web4 connects Web2 mining history, migration proofs, ANTS-denominated fee logic, the live Layer 1 settlement testnet, and future node-based habitat coordination under long-term ecosystem governance.</p>
+            <p>The mining and settlement layer. Web4 connects Web2 mining history, migration proofs, ANTS-denominated fee logic, and the live Layer 1 settlement private mainnet. This Layer 1 ANET/ANTS coin model is intended to be 100% mining-based with no owner or founder allocation, and the ANTS Program serves as the contributor gateway where participants organize into colony groups and build standing through verified mining activity.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ants-map">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2>ANTS Bubbles Map</h2>
+            <div class="section-copy-card">
+              <p class="section-copy">A visual map for colony momentum across A Network zones. Bubble size shows relative active miner concentration and updates with subtle live pulse motion.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="ants-map-layout">
+          <div class="ants-map-surface" aria-label="ANTS colony bubble map">
+            <svg id="antsBubbleMap" viewBox="0 0 900 520" role="img" aria-labelledby="antsMapTitle antsMapDesc">
+              <title id="antsMapTitle">ANTS Colony Bubbles Map</title>
+              <desc id="antsMapDesc">Each bubble represents a colony zone and relative active miner concentration.</desc>
+
+              <g>
+                <circle class="ants-bubble" data-value="1260" cx="170" cy="140" r="78"></circle>
+                <text class="ants-bubble-label" x="170" y="138" text-anchor="middle">Hive Core</text>
+                <text class="ants-bubble-label" x="170" y="158" text-anchor="middle">1260</text>
+              </g>
+
+              <g>
+                <circle class="ants-bubble alt" data-value="910" cx="355" cy="120" r="64"></circle>
+                <text class="ants-bubble-label" x="355" y="118" text-anchor="middle">Atlas Node</text>
+                <text class="ants-bubble-label" x="355" y="138" text-anchor="middle">910</text>
+              </g>
+
+              <g>
+                <circle class="ants-bubble" data-value="720" cx="570" cy="150" r="54"></circle>
+                <text class="ants-bubble-label" x="570" y="148" text-anchor="middle">Kite Route</text>
+                <text class="ants-bubble-label" x="570" y="168" text-anchor="middle">720</text>
+              </g>
+
+              <g>
+                <circle class="ants-bubble alt" data-value="840" cx="260" cy="330" r="59"></circle>
+                <text class="ants-bubble-label" x="260" y="328" text-anchor="middle">Forge South</text>
+                <text class="ants-bubble-label" x="260" y="348" text-anchor="middle">840</text>
+              </g>
+
+              <g>
+                <circle class="ants-bubble" data-value="980" cx="455" cy="300" r="68"></circle>
+                <text class="ants-bubble-label" x="455" y="298" text-anchor="middle">Delta Mesh</text>
+                <text class="ants-bubble-label" x="455" y="318" text-anchor="middle">980</text>
+              </g>
+
+              <g>
+                <circle class="ants-bubble alt" data-value="560" cx="675" cy="322" r="47"></circle>
+                <text class="ants-bubble-label" x="675" y="320" text-anchor="middle">Ridge Link</text>
+                <text class="ants-bubble-label" x="675" y="340" text-anchor="middle">560</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="ants-map-info">
+            <article class="ants-map-kpi">
+              <h3>Estimated Active Miner Units</h3>
+              <div class="ants-total" id="antsMapTotal">0</div>
+              <p class="tiny">Illustrative live-map layer for website presentation. You can bind these values to real backend stats later.</p>
+            </article>
+
+            <article class="ants-map-kpi">
+              <h3>Zone Snapshot</h3>
+              <ul class="ants-legend" id="antsLegend"></ul>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="tokenomics">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2>Tokenomics &amp; Distribution</h2>
+            <div class="section-copy-card">
+              <p class="section-copy">A Network separates its public Web3 utility token from its mining-based Layer 1 coin economy so miners, holders, and researchers can inspect each role clearly.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="dev-grid">
+          <article class="dev-card">
+            <h3>Web3 Utility Token</h3>
+            <p class="dev-copy">The BNB Chain ANET token is the ecosystem utility layer. It carries a fixed supply of 21,000,000 ANET and is documented as a 50/50 stewardship split between the owner and the founder for ecosystem growth, market access, and future Layer 1 participation rails.</p>
+          </article>
+          <article class="dev-card">
+            <h3>Layer 1 Mining Coin</h3>
+            <p class="dev-copy">The Web4/Web5 ANET/ANTS economy is separate from the BNB token. Users mine ANTS through verified 6-hour sessions, reach the 1,000-session genesis threshold, and then become eligible to convert into spendable Layer 1 ANET. This coin economy is intended to be 100% mining-based with no owner or founder allocation, and serious participants are expected to enter through the ANTS Program as miners within colony groups.</p>
+          </article>
+          <article class="dev-card">
+            <h3>Release Path</h3>
+            <p class="dev-copy">The current roadmap targets a broader Layer 1 release in roughly 8 months, subject to technical readiness. The utility token is intended to support buy-in and ecosystem access for the Layer 1 economy. Any early market reference such as 0.000001 remains illustrative only and is not a guaranteed launch price.</p>
           </article>
         </div>
       </div>
@@ -152,7 +853,9 @@
         <div class="section-head">
           <div>
             <h2>Built For Developers Too</h2>
-            <p class="section-copy">A Network should not only attract users. It should give builders enough clarity to inspect the stack, evaluate the model, and contribute with conviction.</p>
+            <div class="section-copy-card">
+              <p class="section-copy">A Network should not only attract users. It should give builders enough clarity to inspect the stack, evaluate the model, and contribute with conviction through the same mining culture as the rest of the network.</p>
+            </div>
           </div>
         </div>
 
@@ -163,7 +866,7 @@
           </article>
           <article class="dev-card">
             <h3>Research-Friendly Surface</h3>
-            <p class="dev-copy">Developers can inspect the ANET contract, whitepaper, Web4 vision page, GitHub updates, public market data, and legal pages before participating.</p>
+            <p class="dev-copy">Developers and aligned investors can inspect the ANET contract, whitepaper, Web4 vision page, GitHub updates, public market data, legal pages, and the ANTS Program before participating as miners inside colony groups.</p>
           </article>
           <article class="dev-card">
             <h3>Long-Term Product Focus</h3>
@@ -178,7 +881,9 @@
         <div class="section-head">
           <div>
             <h2>Do Your Own Research</h2>
-            <p class="section-copy">If someone wants to understand A Network properly, this is where they should start. The goal is conviction through transparency, not attention through shortcuts.</p>
+            <div class="section-copy-card">
+              <p class="section-copy">If someone wants to understand A Network properly, this is where they should start. The goal is conviction through transparency, not attention through shortcuts.</p>
+            </div>
           </div>
         </div>
 
@@ -216,19 +921,19 @@
     <section class="section" id="market">
       <div class="market-wrap">
         <div class="market-card">
-          <h3>Market Context</h3>
-          <p class="market-copy">Live chart access helps visitors inspect current pair data independently. Market visibility should support research, not replace it.</p>
+          <h3>Web3 Utility Token Market Context</h3>
+          <p class="market-copy">Live chart access helps visitors inspect the current BNB Chain utility-token pair independently. Market visibility should support research, not replace it, and it should not be confused with future Layer 1 coin pricing.</p>
           <div class="accent-line"></div>
           <div class="contract-box">DEX pair: 0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b</div>
           <div class="accent-line"></div>
-          <p class="market-copy">Before participating, review the contract, liquidity, legal pages, GitHub activity, and official channels. A serious project should survive scrutiny.</p>
+          <p class="market-copy">Before participating, review the contract, liquidity, official tokenomics, legal pages, GitHub activity, and official channels. The Web3 utility token and the future Layer 1 mining coin are separate parts of the same roadmap.</p>
           <div class="action-row">
             <a class="btn-secondary" href="https://dexscreener.com/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b" target="_blank" rel="noopener noreferrer">Open Full Chart</a>
             <button class="btn-secondary" onclick="getPrice()">Refresh Price</button>
           </div>
         </div>
         <div class="chart-box">
-          <iframe src="https://dexscreener.com/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b?embed=1&theme=dark"></iframe>
+          <iframe loading="lazy" src="https://dexscreener.com/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b?embed=1&theme=dark"></iframe>
         </div>
       </div>
     </section>
@@ -238,7 +943,9 @@
         <div class="section-head">
           <div>
             <h2>Official Channels</h2>
-            <p class="section-copy">Use official sources for updates, research, and ecosystem participation.</p>
+            <div class="section-copy-card">
+              <p class="section-copy">Use official sources for updates, research, and ecosystem participation.</p>
+            </div>
           </div>
         </div>
 
@@ -282,11 +989,255 @@
         <a class="chip-link" href="privacy.html">Privacy</a>
         <a class="chip-link" href="terms.html">Terms</a>
       </div>
-      <p>Â© 2026 A Network. Built for long-term ecosystem development across Web2 session mining, Web3 visibility, live Layer 1 settlement, and Web4 migration.</p>
+      <div class="footer-card">
+        <p>Â© 2026 A Network. Built for long-term ecosystem development across Web2 session mining, a 21M Web3 utility token, live Layer 1 settlement, and a mining-first Web4/Web5 migration path.</p>
+      </div>
     </footer>
   </div>
 
-  <script src="assets/js/index.js" defer></script>
+  <script>
+    const c = document.getElementById('bg');
+    const ctx = c.getContext('2d');
+
+    function resize() {
+      c.width = innerWidth;
+      c.height = innerHeight;
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    const nodes = [];
+    for (let i = 0; i < 90; i++) {
+      nodes.push({
+        x: Math.random() * c.width,
+        y: Math.random() * c.height,
+        vx: (Math.random() - 0.5) * 0.28,
+        vy: (Math.random() - 0.5) * 0.28
+      });
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(5, 11, 18, 0.32)';
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        node.x += node.vx;
+        node.y += node.vy;
+
+        if (node.x < 0 || node.x > c.width) node.vx *= -1;
+        if (node.y < 0 || node.y > c.height) node.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 1.8, 0, Math.PI * 2);
+        ctx.fillStyle = '#58c5ff';
+        ctx.fill();
+
+        for (let j = i + 1; j < nodes.length; j++) {
+          const other = nodes[j];
+          const dx = node.x - other.x;
+          const dy = node.y - other.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 120) {
+            ctx.strokeStyle = `rgba(88, 197, 255, ${0.08 * (1 - distance / 120)})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(node.x, node.y);
+            ctx.lineTo(other.x, other.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    function initAntsBubbleMap() {
+      const bubbles = Array.from(document.querySelectorAll('#antsBubbleMap .ants-bubble'));
+      const legend = document.getElementById('antsLegend');
+      const totalEl = document.getElementById('antsMapTotal');
+      if (!bubbles.length || !legend || !totalEl) {
+        return;
+      }
+
+      let total = 0;
+      const legendHtml = bubbles.map((bubble, index) => {
+        const value = Number(bubble.dataset.value || 0);
+        total += value;
+        const zone = bubble.parentElement.querySelector('text')?.textContent || `Zone ${index + 1}`;
+        bubble.dataset.baseRadius = bubble.getAttribute('r') || '40';
+        return `<li><span>${zone}</span><span>${value.toLocaleString()}</span></li>`;
+      }).join('');
+
+      totalEl.textContent = total.toLocaleString();
+      legend.innerHTML = legendHtml;
+
+      let phase = 0;
+      function pulse() {
+        phase += 0.035;
+        bubbles.forEach((bubble, idx) => {
+          const base = Number(bubble.dataset.baseRadius || 40);
+          const drift = Math.sin(phase + (idx * 0.7)) * 2.8;
+          bubble.setAttribute('r', String(base + drift));
+        });
+        requestAnimationFrame(pulse);
+      }
+
+      pulse();
+    }
+
+    initAntsBubbleMap();
+
+    let provider;
+    let signer;
+    let userAddress;
+    let ethersLoader;
+
+    const tokenAddress = '0x791055A7d52AA392eaE8De04250497f33807E46A';
+    const pairAddress = '0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b';
+    const abi = [
+      'function balanceOf(address owner) view returns (uint256)',
+      'function decimals() view returns (uint8)'
+    ];
+
+    function ensureEthers() {
+      if (window.ethers) {
+        return Promise.resolve(window.ethers);
+      }
+
+      if (!ethersLoader) {
+        ethersLoader = new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js';
+          script.async = true;
+          script.onload = () => resolve(window.ethers);
+          script.onerror = () => reject(new Error('Failed to load wallet library'));
+          document.head.appendChild(script);
+        });
+      }
+
+      return ethersLoader;
+    }
+
+    async function connectWallet() {
+      if (!window.ethereum) {
+        alert('Install MetaMask or another compatible wallet.');
+        return;
+      }
+
+      const ethers = await ensureEthers();
+
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+
+      try {
+        await provider.send('eth_requestAccounts', []);
+        await provider.send('wallet_switchEthereumChain', [{ chainId: '0x38' }]);
+      } catch (err) {
+        if (err.code === 4902) {
+          await provider.send('wallet_addEthereumChain', [{
+            chainId: '0x38',
+            chainName: 'BNB Smart Chain',
+            nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+            rpcUrls: ['https://bsc-dataseed.binance.org/'],
+            blockExplorerUrls: ['https://bscscan.com']
+          }]);
+        } else {
+          console.error(err);
+          return;
+        }
+      }
+
+      signer = provider.getSigner();
+      userAddress = await signer.getAddress();
+      document.getElementById('wallet').innerText = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
+      await getBalance();
+    }
+
+    async function getBalance() {
+      try {
+        const ethers = await ensureEthers();
+
+        if (!provider || !userAddress) {
+          alert('Connect wallet first');
+          return;
+        }
+
+        const network = await provider.getNetwork();
+        if (network.chainId !== 56) {
+          alert('Switch to BNB Smart Chain');
+          return;
+        }
+
+        const contract = new ethers.Contract(tokenAddress, abi, provider);
+        const balance = await contract.balanceOf(userAddress);
+        const decimals = await contract.decimals();
+        const formatted = Number(ethers.utils.formatUnits(balance, decimals));
+        document.getElementById('balance').innerText = formatted.toLocaleString(undefined, { maximumFractionDigits: 4 });
+      } catch (e) {
+        console.error(e);
+        alert('Failed to fetch balance');
+      }
+    }
+
+    async function getPrice() {
+      try {
+        const res = await fetch(`https://api.dexscreener.com/latest/dex/pairs/bsc/${pairAddress}`);
+        const data = await res.json();
+        const usd = Number(data?.pair?.priceUsd || 0);
+        document.getElementById('price').innerText = usd ? `$${usd.toFixed(4)}` : 'Unavailable';
+      } catch (e) {
+        console.error(e);
+        document.getElementById('price').innerText = 'Unavailable';
+      }
+    }
+
+    getPrice();
+
+    if (window.ethereum) {
+      window.ethereum.on('chainChanged', () => location.reload());
+      window.ethereum.on('accountsChanged', () => location.reload());
+    }
+
+    (function handleReferralRedirect() {
+      const params = new URLSearchParams(window.location.search);
+      const rawCode =
+        params.get('ref') ||
+        params.get('code') ||
+        params.get('ant') ||
+        params.get('invite') ||
+        '';
+      const antCode = rawCode.trim();
+      if (!antCode) {
+        return;
+      }
+
+      const src = (params.get('src') || 'google').toLowerCase();
+      const fallback = src === 'apk'
+        ? 'https://t.me/A_Network_Community/8189'
+        : 'https://play.google.com/apps/internaltest/4700891454305512527';
+
+      const deepLink = `anetwork://invite?ref=${encodeURIComponent(antCode)}&src=${encodeURIComponent(src)}`;
+
+      const fallbackTimer = window.setTimeout(() => {
+        if (!document.hidden) {
+          window.location.replace(fallback);
+        }
+      }, 1800);
+
+      const cancelFallback = () => window.clearTimeout(fallbackTimer);
+      window.addEventListener('blur', cancelFallback, { once: true });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          cancelFallback();
+        }
+      }, { once: true });
+
+      window.location.href = deepLink;
+    })();
+  </script>
 </body>
 </html>
 
