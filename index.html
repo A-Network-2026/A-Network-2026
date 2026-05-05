@@ -474,9 +474,9 @@
       border-radius: 18px;
       border: 1px solid var(--line);
       background:
-        radial-gradient(circle at 18% 20%, rgba(34, 231, 184, 0.14), transparent 28%),
-        radial-gradient(circle at 82% 24%, rgba(88, 197, 255, 0.16), transparent 32%),
-        linear-gradient(180deg, rgba(8, 19, 33, 0.85), rgba(5, 11, 18, 0.94));
+        radial-gradient(circle at 15% 18%, rgba(201, 187, 255, 0.44), transparent 34%),
+        radial-gradient(circle at 84% 78%, rgba(210, 236, 255, 0.34), transparent 38%),
+        linear-gradient(180deg, #eef2fb 0%, #e9edf8 100%);
       overflow: hidden;
       padding: 12px;
     }
@@ -486,72 +486,99 @@
       position: absolute;
       inset: 0;
       background-image:
-        linear-gradient(rgba(88, 197, 255, 0.07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(88, 197, 255, 0.07) 1px, transparent 1px);
+        linear-gradient(rgba(130, 144, 182, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(130, 144, 182, 0.07) 1px, transparent 1px);
       background-size: 24px 24px;
-      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent 100%);
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.82), transparent 100%);
       pointer-events: none;
     }
 
-    #antsBubbleMap {
+    #antsBubbleCloud {
       width: 100%;
       height: 100%;
-      min-height: 430px;
-      display: block;
-      position: relative;
+      min-height: 500px;
+      position: absolute;
+      inset: 0;
       z-index: 1;
     }
 
-    .ants-bubble {
-      fill: rgba(88, 197, 255, 0.2);
-      stroke: rgba(88, 197, 255, 0.92);
-      stroke-width: 1.5;
-      filter: drop-shadow(0 0 16px rgba(88, 197, 255, 0.36));
-      transition: fill 0.25s ease, stroke 0.25s ease;
-      transform-origin: center;
-      cursor: pointer;
-    }
-
-    .ants-bubble.alt {
-      fill: rgba(34, 231, 184, 0.22);
-      stroke: rgba(34, 231, 184, 0.9);
-      filter: drop-shadow(0 0 16px rgba(34, 231, 184, 0.34));
-    }
-
-    .ants-bubble-label {
-      font-family: "Orbitron", sans-serif;
-      font-size: 13px;
-      letter-spacing: 0.04em;
-      fill: #d7ebff;
+    #antsBubbleLinks {
+      width: 100%;
+      height: 100%;
+      min-height: 500px;
+      position: absolute;
+      inset: 0;
+      z-index: 0;
       pointer-events: none;
     }
 
-    .ants-chain-link {
-      stroke: rgba(88, 197, 255, 0.42);
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-dasharray: 7 7;
-      animation: antsChainFlow 7s linear infinite;
-      opacity: 0.8;
+    .ants-avatar-bubble {
+      position: absolute;
+      border: none;
+      border-radius: 999px;
+      background: rgba(172, 162, 255, 0.36);
+      box-shadow:
+        0 12px 24px rgba(120, 115, 210, 0.24),
+        0 0 0 1px rgba(139, 127, 235, 0.26) inset;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: antsFloat var(--float-duration, 9s) ease-in-out infinite;
+      animation-delay: var(--float-delay, 0s);
     }
 
-    .ants-chain-link.active {
+    .ants-avatar-bubble:hover {
+      transform: translateY(-2px) scale(1.04);
+      box-shadow:
+        0 18px 28px rgba(116, 112, 201, 0.32),
+        0 0 0 1px rgba(139, 127, 235, 0.34) inset;
+    }
+
+    .ants-avatar-bubble:focus-visible {
+      outline: 2px solid rgba(88, 197, 255, 0.95);
+      outline-offset: 2px;
+    }
+
+    .ants-avatar-core {
+      width: 56%;
+      height: 56%;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.72);
+      box-shadow: 0 2px 7px rgba(10, 22, 44, 0.2);
+      background: #ffffff;
+    }
+
+    .ants-avatar-core img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .ants-cloud-link {
+      stroke: rgba(153, 160, 207, 0.44);
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-dasharray: 6 10;
+      animation: antsChainFlow 9s linear infinite;
+      opacity: 0.72;
+    }
+
+    .ants-cloud-link.active {
       stroke: rgba(34, 231, 184, 0.9);
-      stroke-width: 2.8;
+      stroke-width: 2.4;
       opacity: 1;
       filter: drop-shadow(0 0 10px rgba(34, 231, 184, 0.45));
     }
 
-    .ants-bubble.is-selected {
-      stroke: #f1fdff;
-      stroke-width: 2.6;
-      fill: rgba(255, 255, 255, 0.2);
-    }
-
-    .ants-bubble:focus-visible {
-      outline: none;
-      stroke: #f1fdff;
-      stroke-width: 2.6;
+    .ants-avatar-bubble.is-selected {
+      box-shadow:
+        0 20px 28px rgba(94, 166, 221, 0.28),
+        0 0 0 2px rgba(34, 231, 184, 0.9) inset;
+      transform: scale(1.05);
     }
 
     .ants-map-info {
@@ -630,6 +657,11 @@
     @keyframes antsChainFlow {
       from { stroke-dashoffset: 0; }
       to { stroke-dashoffset: -140; }
+    }
+
+    @keyframes antsFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-7px); }
     }
 
     .ants-legend span:last-child {
@@ -826,55 +858,8 @@
 
         <div class="ants-map-layout">
           <div class="ants-map-surface" aria-label="ANTS colony bubble map">
-            <svg id="antsBubbleMap" viewBox="0 0 900 520" role="img" aria-labelledby="antsMapTitle antsMapDesc">
-              <title id="antsMapTitle">ANTS Colony Bubbles Map</title>
-              <desc id="antsMapDesc">Each bubble represents a colony zone and relative active miner concentration.</desc>
-
-              <g id="antsChainLinks">
-                <line class="ants-chain-link" data-link="hive-core atlas-node" x1="170" y1="140" x2="355" y2="120"></line>
-                <line class="ants-chain-link" data-link="atlas-node kite-route" x1="355" y1="120" x2="570" y2="150"></line>
-                <line class="ants-chain-link" data-link="hive-core forge-south" x1="170" y1="140" x2="260" y2="330"></line>
-                <line class="ants-chain-link" data-link="forge-south delta-mesh" x1="260" y1="330" x2="455" y2="300"></line>
-                <line class="ants-chain-link" data-link="atlas-node delta-mesh" x1="355" y1="120" x2="455" y2="300"></line>
-                <line class="ants-chain-link" data-link="delta-mesh ridge-link" x1="455" y1="300" x2="675" y2="322"></line>
-              </g>
-
-              <g>
-                <circle class="ants-bubble" data-id="hive-core" data-value="1260" cx="170" cy="140" r="78" tabindex="0" role="button" aria-label="Hive Core colony zone"></circle>
-                <text class="ants-bubble-label" x="170" y="138" text-anchor="middle">Hive Core</text>
-                <text class="ants-bubble-label" x="170" y="158" text-anchor="middle">1260</text>
-              </g>
-
-              <g>
-                <circle class="ants-bubble alt" data-id="atlas-node" data-value="910" cx="355" cy="120" r="64" tabindex="0" role="button" aria-label="Atlas Node colony zone"></circle>
-                <text class="ants-bubble-label" x="355" y="118" text-anchor="middle">Atlas Node</text>
-                <text class="ants-bubble-label" x="355" y="138" text-anchor="middle">910</text>
-              </g>
-
-              <g>
-                <circle class="ants-bubble" data-id="kite-route" data-value="720" cx="570" cy="150" r="54" tabindex="0" role="button" aria-label="Kite Route colony zone"></circle>
-                <text class="ants-bubble-label" x="570" y="148" text-anchor="middle">Kite Route</text>
-                <text class="ants-bubble-label" x="570" y="168" text-anchor="middle">720</text>
-              </g>
-
-              <g>
-                <circle class="ants-bubble alt" data-id="forge-south" data-value="840" cx="260" cy="330" r="59" tabindex="0" role="button" aria-label="Forge South colony zone"></circle>
-                <text class="ants-bubble-label" x="260" y="328" text-anchor="middle">Forge South</text>
-                <text class="ants-bubble-label" x="260" y="348" text-anchor="middle">840</text>
-              </g>
-
-              <g>
-                <circle class="ants-bubble" data-id="delta-mesh" data-value="980" cx="455" cy="300" r="68" tabindex="0" role="button" aria-label="Delta Mesh colony zone"></circle>
-                <text class="ants-bubble-label" x="455" y="298" text-anchor="middle">Delta Mesh</text>
-                <text class="ants-bubble-label" x="455" y="318" text-anchor="middle">980</text>
-              </g>
-
-              <g>
-                <circle class="ants-bubble alt" data-id="ridge-link" data-value="560" cx="675" cy="322" r="47" tabindex="0" role="button" aria-label="Ridge Link colony zone"></circle>
-                <text class="ants-bubble-label" x="675" y="320" text-anchor="middle">Ridge Link</text>
-                <text class="ants-bubble-label" x="675" y="340" text-anchor="middle">560</text>
-              </g>
-            </svg>
+            <svg id="antsBubbleLinks" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true"></svg>
+            <div id="antsBubbleCloud" role="list" aria-label="ANTS avatar bubbles"></div>
           </div>
 
           <div class="ants-map-info">
@@ -1135,58 +1120,127 @@
     animate();
 
     function initAntsBubbleMap() {
-      const bubbles = Array.from(document.querySelectorAll('#antsBubbleMap .ants-bubble'));
-      const links = Array.from(document.querySelectorAll('#antsChainLinks .ants-chain-link'));
+      const cloud = document.getElementById('antsBubbleCloud');
+      const linksSvg = document.getElementById('antsBubbleLinks');
       const legend = document.getElementById('antsLegend');
       const totalEl = document.getElementById('antsMapTotal');
       const detailTitle = document.getElementById('antsDetailTitle');
       const detailMeta = document.getElementById('antsDetailMeta');
       const detailBody = document.getElementById('antsDetailBody');
-      if (!bubbles.length || !legend || !totalEl || !detailTitle || !detailMeta || !detailBody) {
+      if (!cloud || !linksSvg || !legend || !totalEl || !detailTitle || !detailMeta || !detailBody) {
         return;
       }
 
-      const zoneInsights = {
-        'hive-core': {
-          role: 'Primary coordination hub',
-          body: 'Handles colony routing, session heartbeat alignment, and entry-level ANTS reputation scoring for new miners.'
-        },
-        'atlas-node': {
-          role: 'Validation corridor',
-          body: 'Focuses on cross-zone validation and anti-abuse consensus signals before ANTS progress is accepted network-wide.'
-        },
-        'kite-route': {
-          role: 'Transit channel',
-          body: 'Routes activity toward high-liquidity utility paths and helps model conversion pressure for Layer 1 readiness.'
-        },
-        'forge-south': {
-          role: 'Growth basin',
-          body: 'Represents expanding miner clusters and onboarding throughput where colony teams coordinate long-session consistency.'
-        },
-        'delta-mesh': {
-          role: 'Settlement mesh',
-          body: 'Links upstream mining reputation with downstream settlement logic, helping shape ANTS-to-ANET conversion confidence.'
-        },
-        'ridge-link': {
-          role: 'Edge relay',
-          body: 'Captures outer-zone performance and relays verified work back into the core chain for unified progression.'
-        }
-      };
+      const zones = [
+        'Hive Core', 'Atlas Node', 'Kite Route', 'Forge South', 'Delta Mesh', 'Ridge Link',
+        'Nova Grid', 'Pulse Yard', 'Cobalt Wing', 'Orion Field', 'Helix Gate', 'Signal Nest'
+      ];
 
-      const zoneNameById = {};
+      function seededRandom(seed) {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+      }
 
-      let total = 0;
-      const legendHtml = bubbles.map((bubble, index) => {
-        const zoneId = bubble.dataset.id || `zone-${index + 1}`;
-        const value = Number(bubble.dataset.value || 0);
-        total += value;
-        const zone = bubble.parentElement.querySelector('text')?.textContent || `Zone ${index + 1}`;
-        zoneNameById[zoneId] = zone;
-        bubble.dataset.baseRadius = bubble.getAttribute('r') || '40';
-        return `<li data-zoneid="${zoneId}"><button type="button"><span>${zone}</span><span>${value.toLocaleString()}</span></button></li>`;
+      const bubblesData = [];
+      const bubbleCount = 92;
+      for (let i = 0; i < bubbleCount; i++) {
+        const seed = i + 1;
+        const size = Math.round(42 + seededRandom(seed * 1.7) * 20);
+        const x = Math.round(20 + seededRandom(seed * 2.1) * 930);
+        const y = Math.round(18 + seededRandom(seed * 2.9) * 500);
+        const value = Math.round(120 + seededRandom(seed * 4.7) * 1600);
+        const zoneName = zones[i % zones.length];
+        const id = `${zoneName.toLowerCase().replace(/\s+/g, '-')}-${i + 1}`;
+        bubblesData.push({
+          id,
+          x,
+          y,
+          size,
+          value,
+          zoneName,
+          role: `${zoneName} colony`,
+          inside: `Inside this bubble: miner pods, session reliability score, ANTS pressure index, and conversion readiness signals for ${zoneName}.`,
+          avatar: `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(id)}`
+        });
+      }
+
+      cloud.innerHTML = bubblesData.map((item, index) => {
+        const left = Math.max(0, Math.min(1000 - item.size, item.x)) / 1000 * 100;
+        const top = Math.max(0, Math.min(560 - item.size, item.y)) / 560 * 100;
+        const delay = (index % 11) * -0.6;
+        const duration = 7 + (index % 5);
+        return `
+          <button class="ants-avatar-bubble" role="listitem" data-id="${item.id}" data-value="${item.value}" data-zone="${item.zoneName}" aria-label="${item.zoneName} bubble"
+            style="left:${left}%;top:${top}%;width:${item.size}px;height:${item.size}px;--float-delay:${delay}s;--float-duration:${duration}s;">
+            <span class="ants-avatar-core"><img loading="lazy" src="${item.avatar}" alt="${item.zoneName} avatar"></span>
+          </button>`;
       }).join('');
 
-      totalEl.textContent = total.toLocaleString();
+      const bubbles = Array.from(cloud.querySelectorAll('.ants-avatar-bubble'));
+      const indexById = {};
+      bubblesData.forEach((item, idx) => { indexById[item.id] = idx; });
+
+      const links = [];
+      for (let i = 0; i < bubblesData.length; i++) {
+        const origin = bubblesData[i];
+        let nearestIndex = -1;
+        let nearestDistance = Infinity;
+        for (let j = 0; j < bubblesData.length; j++) {
+          if (i === j) continue;
+          const other = bubblesData[j];
+          const dx = origin.x - other.x;
+          const dy = origin.y - other.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearestIndex = j;
+          }
+        }
+
+        if (nearestIndex >= 0 && nearestDistance < 210) {
+          const first = Math.min(i, nearestIndex);
+          const second = Math.max(i, nearestIndex);
+          const key = `${first}-${second}`;
+          if (!links.some((l) => l.key === key)) {
+            links.push({
+              key,
+              a: bubblesData[first].id,
+              b: bubblesData[second].id,
+              x1: bubblesData[first].x + (bubblesData[first].size / 2),
+              y1: bubblesData[first].y + (bubblesData[first].size / 2),
+              x2: bubblesData[second].x + (bubblesData[second].size / 2),
+              y2: bubblesData[second].y + (bubblesData[second].size / 2)
+            });
+          }
+        }
+      }
+
+      linksSvg.innerHTML = links.map((link) => {
+        return `<line class="ants-cloud-link" data-a="${link.a}" data-b="${link.b}" x1="${link.x1}" y1="${link.y1}" x2="${link.x2}" y2="${link.y2}"></line>`;
+      }).join('');
+      const linkEls = Array.from(linksSvg.querySelectorAll('.ants-cloud-link'));
+
+      const zoneInsights = {
+        'Hive Core': 'Primary coordination hub',
+        'Atlas Node': 'Validation corridor',
+        'Kite Route': 'Transit channel',
+        'Forge South': 'Growth basin',
+        'Delta Mesh': 'Settlement mesh',
+        'Ridge Link': 'Edge relay'
+      };
+
+      let total = 0;
+      const topZones = [...bubblesData]
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 12);
+
+      const legendHtml = topZones.map((item) => {
+        const value = Number(item.value || 0);
+        total += value;
+        return `<li data-zoneid="${item.id}"><button type="button"><span>${item.zoneName}</span><span>${value.toLocaleString()}</span></button></li>`;
+      }).join('');
+
+      totalEl.textContent = bubblesData.reduce((sum, item) => sum + item.value, 0).toLocaleString();
       legend.innerHTML = legendHtml;
 
       const legendItems = Array.from(legend.querySelectorAll('li'));
@@ -1200,22 +1254,21 @@
           item.classList.toggle('is-selected', item.dataset.zoneid === zoneId);
         });
 
-        links.forEach((line) => {
-          const pair = (line.dataset.link || '').split(' ');
-          line.classList.toggle('active', pair.includes(zoneId));
+        linkEls.forEach((line) => {
+          line.classList.toggle('active', line.dataset.a === zoneId || line.dataset.b === zoneId);
         });
 
-        const zoneName = zoneNameById[zoneId] || 'Unknown Zone';
-        const selectedBubble = bubbles.find((bubble) => bubble.dataset.id === zoneId);
-        const value = Number(selectedBubble?.dataset.value || 0).toLocaleString();
-        const insight = zoneInsights[zoneId] || {
-          role: 'Colony node',
-          body: 'Zone details will appear here once configured.'
-        };
+        const zoneIndex = indexById[zoneId];
+        const selected = typeof zoneIndex === 'number' ? bubblesData[zoneIndex] : null;
+        if (!selected) {
+          return;
+        }
+        const role = zoneInsights[selected.zoneName] || `${selected.zoneName} colony`;
+        const connections = linkEls.filter((line) => line.dataset.a === zoneId || line.dataset.b === zoneId).length;
 
-        detailTitle.textContent = `${zoneName} | Inside View`;
-        detailMeta.textContent = `${insight.role} | Active miners: ${value} | Connected links highlighted on-chain map.`;
-        detailBody.textContent = insight.body;
+        detailTitle.textContent = `${selected.zoneName} | Inside View`;
+        detailMeta.textContent = `${role} | Active miners: ${selected.value.toLocaleString()} | Live links: ${connections}`;
+        detailBody.textContent = selected.inside;
       }
 
       bubbles.forEach((bubble) => {
@@ -1237,18 +1290,6 @@
         });
       });
 
-      let phase = 0;
-      function pulse() {
-        phase += 0.035;
-        bubbles.forEach((bubble, idx) => {
-          const base = Number(bubble.dataset.baseRadius || 40);
-          const drift = Math.sin(phase + (idx * 0.7)) * 2.8;
-          bubble.setAttribute('r', String(base + drift));
-        });
-        requestAnimationFrame(pulse);
-      }
-
-      pulse();
       setActiveZone(bubbles[0]?.dataset.id || '');
     }
 
