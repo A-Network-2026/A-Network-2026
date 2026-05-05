@@ -869,7 +869,7 @@
             <article class="ants-map-kpi">
               <h3>Estimated Active Miner Units</h3>
               <div class="ants-total" id="antsMapTotal">0</div>
-              <p class="tiny">Illustrative live-map layer for website presentation. You can bind these values to real backend stats later.</p>
+              <p class="tiny">Live from backend stats: active miners and verified user distribution snapshots.</p>
             </article>
 
             <article class="ants-map-kpi">
@@ -1122,7 +1122,30 @@
 
     animate();
 
-    function initAntsBubbleMap() {
+    async function fetchJsonWithFallback(path) {
+      const apiBaseUrls = ['https://api.a-network.net', 'https://rmp-site.onrender.com'];
+      let lastError = null;
+
+      for (const baseUrl of apiBaseUrls) {
+        try {
+          const res = await fetch(`${baseUrl}${path}`, { cache: 'no-store' });
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          const payload = await res.json();
+          if (payload && payload.error) {
+            throw new Error(payload.error);
+          }
+          return payload;
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      throw lastError || new Error(`Failed to fetch ${path}`);
+    }
+
+    async function initAntsBubbleMap() {
       const cloud = document.getElementById('antsBubbleCloud');
       const linksSvg = document.getElementById('antsBubbleLinks');
       const legend = document.getElementById('antsLegend');
@@ -1138,6 +1161,21 @@
         'Hive Core', 'Atlas Node', 'Kite Route', 'Forge South', 'Delta Mesh', 'Ridge Link',
         'Nova Grid', 'Pulse Yard', 'Cobalt Wing', 'Orion Field', 'Helix Gate', 'Signal Nest'
       ];
+
+      let networkStats = null;
+      let countryStats = null;
+      let statsFetchError = null;
+      try {
+        const [networkPayload, countriesPayload] = await Promise.all([
+          fetchJsonWithFallback('/stats/network'),
+          fetchJsonWithFallback('/stats/countries')
+        ]);
+        networkStats = networkPayload;
+        countryStats = countriesPayload;
+      } catch (err) {
+        statsFetchError = err;
+        console.warn('Using fallback seeded stats for ANTS map:', err);
+      }
 
       function seededRandom(seed) {
         const x = Math.sin(seed) * 10000;
@@ -1174,13 +1212,47 @@
 
       const bubblesData = [];
       const bubbleCount = 92;
+      const liveCountries = Array.isArray(countryStats?.countries) ? countryStats.countries : [];
+      const topCountries = liveCountries.slice(0, zones.length);
+      const totalCountryUsers = topCountries.reduce((sum, item) => sum + Number(item?.users || 0), 0);
+      const fallbackTotalMiners = Math.round(25000 + seededRandom(99) * 10000);
+      const totalActiveMiners = Number(networkStats?.totalActiveMiners || networkStats?.total_active_miners || 0) || fallbackTotalMiners;
+
+      const zoneMeta = zones.map((zoneName, idx) => {
+        const country = topCountries[idx];
+        if (country && totalCountryUsers > 0) {
+          const users = Number(country.users || 0);
+          return {
+            zoneName,
+            country: country.country || 'Unknown',
+            users,
+            share: users / totalCountryUsers,
+            fromLive: true,
+          };
+        }
+
+        return {
+          zoneName,
+          country: 'Synthetic',
+          users: 0,
+          share: 0,
+          fromLive: false,
+        };
+      });
+
+      const liveShareCount = zoneMeta.filter((z) => z.fromLive).length;
       for (let i = 0; i < bubbleCount; i++) {
         const seed = i + 1;
         const size = Math.round(42 + seededRandom(seed * 1.7) * 20);
         const x = Math.round(20 + seededRandom(seed * 2.1) * 930);
         const y = Math.round(18 + seededRandom(seed * 2.9) * 500);
-        const value = Math.round(120 + seededRandom(seed * 4.7) * 1600);
         const zoneName = zones[i % zones.length];
+        const zoneInfo = zoneMeta[i % zoneMeta.length];
+        const zoneShare = zoneInfo.fromLive
+          ? zoneInfo.share
+          : (1 / zones.length);
+        const weightJitter = 0.7 + (seededRandom(seed * 4.7) * 0.6);
+        const value = Math.max(1, Math.round(totalActiveMiners * zoneShare * weightJitter));
         const id = `${zoneName.toLowerCase().replace(/\s+/g, '-')}-${i + 1}`;
         bubblesData.push({
           id,
@@ -1190,7 +1262,9 @@
           value,
           zoneName,
           role: `${zoneName} colony`,
-          inside: `Inside this bubble: miner pods, session reliability score, ANTS pressure index, and conversion readiness signals for ${zoneName}.`,
+          inside: `Inside this bubble: miner pods, session reliability score, ANTS pressure index, and conversion readiness signals for ${zoneName}.${zoneInfo.fromLive ? ` Country focus: ${zoneInfo.country}.` : ''}`,
+          country: zoneInfo.country,
+          source: zoneInfo.fromLive ? 'live' : 'fallback',
           colorIndex: seededRandom((i + 1) * 3.7)
         });
       }
@@ -1271,7 +1345,7 @@
         return `<li data-zoneid="${item.id}"><button type="button"><span>${item.zoneName}</span><span>${value.toLocaleString()}</span></button></li>`;
       }).join('');
 
-      totalEl.textContent = bubblesData.reduce((sum, item) => sum + item.value, 0).toLocaleString();
+      totalEl.textContent = totalActiveMiners.toLocaleString();
       legend.innerHTML = legendHtml;
 
       const legendItems = Array.from(legend.querySelectorAll('li'));
@@ -1296,9 +1370,11 @@
         }
         const role = zoneInsights[selected.zoneName] || `${selected.zoneName} colony`;
         const connections = linkEls.filter((line) => line.dataset.a === zoneId || line.dataset.b === zoneId).length;
+        const sourceLabel = selected.source === 'live' ? 'Live backend' : 'Fallback estimate';
+        const countryLabel = selected.country ? ` | Country: ${selected.country}` : '';
 
         detailTitle.textContent = `${selected.zoneName} | Inside View`;
-        detailMeta.textContent = `${role} | Active miners: ${selected.value.toLocaleString()} | Live links: ${connections}`;
+        detailMeta.textContent = `${role} | Active miners: ${selected.value.toLocaleString()} | Live links: ${connections}${countryLabel} | Source: ${sourceLabel}`;
         detailBody.textContent = selected.inside;
       }
 
@@ -1322,6 +1398,12 @@
       });
 
       setActiveZone(bubbles[0]?.dataset.id || '');
+
+      if (statsFetchError) {
+        detailMeta.textContent = 'Backend stats unavailable now. Showing fallback estimates.';
+      } else if (liveShareCount === 0) {
+        detailMeta.textContent = 'Live active miners loaded; country distribution unavailable, showing even zone weights.';
+      }
     }
 
     initAntsBubbleMap();
