@@ -82,10 +82,10 @@ Use this page in Pi Browser sandbox mode first, then switch to production mode w
 
 <pre>
 > Initiating A-Network startup sequence...
-> Loading mobile mining interface... [COMPLETE]
+> Loading mobile mining interface v1.0.6... [COMPLETE]
 > Connecting Fastify backend and PostgreSQL ledger... [ACTIVE]
 > Syncing Web3 utility-token visibility layer... [RUNNING]
-> Preparing Web4/Web5 migration narrative... [STAGED]
+> Layer 1 private mainnet... [LIVE - explorer.a-network.net]
 > Mission: build a long-term mining ecosystem with real product surfaces.
 </pre>
 
@@ -119,18 +119,20 @@ The current product includes a Flutter app, a Node.js/Fastify backend, a Postgre
 ### Live System Status
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Mobile_App-ONLINE-1f9d55?style=for-the-badge" alt="Mobile App Online" />
+  <img src="https://img.shields.io/badge/Mobile_App-v1.0.6_LIVE-1f9d55?style=for-the-badge" alt="Mobile App v1.0.6 Live" />
   <img src="https://img.shields.io/badge/Fastify_API-ACTIVE-2563eb?style=for-the-badge" alt="Fastify API Active" />
-  <img src="https://img.shields.io/badge/Token_Visibility-BSC_READY-f59e0b?style=for-the-badge" alt="Token Visibility BSC Ready" />
-  <img src="https://img.shields.io/badge/Layer1_Path-STAGED-7c3aed?style=for-the-badge" alt="Layer1 Path Staged" />
+  <img src="https://img.shields.io/badge/Token_Visibility-BSC_LIVE-f59e0b?style=for-the-badge" alt="Token Visibility BSC Live" />
+  <img src="https://img.shields.io/badge/Layer1_Chain-PRIVATE_MAINNET_LIVE-7c3aed?style=for-the-badge" alt="Layer1 Private Mainnet Live" />
 </p>
 
 <div align="center">
 
 <pre>
 > Node Status        : SYNCHRONIZED
+> App Version        : v1.0.6 (Play Store / App Store ready)
 > Mining Sessions    : 6-HOUR VALIDATED CYCLES
 > Web3 Surface       : ANET CONTRACT LOOKUP ENABLED
+> Layer 1 Explorer   : explorer.a-network.net [LIVE]
 > Build State        : CONTINUOUS DELIVERY READY
 </pre>
 
@@ -168,31 +170,43 @@ The current product includes a Flutter app, a Node.js/Fastify backend, a Postgre
 <div align="center">
 
 <pre>
-> Auth Layer        : REGISTER / LOGIN / JWT
-> Mining Engine     : SESSION-BASED OFF-CHAIN REWARD ACCOUNTING
+> Auth Layer        : REGISTER / LOGIN / JWT / OTP / SMART-LOGIN
+> Mining Engine     : 6H SESSION + HEARTBEAT + ANTI-GAMING
 > Stats Surface     : GLOBAL STATS + LEADERBOARD ENDPOINTS
-> Wallet Layer      : ON-CHAIN ANET BALANCE LOOKUP
-> Docs Surface      : WEBSITE + PRIVACY + TERMS + WHITEPAPER
+> Wallet Layer      : ON-CHAIN ANET BALANCE + TRANSFER INTENTS
+> Anti-Abuse        : RISK SCORING + BOT DETECTION + DEVICE BINDING
+> Multi-Language    : EN / HI / UR / ZH / ES AUTO-DETECTED
+> Docs Surface      : WEBSITE + PRIVACY + TERMS + WHITEPAPER + ROADMAP
 </pre>
 
 </div>
 
 The codebase currently implements:
 
-- User registration and login with JWT-based authentication
-- A 6-hour session-based off-chain mining engine
+- User registration and login with JWT-based authentication and email OTP
+- Smart login OTP: server detects risky logins and challenges with email OTP
+- A 6-hour session-based off-chain mining engine with heartbeat validation
+- 6-layer anti-gaming system: risk scoring, device binding, bot detection, IP clustering, heartbeat validation, session pattern analysis
 - Global stats and leaderboard endpoints
-- On-chain ANET balance lookup through the deployed token contract
-- Flutter mobile UI with multi-slide product narrative
-- In-app legal links for Privacy Policy and Terms of Service
-- Public docs pages for website, privacy, and terms
+- On-chain ANET balance lookup through the deployed BNB Chain token contract
+- Wallet transfer intent system (server-validated sends)
+- Admin dashboard: eligible user view, cheater detection (5 heuristics), ban/unban system, deep user audit
+- Flutter mobile app v1.0.6 with 5-tab product surface (Mining, Web3, Web4, Whitepaper, Main)
+- Multi-language support: English, Hindi, Urdu, Chinese, Spanish (auto-detected by region)
+- Ant Code Colony system: single-level referral tracking, zero issuance multiplier
+- Community colony chat with scoped rooms
+- AdMob integration (banner/interstitial/rewarded — currently disabled by default)
+- Seed phrase vault with encrypted-at-rest storage and PIN + OTP reveal flow
+- In-app legal links for Privacy Policy, Terms of Service, and Account Deletion
+- Public docs: website, privacy, terms, whitepaper (v2.1)
+- Layer 1 private mainnet running (see [ROADMAP_2026.md](ROADMAP_2026.md))
 
 The codebase does not currently implement:
 
 - Guaranteed financial returns
 - Brokerage or custodial financial services
 - Automatic off-chain to on-chain reward minting for users
-- A production claim bridge from off-chain app balance into on-chain wallet balance
+- A production claim bridge from off-chain app balance into on-chain wallet balance (Layer 1 migration is the path)
 
 ---
 
@@ -247,6 +261,7 @@ Website / Docs:
 
 ```text
 A Network/
+├── anet-private-mainnet/     # Layer 1 private chain (Rust)
 ├── backend/
 │   ├── db.js
 │   ├── database_schema.sql
@@ -254,15 +269,23 @@ A Network/
 │   ├── middleware/
 │   ├── routes/
 │   └── services/
-├── docs/
-│   ├── index.html
-│   ├── privacy.html
-│   └── terms.html
 ├── my_app/
 │   ├── lib/
+│   │   ├── main.dart
+│   │   ├── api.dart
+│   │   ├── ads_service.dart
+│   │   ├── security_service.dart
+│   │   └── notification_service.dart
 │   ├── assets/
-│   ├── web/
 │   └── pubspec.yaml
+├── pi-backend/               # Pi DEX bridge backend
+├── index.html                # Main website
+├── whitepaper.html           # Official whitepaper v2.1
+├── privacy.html
+├── terms.html
+├── delete-account.html
+├── ROADMAP_2026.md           # 5-phase ecosystem roadmap
+├── COMMUNITY_ARTICLE_ANET_WBNB.md  # ANET/WBNB transparency article
 └── README.md
 ```
 
@@ -358,14 +381,24 @@ Examples:
 - Claim conversion uses safe truncation to ensure total claimed ANET never exceeds max supply
 - When max supply is reached, `is_mining_active` is disabled in network stats
 
-## Security and Anti-Abuse (v1.0.2)
+## Security and Anti-Abuse (v1.0.6)
 
 - Device binding with configurable max accounts per device (default `2`)
-- Heartbeat-backed mining session validation before completion
-- Risk scoring and account/session flagging
+- Heartbeat-backed mining session validation before completion (min 2 heartbeats per 6h session, max 120-min gap)
+- Risk scoring and account/session flagging with configurable block threshold
+- IP cluster detection: accounts flagged when IP shared by 8+ accounts
+- Fingerprint cluster detection: accounts flagged when fingerprint shared by 4+ accounts
+- Bot pattern detection: session timing analysis over last 8 sessions
+- Official client header enforcement: requests without valid app headers rejected
+- Emulator/rooted device blocking
+- Stale unverified account cleanup (72h)
 - Claim gate for flagged or high-risk accounts
 - Security audit logs for sensitive auth/mining events
+- Admin cheater detection: 5 independent heuristics (inflated sessions, high risk score, fast sessions, daily limit abuse, multi-account device clusters)
+- Manual ban/unban system (no automated permanent bans)
 - Global API rate limiting baseline: `100 requests / 15 minutes / IP`
+- 64-bit counter safety on ANTS balance for public-scale adoption
+- Row-level database locking on all claim operations (no double-credit possible)
 
 ## Web2, Web3, and Web4 Positioning
 
@@ -417,8 +450,11 @@ Web4 is currently presented as the coordination layer between off-chain utility 
 
 - The current codebase already implements the ANTS-first session ledger and the `1,000`-session eligibility threshold
 - The BNB Chain utility token is already visible through the current wallet and website surfaces
-- The broader Layer 1 public-release target is currently described as a roadmap goal with an approximate `8-month` objective, subject to technical readiness, security review, and market conditions
+- **Layer 1 private mainnet is now running** — block explorer live at https://explorer.a-network.net
+- The Layer 1 public release target is approximately `8 months`, subject to technical readiness, security review, and market conditions
+- Web2 ledger migration to Layer 1 uses **last-miner-first sync order** — most recently active miners are synchronized first to minimize downtime
 - Any early Layer 1 starting price discussion should be treated as a non-guaranteed planning reference only; market price discovery will depend on open participation and liquidity at launch
+- Full phase breakdown available in [ROADMAP_2026.md](ROADMAP_2026.md)
 
 ## Backend Setup
 
@@ -494,43 +530,99 @@ flutter build apk --release --no-obfuscate
 Authentication:
 
 - `POST /auth/register`
+- `POST /auth/verify-otp`
+- `POST /auth/resend-otp`
 - `POST /auth/login`
+- `POST /auth/verify-login-otp`
+- `POST /auth/resend-login-otp`
+- `POST /auth/forgot-password`
+- `POST /auth/reset-password`
+- `POST /auth/account-restore/request`
+- `POST /auth/account-restore/confirm`
+- `POST /auth/change-email`
+- `POST /auth/change-password`
+- `POST /auth/delete-account`
+
+Wallet:
+
+- `GET /auth/wallet`
+- `POST /auth/wallet/create`
+- `POST /auth/wallet/set-pin`
+- `POST /auth/wallet/change-pin`
+- `POST /auth/wallet/verify-pin`
+- `POST /auth/wallet/request-seed-otp`
+- `POST /auth/wallet/reveal-seed`
+- `POST /auth/wallet/request-pin-reset`
+- `POST /auth/wallet/confirm-pin-reset`
+- `POST /auth/wallet/update-migration-address`
+- `POST /auth/wallet/transfer-intent`
+- `GET /auth/wallet/history`
 
 Mining:
 
 - `POST /mining/start`
-- `GET /mining/status/:userId`
+- `GET /mining/status`
 - `POST /mining/complete`
+- `POST /mining/heartbeat`
+- `POST /mining/session/claim`
+- `POST /mining/claim`
+- `GET /mining/sessions`
 
 Stats:
 
 - `GET /stats/network`
+- `GET /stats/countries`
 - `GET /stats/onchain/:address`
+- `GET /stats/evm-token`
 
 Leaderboard:
 
 - `GET /leaderboard/top`
 - `GET /leaderboard/rank/:userId`
 
-User:
+Referral / Colony:
 
-- `POST /user/create`
+- `GET /referral/stats`
+- `GET /referral/community-chat`
+- `POST /referral/community-chat`
+- `POST /referral/room-name`
+- `POST /referral/claim-ant-code`
+
+User Dashboard:
+
+- `GET /user/dashboard`
+- `GET /user/profile`
+
+Admin (JWT + admin ID required):
+
+- `GET /admin/dashboard`
+- `GET /admin/cheaters`
+- `GET /admin/user/:id`
+- `POST /admin/ban`
+- `POST /admin/unban`
+
+Ads:
+
+- `POST /ads/impression`
 
 ## Website And Legal Pages
 
-The docs folder contains the public website and legal pages:
+Public pages live in the repository root (served via GitHub Pages / CNAME):
 
-- `docs/index.html`
-- `docs/privacy.html`
-- `docs/terms.html`
+- `index.html` — Main website
+- `whitepaper.html` — Official Whitepaper v2.1 (April 29, 2026)
+- `privacy.html` — Privacy Policy
+- `terms.html` — Terms of Service
+- `delete-account.html` — Account Deletion instructions
+- `app-ads.txt` — AdMob publisher verification
 
-Recommended public URLs:
+Public URLs:
 
 - `https://a-network.net/`
+- `https://a-network.net/whitepaper.html`
 - `https://a-network.net/privacy.html`
 - `https://a-network.net/terms.html`
-
-For the favicon to work, `logo.png` should be published in the same docs web root.
+- `https://a-network.net/delete-account.html`
 
 ## Policy-Safe Messaging Guidelines
 
@@ -560,19 +652,38 @@ Avoid claiming:
 
 ## Contact
 
+- Website: https://a-network.net
+- Explorer: https://explorer.a-network.net
+- Whitepaper: https://a-network.net/whitepaper.html
 - Email: `info@a-network.net`
-- GitHub: `https://github.com/A-Network-2026`
-- X: `https://x.com/ANetworkLLC`
+- GitHub: https://github.com/A-Network-2026
+- X: https://x.com/ANetworkLLC
+- DexScreener: https://dexscreener.com/bsc/0x791055a7d52aa392eae8de04250497f33807e46a
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [ROADMAP_2026.md](ROADMAP_2026.md) | Full 5-phase ecosystem roadmap (Web2 → Web3 → Web4 → Smart Contracts → ANET Core) |
+| [COMMUNITY_ARTICLE_ANET_WBNB.md](COMMUNITY_ARTICLE_ANET_WBNB.md) | Transparency article: ANET/WBNB vs Layer 1 coin, dual economy explanation |
+| [whitepaper.html](https://a-network.net/whitepaper.html) | Official Whitepaper v2.1 — full technical specification |
+| [explorer.a-network.net](https://explorer.a-network.net) | Layer 1 block explorer (private mainnet live) |
 
 ## Summary
 
 A-Network currently ships as a real application stack with:
 
-- code-backed off-chain mining logic
-- code-backed network stats and leaderboard behavior
-- code-backed on-chain ANET balance lookup
-- public legal pages
-- policy-safer product positioning for app store submission
+- Code-backed off-chain mining logic (6h sessions, halving, hard cap)
+- 6-layer anti-gaming system (risk scoring, heartbeat, bot detection, device binding)
+- Code-backed network stats and leaderboard behavior
+- Code-backed on-chain ANET balance lookup and transfer intents
+- Wallet system with encrypted seed vault (PIN + OTP reveal)
+- Multi-language support (English, Hindi, Urdu, Chinese, Spanish)
+- Ant Code Colony referral system (single-level, zero issuance multiplier)
+- Admin dashboard with cheater detection and manual ban system
+- Layer 1 private mainnet running (explorer: https://explorer.a-network.net)
+- Public legal pages and policy-safe product positioning for app store submission
+- App v1.0.6 ready for Google Play and App Store submission
 
 Any future README updates should stay aligned with the actual source code, legal pages, and store-policy-safe language.
 2. Build optimized release:
