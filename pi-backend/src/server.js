@@ -10,6 +10,7 @@ dotenv.config();
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
+const host = process.env.HOST || '0.0.0.0';
 const PI_API_KEY = process.env.PI_API_KEY || '';
 const PI_API_BASE_URL = (process.env.PI_API_BASE_URL || 'https://api.minepi.com').replace(/\/$/, '');
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
@@ -3324,8 +3325,8 @@ app.post('/api/pi/cashout/request', (_req, res) => {
 
 initializeNftDatabase()
   .then(() => {
-    app.listen(port, () => {
-      console.log(`Pi backend listening on http://localhost:${port}`);
+    app.listen(port, host, () => {
+      console.log(`Pi backend listening on http://${host}:${port}`);
       console.log(`[NFT] Identity DB ready at ${NFT_DB_PATH}`);
       console.log(`[NFT] Minimum profile creation stake: ${NFT_MIN_PROFILE_ANTS} ANTS`);
     });
