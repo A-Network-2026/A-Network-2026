@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delete Account - A Network</title>
+  <meta name="description" content="How A Network account deletion works, including scheduled deletion, one-time restore eligibility, and retained security records.">
+  <meta name="theme-color" content="#07111f">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="A Network">
+  <meta property="og:title" content="Delete Account - A Network">
+  <meta property="og:description" content="How A Network account deletion works, including scheduled deletion, one-time restore eligibility, and retained security records.">
+  <meta property="og:url" content="https://a-network.net/delete-account.html">
+  <meta property="og:image" content="https://a-network.net/logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Delete Account - A Network">
+  <meta name="twitter:description" content="How A Network account deletion works, including scheduled deletion, one-time restore eligibility, and retained security records.">
+  <meta name="twitter:image" content="https://a-network.net/logo.png">
+  <link rel="canonical" href="https://a-network.net/delete-account.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="assets/css/delete-account.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="nav">
+      <a href="index.html">Home</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="delete-account.html">Delete Account</a>
+    </div>
+
+    <section class="hero">
+      <p class="muted">Last updated: April 12, 2026</p>
+      <h1>Delete Account Request</h1>
+      <p>This page explains how A Network account deletion works in the current release, including scheduled deletion, verification, temporary retention, and the limited one-time restore path available before final removal completes.</p>
+      <div class="notice">Deletion is not always immediate. Current backend behavior schedules deletion first, then allows a limited one-time email OTP restore before final removal is completed.</div>
+    </section>
+
+    <section class="card">
+      <h2>1. How Account Deletion Currently Works</h2>
+      <ol>
+        <li>Submit your deletion request using the supported in-app or support-guided account deletion process.</li>
+        <li>Your request may require verification to confirm account ownership and reduce abuse.</li>
+        <li>Once accepted, the account enters a <strong>scheduled deletion</strong> state rather than being removed instantly.</li>
+        <li>During that scheduled window, the account may be eligible for a <strong>one-time email OTP restore</strong> if the current backend rules allow it.</li>
+        <li>After the scheduled deletion period finishes, the account and related data are processed for deletion subject to legal, audit, and security retention requirements.</li>
+      </ol>
+      <p>If you need manual assistance, contact <a href="mailto:info@a-network.net?subject=A-Network%20Account%20Deletion%20Request">info@a-network.net</a> from your registered account email address. We may ask for additional verification to protect account security.</p>
+    </section>
+
+    <section class="card">
+      <h2>2. One-Time Restore Before Final Deletion</h2>
+      <p>If your account is in the scheduled-deletion state, the current system may allow a one-time recovery by email OTP before final deletion is completed.</p>
+      <ul>
+        <li>The restore flow is available only while the account is still scheduled for deletion.</li>
+        <li>The recovery path is intentionally <strong>single-use</strong>. If it is used once, it cannot be reused for a future deletion of the same account.</li>
+        <li>Restore requests and confirmations may require valid email ownership, active OTP codes, and completion within the allowed expiry window.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>3. Data Deleted When Account Is Deleted</h2>
+      <ul>
+        <li>Account profile data linked to your email address.</li>
+        <li>Authentication data linked to your account.</li>
+        <li>OTP verification records that are no longer required for security, audit, or legal retention.</li>
+        <li>In-app mining/account activity records linked directly to your account identity, subject to any retention obligations described below.</li>
+        <li>Scheduled-deletion state linked to the account once deletion processing is complete.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>4. Data That May Be Retained</h2>
+      <p>Some limited records may be retained for security, fraud prevention, legal compliance, and dispute handling, such as:</p>
+      <ul>
+        <li>Security and abuse-prevention logs.</li>
+        <li>Audit events related to deletion, restore attempts, OTP verification, and account security.</li>
+        <li>System audit records required to protect service integrity.</li>
+        <li>Records required by applicable law.</li>
+      </ul>
+      <p>Retention periods may vary depending on the type of record, security need, and legal requirement. Some limited records may be retained beyond the normal deletion window where reasonably necessary for service integrity, fraud prevention, or legal compliance.</p>
+    </section>
+
+    <section class="card">
+      <h2>5. Processing Time</h2>
+      <p>Deletion requests may involve a scheduled waiting period before final removal. Exact timing can vary based on verification, security review, system rules, and any configured deletion delay. Once the final deletion stage begins, processing time may still vary depending on operational and legal requirements.</p>
+    </section>
+
+    <section class="card">
+      <h2>6. Contact</h2>
+      <p>For account deletion and privacy requests, contact <a href="mailto:info@a-network.net">info@a-network.net</a>.</p>
+    </section>
+  </div>
+</body>
+</html>
+

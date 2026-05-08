@@ -1,0 +1,184 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network Web5 | Live Coordination Surface</title>
+  <meta name="description" content="A Network Web5 view of the live Layer 1 testnet: event-driven settlement blocks, active validator participation, total sessions, and synchronized supply data.">
+  <meta name="theme-color" content="#050b12">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="A Network Web5 | Live Coordination Surface">
+  <meta property="og:description" content="Live Web5-facing view of the A Network Layer 1 testnet with event-driven settlement blocks and synchronized supply data.">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/web5.css" />
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Live Web5 Surface</div>
+        <h1>A Network Web5 Coordination View</h1>
+        <p>
+          This page is a lightweight Web5-facing surface over the live A Network Layer 1 testnet. It reflects the current chain directly from the public explorer APIs: latest event-driven settlement blocks, active validator participation, total sessions, and current transfer-window cadence.
+        </p>
+        <div class="hero-actions">
+          <a class="btn" href="https://explorer.a-network.net/explorer">Open Explorer</a>
+          <a class="btn btn-ghost" href="#worker-transfer">Worker Transfer</a>
+          <a class="btn btn-ghost" href="web4.html">Open Web4 Page</a>
+          <a class="btn btn-ghost" href="whitepaper.html">Read Whitepaper</a>
+        </div>
+      </div>
+      <div class="hero-meta">
+        <div>
+          <span>Current Mode</span>
+          <strong>Live Layer 1 Testnet</strong>
+        </div>
+        <div>
+          <span>Transfer Cadence</span>
+          <strong id="cadence">Loading...</strong>
+        </div>
+        <div>
+          <span>Current Settlement Window Ends</span>
+          <strong id="epochEnd" class="mono">Loading...</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <article class="stat-card">
+        <label>Latest Block</label>
+        <strong id="blockCount">0</strong>
+        <div class="stat-copy">Most recent finalized settlement block.</div>
+      </article>
+      <article class="stat-card">
+        <label>Total Sessions</label>
+        <strong id="sessionCount">0</strong>
+        <div class="stat-copy">Completed Web2 mining sessions tracked by the live metrics feed.</div>
+      </article>
+      <article class="stat-card">
+        <label>Active Miners</label>
+        <strong id="minerCount">0</strong>
+        <div class="stat-copy">Workers actively mining in the current Web2 economy.</div>
+      </article>
+      <article class="stat-card">
+        <label>Activated Supply</label>
+        <strong id="activatedSupply">0</strong>
+        <div class="stat-copy">Current Layer 1 activated supply represented in ANET.</div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">Web5 Quick Access</div>
+          <h2>Fast Actions</h2>
+        </div>
+        <div class="table-note">Mirrors the quick-access direction now used in the app Web5 tab.</div>
+      </div>
+      <div class="action-grid">
+        <article class="action-card">
+          <h3>Worker Transfer</h3>
+          <p>Jump directly to the live Layer 1 transfer surface and submit ANT-denominated mempool transactions from the public explorer APIs.</p>
+          <a class="btn btn-block" href="#worker-transfer">Open Transfer</a>
+        </article>
+        <article class="action-card">
+          <h3>Live Explorer</h3>
+          <p>Open the full explorer dashboard for detailed block, wallet, validator, and on-chain settlement visibility.</p>
+          <a class="btn btn-block" href="https://explorer.a-network.net/explorer">Open Explorer</a>
+        </article>
+        <article class="action-card">
+          <h3>Web4 + Whitepaper</h3>
+          <p>Review the broader ecosystem context, migration framing, and current Layer 1 positioning through the public docs.</p>
+          <div class="hero-actions">
+            <a class="btn btn-ghost" href="web4.html">Web4 Page</a>
+            <a class="btn btn-ghost" href="whitepaper.html">Whitepaper</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">App Tools</div>
+          <h3>Wallet Security Shortcuts</h3>
+        </div>
+        <div class="table-note">These stay inside the mobile app because they depend on the signed-in wallet owner session.</div>
+      </div>
+      <div class="info-grid">
+        <article class="info-card">
+          <h3>View Seed</h3>
+          <p>The app Web5 tab now includes direct access to seed-phrase reveal so users do not need to swipe back to Web4 for wallet backup and migration checks.</p>
+        </article>
+        <article class="info-card">
+          <h3>Change PIN</h3>
+          <p>The app Web5 tab also duplicates the wallet PIN action for faster security access while keeping the reveal flow protected by the current wallet rules.</p>
+        </article>
+        <article class="info-card">
+          <h3>Why App-Only</h3>
+          <p>Seed reveal and PIN changes are intentionally tied to the authenticated app experience. The public Web5 page stays read-only plus transfer-capable.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="worker-transfer" class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">Worker Transfer</div>
+          <h2>Transfer</h2>
+        </div>
+        <div class="table-note">Submit an ANT-denominated transfer to the mempool for inclusion in the next fast transfer block.</div>
+      </div>
+      <form id="txForm" class="tx-form">
+        <label>
+          <span>From Wallet</span>
+          <input id="txFrom" placeholder="ANET..." required>
+        </label>
+        <label>
+          <span>To Wallet</span>
+          <input id="txTo" placeholder="ANET..." required>
+        </label>
+        <label>
+          <span>Amount (ANTS)</span>
+          <input id="txAmount" type="number" min="1" step="1" placeholder="4882812" required>
+        </label>
+        <label>
+          <span>Fee (ANTS)</span>
+          <input id="txFee" type="number" min="0" step="1" value="0" required>
+        </label>
+        <label class="seed-field">
+          <span>Sender Seed Phrase</span>
+          <input id="txSeed" type="password" placeholder="12-word wallet seed" required>
+        </label>
+        <button type="submit">Queue Transaction</button>
+      </form>
+      <div id="txResult" class="tx-result">Transactions remain in the mempool until the next TPoW transfer block is created. This Web5 page uses the same seed-based sender authorization as the public explorer for current testnet compatibility.</div>
+    </section>
+
+    <section class="table-shell">
+      <div class="table-head">
+        <div>
+          <div class="eyebrow">Live Chain Feed</div>
+          <h2>Recent Blocks</h2>
+        </div>
+        <div class="table-note">Data source: <span class="mono">explorer.a-network.net/blocks</span> and <span class="mono">explorer.a-network.net/stats/investor</span></div>
+      </div>
+      <div id="errorBox" class="error" style="display:none;"></div>
+      <table>
+        <thead>
+          <tr><th>Block</th><th>Hash</th><th>Validators</th><th>Transactions</th><th>Epoch End</th></tr>
+        </thead>
+        <tbody id="blocksBody">
+          <tr><td colspan="5" class="muted">Loading live block feed...</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <script src="assets/js/web5.js" defer></script>
+</body>
+</html>
+

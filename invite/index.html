@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A Network Invite</title>
+  <meta http-equiv="refresh" content="0; url=anetwork://invite" />
+  <script>
+    // Try app deep link first, then fall back to website home.
+    window.location.replace("anetwork://invite");
+    setTimeout(function () {
+      window.location.replace("https://a-network.net/");
+    }, 1200);
+  </script>
+</head>
+<body>
+  <p>Opening A Network app...</p>
+  <p>If it does not open, <a href="https://a-network.net/">tap here</a>.</p>
+</body>
+</html>

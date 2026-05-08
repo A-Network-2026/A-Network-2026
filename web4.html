@@ -1,0 +1,399 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network Web4 | Live Testnet + ANTS Ecosystem</title>
+  <meta name="description" content="Explore A Network's live Layer 1 testnet and the broader Web4 architecture: ANTS-first accounting, 2-second settlement windows, event-driven transfer blocks, Web2-to-Layer1 synchronization, and the long-range ANTS Ecosystem roadmap.">
+  <meta name="theme-color" content="#050b12">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="A Network">
+  <meta property="og:title" content="A Network Web4 | Live Testnet + ANTS Ecosystem">
+  <meta property="og:description" content="A Network's live Layer 1 testnet plus the broader ANTS Ecosystem roadmap: ANTS-first accounting, event-driven settlement blocks, and decentralized habitat design.">
+  <meta property="og:url" content="https://a-network.net/web4.html">
+  <meta property="og:image" content="https://a-network.net/logo.png">
+  <link rel="canonical" href="https://a-network.net/web4.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/web4.css" />
+</head>
+<body>
+  <canvas id="ants-bg"></canvas>
+
+  <div class="shell">
+    <header>
+      <a class="brand" href="index.html">
+        <img class="brand-mark" src="logo.png" alt="A Network logo" onerror="this.style.display='none';document.getElementById('brandFallback').style.display='grid';">
+        <div class="brand-fallback" id="brandFallback">A</div>
+        <div>
+          <h1>A NETWORK</h1>
+          <p>Web4 | ANTS Ecosystem Vision</p>
+        </div>
+      </a>
+      <nav>
+        <a href="index.html">Ant Ecosystem</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#colony">Colony Model</a>
+        <a href="#ants">Ant Types</a>
+        <a href="ants-program.html">ANTS Program</a>
+        <a href="#nodes">ANET Node</a>
+        <a href="whitepaper.html">Whitepaper</a>
+      </nav>
+    </header>
+
+    <section class="hero" id="top">
+      <div class="hero-copy">
+        <div class="eyebrow">Live Layer 1 Testnet | Web4 Roadmap</div>
+        <h2>
+          Building an <span class="accent-a">ANT habitat</span> for a
+          <span class="accent-b">fully decentralized</span>
+          <span class="accent-c">A Network future</span>.
+        </h2>
+        <p>
+          A Network Web4 now has two realities at once: a live Layer 1 testnet already running 2-second settlement windows and event-driven transfer blocks, and a broader ANTS Ecosystem roadmap that extends beyond the current chain. The habitat model remains the long-range direction: user activity, node coordination, value accounting, migration logic, and on-chain settlement operating like a living colony rather than one centralized keeper.
+        </p>
+        <div class="hero-actions">
+          <a class="btn" href="#architecture">Explore Architecture</a>
+          <a class="btn-secondary" href="ants-program.html">ANTS Program</a>
+          <a class="btn-secondary" href="whitepaper.html">Read Whitepaper</a>
+          <a class="btn-secondary" href="https://t.me/A_Network_Community/8189/10535#download">Download App</a>
+        </div>
+        <div class="hero-note">
+          Current A Network already uses ANTS-first accounting in the app economy and now runs a live Layer 1 testnet with Web2 genesis activation, periodic balance synchronization, and 2-second settlement windows. The chain emits a block only when transfers or newly synchronized Web2 supply need to be settled. The broader ANT Blockchain and ANET Node mesh described here remain the next-stage Web4 direction.
+        </div>
+      </div>
+
+      <div class="hero-grid">
+        <div class="metric">
+          <h3>Core Asset</h3>
+          <div class="metric-value">ANTS</div>
+          <p>The smallest productive unit in the A Network economy, tracked first before ANET representation.</p>
+        </div>
+        <div class="metric">
+          <h3>Settlement Asset</h3>
+          <div class="metric-value">ANET</div>
+          <p>The ecosystem token layer intended for broader settlement, migration, and long-range network utility.</p>
+        </div>
+        <div class="metric">
+          <h3>Live Chain</h3>
+          <div class="metric-value">ANET Layer 1 Testnet</div>
+          <p>A live settlement chain with 2-second windows that produces blocks only when real transfer or synchronized-supply activity exists.</p>
+        </div>
+        <div class="metric">
+          <h3>Current Validator Surface</h3>
+          <div class="metric-value">Dynamic Validator Set</div>
+          <p>Eligible validator wallets are synchronized from real Web2 mining participation instead of a fixed human-curated list.</p>
+        </div>
+        <div class="mini-map">
+          <div class="mini-cell">
+            <strong>Web2 Activity Layer</strong>
+            <span>Mining sessions, account state, engagement logic, app-native productivity, and ANTS accumulation.</span>
+          </div>
+          <div class="mini-cell">
+            <strong>Web3 Ownership Layer</strong>
+            <span>Wallet identity, token settlement, asset control, migration destinations, and transparent contract state.</span>
+          </div>
+          <div class="mini-cell">
+            <strong>Web4 Coordination Layer</strong>
+            <span>ANT habitat routing, ANET Node consensus, colony intelligence, cross-layer synchronization, and future autonomous governance.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="architecture">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">What It Really Is</div>
+            <h2>The ANTS Ecosystem Is a Habitat Model, Not Just a Token Story</h2>
+            <p class="section-copy">
+              Ant colonies are powerful because they do not depend on one hero process. They survive through coordination, division of work, redundancy, adaptation, and constant feedback from the environment. That is the deeper logic behind the ANTS Ecosystem.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <article class="power-card">
+            <h3>Distributed Labor</h3>
+            <p class="card-copy"><strong>ANTS</strong> represent granular work units. In todayâ€™s app, they are accumulated through Ant Work session logic. In the future habitat, they can also become the measurable unit of routing, node assistance, data relay, and ecosystem productivity.</p>
+          </article>
+          <article class="power-card">
+            <h3>Distributed Memory</h3>
+            <p class="card-copy">The colony becomes stronger when identity, migration mapping, state checkpoints, and network proofs are not owned by one server. The future ANT Blockchain is intended to carry this distributed memory layer.</p>
+          </article>
+          <article class="power-card">
+            <h3>Distributed Survival</h3>
+            <p class="card-copy">A fragile system dies if one node, one company, or one region fails. A real habitat survives because <strong>ANET Nodes</strong> keep the colony routable, visible, and recoverable from many directions at once.</p>
+          </article>
+        </div>
+
+        <div class="quote-box">
+          In simple terms: the ANTS Ecosystem is A Networkâ€™s blueprint for turning isolated user activity into a coordinated, decentralized living system where work, ownership, and future network intelligence reinforce each other.
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="colony">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">Habitat Logic</div>
+            <h2>Why the Ant Colony Metaphor Is So Powerful</h2>
+            <p class="section-copy">
+              The ant habitat is not branding decoration. It is the actual systems design metaphor for how A Network can scale into Web4.
+            </p>
+          </div>
+        </div>
+
+        <div class="road-list">
+          <div class="road-card">
+            <div class="road-kicker">1. Coordination Without Central Dependence</div>
+            <strong>Ants do not need a central announcer for every motion.</strong>
+            <p class="card-copy">That mirrors the future of ANET Nodes: local decision-making, distributed verification, and shared rules instead of one central machine deciding every state transition.</p>
+          </div>
+          <div class="road-card">
+            <div class="road-kicker">2. Small Units Create Large Systems</div>
+            <strong>One ant looks small. A colony can reshape terrain.</strong>
+            <p class="card-copy">One ANTS unit looks minor. But at ecosystem scale, ANTS-first accounting lets the network measure real accumulated activity before conversion, migration, or broader utility allocation.</p>
+          </div>
+          <div class="road-card">
+            <div class="road-kicker">3. Habitat Intelligence Emerges Over Time</div>
+            <strong>Colonies become powerful because signals compound.</strong>
+            <p class="card-copy">The same applies to Web4. Identity trails, participation history, session output, migration readiness, and node coordination can eventually form an intelligent network surface without creating a custodial system.</p>
+          </div>
+          <div class="road-card">
+            <div class="road-kicker">4. Strong Systems Are Redundant</div>
+            <strong>Redundancy is not waste. It is resilience.</strong>
+            <p class="card-copy">A fully decentralized future needs multiple nodes, replicated proofs, distributed routes, and recoverable state. That is why ANET Nodes matter more than a single backend ever could.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ants">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">Ant Roles</div>
+            <h2>Different Ants, Different Network Functions</h2>
+            <p class="section-copy">
+              Real ant societies work because different ants specialize. In the ANTS Ecosystem, this gives a useful mental model for future roles across the network.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid-4">
+          <article class="ant-card">
+            <h3>Worker Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> carrying, building, cleaning, feeding the colony.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> everyday participants whose sessions, activity, routing, and economic behavior keep the ecosystem alive.</p>
+          </article>
+          <article class="ant-card">
+            <h3>Soldier Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> defense and perimeter control.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> security-oriented node operators, validation layers, anti-spam control, and protective network behavior.</p>
+          </article>
+          <article class="ant-card">
+            <h3>Scout Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> exploration and discovery of routes or food sources.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> route discovery, network reachability, cross-chain intelligence, and ecosystem expansion into new environments.</p>
+          </article>
+          <article class="ant-card">
+            <h3>Builder Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> tunnel creation and habitat architecture.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> protocol builders, app developers, infrastructure contributors, and habitat-layer architects.</p>
+          </article>
+        </div>
+
+        <div class="grid-4" style="margin-top:14px;">
+          <article class="ant-card">
+            <h3>Farmer Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> cultivating fungus, maintaining productive systems.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> long-term yield, app ecosystems, service markets, and utility layers that produce recurring value.</p>
+          </article>
+          <article class="ant-card">
+            <h3>Nurse Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> caring for brood and ensuring colony continuity.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> onboarding, user education, tooling, UX safety, and continuity systems that make the network sustainable.</p>
+          </article>
+          <article class="ant-card">
+            <h3>Queen Ant</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> continuity, long-term survival, reproductive center.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> not a single ruler, but the idea of durable protocol continuity. In a decentralized habitat, the protocol itself must replace the need for a human queen.</p>
+          </article>
+          <article class="ant-card">
+            <h3>Swarm Ants</h3>
+            <p class="card-copy"><strong>Role in nature:</strong> collective movement under pressure.</p>
+            <p class="card-copy"><strong>Role in Web4:</strong> the networkâ€™s ability to coordinate quickly during migration windows, upgrades, node events, or ecosystem-wide shifts.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="nodes">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">Infrastructure Core</div>
+            <h2>What ANET Nodes Would Do in a Fully Decentralized Future</h2>
+            <p class="section-copy">
+              ANET Nodes are the habitat keepers of the future network. They are not meant to custody user keys. They are meant to coordinate, relay, verify, and preserve decentralized operability.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <article class="node-card">
+            <h3>State Relay</h3>
+            <p class="card-copy">Nodes can relay proof-bearing ecosystem state between the app layer, the live Layer 1 testnet, and future settlement destinations without taking ownership of user wallets.</p>
+          </article>
+          <article class="node-card">
+            <h3>Migration Coordination</h3>
+            <p class="card-copy">Nodes can witness and coordinate the mapping from mined ANTS history into future ANET rewards or Web4 migration claims, while still keeping user wallets non-custodial.</p>
+          </article>
+          <article class="node-card">
+            <h3>Consensus Surface</h3>
+            <p class="card-copy">As the ecosystem matures, ANET Nodes become the mesh that determines valid checkpoints, valid routes, valid proofs, and the durability of the habitat itself.</p>
+          </article>
+        </div>
+
+        <div class="stack-grid" style="margin-top:14px;">
+          <article class="stack-card">
+            <h3>Current Reality</h3>
+            <div class="stack-title">App + Backend + Live Testnet</div>
+            <p class="stack-copy">Today A Network uses an app-first model with 6-hour session logic, ANTS-first accounting, wallet mapping, genesis activation, periodic Web2-to-Layer1 sync, and a live testnet transfer surface. This is the colony in its first public infrastructure phase.</p>
+            <div class="legend">
+              <span>ANTS-first accounting</span>
+              <span>Ant Work sessions</span>
+              <span>migration wallet mapping</span>
+            </div>
+          </article>
+          <article class="stack-card">
+            <h3>Future Direction</h3>
+            <div class="stack-title">Expanded Habitat Layer</div>
+            <p class="stack-copy">The next Web4 layer expands beyond the current testnet into a fuller node-based habitat where coordination, proofs, routing, migration logic, and service markets become decentralized network functions.</p>
+            <div class="legend">
+              <span>distributed nodes</span>
+              <span>proof routing</span>
+              <span>decentralized habitat memory</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="chain">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">Chain Design</div>
+            <h2>What the ANT Blockchain Represents</h2>
+            <p class="section-copy">
+              The live ANET Layer 1 testnet is not just a place to hold balances. In the broader A Network vision, it becomes the habitat ledger for how work, migration, settlement, and coordination are organized at scale.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-grid">
+          <article class="timeline-card">
+            <h3>Identity Anchoring</h3>
+            <p>User-controlled wallets remain local and non-custodial, but the network can still anchor addresses, proofs, and migration references on a decentralized chain.</p>
+          </article>
+          <article class="timeline-card">
+            <h3>Habitat Proofs</h3>
+            <p>Network history, participation proofs, and migration state can live as durable records instead of depending on one database forever.</p>
+          </article>
+          <article class="timeline-card">
+            <h3>Autonomous Expansion</h3>
+            <p>Once the chain and nodes exist together, the colony can expand into service layers, AI routing, protocol governance, and multi-app ecosystem coordination.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="power">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">Why It Matters</div>
+            <h2>Why the ANTS Ecosystem Can Become So Powerful</h2>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <article class="myth-card">
+            <h3>Because It Starts Small but Compounds</h3>
+            <p class="card-copy">ANTS are small units. That is exactly why they are useful. Small measurable units allow disciplined accounting, disciplined growth, and disciplined migration into larger network value later.</p>
+          </article>
+          <article class="myth-card">
+            <h3>Because It Separates Work From Custody</h3>
+            <p class="card-copy">The user keeps custody of the wallet. The network only coordinates public state, mapping, and proofs. That separation is essential for a serious decentralized system.</p>
+          </article>
+          <article class="myth-card">
+            <h3>Because It Makes Web4 Concrete</h3>
+            <p class="card-copy">Web4 here is not vague hype. It means coordination: how identity, work, routing, migration, settlement, and intelligence connect across layers into one habitat.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="roadmap">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <div class="section-label">Colony Evolution</div>
+            <h2>From Todayâ€™s App Economy to Tomorrowâ€™s Decentralized Habitat</h2>
+            <p class="section-copy">
+              This is the logic line from the project you already built, through the live testnet running today, into the broader Web4 future this page describes.
+            </p>
+          </div>
+        </div>
+
+        <div class="road-list">
+          <div class="road-card">
+            <div class="road-kicker">Phase 1 | Active Today</div>
+            <strong>Web2 Ant Work, ANTS-first accounting, session logic, and migration address preparation.</strong>
+            <p class="card-copy">The app already trains the economic discipline of the colony: activity, session completion, measured units, and future migration readiness.</p>
+          </div>
+          <div class="road-card">
+            <div class="road-kicker">Phase 2 | Live Layer 1 Testnet</div>
+            <strong>Genesis activation, periodic Web2 synchronization, dynamic validator participation, and fast transfer blocks.</strong>
+            <p class="card-copy">This phase turns the migration story into running infrastructure: wallet-to-wallet transfer settlement on a live Layer 1 testnet while Web2 mining remains on 6-hour sessions.</p>
+          </div>
+          <div class="road-card">
+            <div class="road-kicker">Phase 3 | Web4 Habitat Layer</div>
+            <strong>Broader ANT Blockchain checkpoints, ANET Node participation, and decentralized habitat coordination.</strong>
+            <p class="card-copy">The colony graduates from the current settlement testnet into wider network-state coordination across nodes, shared rules, and richer service surfaces.</p>
+          </div>
+          <div class="road-card">
+            <div class="road-kicker">Phase 4 | Autonomous Colony Expansion</div>
+            <strong>AI-assisted routing, service economies, protocol evolution, and multi-domain ecosystem growth.</strong>
+            <p class="card-copy">This is where the habitat becomes a wider digital organism: not just a token network, but an adaptive decentralized environment.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="section-actions" style="justify-content:center; margin-bottom:14px;">
+        <a class="chip-link" href="index.html">Ant Ecosystem</a>
+        <a class="chip-link" href="ants-program.html">ANTS Program</a>
+        <a class="chip-link" href="whitepaper.html">Whitepaper</a>
+        <a class="chip-link" href="privacy.html">Privacy</a>
+        <a class="chip-link" href="terms.html">Terms</a>
+      </div>
+      <p>
+        A Network Web4 page. Built around the live Layer 1 testnet plus the wider ANTS Ecosystem vision: non-custodial ownership, distributed coordination, synchronized settlement, ANT Blockchain habitat memory, and future ANET Node infrastructure.
+      </p>
+    </footer>
+  </div>
+
+  <script src="assets/js/web4.js" defer></script>
+</body>
+</html>
+
