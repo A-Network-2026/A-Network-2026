@@ -1467,7 +1467,7 @@ function applyCreatePoolStartDefaults() {
   if (discoveryEl) discoveryEl.checked = true;
 }
 
-function useAvailableAnetForCreatePool() {
+async function useAvailableAnetForCreatePool() {
   const anetEl = document.getElementById('create-anet-amount');
   const tokEl = document.getElementById('create-token-amount');
   const symEl = document.getElementById('create-token-sym');
@@ -1478,24 +1478,28 @@ function useAvailableAnetForCreatePool() {
     openAnetWalletModal();
     return;
   }
+  if (state.anetWallet.balance == null) {
+    await refreshAnetBalance();
+  }
   if (state.anetWallet.balance == null || Number(state.anetWallet.balance) <= 0) {
     toast('No ANET balance available in connected wallet.', 'error');
     return;
   }
 
   const availableAnet = Number(state.anetWallet.balance) / ANTS_PER_ANET;
-  const amount = Number(Math.max(availableAnet, 0).toFixed(8));
-  anetEl.value = String(amount);
+  const amountStr = Math.max(availableAnet, 0).toFixed(8);
+  const amount = parseFloat(amountStr);
+  anetEl.value = amountStr;
 
   const sym = (symEl.value || '').trim().toUpperCase();
   if (!isCreatePoolDiscoveryModeEnabled() && isStableSymbol(sym)) {
-    tokEl.value = String(amount);
+    tokEl.value = amountStr;
   } else if (!tokEl.value || parseFloat(tokEl.value) <= 0) {
-    tokEl.value = String(amount);
+    tokEl.value = amountStr;
   }
 
   syncCreatePoolPegDraft();
-  toast(`Filled ANET amount from wallet balance: ${fmt(amount, 8)} ANET`, 'info', 4500);
+  toast(`Filled ANET amount from wallet balance: ${amountStr} ANET`, 'info', 4500);
 }
 
 function quickCreateStablePool(symbol) {
