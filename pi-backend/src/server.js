@@ -3,6 +3,8 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const sqlite3 = require('sqlite3').verbose();
 
 dotenv.config();
 
@@ -37,6 +39,11 @@ const BTC_NETWORK = String(process.env.BTC_NETWORK || 'mainnet').trim().toLowerC
 const BTC_REQUIRED_CONFIRMATIONS = Math.max(1, Number(process.env.BTC_REQUIRED_CONFIRMATIONS || 1));
 const BTC_EXPLORER_BASE_URL = String(process.env.BTC_EXPLORER_BASE_URL || '').trim().replace(/\/$/, '');
 const BTC_ENABLE_TEST_ADMIN = (process.env.BTC_ENABLE_TEST_ADMIN || 'false').toLowerCase() === 'true';
+const NFT_DB_PATH = process.env.NFT_DB_PATH || path.join(__dirname, '..', 'data', 'nft-identity.db');
+const NFT_MIN_PROFILE_ANTS = Math.max(1, Number(process.env.NFT_MIN_PROFILE_ANTS || 1000));
+const NFT_MAX_BIO_LENGTH = Math.max(80, Number(process.env.NFT_MAX_BIO_LENGTH || 280));
+
+let nftDb = null;
 
 if (!PI_API_KEY) {
   console.warn('[WARN] PI_API_KEY is not set. Pi API calls will fail until configured.');
@@ -97,9 +104,243 @@ function normalizePositiveInteger(value) {
   return Number.isInteger(amount) && amount > 0 ? amount : null;
 }
 
+function normalizeNonNegativeInteger(value, fallback = 0) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount < 0) {
+    return fallback;
+  }
+  return Math.floor(amount);
+}
+
 function safeIsoDate(value) {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function ensureNftDbDirectory() {
+  fs.mkdirSync(path.dirname(NFT_DB_PATH), { recursive: true });
+}
+
+function createSqliteConnection(filePath) {
+  return new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(filePath, (error) => {
+      if (error) {
+        return reject(error);
+      }
+      resolve(db);
+    });
+  });
+}
+
+function dbRun(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function onRun(error) {
+      if (error) {
+        return reject(error);
+      }
+      return resolve({ lastID: this.lastID, changes: this.changes });
+    });
+  });
+}
+
+function dbGet(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (error, row) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve(row || null);
+    });
+  });
+}
+
+function dbAll(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (error, rows) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve(Array.isArray(rows) ? rows : []);
+    });
+  });
+}
+
+async function initializeNftDatabase() {
+  ensureNftDbDirectory();
+  nftDb = await createSqliteConnection(NFT_DB_PATH);
+
+  await dbRun(nftDb, `
+    CREATE TABLE IF NOT EXISTS nft_profiles (
+      uid TEXT PRIMARY KEY,
+      username TEXT DEFAULT '',
+      wallet_address TEXT DEFAULT '',
+      display_name TEXT DEFAULT '',
+      bio TEXT DEFAULT '',
+      avatar_uri TEXT DEFAULT '',
+      banner_uri TEXT DEFAULT '',
+      theme_json TEXT DEFAULT '{}',
+      ants_balance INTEGER DEFAULT 0,
+      profile_nft_id TEXT,
+      profile_created_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+
+  await dbRun(nftDb, `
+    CREATE TABLE IF NOT EXISTS nft_assets (
+      id TEXT PRIMARY KEY,
+      uid TEXT NOT NULL,
+      slug TEXT DEFAULT '',
+      name TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      image_uri TEXT DEFAULT '',
+      metadata_uri TEXT DEFAULT '',
+      traits_json TEXT DEFAULT '[]',
+      status TEXT DEFAULT 'active',
+      ants_stake INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(uid) REFERENCES nft_profiles(uid)
+    )
+  `);
+
+  await dbRun(nftDb, `
+    CREATE TABLE IF NOT EXISTS nft_activity (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uid TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      details_json TEXT DEFAULT '{}',
+      created_at TEXT NOT NULL,
+      FOREIGN KEY(uid) REFERENCES nft_profiles(uid)
+    )
+  `);
+
+  await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_assets_uid ON nft_assets(uid)');
+  await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_activity_uid ON nft_activity(uid)');
+}
+
+function requireNftDatabase(res) {
+  if (!nftDb) {
+    res.status(503).json({ ok: false, error: 'NFT database is not initialized' });
+    return false;
+  }
+  return true;
+}
+
+function normalizeShortText(value, maxLength = 64) {
+  return String(value || '').trim().slice(0, maxLength);
+}
+
+function normalizeUri(value, maxLength = 500) {
+  return String(value || '').trim().slice(0, maxLength);
+}
+
+function normalizeThemeJson(value) {
+  if (value == null) {
+    return '{}';
+  }
+  if (typeof value === 'string') {
+    try {
+      JSON.parse(value);
+      return value;
+    } catch {
+      return '{}';
+    }
+  }
+  if (typeof value === 'object') {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return '{}';
+    }
+  }
+  return '{}';
+}
+
+function normalizeTraitsJson(value) {
+  if (value == null) {
+    return '[]';
+  }
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return JSON.stringify(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      return '[]';
+    }
+  }
+  if (Array.isArray(value)) {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return '[]';
+    }
+  }
+  return '[]';
+}
+
+function parseJsonSafe(value, fallback) {
+  try {
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function mapNftProfileRow(row) {
+  if (!row) {
+    return null;
+  }
+  return {
+    uid: normalizePiUid(row.uid),
+    username: String(row.username || '').trim(),
+    walletAddress: String(row.wallet_address || '').trim().toUpperCase(),
+    displayName: String(row.display_name || '').trim(),
+    bio: String(row.bio || '').trim(),
+    avatarUri: String(row.avatar_uri || '').trim(),
+    bannerUri: String(row.banner_uri || '').trim(),
+    theme: parseJsonSafe(row.theme_json, {}),
+    antsBalance: normalizeNonNegativeInteger(row.ants_balance, 0),
+    profileNftId: String(row.profile_nft_id || '').trim() || null,
+    profileCreatedAt: safeIsoDate(row.profile_created_at),
+    createdAt: safeIsoDate(row.created_at),
+    updatedAt: safeIsoDate(row.updated_at)
+  };
+}
+
+function mapNftAssetRow(row) {
+  if (!row) {
+    return null;
+  }
+  return {
+    id: String(row.id || '').trim(),
+    uid: normalizePiUid(row.uid),
+    slug: String(row.slug || '').trim(),
+    name: String(row.name || '').trim(),
+    description: String(row.description || '').trim(),
+    imageUri: String(row.image_uri || '').trim(),
+    metadataUri: String(row.metadata_uri || '').trim(),
+    traits: parseJsonSafe(row.traits_json, []),
+    status: String(row.status || 'active').trim(),
+    antsStake: normalizeNonNegativeInteger(row.ants_stake, 0),
+    createdAt: safeIsoDate(row.created_at),
+    updatedAt: safeIsoDate(row.updated_at)
+  };
+}
+
+async function getNftProfile(uid) {
+  const row = await dbGet(nftDb, 'SELECT * FROM nft_profiles WHERE uid = ?', [normalizePiUid(uid)]);
+  return mapNftProfileRow(row);
+}
+
+async function appendNftActivity(uid, eventType, details = {}) {
+  const now = new Date().toISOString();
+  await dbRun(
+    nftDb,
+    'INSERT INTO nft_activity (uid, event_type, details_json, created_at) VALUES (?, ?, ?, ?)',
+    [normalizePiUid(uid), normalizeShortText(eventType, 64), JSON.stringify(details || {}), now]
+  );
 }
 
 function normalizeDirection(anetToToken) {
@@ -486,6 +727,360 @@ app.get('/api/pi/config', (_req, res) => {
       }
     }
   });
+});
+
+app.get('/api/nft/config', (_req, res) => {
+  return res.status(200).json({
+    ok: true,
+    policy: {
+      noBurn: true,
+      minAntsForProfileCreation: NFT_MIN_PROFILE_ANTS,
+      maxBioLength: NFT_MAX_BIO_LENGTH,
+      model: 'nft-identity-and-closed-loop-utility'
+    }
+  });
+});
+
+app.get('/api/nft/profile/:uid', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  try {
+    const uid = normalizePiUid(req.params?.uid);
+    if (!uid) {
+      return res.status(400).json({ ok: false, error: 'uid is required' });
+    }
+
+    const profile = await getNftProfile(uid);
+    const assets = await dbAll(
+      nftDb,
+      'SELECT * FROM nft_assets WHERE uid = ? ORDER BY datetime(created_at) DESC LIMIT 100',
+      [uid]
+    );
+
+    return res.status(profile ? 200 : 404).json({
+      ok: Boolean(profile),
+      uid,
+      minAntsForProfileCreation: NFT_MIN_PROFILE_ANTS,
+      profile,
+      assets: assets.map(mapNftAssetRow),
+      exists: Boolean(profile)
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post('/api/nft/profile/upsert', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  try {
+    const uid = normalizePiUid(req.body?.uid);
+    if (!uid) {
+      return res.status(400).json({ ok: false, error: 'uid is required' });
+    }
+
+    const username = normalizeShortText(req.body?.username, 80);
+    const walletAddress = String(req.body?.wallet_address || '').trim().toUpperCase();
+    const displayName = normalizeShortText(req.body?.display_name, 80);
+    const bio = normalizeShortText(req.body?.bio, NFT_MAX_BIO_LENGTH);
+    const avatarUri = normalizeUri(req.body?.avatar_uri, 500);
+    const bannerUri = normalizeUri(req.body?.banner_uri, 500);
+    const themeJson = normalizeThemeJson(req.body?.theme);
+    const antsBalance = normalizeNonNegativeInteger(req.body?.ants_balance, 0);
+    const now = new Date().toISOString();
+
+    const existing = await getNftProfile(uid);
+    if (!existing && antsBalance < NFT_MIN_PROFILE_ANTS) {
+      return res.status(403).json({
+        ok: false,
+        error: `Minimum ${NFT_MIN_PROFILE_ANTS} ANTS is required to create an NFT identity profile`,
+        minAntsForProfileCreation: NFT_MIN_PROFILE_ANTS,
+        antsBalance
+      });
+    }
+
+    if (!existing) {
+      const profileNftId = `nft_profile_${uid}_${Date.now()}`;
+      await dbRun(
+        nftDb,
+        `INSERT INTO nft_profiles (
+          uid, username, wallet_address, display_name, bio, avatar_uri, banner_uri,
+          theme_json, ants_balance, profile_nft_id, profile_created_at, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          uid,
+          username,
+          walletAddress,
+          displayName,
+          bio,
+          avatarUri,
+          bannerUri,
+          themeJson,
+          antsBalance,
+          profileNftId,
+          now,
+          now,
+          now
+        ]
+      );
+
+      await appendNftActivity(uid, 'PROFILE_CREATED', {
+        antsBalance,
+        profileNftId,
+        username,
+        walletAddress
+      });
+    } else {
+      await dbRun(
+        nftDb,
+        `UPDATE nft_profiles
+         SET username = ?, wallet_address = ?, display_name = ?, bio = ?,
+             avatar_uri = ?, banner_uri = ?, theme_json = ?, ants_balance = ?, updated_at = ?
+         WHERE uid = ?`,
+        [
+          username || existing.username,
+          walletAddress || existing.walletAddress,
+          displayName || existing.displayName,
+          bio,
+          avatarUri,
+          bannerUri,
+          themeJson,
+          antsBalance,
+          now,
+          uid
+        ]
+      );
+
+      await appendNftActivity(uid, 'PROFILE_UPDATED', {
+        antsBalance,
+        username,
+        walletAddress
+      });
+    }
+
+    const profile = await getNftProfile(uid);
+    return res.status(200).json({
+      ok: true,
+      profile,
+      minAntsForProfileCreation: NFT_MIN_PROFILE_ANTS
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.get('/api/nft/assets/:uid', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  try {
+    const uid = normalizePiUid(req.params?.uid);
+    if (!uid) {
+      return res.status(400).json({ ok: false, error: 'uid is required' });
+    }
+
+    const assets = await dbAll(
+      nftDb,
+      'SELECT * FROM nft_assets WHERE uid = ? ORDER BY datetime(created_at) DESC LIMIT 200',
+      [uid]
+    );
+
+    return res.status(200).json({
+      ok: true,
+      uid,
+      count: assets.length,
+      assets: assets.map(mapNftAssetRow)
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post('/api/nft/assets/create', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  try {
+    const uid = normalizePiUid(req.body?.uid);
+    if (!uid) {
+      return res.status(400).json({ ok: false, error: 'uid is required' });
+    }
+
+    const profile = await getNftProfile(uid);
+    if (!profile) {
+      return res.status(404).json({
+        ok: false,
+        error: 'NFT profile not found. Create profile first.'
+      });
+    }
+
+    const antsBalance = normalizeNonNegativeInteger(req.body?.ants_balance, profile.antsBalance || 0);
+    if (antsBalance < NFT_MIN_PROFILE_ANTS) {
+      return res.status(403).json({
+        ok: false,
+        error: `Minimum ${NFT_MIN_PROFILE_ANTS} ANTS is required for NFT creation`,
+        antsBalance,
+        minAntsForProfileCreation: NFT_MIN_PROFILE_ANTS
+      });
+    }
+
+    const name = normalizeShortText(req.body?.name, 100);
+    if (!name) {
+      return res.status(400).json({ ok: false, error: 'name is required' });
+    }
+
+    const assetId = `nft_asset_${crypto.randomUUID()}`;
+    const slug = normalizeShortText(req.body?.slug, 80).toLowerCase();
+    const description = normalizeShortText(req.body?.description, 600);
+    const imageUri = normalizeUri(req.body?.image_uri, 500);
+    const metadataUri = normalizeUri(req.body?.metadata_uri, 500);
+    const traitsJson = normalizeTraitsJson(req.body?.traits);
+    const status = normalizeShortText(req.body?.status || 'active', 20).toLowerCase() || 'active';
+    const antsStake = normalizeNonNegativeInteger(req.body?.ants_stake, 0);
+    const now = new Date().toISOString();
+
+    await dbRun(
+      nftDb,
+      `INSERT INTO nft_assets (
+        id, uid, slug, name, description, image_uri, metadata_uri,
+        traits_json, status, ants_stake, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        assetId,
+        uid,
+        slug,
+        name,
+        description,
+        imageUri,
+        metadataUri,
+        traitsJson,
+        status,
+        antsStake,
+        now,
+        now
+      ]
+    );
+
+    await dbRun(
+      nftDb,
+      'UPDATE nft_profiles SET ants_balance = ?, updated_at = ? WHERE uid = ?',
+      [antsBalance, now, uid]
+    );
+
+    await appendNftActivity(uid, 'NFT_CREATED', {
+      id: assetId,
+      name,
+      slug,
+      status,
+      antsStake
+    });
+
+    const created = await dbGet(nftDb, 'SELECT * FROM nft_assets WHERE id = ?', [assetId]);
+    return res.status(201).json({
+      ok: true,
+      asset: mapNftAssetRow(created),
+      profile: await getNftProfile(uid)
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.patch('/api/nft/assets/:assetId', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  try {
+    const assetId = normalizeShortText(req.params?.assetId, 120);
+    const uid = normalizePiUid(req.body?.uid);
+    if (!assetId || !uid) {
+      return res.status(400).json({ ok: false, error: 'assetId and uid are required' });
+    }
+
+    const existing = await dbGet(nftDb, 'SELECT * FROM nft_assets WHERE id = ? AND uid = ?', [assetId, uid]);
+    if (!existing) {
+      return res.status(404).json({ ok: false, error: 'NFT asset not found for this uid' });
+    }
+
+    const now = new Date().toISOString();
+    const nextName = normalizeShortText(req.body?.name || existing.name, 100);
+    const nextDescription = normalizeShortText(req.body?.description || existing.description, 600);
+    const nextImageUri = normalizeUri(req.body?.image_uri || existing.image_uri, 500);
+    const nextMetadataUri = normalizeUri(req.body?.metadata_uri || existing.metadata_uri, 500);
+    const nextTraitsJson = req.body?.traits == null ? String(existing.traits_json || '[]') : normalizeTraitsJson(req.body?.traits);
+    const nextStatus = normalizeShortText(req.body?.status || existing.status, 20).toLowerCase() || 'active';
+    const nextAntsStake = req.body?.ants_stake == null
+      ? normalizeNonNegativeInteger(existing.ants_stake, 0)
+      : normalizeNonNegativeInteger(req.body?.ants_stake, 0);
+
+    await dbRun(
+      nftDb,
+      `UPDATE nft_assets
+       SET name = ?, description = ?, image_uri = ?, metadata_uri = ?,
+           traits_json = ?, status = ?, ants_stake = ?, updated_at = ?
+       WHERE id = ? AND uid = ?`,
+      [
+        nextName,
+        nextDescription,
+        nextImageUri,
+        nextMetadataUri,
+        nextTraitsJson,
+        nextStatus,
+        nextAntsStake,
+        now,
+        assetId,
+        uid
+      ]
+    );
+
+    await appendNftActivity(uid, 'NFT_UPDATED', {
+      id: assetId,
+      status: nextStatus,
+      antsStake: nextAntsStake
+    });
+
+    const updated = await dbGet(nftDb, 'SELECT * FROM nft_assets WHERE id = ?', [assetId]);
+    return res.status(200).json({ ok: true, asset: mapNftAssetRow(updated) });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.get('/api/nft/colony/feed', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  try {
+    const limit = Math.min(200, Math.max(1, Number(req.query?.limit || 30)));
+    const assets = await dbAll(
+      nftDb,
+      `SELECT a.*, p.display_name, p.username
+       FROM nft_assets a
+       LEFT JOIN nft_profiles p ON p.uid = a.uid
+       ORDER BY datetime(a.created_at) DESC
+       LIMIT ?`,
+      [limit]
+    );
+
+    return res.status(200).json({
+      ok: true,
+      count: assets.length,
+      assets: assets.map((row) => ({
+        ...mapNftAssetRow(row),
+        ownerDisplayName: normalizeShortText(row.display_name || row.username || row.uid, 80)
+      }))
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
 });
 
 app.get('/api/public/verification', async (req, res) => {
@@ -1881,6 +2476,15 @@ app.post('/api/pi/cashout/request', (_req, res) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Pi backend listening on http://localhost:${port}`);
-});
+initializeNftDatabase()
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`Pi backend listening on http://localhost:${port}`);
+      console.log(`[NFT] Identity DB ready at ${NFT_DB_PATH}`);
+      console.log(`[NFT] Minimum profile creation stake: ${NFT_MIN_PROFILE_ANTS} ANTS`);
+    });
+  })
+  .catch((error) => {
+    console.error(`[FATAL] Failed to initialize NFT database: ${error.message}`);
+    process.exit(1);
+  });
