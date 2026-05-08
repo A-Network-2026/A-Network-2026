@@ -224,11 +224,18 @@ function toast(message, type = 'info', duration = 4000) {
 async function apiFetch(path, options = {}) {
   const url = CHAIN_API + path;
   const res = await fetch(url, {
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
     ...options,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || data.message || `Request failed (${res.status})`);
+  if (!res.ok) {
+    const message = data.error || data.message || `Request failed (${res.status})`;
+    if (res.status === 401 && /wallet login is required/i.test(message)) {
+      throw new Error('Explorer wallet login is required. Please log in once at explorer.a-network.net/explorer/login, then retry.');
+    }
+    throw new Error(message);
+  }
   return data;
 }
 
