@@ -419,6 +419,9 @@ function updateAnetWalletUI() {
   // update balance displays in swap/liq UI
   updateSwapFromBalance();
   updateBridgeWalletDisplay();
+  // Hide wallet hint once ANET wallet is connected
+  const hint = document.getElementById('wallet-hint');
+  if (hint) hint.style.display = state.anetWallet.address ? 'none' : 'block';
   // keep cashout panel in sync if it's visible
   if (state.activeTab === 'cashout') initCashoutTab();
 }
@@ -618,6 +621,7 @@ async function refreshPools() {
   renderMarketsTable();
   hydrateMarketPairSelector();
   renderMarketMicrostructure();
+  renderLiqPoolList();
   updateHeroStats();
   // pick default token for swap
   if (!state.toToken && state.pools.length > 0) {
@@ -675,6 +679,31 @@ function selectPool(symbol) {
   renderSwapTokenSelectors();
   renderPoolsSidebar();
   clearQuote();
+}
+
+function renderLiqPoolList() {
+  const el = document.getElementById('liq-pool-list');
+  if (!el) return;
+  if (state.pools.length === 0) {
+    el.innerHTML = '<div class="empty-state" style="padding:24px 0;"><div class="empty-icon">🌊</div><p>No pools yet. Create the first one above.</p></div>';
+    return;
+  }
+  el.innerHTML = state.pools.map(pool => {
+    const sym = pool.token_symbol || '';
+    const anetRes = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
+    const tokRes  = Number(pool.token_reserve_units || 0) / ANTS_PER_ANET;
+    const feePct  = ((pool.fee_bps || 30) / 100).toFixed(2);
+    return `
+    <div class="lp-position-row">
+      <div>
+        <div class="lp-pair">ANET / ${sym}</div>
+        <div style="font-size:11px;color:var(--muted-2);margin-top:2px;">
+          ${fmt(anetRes,2)} ANET · ${fmt(tokRes,4)} ${sym} · Fee: ${feePct}%
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="setTab('swap');selectPool('${sym}')">Trade →</button>
+    </div>`;
+  }).join('');
 }
 
 function updateHeroStats() {

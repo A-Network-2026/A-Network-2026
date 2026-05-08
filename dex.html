@@ -1256,48 +1256,5 @@
 
   <script src="assets/js/dex.js"></script>
 
-  <!-- LP pool list renderer (runs after pools load) -->
-  <script>
-    // Extend pool rendering for liquidity tab
-    const _origRefreshPools = refreshPools;
-    async function refreshPools() {
-      await _origRefreshPools();
-      renderLiqPoolList();
-    }
-
-    function renderLiqPoolList() {
-      const el = document.getElementById('liq-pool-list');
-      if (!el) return;
-      if (state.pools.length === 0) {
-        el.innerHTML = '<div class="empty-state" style="padding:24px 0;"><div class="empty-icon">🌊</div><p>No pools yet. Create the first one above.</p></div>';
-        return;
-      }
-      el.innerHTML = state.pools.map(pool => {
-        const sym = pool.token_symbol || '';
-        const anetRes = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
-        const tokRes  = Number(pool.token_reserve_units || 0) / 100000000;
-        const feePct  = ((pool.fee_bps || 30) / 100).toFixed(2);
-        return `
-        <div class="lp-position-row">
-          <div>
-            <div class="lp-pair">ANET / ${sym}</div>
-            <div style="font-size:11px;color:var(--muted-2);margin-top:2px;">
-              ${fmt(anetRes,2)} ANET · ${fmt(tokRes,4)} ${sym} · Fee: ${feePct}%
-            </div>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="setTab('swap');selectPool('${sym}')">Trade →</button>
-        </div>`;
-      }).join('');
-    }
-
-    // Hide wallet hint once ANET wallet is connected
-    const _origUpdateAnetUI = updateAnetWalletUI;
-    function updateAnetWalletUI() {
-      _origUpdateAnetUI();
-      const hint = document.getElementById('wallet-hint');
-      if (hint) hint.style.display = state.anetWallet.address ? 'none' : 'block';
-    }
-  </script>
-
 </body>
 </html>
