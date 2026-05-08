@@ -251,6 +251,79 @@ header nav a.active {
   gap: 20px;
   flex-wrap: wrap;
 }
+.hero-mini-chart {
+  min-width: 260px;
+  max-width: 320px;
+  flex: 1 1 280px;
+  background: linear-gradient(165deg, rgba(12, 29, 52, 0.9), rgba(8, 20, 38, 0.95));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  box-shadow: inset 0 0 0 1px rgba(88, 197, 255, 0.08);
+}
+.mini-chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.mini-chart-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.mini-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  box-shadow: 0 0 8px rgba(34, 231, 184, 0.8);
+}
+.mini-chart-title {
+  color: var(--text);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+.mini-chart-updated {
+  color: var(--muted-2);
+  font-size: 10px;
+}
+.mini-chart-pair {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+.mini-chart-price {
+  font-family: "Orbitron", sans-serif;
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+}
+.mini-chart-change {
+  font-size: 12px;
+  margin: 2px 0 8px;
+}
+.mini-chart-change.up { color: var(--accent-2); }
+.mini-chart-change.down { color: var(--danger); }
+.mini-chart-change.neutral { color: var(--muted); }
+.mini-chart-svg {
+  width: 100%;
+  height: 78px;
+  display: block;
+}
+.mini-chart-axis {
+  stroke: rgba(88, 197, 255, 0.15);
+  stroke-width: 1;
+}
+.mini-chart-path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .hero-stat {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -326,6 +399,7 @@ header nav a.active {
 
 @media (max-width: 900px) {
   .dex-main-grid { grid-template-columns: 1fr; }
+  .hero-mini-chart { max-width: none; width: 100%; }
 }
 
 /* ── Card / Panel ───────────────────────────── */

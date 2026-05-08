@@ -167,6 +167,7 @@ const state = {
   marketPair: '',
   recentLocalTrades: [],
   chainTxs: [],
+  miniPriceSeries: {},
   loading: false,
 };
 
@@ -617,17 +618,120 @@ function submitBridgeNotify() {
 /* ── Pool data & rendering ──────────────────── */
 async function refreshPools() {
   state.pools = await loadPools();
+  captureMiniChartSnapshots();
   renderPoolsSidebar();
   renderMarketsTable();
   hydrateMarketPairSelector();
   renderMarketMicrostructure();
   renderLiqPoolList();
   updateHeroStats();
+  renderMiniLiveChart();
   // pick default token for swap
   if (!state.toToken && state.pools.length > 0) {
     state.toToken = state.pools[0].token_symbol;
     renderSwapTokenSelectors();
   }
+}
+
+function getPoolPriceInAnet(pool) {
+  const anetRes = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
+  const tokRes = Number(pool.token_reserve_units || 0) / ANTS_PER_ANET;
+  if (!isFinite(anetRes) || !isFinite(tokRes) || tokRes <= 0) {
+    return null;
+  }
+  return anetRes / tokRes;
+}
+
+function captureMiniChartSnapshots() {
+  const now = Date.now();
+  state.pools.forEach(pool => {
+    const sym = (pool.token_symbol || '').toUpperCase();
+    if (!sym) return;
+
+    const price = getPoolPriceInAnet(pool);
+    if (price == null || !isFinite(price) || price <= 0) return;
+
+    if (!Array.isArray(state.miniPriceSeries[sym])) {
+      state.miniPriceSeries[sym] = [];
+    }
+
+    const series = state.miniPriceSeries[sym];
+    const last = series[series.length - 1];
+    if (last && Math.abs(last.price - price) < 1e-12) {
+      last.time = now;
+    } else {
+      series.push({ time: now, price });
+    }
+
+    if (series.length > 42) {
+      series.splice(0, series.length - 42);
+    }
+  });
+}
+
+function buildSparklinePath(points, width, height) {
+  if (!Array.isArray(points) || points.length < 2) return '';
+
+  const values = points.map(p => p.price);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+
+  return points.map((p, i) => {
+    const x = (i / (points.length - 1)) * width;
+    const y = height - ((p.price - min) / span) * height;
+    return `${i === 0 ? 'M' : 'L'}${x.toFixed(2)} ${y.toFixed(2)}`;
+  }).join(' ');
+}
+
+function renderMiniLiveChart() {
+  const pairEl = document.getElementById('mini-chart-pair');
+  const priceEl = document.getElementById('mini-chart-price');
+  const changeEl = document.getElementById('mini-chart-change');
+  const pathEl = document.getElementById('mini-chart-path');
+  const updatedEl = document.getElementById('mini-chart-updated');
+  if (!pairEl || !priceEl || !changeEl || !pathEl || !updatedEl) return;
+
+  let symbol = (state.selectedPool || state.toToken || '').toUpperCase();
+  if (!symbol || symbol === 'ANET' || !state.miniPriceSeries[symbol]?.length) {
+    const candidates = Object.keys(state.miniPriceSeries);
+    if (candidates.includes('WBNB')) symbol = 'WBNB';
+    else symbol = candidates[0] || '';
+  }
+
+  const series = state.miniPriceSeries[symbol] || [];
+  if (!symbol || series.length === 0) {
+    pairEl.textContent = 'ANET / --';
+    priceEl.textContent = '--';
+    changeEl.className = 'mini-chart-change neutral';
+    changeEl.textContent = 'Waiting for first pool ticks';
+    pathEl.setAttribute('d', '');
+    pathEl.style.stroke = 'var(--accent)';
+    updatedEl.textContent = 'waiting...';
+    return;
+  }
+
+  const first = series[0].price;
+  const last = series[series.length - 1].price;
+  const pct = first > 0 ? ((last - first) / first) * 100 : 0;
+
+  pairEl.textContent = `ANET / ${symbol}`;
+  priceEl.textContent = `${fmt(last, 6)} ANET`;
+  updatedEl.textContent = `updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+  let trendClass = 'neutral';
+  if (pct > 0.01) trendClass = 'up';
+  else if (pct < -0.01) trendClass = 'down';
+  changeEl.className = `mini-chart-change ${trendClass}`;
+  changeEl.textContent = `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
+
+  const path = buildSparklinePath(series, 260, 74);
+  pathEl.setAttribute('d', path);
+  pathEl.style.stroke = trendClass === 'up'
+    ? 'var(--accent-2)'
+    : trendClass === 'down'
+      ? 'var(--danger)'
+      : 'var(--accent)';
 }
 
 function renderPoolsSidebar() {
