@@ -523,6 +523,73 @@ async function getNftProfile(uid) {
   return mapNftProfileRow(row);
 }
 
+function hasDexCashoutHistory(uid) {
+  const profileId = normalizeAnetProfileId(uid);
+  return (cashoutState.cashoutRequests || []).some((entry) => normalizeAnetProfileId(entry?.uid) === profileId);
+}
+
+async function requireNftActivationByCashout(uid) {
+  const profileId = normalizeAnetProfileId(uid);
+  if (!hasDexCashoutHistory(profileId)) {
+    return {
+      ok: false,
+      status: 403,
+      error: 'NFT is activated only after first successful cashout/swap. Complete a DEX cashout flow first.'
+    };
+  }
+
+  return {
+    ok: true
+  };
+}
+
+async function ensureCashoutActivatedNftProfile(uid, username, walletAddress) {
+  const profileId = normalizeAnetProfileId(uid);
+  if (!profileId) {
+    return null;
+  }
+
+  const existing = await getNftProfile(profileId);
+  if (existing) {
+    return existing;
+  }
+
+  const now = new Date().toISOString();
+  const normalizedWallet = String(walletAddress || '').trim().toUpperCase();
+  const normalizedUsername = normalizeShortText(username, 80);
+  const displayName = normalizeShortText(username || profileId, 80);
+
+  await dbRun(
+    nftDb,
+    `INSERT INTO nft_profiles (
+      uid, username, wallet_address, display_name, bio, avatar_uri, banner_uri,
+      theme_json, ants_balance, profile_nft_id, profile_created_at, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      profileId,
+      normalizedUsername,
+      normalizedWallet,
+      displayName,
+      'Cashout-activated NFT profile',
+      '',
+      '',
+      '{}',
+      0,
+      `nft_profile_${profileId}_${Date.now()}`,
+      now,
+      now,
+      now
+    ]
+  );
+
+  await appendNftActivity(profileId, 'PROFILE_ACTIVATED_BY_CASHOUT', {
+    username: normalizedUsername,
+    walletAddress: normalizedWallet
+  });
+
+  return getNftProfile(profileId);
+}
+
 async function appendNftActivity(uid, eventType, details = {}) {
   const now = new Date().toISOString();
   await dbRun(
@@ -925,6 +992,8 @@ app.get('/api/nft/config', (_req, res) => {
       noBurn: true,
       minAntsForProfileCreation: NFT_MIN_PROFILE_ANTS,
       minDomainAuctionBidAnts: NFT_DOMAIN_MIN_BID_ANTS,
+      tradingRequiresNftProfile: false,
+      nftUnlockRequiresCashout: true,
       maxBioLength: NFT_MAX_BIO_LENGTH,
       model: 'nft-identity-and-closed-loop-utility'
     }
@@ -985,12 +1054,12 @@ app.post('/api/nft/profile/upsert', async (req, res) => {
     const now = new Date().toISOString();
 
     const existing = await getNftProfile(uid);
-    if (!existing && antsBalance < NFT_MIN_PROFILE_ANTS) {
-      return res.status(403).json({
+    const activation = await requireNftActivationByCashout(uid);
+    if (!existing && !activation.ok) {
+      return res.status(activation.status || 403).json({
         ok: false,
-        error: `Minimum ${NFT_MIN_PROFILE_ANTS} ANTS is required to create an NFT identity profile`,
-        minAntsForProfileCreation: NFT_MIN_PROFILE_ANTS,
-        antsBalance
+        error: activation.error,
+        rule: 'NFT_UNLOCK_AFTER_CASHOUT'
       });
     }
 
@@ -1113,14 +1182,6 @@ app.post('/api/nft/assets/create', async (req, res) => {
     }
 
     const antsBalance = normalizeNonNegativeInteger(req.body?.ants_balance, profile.antsBalance || 0);
-    if (antsBalance < NFT_MIN_PROFILE_ANTS) {
-      return res.status(403).json({
-        ok: false,
-        error: `Minimum ${NFT_MIN_PROFILE_ANTS} ANTS is required for NFT creation`,
-        antsBalance,
-        minAntsForProfileCreation: NFT_MIN_PROFILE_ANTS
-      });
-    }
 
     const name = normalizeShortText(req.body?.name, 100);
     if (!name) {
@@ -1285,53 +1346,50 @@ app.get('/api/nft/market/listings', async (req, res) => {
     const status = ['active', 'sold', 'cancelled', 'expired', 'all'].includes(requestedStatus)
       ? requestedStatus
       : 'active';
+    const requestedListingType = normalizeShortText(req.query?.listing_type || 'all', 30).toLowerCase();
+    const listingType = ['all', 'fixed', 'auction', 'domain-auction'].includes(requestedListingType)
+      ? requestedListingType
+      : 'all';
     const limit = Math.min(200, Math.max(1, Number(req.query?.limit || 50)));
 
-    const sql = status === 'all'
-      ? `SELECT l.*, a.uid AS asset_owner_uid, a.slug AS asset_slug, a.name AS asset_name,
-                a.description AS asset_description, a.image_uri AS asset_image_uri,
-                a.metadata_uri AS asset_metadata_uri, a.traits_json AS asset_traits_json,
-                a.status AS asset_status, a.ants_stake AS asset_ants_stake,
-                a.created_at AS asset_created_at, a.updated_at AS asset_updated_at,
-                p.display_name AS seller_display_name, p.username AS seller_username,
-                IFNULL(b.bid_count, 0) AS bid_count, IFNULL(b.highest_bid_ants, 0) AS highest_bid_ants
-         FROM nft_market_listings l
-         LEFT JOIN nft_assets a ON a.id = l.asset_id
-         LEFT JOIN nft_profiles p ON p.uid = l.seller_uid
-         LEFT JOIN (
-           SELECT listing_id, COUNT(*) AS bid_count, MAX(amount_ants) AS highest_bid_ants
-           FROM nft_market_bids
-           GROUP BY listing_id
-         ) b ON b.listing_id = l.id
-         ORDER BY datetime(l.created_at) DESC
-         LIMIT ?`
-      : `SELECT l.*, a.uid AS asset_owner_uid, a.slug AS asset_slug, a.name AS asset_name,
-                a.description AS asset_description, a.image_uri AS asset_image_uri,
-                a.metadata_uri AS asset_metadata_uri, a.traits_json AS asset_traits_json,
-                a.status AS asset_status, a.ants_stake AS asset_ants_stake,
-                a.created_at AS asset_created_at, a.updated_at AS asset_updated_at,
-                p.display_name AS seller_display_name, p.username AS seller_username,
-                IFNULL(b.bid_count, 0) AS bid_count, IFNULL(b.highest_bid_ants, 0) AS highest_bid_ants
-         FROM nft_market_listings l
-         LEFT JOIN nft_assets a ON a.id = l.asset_id
-         LEFT JOIN nft_profiles p ON p.uid = l.seller_uid
-         LEFT JOIN (
-           SELECT listing_id, COUNT(*) AS bid_count, MAX(amount_ants) AS highest_bid_ants
-           FROM nft_market_bids
-           GROUP BY listing_id
-         ) b ON b.listing_id = l.id
-         WHERE l.status = ?
-         ORDER BY datetime(l.created_at) DESC
-         LIMIT ?`;
+    const whereParts = [];
+    const params = [];
+    if (status !== 'all') {
+      whereParts.push('l.status = ?');
+      params.push(status);
+    }
+    if (listingType !== 'all') {
+      whereParts.push('l.listing_type = ?');
+      params.push(listingType);
+    }
 
-    const rows = status === 'all'
-      ? await dbAll(nftDb, sql, [limit])
-      : await dbAll(nftDb, sql, [status, limit]);
+    const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
+    const sql = `SELECT l.*, a.uid AS asset_owner_uid, a.slug AS asset_slug, a.name AS asset_name,
+                        a.description AS asset_description, a.image_uri AS asset_image_uri,
+                        a.metadata_uri AS asset_metadata_uri, a.traits_json AS asset_traits_json,
+                        a.status AS asset_status, a.ants_stake AS asset_ants_stake,
+                        a.created_at AS asset_created_at, a.updated_at AS asset_updated_at,
+                        p.display_name AS seller_display_name, p.username AS seller_username,
+                        IFNULL(b.bid_count, 0) AS bid_count, IFNULL(b.highest_bid_ants, 0) AS highest_bid_ants
+                 FROM nft_market_listings l
+                 LEFT JOIN nft_assets a ON a.id = l.asset_id
+                 LEFT JOIN nft_profiles p ON p.uid = l.seller_uid
+                 LEFT JOIN (
+                   SELECT listing_id, COUNT(*) AS bid_count, MAX(amount_ants) AS highest_bid_ants
+                   FROM nft_market_bids
+                   GROUP BY listing_id
+                 ) b ON b.listing_id = l.id
+                 ${whereSql}
+                 ORDER BY datetime(l.created_at) DESC
+                 LIMIT ?`;
+
+    const rows = await dbAll(nftDb, sql, [...params, limit]);
     const listings = rows.map(mapNftMarketListingRow);
 
     return res.status(200).json({
       ok: true,
       status,
+      listingType,
       count: listings.length,
       listings
     });
@@ -2681,6 +2739,8 @@ app.post('/api/pi/dex/execute', async (req, res) => {
 
     cashoutState.cashoutRequests.push(requestRecord);
     persistState();
+
+    await ensureCashoutActivatedNftProfile(uid, access.unlock.username || username, trader);
 
     return res.status(200).json({
       ok: true,

@@ -543,8 +543,8 @@
 
       <div class="kpis">
         <div class="kpi">
-          <div class="value" id="kpi-min-ants">1000</div>
-          <div class="label">Min ANTS For Identity</div>
+          <div class="value" id="kpi-min-ants">1</div>
+          <div class="label">Cashout Unlock Rule</div>
         </div>
         <div class="kpi">
           <div class="value" id="kpi-feed-count">0</div>
@@ -583,7 +583,7 @@
 
       <article class="studio-card">
         <h3>ANET Profile Identity</h3>
-        <p class="muted">Minimum 1000 ANTS required for first profile creation.</p>
+        <p class="muted">Single rule: NFT unlocks after first successful ANET cashout/swap flow.</p>
 
         <div class="row">
           <div class="field">
@@ -796,6 +796,22 @@
               <option value="expired">expired</option>
               <option value="all">all</option>
             </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="market-filter-type">Board View</label>
+            <select id="market-filter-type" class="select">
+              <option value="all">all listings</option>
+              <option value="domain-auction">domain auction board (.ant)</option>
+              <option value="auction">auction only</option>
+              <option value="fixed">fixed only</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Domain Rule</label>
+            <div class="status info" style="margin-top:0;">Domain board enforces .ant and minimum bid of 10000 ANTS.</div>
           </div>
         </div>
 

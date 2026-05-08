@@ -51,6 +51,7 @@
     marketStatus: document.getElementById("market-status"),
     marketActorId: document.getElementById("market-actor-id"),
     marketFilterStatus: document.getElementById("market-filter-status"),
+    marketFilterType: document.getElementById("market-filter-type"),
     marketList: document.getElementById("market-list"),
 
     kpiMinAnts: document.getElementById("kpi-min-ants"),
@@ -86,6 +87,7 @@
     els.marketRefreshBtn?.addEventListener("click", onLoadMarketListings);
     els.marketListingType?.addEventListener("change", onMarketListingTypeChanged);
     els.marketFilterStatus?.addEventListener("change", onLoadMarketListings);
+    els.marketFilterType?.addEventListener("change", onLoadMarketListings);
   }
 
   async function bootstrap() {
@@ -677,7 +679,7 @@
       setStatus(
         els.apiStatus,
         "good",
-        `Connected. No-burn policy is ${result?.policy?.noBurn ? "active" : "unknown"}. Min profile stake: ${state.minAnts} ANTS.`
+        `Connected. No-burn policy is ${result?.policy?.noBurn ? "active" : "unknown"}. NFT unlock rule: first successful cashout/swap activates profile.`
       );
       return true;
     } catch (error) {
@@ -865,9 +867,12 @@
     }
 
     const status = String(els.marketFilterStatus?.value || "active").trim().toLowerCase() || "active";
+    const listingType = String(els.marketFilterType?.value || "all").trim().toLowerCase() || "all";
 
     try {
-      const result = await apiFetch(`/api/nft/market/listings?status=${encodeURIComponent(status)}&limit=50`);
+      const result = await apiFetch(
+        `/api/nft/market/listings?status=${encodeURIComponent(status)}&listing_type=${encodeURIComponent(listingType)}&limit=50`
+      );
       renderMarketListings(result.listings || []);
       setStatus(els.marketStatus, "good", `Loaded ${result.count || 0} marketplace listings.`);
     } catch (error) {
