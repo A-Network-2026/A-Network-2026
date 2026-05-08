@@ -725,6 +725,85 @@
       </article>
 
       <article class="studio-card" style="grid-column: 1 / -1;">
+        <h3>ANET Marketplace - List NFT</h3>
+        <p class="muted">Submit your designed NFT to the market as fixed price or timed auction listing.</p>
+
+        <div class="row">
+          <div class="field">
+            <label for="market-seller-id">Seller ANET Profile ID</label>
+            <input id="market-seller-id" class="input" type="text" placeholder="your ANET profile id">
+          </div>
+          <div class="field">
+            <label for="market-asset-id">Asset ID</label>
+            <input id="market-asset-id" class="input" type="text" placeholder="nft_asset_xxx">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="market-listing-type">Listing Type</label>
+            <select id="market-listing-type" class="select">
+              <option value="fixed">fixed</option>
+              <option value="auction">auction</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="market-duration-hours">Auction Duration (hours)</label>
+            <input id="market-duration-hours" class="input" type="number" min="1" max="168" step="1" value="24">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="market-ask-price">Fixed Ask Price (ANTS)</label>
+            <input id="market-ask-price" class="input" type="number" min="0" step="1" value="0">
+          </div>
+          <div class="field">
+            <label for="market-min-bid">Auction Min Bid (ANTS)</label>
+            <input id="market-min-bid" class="input" type="number" min="0" step="1" value="0">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="market-buy-now">Buy Now Price (ANTS, optional)</label>
+          <input id="market-buy-now" class="input" type="number" min="0" step="1" value="0">
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="market-create-btn" type="button">Create Listing</button>
+          <button class="btn btn-alt" id="market-refresh-btn" type="button">Refresh Marketplace</button>
+        </div>
+
+        <div id="market-status" class="status info">Marketplace listing form ready.</div>
+      </article>
+
+      <article class="studio-card" style="grid-column: 1 / -1;">
+        <h3>ANET Auction + Store Floor</h3>
+        <p class="muted">Like game item market flow: bid in auctions, buy fixed listings, or close your own listing.</p>
+
+        <div class="row">
+          <div class="field">
+            <label for="market-actor-id">Your ANET Profile ID (for buy/bid/close)</label>
+            <input id="market-actor-id" class="input" type="text" placeholder="your ANET profile id">
+          </div>
+          <div class="field">
+            <label for="market-filter-status">Filter Status</label>
+            <select id="market-filter-status" class="select">
+              <option value="active">active</option>
+              <option value="sold">sold</option>
+              <option value="cancelled">cancelled</option>
+              <option value="expired">expired</option>
+              <option value="all">all</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="market-list" class="asset-list">
+          <div class="status info">Marketplace not loaded yet.</div>
+        </div>
+      </article>
+
+      <article class="studio-card" style="grid-column: 1 / -1;">
         <h3>Ant Colony Feed</h3>
         <p class="muted">Recent NFT activity from users across the ecosystem.</p>
         <div class="asset-actions">

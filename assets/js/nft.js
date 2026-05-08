@@ -39,6 +39,20 @@
     feedRefreshBtn: document.getElementById("feed-refresh-btn"),
     feedList: document.getElementById("feed-list"),
 
+    marketSellerId: document.getElementById("market-seller-id"),
+    marketAssetId: document.getElementById("market-asset-id"),
+    marketListingType: document.getElementById("market-listing-type"),
+    marketDurationHours: document.getElementById("market-duration-hours"),
+    marketAskPrice: document.getElementById("market-ask-price"),
+    marketMinBid: document.getElementById("market-min-bid"),
+    marketBuyNow: document.getElementById("market-buy-now"),
+    marketCreateBtn: document.getElementById("market-create-btn"),
+    marketRefreshBtn: document.getElementById("market-refresh-btn"),
+    marketStatus: document.getElementById("market-status"),
+    marketActorId: document.getElementById("market-actor-id"),
+    marketFilterStatus: document.getElementById("market-filter-status"),
+    marketList: document.getElementById("market-list"),
+
     kpiMinAnts: document.getElementById("kpi-min-ants"),
     kpiFeedCount: document.getElementById("kpi-feed-count"),
     kpiMyAssets: document.getElementById("kpi-my-assets")
@@ -48,6 +62,7 @@
     apiBase: resolveInitialApiBase(),
     minAnts: 1000,
     myAssets: [],
+    marketListings: [],
     apiReady: false
   };
 
@@ -66,12 +81,18 @@
     els.assetCreateBtn?.addEventListener("click", onCreateAsset);
     els.assetLoadBtn?.addEventListener("click", onLoadAssets);
     els.feedRefreshBtn?.addEventListener("click", onLoadFeed);
+    els.marketCreateBtn?.addEventListener("click", onCreateMarketListing);
+    els.marketRefreshBtn?.addEventListener("click", onLoadMarketListings);
+    els.marketListingType?.addEventListener("change", onMarketListingTypeChanged);
+    els.marketFilterStatus?.addEventListener("change", onLoadMarketListings);
   }
 
   async function bootstrap() {
+    onMarketListingTypeChanged();
     const connected = await onTestApi();
     if (connected) {
       await onLoadFeed();
+      await onLoadMarketListings();
     }
   }
 
@@ -160,6 +181,8 @@
     if (!uid) return;
     if (els.profileUid) els.profileUid.value = uid;
     if (els.assetUid) els.assetUid.value = uid;
+    if (els.marketSellerId) els.marketSellerId.value = uid;
+    if (els.marketActorId) els.marketActorId.value = uid;
   }
 
   function syncAntsAcrossForms(ants) {
@@ -234,6 +257,51 @@
     if (els.assetStatus) els.assetStatus.value = "active";
   }
 
+  function onMarketListingTypeChanged() {
+    const listingType = String(els.marketListingType?.value || "fixed").trim().toLowerCase();
+    const isAuction = listingType === "auction";
+
+    if (els.marketDurationHours) {
+      els.marketDurationHours.disabled = !isAuction;
+    }
+    if (els.marketMinBid) {
+      els.marketMinBid.disabled = !isAuction;
+    }
+    if (els.marketAskPrice) {
+      els.marketAskPrice.disabled = isAuction;
+    }
+  }
+
+  function getMarketListingPayload() {
+    const sellerId = normalizeUid(els.marketSellerId?.value || els.profileUid?.value);
+    const listingType = String(els.marketListingType?.value || "fixed").trim().toLowerCase();
+    return {
+      uid: sellerId,
+      anet_profile_id: sellerId,
+      asset_id: String(els.marketAssetId?.value || "").trim(),
+      listing_type: listingType,
+      ask_price_ants: toNumberOrZero(els.marketAskPrice?.value),
+      min_bid_ants: toNumberOrZero(els.marketMinBid?.value),
+      buy_now_price_ants: toNumberOrZero(els.marketBuyNow?.value),
+      duration_hours: toNumberOrZero(els.marketDurationHours?.value || 24)
+    };
+  }
+
+  function getMarketActorId() {
+    return normalizeUid(els.marketActorId?.value || els.profileUid?.value);
+  }
+
+  function formatUtc(value) {
+    if (!value) {
+      return "-";
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return "-";
+    }
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  }
+
   function renderAssets(items) {
     state.myAssets = Array.isArray(items) ? items : [];
     if (els.kpiMyAssets) {
@@ -300,6 +368,7 @@
           </div>
           <div class="asset-actions">
             <button class="btn btn-main asset-save" type="button">Save Asset</button>
+            <button class="btn btn-alt asset-list-market" type="button">List On Market</button>
           </div>
         </article>
       `;
@@ -344,6 +413,25 @@
           setStatus(els.assetStatusBox, "bad", error.message || "Asset update failed");
         }
       });
+
+      btn.closest(".asset-item")?.querySelector(".asset-list-market")?.addEventListener("click", () => {
+        const card = btn.closest(".asset-item");
+        if (!card) return;
+        const assetId = String(card.getAttribute("data-asset-id") || "").trim();
+        const uid = normalizeUid(els.assetUid?.value || els.profileUid?.value);
+
+        if (els.marketAssetId) {
+          els.marketAssetId.value = assetId;
+        }
+        if (els.marketSellerId) {
+          els.marketSellerId.value = uid;
+        }
+        if (els.marketActorId && uid) {
+          els.marketActorId.value = uid;
+        }
+
+        setStatus(els.marketStatus, "info", `Prepared listing form for asset ${assetId}.`);
+      });
     });
   }
 
@@ -374,6 +462,171 @@
         </article>
       `;
     }).join("");
+  }
+
+  function renderMarketListings(items) {
+    state.marketListings = Array.isArray(items) ? items : [];
+    if (!els.marketList) return;
+
+    if (!state.marketListings.length) {
+      els.marketList.innerHTML = '<div class="status info">No marketplace listings found for selected filter.</div>';
+      return;
+    }
+
+    els.marketList.innerHTML = state.marketListings.map((listing) => {
+      const listingType = String(listing.listingType || "fixed").toLowerCase();
+      const status = String(listing.status || "active").toLowerCase();
+      const owner = listing?.sellerDisplayName || listing?.sellerUid || "unknown";
+      const assetName = listing?.asset?.name || "Unnamed Asset";
+      const ask = Number(listing.askPriceAnts || 0);
+      const minBid = Number(listing.minBidAnts || 0);
+      const buyNow = Number(listing.buyNowPriceAnts || 0);
+      const highest = Number(listing.highestBidAnts || 0);
+      const bidCount = Number(listing.bidCount || 0);
+      const timeText = listing.endAt ? `Ends: ${formatUtc(listing.endAt)}` : `Listed: ${formatUtc(listing.createdAt)}`;
+      const expiredBadge = listing.isExpired ? '<span class="pill">expired</span>' : "";
+
+      const marketActions = status === "active"
+        ? `
+          <div class="asset-actions">
+            <input class="input market-bid-amount" type="number" min="0" step="1" placeholder="Bid ANTS" style="max-width:150px;">
+            ${listingType === "auction" ? '<button class="btn btn-alt market-bid-btn" type="button">Place Bid</button>' : ''}
+            <button class="btn btn-main market-buy-btn" type="button">Buy</button>
+            <button class="btn btn-danger market-close-btn" type="button">Close</button>
+            <button class="btn btn-alt market-bids-btn" type="button">View Bids</button>
+          </div>
+        `
+        : '<div class="status info">Listing closed.</div>';
+
+      return `
+        <article class="asset-item" data-listing-id="${escapeHtmlAttr(listing.id || "")}">
+          <div class="asset-head">
+            <strong>${escapeHtml(assetName)}</strong>
+            <span class="pill">${escapeHtml(status)}</span>
+          </div>
+          <div class="asset-head" style="margin-top:4px;">
+            <span class="pill">${escapeHtml(listingType)}</span>
+            ${expiredBadge}
+          </div>
+          <div class="mono">Listing: ${escapeHtml(listing.id || "")}</div>
+          <div class="mono">Asset: ${escapeHtml(listing.assetId || "")}</div>
+          <p class="muted" style="margin-top:7px;">Seller: ${escapeHtml(owner)} | ${escapeHtml(timeText)}</p>
+          <p class="muted" style="margin-top:7px;">
+            Ask: ${escapeHtml(String(ask))} ANTS | Min Bid: ${escapeHtml(String(minBid))} ANTS | Buy Now: ${escapeHtml(String(buyNow))} ANTS
+          </p>
+          <p class="muted" style="margin-top:7px;">Highest Bid: ${escapeHtml(String(highest))} ANTS (${escapeHtml(String(bidCount))} bids)</p>
+          ${marketActions}
+          <div class="status info market-inline-status" style="display:none; margin-top:8px;"></div>
+        </article>
+      `;
+    }).join("");
+
+    const cards = Array.from(els.marketList.querySelectorAll(".asset-item"));
+    cards.forEach((card) => {
+      const listingId = String(card.getAttribute("data-listing-id") || "").trim();
+      const statusBox = card.querySelector(".market-inline-status");
+
+      const setInline = (type, message) => {
+        if (!statusBox) return;
+        statusBox.style.display = "block";
+        statusBox.className = `status ${type} market-inline-status`;
+        statusBox.textContent = message;
+      };
+
+      card.querySelector(".market-bid-btn")?.addEventListener("click", async () => {
+        const actorId = getMarketActorId();
+        const amount = toNumberOrZero(card.querySelector(".market-bid-amount")?.value);
+        if (!actorId || !listingId || amount <= 0) {
+          setInline("bad", "Need profile ID and bid amount.");
+          return;
+        }
+
+        try {
+          const result = await apiFetch(`/api/nft/market/listings/${encodeURIComponent(listingId)}/bid`, {
+            method: "POST",
+            body: {
+              uid: actorId,
+              anet_profile_id: actorId,
+              amount_ants: amount
+            }
+          });
+          setInline("good", result.autoSettled ? "Bid accepted and auto-settled." : "Bid placed successfully.");
+          await onLoadMarketListings();
+          await onLoadAssets();
+          await onLoadFeed();
+        } catch (error) {
+          setInline("bad", error.message || "Bid failed.");
+        }
+      });
+
+      card.querySelector(".market-buy-btn")?.addEventListener("click", async () => {
+        const actorId = getMarketActorId();
+        if (!actorId || !listingId) {
+          setInline("bad", "Need profile ID for buy action.");
+          return;
+        }
+
+        try {
+          await apiFetch(`/api/nft/market/listings/${encodeURIComponent(listingId)}/buy`, {
+            method: "POST",
+            body: {
+              uid: actorId,
+              anet_profile_id: actorId
+            }
+          });
+          setInline("good", "Purchase completed.");
+          await onLoadMarketListings();
+          await onLoadAssets();
+          await onLoadFeed();
+        } catch (error) {
+          setInline("bad", error.message || "Buy failed.");
+        }
+      });
+
+      card.querySelector(".market-close-btn")?.addEventListener("click", async () => {
+        const actorId = getMarketActorId();
+        if (!actorId || !listingId) {
+          setInline("bad", "Need seller profile ID for close action.");
+          return;
+        }
+
+        try {
+          const result = await apiFetch(`/api/nft/market/listings/${encodeURIComponent(listingId)}/close`, {
+            method: "POST",
+            body: {
+              uid: actorId,
+              anet_profile_id: actorId
+            }
+          });
+          setInline("good", result.settled ? "Auction settled to highest bidder." : "Listing closed.");
+          await onLoadMarketListings();
+          await onLoadAssets();
+          await onLoadFeed();
+        } catch (error) {
+          setInline("bad", error.message || "Close failed.");
+        }
+      });
+
+      card.querySelector(".market-bids-btn")?.addEventListener("click", async () => {
+        if (!listingId) {
+          setInline("bad", "Missing listing ID.");
+          return;
+        }
+
+        try {
+          const result = await apiFetch(`/api/nft/market/listings/${encodeURIComponent(listingId)}/bids`);
+          const top = Array.isArray(result.bids) ? result.bids.slice(0, 3) : [];
+          if (!top.length) {
+            setInline("info", "No bids yet.");
+            return;
+          }
+          const summary = top.map((bid) => `${bid.bidderDisplayName || bid.bidderUid}: ${bid.amountAnts}`).join(" | ");
+          setInline("info", `Top bids: ${summary}`);
+        } catch (error) {
+          setInline("bad", error.message || "Could not load bids.");
+        }
+      });
+    });
   }
 
   function escapeHtml(value) {
@@ -548,6 +801,65 @@
       if (els.feedList) {
         els.feedList.innerHTML = `<div class="status bad">${escapeHtml(error.message || "Feed load failed")}</div>`;
       }
+    }
+  }
+
+  async function onCreateMarketListing() {
+    if (!state.apiReady) {
+      setStatus(els.marketStatus, "bad", "Connect NFT API first using Test API.");
+      return;
+    }
+
+    const payload = getMarketListingPayload();
+    if (!payload.uid || !payload.asset_id) {
+      setStatus(els.marketStatus, "bad", "Seller ANET Profile ID and Asset ID are required.");
+      return;
+    }
+    if (payload.listing_type === "fixed" && payload.ask_price_ants <= 0) {
+      setStatus(els.marketStatus, "bad", "Fixed listing requires ask price > 0.");
+      return;
+    }
+    if (payload.listing_type === "auction" && payload.min_bid_ants <= 0) {
+      setStatus(els.marketStatus, "bad", "Auction listing requires minimum bid > 0.");
+      return;
+    }
+
+    try {
+      const result = await apiFetch("/api/nft/market/listings/create", {
+        method: "POST",
+        body: payload
+      });
+      setStatus(
+        els.marketStatus,
+        "good",
+        `Listing created: ${result?.listing?.id || "new listing"}`
+      );
+      await onLoadMarketListings();
+      await onLoadFeed();
+    } catch (error) {
+      setStatus(els.marketStatus, "bad", error.message || "Failed to create listing.");
+    }
+  }
+
+  async function onLoadMarketListings() {
+    if (!state.apiReady) {
+      if (els.marketList) {
+        els.marketList.innerHTML = '<div class="status info">Connect NFT API first, then refresh marketplace.</div>';
+      }
+      return;
+    }
+
+    const status = String(els.marketFilterStatus?.value || "active").trim().toLowerCase() || "active";
+
+    try {
+      const result = await apiFetch(`/api/nft/market/listings?status=${encodeURIComponent(status)}&limit=50`);
+      renderMarketListings(result.listings || []);
+      setStatus(els.marketStatus, "good", `Loaded ${result.count || 0} marketplace listings.`);
+    } catch (error) {
+      if (els.marketList) {
+        els.marketList.innerHTML = `<div class="status bad">${escapeHtml(error.message || "Marketplace load failed")}</div>`;
+      }
+      setStatus(els.marketStatus, "bad", error.message || "Marketplace load failed.");
     }
   }
 })();

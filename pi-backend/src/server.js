@@ -224,8 +224,45 @@ async function initializeNftDatabase() {
     )
   `);
 
+  await dbRun(nftDb, `
+    CREATE TABLE IF NOT EXISTS nft_market_listings (
+      id TEXT PRIMARY KEY,
+      asset_id TEXT NOT NULL,
+      seller_uid TEXT NOT NULL,
+      listing_type TEXT NOT NULL,
+      ask_price_ants INTEGER DEFAULT 0,
+      min_bid_ants INTEGER DEFAULT 0,
+      buy_now_price_ants INTEGER DEFAULT 0,
+      status TEXT NOT NULL,
+      winner_uid TEXT DEFAULT '',
+      final_price_ants INTEGER DEFAULT 0,
+      start_at TEXT NOT NULL,
+      end_at TEXT,
+      sold_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(asset_id) REFERENCES nft_assets(id),
+      FOREIGN KEY(seller_uid) REFERENCES nft_profiles(uid)
+    )
+  `);
+
+  await dbRun(nftDb, `
+    CREATE TABLE IF NOT EXISTS nft_market_bids (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      listing_id TEXT NOT NULL,
+      bidder_uid TEXT NOT NULL,
+      amount_ants INTEGER NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY(listing_id) REFERENCES nft_market_listings(id),
+      FOREIGN KEY(bidder_uid) REFERENCES nft_profiles(uid)
+    )
+  `);
+
   await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_assets_uid ON nft_assets(uid)');
   await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_activity_uid ON nft_activity(uid)');
+  await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_market_listings_status ON nft_market_listings(status)');
+  await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_market_listings_asset ON nft_market_listings(asset_id)');
+  await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_market_bids_listing ON nft_market_bids(listing_id)');
 }
 
 function requireNftDatabase(res) {
@@ -339,6 +376,139 @@ function mapNftAssetRow(row) {
     createdAt: safeIsoDate(row.created_at),
     updatedAt: safeIsoDate(row.updated_at)
   };
+}
+
+function mapNftMarketListingRow(row) {
+  if (!row) {
+    return null;
+  }
+
+  const startAt = safeIsoDate(row.start_at);
+  const endAt = safeIsoDate(row.end_at);
+  const now = Date.now();
+  const isExpired = Boolean(endAt && Date.parse(endAt) <= now && String(row.status || '') === 'active');
+
+  return {
+    id: String(row.id || '').trim(),
+    assetId: String(row.asset_id || '').trim(),
+    sellerUid: normalizeAnetProfileId(row.seller_uid),
+    listingType: String(row.listing_type || '').trim().toLowerCase(),
+    askPriceAnts: normalizeNonNegativeInteger(row.ask_price_ants, 0),
+    minBidAnts: normalizeNonNegativeInteger(row.min_bid_ants, 0),
+    buyNowPriceAnts: normalizeNonNegativeInteger(row.buy_now_price_ants, 0),
+    status: String(row.status || '').trim().toLowerCase(),
+    winnerUid: normalizeAnetProfileId(row.winner_uid),
+    finalPriceAnts: normalizeNonNegativeInteger(row.final_price_ants, 0),
+    startAt,
+    endAt,
+    soldAt: safeIsoDate(row.sold_at),
+    createdAt: safeIsoDate(row.created_at),
+    updatedAt: safeIsoDate(row.updated_at),
+    highestBidAnts: normalizeNonNegativeInteger(row.highest_bid_ants, 0),
+    bidCount: normalizeNonNegativeInteger(row.bid_count, 0),
+    asset: {
+      id: String(row.asset_id || '').trim(),
+      uid: normalizeAnetProfileId(row.asset_owner_uid),
+      anetProfileId: normalizeAnetProfileId(row.asset_owner_uid),
+      slug: String(row.asset_slug || '').trim(),
+      name: String(row.asset_name || '').trim(),
+      description: String(row.asset_description || '').trim(),
+      imageUri: String(row.asset_image_uri || '').trim(),
+      metadataUri: String(row.asset_metadata_uri || '').trim(),
+      traits: parseJsonSafe(row.asset_traits_json, []),
+      status: String(row.asset_status || 'active').trim(),
+      antsStake: normalizeNonNegativeInteger(row.asset_ants_stake, 0),
+      createdAt: safeIsoDate(row.asset_created_at),
+      updatedAt: safeIsoDate(row.asset_updated_at)
+    },
+    sellerDisplayName: normalizeShortText(row.seller_display_name || row.seller_username || row.seller_uid, 80),
+    isExpired
+  };
+}
+
+function mapNftMarketBidRow(row) {
+  if (!row) {
+    return null;
+  }
+  return {
+    id: normalizeNonNegativeInteger(row.id, 0),
+    listingId: String(row.listing_id || '').trim(),
+    bidderUid: normalizeAnetProfileId(row.bidder_uid),
+    bidderDisplayName: normalizeShortText(row.bidder_display_name || row.bidder_username || row.bidder_uid, 80),
+    amountAnts: normalizeNonNegativeInteger(row.amount_ants, 0),
+    createdAt: safeIsoDate(row.created_at)
+  };
+}
+
+async function getMarketListingById(listingId) {
+  const row = await dbGet(
+    nftDb,
+    `SELECT l.*, a.uid AS asset_owner_uid, a.slug AS asset_slug, a.name AS asset_name,
+            a.description AS asset_description, a.image_uri AS asset_image_uri,
+            a.metadata_uri AS asset_metadata_uri, a.traits_json AS asset_traits_json,
+            a.status AS asset_status, a.ants_stake AS asset_ants_stake,
+            a.created_at AS asset_created_at, a.updated_at AS asset_updated_at,
+            p.display_name AS seller_display_name, p.username AS seller_username,
+            IFNULL(b.bid_count, 0) AS bid_count, IFNULL(b.highest_bid_ants, 0) AS highest_bid_ants
+     FROM nft_market_listings l
+     LEFT JOIN nft_assets a ON a.id = l.asset_id
+     LEFT JOIN nft_profiles p ON p.uid = l.seller_uid
+     LEFT JOIN (
+       SELECT listing_id, COUNT(*) AS bid_count, MAX(amount_ants) AS highest_bid_ants
+       FROM nft_market_bids
+       GROUP BY listing_id
+     ) b ON b.listing_id = l.id
+     WHERE l.id = ?`,
+    [String(listingId || '').trim()]
+  );
+  return mapNftMarketListingRow(row);
+}
+
+async function settleMarketListing(listingId, buyerUid, finalPriceAnts) {
+  const listing = await getMarketListingById(listingId);
+  if (!listing) {
+    throw new Error('Listing not found');
+  }
+  if (listing.status !== 'active') {
+    throw new Error('Listing is not active');
+  }
+
+  const buyerProfileId = normalizeAnetProfileId(buyerUid);
+  const buyerProfile = await getNftProfile(buyerProfileId);
+  if (!buyerProfile) {
+    throw new Error('Buyer ANET profile not found');
+  }
+
+  const now = new Date().toISOString();
+  await dbRun(
+    nftDb,
+    `UPDATE nft_market_listings
+     SET status = 'sold', winner_uid = ?, final_price_ants = ?, sold_at = ?, updated_at = ?
+     WHERE id = ?`,
+    [buyerProfileId, normalizeNonNegativeInteger(finalPriceAnts, 0), now, now, listing.id]
+  );
+
+  await dbRun(
+    nftDb,
+    'UPDATE nft_assets SET uid = ?, status = ?, updated_at = ? WHERE id = ?',
+    [buyerProfileId, 'active', now, listing.assetId]
+  );
+
+  await appendNftActivity(listing.sellerUid, 'NFT_SOLD', {
+    listingId: listing.id,
+    assetId: listing.assetId,
+    buyerUid: buyerProfileId,
+    finalPriceAnts: normalizeNonNegativeInteger(finalPriceAnts, 0)
+  });
+
+  await appendNftActivity(buyerProfileId, 'NFT_BOUGHT', {
+    listingId: listing.id,
+    assetId: listing.assetId,
+    sellerUid: listing.sellerUid,
+    finalPriceAnts: normalizeNonNegativeInteger(finalPriceAnts, 0)
+  });
+
+  return getMarketListingById(listing.id);
 }
 
 async function getNftProfile(uid) {
@@ -1091,6 +1261,388 @@ app.get('/api/nft/colony/feed', async (req, res) => {
         ...mapNftAssetRow(row),
         ownerDisplayName: normalizeShortText(row.display_name || row.username || row.uid, 80)
       }))
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.get('/api/nft/market/listings', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  try {
+    const requestedStatus = normalizeShortText(req.query?.status || 'active', 20).toLowerCase();
+    const status = ['active', 'sold', 'cancelled', 'expired', 'all'].includes(requestedStatus)
+      ? requestedStatus
+      : 'active';
+    const limit = Math.min(200, Math.max(1, Number(req.query?.limit || 50)));
+
+    const sql = status === 'all'
+      ? `SELECT l.*, a.uid AS asset_owner_uid, a.slug AS asset_slug, a.name AS asset_name,
+                a.description AS asset_description, a.image_uri AS asset_image_uri,
+                a.metadata_uri AS asset_metadata_uri, a.traits_json AS asset_traits_json,
+                a.status AS asset_status, a.ants_stake AS asset_ants_stake,
+                a.created_at AS asset_created_at, a.updated_at AS asset_updated_at,
+                p.display_name AS seller_display_name, p.username AS seller_username,
+                IFNULL(b.bid_count, 0) AS bid_count, IFNULL(b.highest_bid_ants, 0) AS highest_bid_ants
+         FROM nft_market_listings l
+         LEFT JOIN nft_assets a ON a.id = l.asset_id
+         LEFT JOIN nft_profiles p ON p.uid = l.seller_uid
+         LEFT JOIN (
+           SELECT listing_id, COUNT(*) AS bid_count, MAX(amount_ants) AS highest_bid_ants
+           FROM nft_market_bids
+           GROUP BY listing_id
+         ) b ON b.listing_id = l.id
+         ORDER BY datetime(l.created_at) DESC
+         LIMIT ?`
+      : `SELECT l.*, a.uid AS asset_owner_uid, a.slug AS asset_slug, a.name AS asset_name,
+                a.description AS asset_description, a.image_uri AS asset_image_uri,
+                a.metadata_uri AS asset_metadata_uri, a.traits_json AS asset_traits_json,
+                a.status AS asset_status, a.ants_stake AS asset_ants_stake,
+                a.created_at AS asset_created_at, a.updated_at AS asset_updated_at,
+                p.display_name AS seller_display_name, p.username AS seller_username,
+                IFNULL(b.bid_count, 0) AS bid_count, IFNULL(b.highest_bid_ants, 0) AS highest_bid_ants
+         FROM nft_market_listings l
+         LEFT JOIN nft_assets a ON a.id = l.asset_id
+         LEFT JOIN nft_profiles p ON p.uid = l.seller_uid
+         LEFT JOIN (
+           SELECT listing_id, COUNT(*) AS bid_count, MAX(amount_ants) AS highest_bid_ants
+           FROM nft_market_bids
+           GROUP BY listing_id
+         ) b ON b.listing_id = l.id
+         WHERE l.status = ?
+         ORDER BY datetime(l.created_at) DESC
+         LIMIT ?`;
+
+    const rows = status === 'all'
+      ? await dbAll(nftDb, sql, [limit])
+      : await dbAll(nftDb, sql, [status, limit]);
+    const listings = rows.map(mapNftMarketListingRow);
+
+    return res.status(200).json({
+      ok: true,
+      status,
+      count: listings.length,
+      listings
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.get('/api/nft/market/listings/:listingId/bids', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  try {
+    const listingId = normalizeShortText(req.params?.listingId, 120);
+    if (!listingId) {
+      return res.status(400).json({ ok: false, error: 'listingId is required' });
+    }
+
+    const bids = await dbAll(
+      nftDb,
+      `SELECT b.*, p.display_name AS bidder_display_name, p.username AS bidder_username
+       FROM nft_market_bids b
+       LEFT JOIN nft_profiles p ON p.uid = b.bidder_uid
+       WHERE b.listing_id = ?
+       ORDER BY b.amount_ants DESC, datetime(b.created_at) DESC
+       LIMIT 100`,
+      [listingId]
+    );
+
+    return res.status(200).json({
+      ok: true,
+      listingId,
+      count: bids.length,
+      bids: bids.map(mapNftMarketBidRow)
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post('/api/nft/market/listings/create', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  try {
+    const sellerUid = getAnetProfileIdFromBody(req.body);
+    const assetId = normalizeShortText(req.body?.asset_id, 120);
+    const listingType = normalizeShortText(req.body?.listing_type || 'fixed', 20).toLowerCase();
+    const askPriceAnts = normalizeNonNegativeInteger(req.body?.ask_price_ants, 0);
+    const minBidAnts = normalizeNonNegativeInteger(req.body?.min_bid_ants, 0);
+    const buyNowPriceAnts = normalizeNonNegativeInteger(req.body?.buy_now_price_ants, 0);
+    const durationHours = Math.min(168, Math.max(1, normalizeNonNegativeInteger(req.body?.duration_hours, 24)));
+
+    if (!sellerUid || !assetId) {
+      return res.status(400).json({ ok: false, error: 'anet profile id and asset_id are required' });
+    }
+    if (!['fixed', 'auction'].includes(listingType)) {
+      return res.status(400).json({ ok: false, error: 'listing_type must be fixed or auction' });
+    }
+
+    const sellerProfile = await getNftProfile(sellerUid);
+    if (!sellerProfile) {
+      return res.status(404).json({ ok: false, error: 'Seller ANET profile not found' });
+    }
+
+    const asset = await dbGet(nftDb, 'SELECT * FROM nft_assets WHERE id = ?', [assetId]);
+    if (!asset) {
+      return res.status(404).json({ ok: false, error: 'NFT asset not found' });
+    }
+    if (normalizeAnetProfileId(asset.uid) !== sellerUid) {
+      return res.status(403).json({ ok: false, error: 'Only current owner can list this NFT' });
+    }
+
+    const activeListing = await dbGet(
+      nftDb,
+      'SELECT id FROM nft_market_listings WHERE asset_id = ? AND status = ? LIMIT 1',
+      [assetId, 'active']
+    );
+    if (activeListing) {
+      return res.status(409).json({ ok: false, error: 'This NFT already has an active listing' });
+    }
+
+    if (listingType === 'fixed' && askPriceAnts <= 0) {
+      return res.status(400).json({ ok: false, error: 'ask_price_ants must be greater than 0 for fixed listing' });
+    }
+    if (listingType === 'auction' && minBidAnts <= 0) {
+      return res.status(400).json({ ok: false, error: 'min_bid_ants must be greater than 0 for auction listing' });
+    }
+
+    const now = new Date();
+    const createdAt = now.toISOString();
+    const endAt = listingType === 'auction'
+      ? new Date(now.getTime() + durationHours * 60 * 60 * 1000).toISOString()
+      : null;
+    const listingId = `nft_listing_${crypto.randomUUID()}`;
+
+    await dbRun(
+      nftDb,
+      `INSERT INTO nft_market_listings (
+        id, asset_id, seller_uid, listing_type, ask_price_ants, min_bid_ants,
+        buy_now_price_ants, status, winner_uid, final_price_ants,
+        start_at, end_at, sold_at, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        listingId,
+        assetId,
+        sellerUid,
+        listingType,
+        askPriceAnts,
+        minBidAnts,
+        buyNowPriceAnts,
+        'active',
+        '',
+        0,
+        createdAt,
+        endAt,
+        null,
+        createdAt,
+        createdAt
+      ]
+    );
+
+    await appendNftActivity(sellerUid, 'NFT_LISTED', {
+      listingId,
+      assetId,
+      listingType,
+      askPriceAnts,
+      minBidAnts,
+      buyNowPriceAnts,
+      durationHours: listingType === 'auction' ? durationHours : null
+    });
+
+    return res.status(201).json({
+      ok: true,
+      listing: await getMarketListingById(listingId)
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post('/api/nft/market/listings/:listingId/bid', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  try {
+    const listingId = normalizeShortText(req.params?.listingId, 120);
+    const bidderUid = getAnetProfileIdFromBody(req.body);
+    const amountAnts = normalizeNonNegativeInteger(req.body?.amount_ants, 0);
+    if (!listingId || !bidderUid || amountAnts <= 0) {
+      return res.status(400).json({ ok: false, error: 'listingId, anet profile id and amount_ants are required' });
+    }
+
+    const listing = await getMarketListingById(listingId);
+    if (!listing) {
+      return res.status(404).json({ ok: false, error: 'Listing not found' });
+    }
+    if (listing.status !== 'active') {
+      return res.status(409).json({ ok: false, error: 'Listing is not active' });
+    }
+    if (listing.listingType !== 'auction') {
+      return res.status(400).json({ ok: false, error: 'Bids are only allowed on auction listings' });
+    }
+    if (listing.isExpired) {
+      return res.status(409).json({ ok: false, error: 'Auction expired. Seller should close listing.' });
+    }
+    if (bidderUid === listing.sellerUid) {
+      return res.status(400).json({ ok: false, error: 'Seller cannot bid on own listing' });
+    }
+
+    const bidderProfile = await getNftProfile(bidderUid);
+    if (!bidderProfile) {
+      return res.status(404).json({ ok: false, error: 'Bidder ANET profile not found' });
+    }
+
+    const highestBid = await dbGet(
+      nftDb,
+      'SELECT MAX(amount_ants) AS highest_bid FROM nft_market_bids WHERE listing_id = ?',
+      [listingId]
+    );
+    const currentHighest = normalizeNonNegativeInteger(highestBid?.highest_bid, 0);
+    const minRequired = Math.max(listing.minBidAnts, currentHighest + 1);
+    if (amountAnts < minRequired) {
+      return res.status(400).json({ ok: false, error: `Bid must be at least ${minRequired} ANTS` });
+    }
+
+    const now = new Date().toISOString();
+    await dbRun(
+      nftDb,
+      'INSERT INTO nft_market_bids (listing_id, bidder_uid, amount_ants, created_at) VALUES (?, ?, ?, ?)',
+      [listingId, bidderUid, amountAnts, now]
+    );
+
+    await appendNftActivity(bidderUid, 'NFT_BID_PLACED', {
+      listingId,
+      assetId: listing.assetId,
+      amountAnts
+    });
+
+    if (listing.buyNowPriceAnts > 0 && amountAnts >= listing.buyNowPriceAnts) {
+      const soldListing = await settleMarketListing(listingId, bidderUid, amountAnts);
+      return res.status(200).json({
+        ok: true,
+        autoSettled: true,
+        listing: soldListing
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      autoSettled: false,
+      listing: await getMarketListingById(listingId)
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post('/api/nft/market/listings/:listingId/buy', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  try {
+    const listingId = normalizeShortText(req.params?.listingId, 120);
+    const buyerUid = getAnetProfileIdFromBody(req.body);
+    if (!listingId || !buyerUid) {
+      return res.status(400).json({ ok: false, error: 'listingId and anet profile id are required' });
+    }
+
+    const listing = await getMarketListingById(listingId);
+    if (!listing) {
+      return res.status(404).json({ ok: false, error: 'Listing not found' });
+    }
+    if (listing.status !== 'active') {
+      return res.status(409).json({ ok: false, error: 'Listing is not active' });
+    }
+    if (buyerUid === listing.sellerUid) {
+      return res.status(400).json({ ok: false, error: 'Seller cannot buy own listing' });
+    }
+
+    let finalPriceAnts = 0;
+    if (listing.listingType === 'fixed') {
+      finalPriceAnts = listing.askPriceAnts;
+    } else {
+      if (listing.buyNowPriceAnts <= 0) {
+        return res.status(400).json({ ok: false, error: 'Auction listing has no buy now price' });
+      }
+      finalPriceAnts = listing.buyNowPriceAnts;
+    }
+
+    const soldListing = await settleMarketListing(listingId, buyerUid, finalPriceAnts);
+    return res.status(200).json({ ok: true, listing: soldListing });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post('/api/nft/market/listings/:listingId/close', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  try {
+    const listingId = normalizeShortText(req.params?.listingId, 120);
+    const sellerUid = getAnetProfileIdFromBody(req.body);
+    if (!listingId || !sellerUid) {
+      return res.status(400).json({ ok: false, error: 'listingId and anet profile id are required' });
+    }
+
+    const listing = await getMarketListingById(listingId);
+    if (!listing) {
+      return res.status(404).json({ ok: false, error: 'Listing not found' });
+    }
+    if (listing.status !== 'active') {
+      return res.status(409).json({ ok: false, error: 'Listing is not active' });
+    }
+    if (sellerUid !== listing.sellerUid) {
+      return res.status(403).json({ ok: false, error: 'Only seller can close listing' });
+    }
+
+    if (listing.listingType === 'auction') {
+      const highest = await dbGet(
+        nftDb,
+        `SELECT bidder_uid, amount_ants
+         FROM nft_market_bids
+         WHERE listing_id = ?
+         ORDER BY amount_ants DESC, datetime(created_at) DESC
+         LIMIT 1`,
+        [listingId]
+      );
+
+      if (highest?.bidder_uid) {
+        const settled = await settleMarketListing(listingId, highest.bidder_uid, highest.amount_ants);
+        return res.status(200).json({ ok: true, settled: true, listing: settled });
+      }
+    }
+
+    const now = new Date().toISOString();
+    const nextStatus = listing.isExpired ? 'expired' : 'cancelled';
+    await dbRun(
+      nftDb,
+      'UPDATE nft_market_listings SET status = ?, updated_at = ? WHERE id = ?',
+      [nextStatus, now, listing.id]
+    );
+
+    await appendNftActivity(sellerUid, 'NFT_LISTING_CLOSED', {
+      listingId,
+      assetId: listing.assetId,
+      status: nextStatus
+    });
+
+    return res.status(200).json({
+      ok: true,
+      settled: false,
+      listing: await getMarketListingById(listing.id)
     });
   } catch (error) {
     return res.status(500).json({ ok: false, error: error.message });
