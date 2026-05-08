@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network DEX | Native Layer 1 Decentralized Exchange</title>
+  <meta name="description" content="Trade on the A Network native Layer 1 DEX. Swap ANET and wrapped EVM tokens, provide liquidity, bridge assets from Ethereum, BNB Chain, Polygon and more.">
+  <meta name="theme-color" content="#050b12">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="A Network">
+  <meta property="og:title" content="A Network DEX | Native Layer 1 Exchange">
+  <meta property="og:description" content="Swap, bridge, and provide liquidity on the A Network native L1 DEX. EVM wallet support for ETH, BNB, Polygon, Base and more.">
+  <meta property="og:url" content="https://a-network.net/dex.html">
+  <meta property="og:image" content="https://a-network.net/logo.png">
+  <link rel="canonical" href="https://a-network.net/dex.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://explorer.a-network.net" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/dex.css">
+</head>
+<body>
+
+  <!-- ── Toast container ─────────────────────── -->
+  <div id="toast-container"></div>
+
+  <!-- ── ANET Wallet Modal ─────────────────────── -->
+  <div class="modal-overlay" id="anet-wallet-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="anet-modal-title">
+      <div class="modal-header">
+        <span class="modal-title" id="anet-modal-title">CONNECT ANET WALLET</span>
+        <button class="modal-close" onclick="closeAnetWalletModal()" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="warn-box">
+          ⚠ Your seed phrase is transmitted over HTTPS to the A Network L1 node to authorize
+          on-chain transactions. Only connect on a trusted device. Never share your seed phrase
+          with anyone. This is a testnet environment.
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="anet-address-input">ANET Wallet Address</label>
+          <input class="form-input" id="anet-address-input" type="text"
+                 placeholder="e.g. anet1abc…" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="anet-seed-input">Seed Phrase / Private Key</label>
+          <textarea class="form-input" id="anet-seed-input" rows="3"
+                    placeholder="Enter your 12 or 24-word seed phrase…" autocomplete="off" spellcheck="false"></textarea>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="connectAnetWallet()">
+          Connect Wallet
+        </button>
+        <div class="info-box">
+          Don't have an ANET wallet yet? Download the
+          <a href="https://play.google.com/store/apps/details?id=net.anetwork.app" target="_blank" rel="noopener">A Network app</a>
+          to create your Layer 1 wallet and start mining ANTS.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Token dropdown overlay ────────────────── -->
+  <div id="token-dropdown-overlay" class="token-dropdown-overlay" onclick="closeTokenDropdown()"></div>
+  <div id="token-dropdown" class="token-dropdown" role="listbox">
+    <div class="token-search">
+      <input type="text" placeholder="Search tokens…" oninput="renderTokenDropdownItems(activeDropdown, this.value)">
+    </div>
+    <div class="token-list" id="token-list-items"></div>
+  </div>
+
+  <div class="shell">
+
+    <!-- ── Network status bar ─────────────────── -->
+    <div class="network-bar">
+      <div class="network-item">
+        <span class="pill live green">LIVE</span>
+        <span>A Network L1</span>
+      </div>
+      <div class="network-item">Block: <span class="v" id="network-block">Loading…</span></div>
+      <div class="network-item">Activated Supply: <span class="v" id="network-supply">—</span></div>
+      <div class="network-item">Chain: <span class="v">ANET Mainnet</span></div>
+      <div class="network-item" style="margin-left:auto;">
+        <a href="https://explorer.a-network.net/explorer" target="_blank" rel="noopener"
+           style="font-size:11.5px;color:var(--muted);">
+          Block Explorer ↗
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Header ─────────────────────────────── -->
+    <header>
+      <a class="brand" href="index.html">
+        <img class="brand-mark" src="logo.png" alt="A Network logo"
+             onerror="this.style.display='none';document.getElementById('brandFallback').style.display='grid';">
+        <div class="brand-fallback" id="brandFallback">A</div>
+        <div>
+          <h1>A NETWORK</h1>
+          <p>Native Layer 1 DEX</p>
+        </div>
+      </a>
+
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="web4.html">Web4</a>
+        <a href="web5.html">Explorer</a>
+        <a href="whitepaper.html">Whitepaper</a>
+        <a href="dex.html" class="active">DEX</a>
+      </nav>
+
+      <div class="header-wallets">
+        <button class="wallet-btn" id="evm-wallet-btn" onclick="connectEvmWallet()" aria-label="Connect EVM wallet">
+          <span class="dot"></span>
+          <span>Connect EVM Wallet</span>
+        </button>
+        <button class="wallet-btn" id="anet-wallet-btn" onclick="openAnetWalletModal()" aria-label="Connect ANET wallet">
+          <span class="dot"></span>
+          <span>Connect ANET Wallet</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Hero ──────────────────────────────── -->
+    <div class="dex-hero">
+      <div class="dex-hero-copy">
+        <h2>A Network Native DEX</h2>
+        <p>
+          Swap ANET and wrapped EVM tokens directly on the A Network Layer 1 chain.
+          Connect MetaMask for EVM assets. Bridge support for Ethereum, BNB Chain,
+          Polygon, Base &amp; more launching in Phase 2.
+        </p>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="stat-val" id="stat-pools">—</div>
+          <div class="stat-lbl">ACTIVE POOLS</div>
+        </div>
+        <div class="hero-stat">
+          <div class="stat-val" id="stat-tvl">—</div>
+          <div class="stat-lbl">TOTAL LIQUIDITY</div>
+        </div>
+        <div class="hero-stat">
+          <div class="stat-val">0.30%</div>
+          <div class="stat-lbl">BASE FEE</div>
+        </div>
+        <div class="hero-stat">
+          <div class="stat-val">2s</div>
+          <div class="stat-lbl">SETTLEMENT</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab navigation ─────────────────────── -->
+    <div class="dex-tabs" role="tablist" aria-label="DEX sections">
+      <button class="tab-btn active" role="tab" data-tab="swap"
+              onclick="setTab('swap')" aria-selected="true">
+        <span class="tab-icon">⇄</span> Swap
+      </button>
+      <button class="tab-btn" role="tab" data-tab="bridge"
+              onclick="setTab('bridge')" aria-selected="false">
+        <span class="tab-icon">🌉</span> Bridge
+        <span class="tab-badge">Phase 2</span>
+      </button>
+      <button class="tab-btn" role="tab" data-tab="liquidity"
+              onclick="setTab('liquidity')" aria-selected="false">
+        <span class="tab-icon">💧</span> Liquidity
+      </button>
+      <button class="tab-btn" role="tab" data-tab="markets"
+              onclick="setTab('markets')" aria-selected="false">
+        <span class="tab-icon">📊</span> Markets
+      </button>
+      <button class="tab-btn" role="tab" data-tab="multichain"
+              onclick="setTab('multichain')" aria-selected="false">
+        <span class="tab-icon">🌐</span> Multi-Chain
+        <span class="tab-badge">12 Chains</span>
+      </button>
+      <button class="tab-btn" role="tab" data-tab="cashout"
+              onclick="setTab('cashout')" aria-selected="false">
+        <span class="tab-icon">💸</span> Cash Out
+      </button>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         TAB: SWAP
+         ════════════════════════════════════════ -->
+    <div class="tab-panel active" id="tab-swap" role="tabpanel">
+      <div class="dex-main-grid">
+
+        <!-- Swap card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">SWAP</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="pill live">Live quotes</span>
+              <button class="settings-btn" title="Settings"
+                      onclick="document.getElementById('slippage-settings').classList.toggle('show')" aria-label="Slippage settings">⚙</button>
+            </div>
+          </div>
+
+          <!-- Slippage settings (collapsible) -->
+          <div id="slippage-settings" style="display:none;padding:12px 20px 0;border-bottom:1px solid var(--line);">
+            <div class="slippage-row">
+              <label>Slippage tolerance</label>
+              <div class="slippage-btns">
+                <button class="slip-btn" data-slip="0.5"  onclick="setSlippage(0.5)">0.5%</button>
+                <button class="slip-btn active" data-slip="1"  onclick="setSlippage(1)">1%</button>
+                <button class="slip-btn" data-slip="2"  onclick="setSlippage(2)">2%</button>
+                <button class="slip-btn" data-slip="5"  onclick="setSlippage(5)">5%</button>
+              </div>
+            </div>
+            <p style="font-size:11px;color:var(--muted-2);margin:8px 0 12px;">
+              Transactions will revert if price moves more than the chosen tolerance.
+            </p>
+          </div>
+
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+
+            <!-- FROM field -->
+            <div class="token-field">
+              <div class="token-field-label">YOU PAY</div>
+              <div class="token-field-row">
+                <div style="position:relative;">
+                  <button class="token-select-btn" id="from-token-btn"
+                          onclick="openTokenDropdown('from')" aria-haspopup="listbox"
+                          aria-label="Select token to sell">
+                    Loading…
+                  </button>
+                </div>
+                <input class="amount-input" id="from-amount" type="number"
+                       placeholder="0.00" min="0" step="any"
+                       oninput="onAmountChange()" aria-label="Amount to sell">
+              </div>
+              <div class="token-balance-row">
+                <span id="from-balance" style="font-size:12px;color:var(--muted-2);">Connect wallet to see balance</span>
+                <span class="balance-max" onclick="
+                  if(state.anetWallet.balance && state.fromToken==='ANET'){
+                    const max = (state.anetWallet.balance / 100000000 * 0.999).toFixed(8);
+                    document.getElementById('from-amount').value = max;
+                    onAmountChange();
+                  }">MAX</span>
+              </div>
+            </div>
+
+            <!-- Swap direction arrow -->
+            <div class="swap-arrow-row">
+              <button class="swap-arrow-btn" onclick="swapDirection()" aria-label="Reverse swap direction" title="Reverse">↕</button>
+            </div>
+
+            <!-- TO field -->
+            <div class="token-field">
+              <div class="token-field-label">YOU RECEIVE</div>
+              <div class="token-field-row">
+                <div style="position:relative;">
+                  <button class="token-select-btn" id="to-token-btn"
+                          onclick="openTokenDropdown('to')" aria-haspopup="listbox"
+                          aria-label="Select token to receive">
+                    Loading…
+                  </button>
+                </div>
+                <div class="amount-input" id="to-amount-display"
+                     style="text-align:right;display:flex;align-items:center;justify-content:flex-end;color:var(--accent-2);min-height:36px;">
+                  —
+                </div>
+              </div>
+            </div>
+
+            <!-- Price info box -->
+            <div class="price-info" id="swap-price-info" style="display:none;flex-direction:column;gap:6px;"></div>
+
+            <!-- Swap status -->
+            <div class="swap-status" id="swap-status"></div>
+
+            <!-- Action button -->
+            <button class="btn btn-primary btn-full" id="do-swap-btn"
+                    onclick="doSwap()" disabled style="padding:14px;font-size:15px;letter-spacing:0.04em;">
+              Enter an amount
+            </button>
+
+            <!-- Wallet required hint -->
+            <div class="info-box" id="wallet-hint" style="text-align:center;font-size:12px;">
+              Connect your <strong>ANET wallet</strong> to execute swaps on the native L1 chain.
+            </div>
+
+          </div><!-- /card-body -->
+
+          <div class="card-footer" style="font-size:11.5px;color:var(--muted-2);">
+            Powered by the A Network Layer 1 AMM · 2-second settlement ·
+            <a href="https://explorer.a-network.net/explorer" target="_blank" rel="noopener">
+              View on Explorer ↗
+            </a>
+          </div>
+        </div><!-- /swap card -->
+
+        <!-- Pools sidebar -->
+        <div>
+          <div class="section-heading">
+            <h3>LIQUIDITY POOLS</h3>
+            <div class="line"></div>
+            <button class="btn btn-ghost btn-sm" onclick="refreshPools()" title="Refresh pools" aria-label="Refresh pools">↺</button>
+          </div>
+          <div id="pools-sidebar" class="pools-sidebar">
+            <div class="loading-row"><span class="spinner"></span> Loading pools…</div>
+          </div>
+        </div>
+
+      </div><!-- /dex-main-grid -->
+    </div><!-- /tab-swap -->
+
+    <!-- ════════════════════════════════════════
+         TAB: BRIDGE
+         ════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-bridge" role="tabpanel">
+
+      <!-- Phase 2 banner -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:28px;padding:18px 22px;border-radius:var(--radius);border:1px solid rgba(255,188,92,0.3);background:rgba(255,188,92,0.06);">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <span class="phase-badge">🌉 PHASE 2 — IN DEVELOPMENT</span>
+          </div>
+          <p style="margin:0;font-size:13px;color:var(--muted);max-width:600px;">
+            The A Network cross-chain bridge will allow locking EVM assets (ETH, BNB, USDT, etc.)
+            and receiving wrapped equivalents on the ANET L1 chain for use in DEX pools —
+            and vice-versa. Bridge contracts are currently in development and will launch on
+            the ANET public mainnet.
+          </p>
+        </div>
+        <a href="https://a-network.net/#roadmap" class="btn btn-outline" target="_blank" rel="noopener">View Roadmap ↗</a>
+      </div>
+
+      <div class="bridge-grid">
+
+        <!-- Bridge form card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">CROSS-CHAIN BRIDGE</span>
+            <span class="pill amber">Phase 2</span>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+
+            <!-- Bridge direction toggle -->
+            <div>
+              <div class="form-label" style="margin-bottom:8px;">DIRECTION</div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-outline btn-sm bridge-dir-btn active" data-dir="evm_to_anet"
+                        onclick="setBridgeDirection('evm_to_anet')">EVM → ANET L1</button>
+                <button class="btn btn-ghost btn-sm bridge-dir-btn" data-dir="anet_to_evm"
+                        onclick="setBridgeDirection('anet_to_evm')">ANET L1 → EVM</button>
+              </div>
+            </div>
+
+            <!-- Source chain selector -->
+            <div>
+              <div class="form-label" style="margin-bottom:8px;">EVM CHAIN</div>
+              <div class="chain-selector" style="flex-wrap:wrap;">
+                <button class="chain-btn active" data-chain="56"    onclick="selectBridgeChain(56)">
+                  <span style="color:#F0B90B;">●</span> BNB Chain
+                </button>
+                <button class="chain-btn" data-chain="1"     onclick="selectBridgeChain(1)">
+                  <span style="color:#627EEA;">●</span> Ethereum
+                </button>
+                <button class="chain-btn" data-chain="137"   onclick="selectBridgeChain(137)">
+                  <span style="color:#8247E5;">●</span> Polygon
+                </button>
+                <button class="chain-btn" data-chain="8453"  onclick="selectBridgeChain(8453)">
+                  <span style="color:#0052FF;">●</span> Base
+                </button>
+                <button class="chain-btn" data-chain="42161" onclick="selectBridgeChain(42161)">
+                  <span style="color:#28A0F0;">●</span> Arbitrum
+                </button>
+                <button class="chain-btn" data-chain="43114" onclick="selectBridgeChain(43114)">
+                  <span style="color:#E84142;">●</span> Avalanche
+                </button>
+                <button class="chain-btn" data-chain="10"    onclick="selectBridgeChain(10)">
+                  <span style="color:#FF0420;">●</span> Optimism
+                </button>
+                <button class="chain-btn" data-chain="324"   onclick="selectBridgeChain(324)">
+                  <span style="color:#8C8DFC;">●</span> zkSync Era
+                </button>
+                <button class="chain-btn" data-chain="250"   onclick="selectBridgeChain(250)">
+                  <span style="color:#1969FF;">●</span> Fantom
+                </button>
+                <button class="chain-btn" data-chain="25"    onclick="selectBridgeChain(25)">
+                  <span style="color:#002D74;">●</span> Cronos
+                </button>
+                <button class="chain-btn" data-chain="59144" onclick="selectBridgeChain(59144)">
+                  <span style="color:#61DFFF;">●</span> Linea
+                </button>
+                <button class="chain-btn" data-chain="1101"  onclick="selectBridgeChain(1101)">
+                  <span style="color:#7B3FE4;">●</span> Polygon zkEVM
+                </button>
+              </div>
+            </div>
+
+            <!-- Bridge flow description -->
+            <div class="info-box">
+              <strong id="bridge-from-label">EVM Chain → Wrapped on ANET L1</strong><br>
+              <span id="bridge-to-label" style="margin-top:4px;display:inline-block;">Receive on ANET wallet</span>
+            </div>
+
+            <!-- Token (dynamic per chain) -->
+            <div class="form-group">
+              <label class="form-label" for="bridge-token">TOKEN TO BRIDGE</label>
+              <select class="form-input" id="bridge-token">
+                <option value="">Select a chain first…</option>
+              </select>
+              <span style="font-size:11px;color:var(--muted-2);margin-top:4px;display:block;">
+                Token list updates automatically when you select a chain above.
+              </span>
+            </div>
+
+            <!-- Amount -->
+            <div class="form-group">
+              <label class="form-label" for="bridge-amount">AMOUNT</label>
+              <input class="form-input" id="bridge-amount" type="number" placeholder="0.00" min="0" step="any">
+            </div>
+
+            <!-- Estimated gas fee -->
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;padding:10px 14px;background:rgba(7,17,29,0.5);border:1px solid var(--line);border-radius:var(--radius-sm);">
+              <span style="color:var(--muted);">Estimated network fee (source chain)</span>
+              <span style="font-weight:700;color:var(--accent-2);" id="bridge-fee-estimate">~$0.10–0.30</span>
+            </div>
+
+            <!-- Wallet addresses -->
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="form-label">WALLET ADDRESSES</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;">
+                <div style="background:rgba(7,17,29,0.6);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;">
+                  <div style="color:var(--muted-2);font-size:11px;margin-bottom:4px;">EVM ADDRESS</div>
+                  <div id="bridge-evm-addr" style="color:var(--muted-2);">Not connected</div>
+                </div>
+                <div style="background:rgba(7,17,29,0.6);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;">
+                  <div style="color:var(--muted-2);font-size:11px;margin-bottom:4px;">ANET ADDRESS</div>
+                  <div id="bridge-anet-addr" style="color:var(--muted-2);">Not connected</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bridge button -->
+            <button class="btn btn-primary btn-full" disabled style="padding:14px;font-size:15px;position:relative;overflow:hidden;"
+                    title="Bridge contracts launching in Phase 2" onclick="toast('Cross-chain bridge contracts are launching in Phase 2. Join the community to stay updated.','info',5000)">
+              <span>Bridge Assets</span>
+              <span style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:11px;letter-spacing:0.08em;color:var(--warn);">
+                LAUNCHING PHASE 2
+              </span>
+            </button>
+
+          </div><!-- /card-body -->
+        </div><!-- /bridge form card -->
+
+        <!-- Bridge info card -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">HOW THE BRIDGE WORKS</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+              <div style="display:grid;gap:12px;">
+                <!-- Step 1 -->
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                  <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#050b12;flex-shrink:0;">1</div>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Lock on EVM</div>
+                    <div style="font-size:12px;color:var(--muted);">Send ETH / BNB / USDT to the A Network bridge contract on the source EVM chain. Your tokens are locked in a non-custodial vault.</div>
+                  </div>
+                </div>
+                <!-- Step 2 -->
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                  <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#050b12;flex-shrink:0;">2</div>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Mint on ANET L1</div>
+                    <div style="font-size:12px;color:var(--muted);">The bridge relayer detects the lock event and mints the equivalent wrapped token (WBNB, WETH, WUSDT…) to your ANET wallet on the native L1 chain.</div>
+                  </div>
+                </div>
+                <!-- Step 3 -->
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                  <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#050b12;flex-shrink:0;">3</div>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Swap on DEX</div>
+                    <div style="font-size:12px;color:var(--muted);">Use your wrapped tokens in the A Network native DEX pools — swap WBNB for ANET, provide liquidity, and earn fees.</div>
+                  </div>
+                </div>
+                <!-- Step 4 -->
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                  <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#050b12;flex-shrink:0;">4</div>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Withdraw to EVM</div>
+                    <div style="font-size:12px;color:var(--muted);">Burn wrapped tokens on ANET L1 to unlock the originals on the EVM chain at any time.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Supported chains card (expanded) -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">SUPPORTED EVM CHAINS</span>
+              <span class="pill green">12 Chains</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(240,185,11,0.07);border:1px solid rgba(240,185,11,0.2);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;"><span style="color:#F0B90B;">◈</span> BNB Chain</div>
+                  <span class="pill amber" style="font-size:10px;">Priority</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(98,126,234,0.07);border:1px solid rgba(98,126,234,0.2);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;"><span style="color:#627EEA;">◈</span> Ethereum</div>
+                  <span class="pill" style="font-size:10px;">Phase 2</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(130,71,229,0.07);border:1px solid rgba(130,71,229,0.2);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;"><span style="color:#8247E5;">◈</span> Polygon</div>
+                  <span class="pill" style="font-size:10px;">Phase 2</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(0,82,255,0.07);border:1px solid rgba(0,82,255,0.2);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;"><span style="color:#0052FF;">◈</span> Base</div>
+                  <span class="pill" style="font-size:10px;">Phase 2</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(40,160,240,0.07);border:1px solid rgba(40,160,240,0.2);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;"><span style="color:#28A0F0;">◈</span> Arbitrum One</div>
+                  <span class="pill" style="font-size:10px;">Phase 2</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(232,65,66,0.07);border:1px solid rgba(232,65,66,0.2);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;"><span style="color:#E84142;">◈</span> Avalanche</div>
+                  <span class="pill" style="font-size:10px;">Phase 2</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(255,4,32,0.07);border:1px solid rgba(255,4,32,0.2);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;"><span style="color:#FF0420;">◈</span> Optimism</div>
+                  <span class="pill" style="font-size:10px;">Phase 2</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(140,141,252,0.07);border:1px solid rgba(140,141,252,0.2);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;"><span style="color:#8C8DFC;">◈</span> zkSync Era</div>
+                  <span class="pill" style="font-size:10px;">Phase 2</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(25,105,255,0.07);border:1px solid rgba(25,105,255,0.2);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;"><span style="color:#1969FF;">◈</span> Fantom</div>
+                  <span class="pill" style="font-size:10px;">Phase 2</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(0,45,116,0.15);border:1px solid rgba(0,45,116,0.35);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;"><span style="color:#4a90d9;">◈</span> Cronos</div>
+                  <span class="pill" style="font-size:10px;">Phase 2</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(97,223,255,0.07);border:1px solid rgba(97,223,255,0.2);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;"><span style="color:#61DFFF;">◈</span> Linea</div>
+                  <span class="pill" style="font-size:10px;">Phase 2</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(123,63,228,0.07);border:1px solid rgba(123,63,228,0.2);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;"><span style="color:#7B3FE4;">◈</span> Polygon zkEVM</div>
+                  <span class="pill" style="font-size:10px;">Phase 2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /bridge info col -->
+      </div><!-- /bridge-grid -->
+    </div><!-- /tab-bridge -->
+
+    <!-- ════════════════════════════════════════
+         TAB: LIQUIDITY
+         ════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-liquidity" role="tabpanel">
+      <div class="liq-grid">
+
+        <!-- Add Liquidity form -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <!-- Add to existing pool -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">ADD LIQUIDITY</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+              <div class="form-group">
+                <label class="form-label" for="liq-pool-select">SELECT POOL</label>
+                <select class="form-input" id="liq-pool-select">
+                  <option value="">Loading pools…</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="liq-anet-amount">ANET AMOUNT</label>
+                <input class="form-input" id="liq-anet-amount" type="number" placeholder="0.00" min="0" step="any">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="liq-token-amount">TOKEN AMOUNT</label>
+                <input class="form-input" id="liq-token-amount" type="number" placeholder="0.00" min="0" step="any">
+              </div>
+              <div class="info-box">
+                Liquidity is added at the current pool ratio. You will receive LP units
+                proportional to your contribution. Fees accrue to LP holders.
+              </div>
+              <button class="btn btn-primary btn-full" id="add-liq-btn" onclick="doAddLiquidity()"
+                      style="padding:13px;">
+                Add Liquidity
+              </button>
+            </div>
+          </div>
+
+          <!-- Create new pool -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">CREATE NEW POOL</span>
+              <span class="pill">Admin / Operator</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+              <div class="form-group">
+                <label class="form-label" for="create-token-sym">TOKEN SYMBOL</label>
+                <input class="form-input" id="create-token-sym" type="text"
+                       placeholder="e.g. WBNB, WETH, USDT" maxlength="16" style="text-transform:uppercase;">
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+                <button class="btn btn-ghost btn-sm" type="button" onclick="quickCreateStablePool('USDT')">
+                  Quick 1:1 ANET/USDT
+                </button>
+                <button class="btn btn-ghost btn-sm" type="button" onclick="quickCreateStablePool('USDC')">
+                  Quick 1:1 ANET/USDC
+                </button>
+                <span style="font-size:11px;color:var(--muted-2);">Bootstrap target: 1 ANET = $1 (initial market seed)</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div class="form-group">
+                  <label class="form-label" for="create-anet-amount">ANET AMOUNT</label>
+                  <input class="form-input" id="create-anet-amount" type="number" placeholder="0.00" min="0" step="any">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="create-token-amount">TOKEN AMOUNT</label>
+                  <input class="form-input" id="create-token-amount" type="number" placeholder="0.00" min="0" step="any">
+                </div>
+              </div>
+              <div id="create-peg-hint" style="font-size:11px;color:var(--muted-2);margin-top:-6px;">
+                Tip: for USDT/USDC pools, keep TOKEN AMOUNT equal to ANET AMOUNT to start at 1 ANET = $1.
+              </div>
+              <div id="create-depth-panel" style="display:flex;flex-direction:column;gap:8px;padding:11px 12px;border:1px solid var(--line);background:rgba(7,17,29,0.55);border-radius:var(--radius-sm);">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <span style="font-size:11px;letter-spacing:0.04em;color:var(--muted-2);">REAL-WORLD DEPTH PREVIEW</span>
+                  <span id="create-depth-badge" class="pill" style="font-size:10px;">Set amounts</span>
+                </div>
+                <div id="create-depth-summary" style="font-size:12px;color:var(--muted);line-height:1.45;">
+                  Enter ANET + token amounts to preview initial depth and trade impact.
+                </div>
+                <div id="create-depth-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:11px;"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="create-fee-bps">FEE (BPS — max 300)</label>
+                <input class="form-input" id="create-fee-bps" type="number" value="30" min="1" max="300">
+                <span style="font-size:11px;color:var(--muted-2);margin-top:4px;">30 bps = 0.30% per swap</span>
+              </div>
+              <button class="btn btn-outline btn-full" id="create-pool-btn" onclick="doCreatePool()"
+                      style="padding:13px;">
+                Create Pool
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /liq form col -->
+
+        <!-- Pool list + positions -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">ALL POOLS</span>
+              <button class="btn btn-ghost btn-sm" onclick="refreshPools()">↺ Refresh</button>
+            </div>
+            <div class="card-body">
+              <div id="liq-pool-list">
+                <div class="loading-row"><span class="spinner"></span> Loading pools…</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">YOUR LP POSITIONS</span>
+            </div>
+            <div class="card-body">
+              <div id="liq-positions">
+                <div class="empty-state" style="padding:24px 0;">
+                  <div class="empty-icon">💧</div>
+                  <p>Connect your ANET wallet to view your LP positions.</p>
+                  <button class="btn btn-outline btn-sm" onclick="openAnetWalletModal()" style="margin-top:10px;">
+                    Connect ANET Wallet
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div><!-- /liq-grid -->
+    </div><!-- /tab-liquidity -->
+
+    <!-- ════════════════════════════════════════
+         TAB: MULTI-CHAIN
+         ════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-multichain" role="tabpanel">
+
+      <!-- Header -->
+      <div style="margin-bottom:24px;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+          <h3 style="font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.08em;margin:0;">
+            ANET MULTI-CHAIN AVAILABILITY
+          </h3>
+          <span class="pill live green">12 Chains</span>
+          <span class="pill amber">Bridge Phase 2</span>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin:0;max-width:760px;">
+          Just like USDT and USDC exist natively across every major EVM chain,
+          the A Network bridge will make <strong style="color:var(--accent);">ANET</strong> available on all 12
+          chains below — lock ANET on the L1, receive wANET on any EVM chain, or bridge any
+          stablecoin (USDC · USDT · DAI) directly into the ANET L1 DEX pools.
+        </p>
+      </div>
+
+      <!-- ANET on every chain explainer cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:28px;">
+        <div class="card" style="border-color:rgba(88,197,255,0.3);">
+          <div class="card-body" style="padding:16px 18px;">
+            <div style="font-size:22px;margin-bottom:8px;">🔒</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Lock &amp; Mint</div>
+            <div style="font-size:12px;color:var(--muted);">Lock ANET on the L1 → receive wANET on Ethereum, BNB Chain, Arbitrum, or any supported EVM chain.</div>
+          </div>
+        </div>
+        <div class="card" style="border-color:rgba(34,231,184,0.3);">
+          <div class="card-body" style="padding:16px 18px;">
+            <div style="font-size:22px;margin-bottom:8px;">💱</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Stable Direct Swap</div>
+            <div style="font-size:12px;color:var(--muted);">Bridge USDC or USDT from any chain directly into ANET L1 DEX pools — swap stables for ANET in one step.</div>
+          </div>
+        </div>
+        <div class="card" style="border-color:rgba(255,188,92,0.3);">
+          <div class="card-body" style="padding:16px 18px;">
+            <div style="font-size:22px;margin-bottom:8px;">🌊</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Earn on Any Chain</div>
+            <div style="font-size:12px;color:var(--muted);">Provide USDC/USDT liquidity in ANET L1 pools and earn swap fees — withdraw back to your original chain any time.</div>
+          </div>
+        </div>
+        <div class="card" style="border-color:rgba(88,197,255,0.2);">
+          <div class="card-body" style="padding:16px 18px;">
+            <div style="font-size:22px;margin-bottom:8px;">⚡</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">2-Second Settlement</div>
+            <div style="font-size:12px;color:var(--muted);">Once bridged to ANET L1, all swaps settle in 2 seconds — faster than any EVM chain.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full chain × token matrix -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header">
+          <span class="card-title">CHAIN × TOKEN MATRIX</span>
+          <span style="font-size:12px;color:var(--muted);">All tokens bridgeable to/from ANET L1</span>
+        </div>
+        <div class="markets-table-wrap">
+          <table class="markets-table" aria-label="Multi-chain token matrix">
+            <thead>
+              <tr>
+                <th>CHAIN</th>
+                <th>SUPPORTED TOKENS</th>
+                <th>STABLECOINS</th>
+                <th>ANET BRIDGE</th>
+                <th>GAS COST</th>
+                <th>SPEED</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="multichain-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted);">
+                <span class="spinner"></span>&nbsp; Loading…
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- USDC / USDT special callout -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;" class="stable-grid">
+        <div class="card" style="border-color:rgba(39,117,202,0.35);">
+          <div class="card-header" style="border-color:rgba(39,117,202,0.2);">
+            <span class="card-title" style="color:#2775CA;">USDC ON ANET L1</span>
+            <span class="pill" style="background:rgba(39,117,202,0.12);color:#2775CA;border-color:rgba(39,117,202,0.3);">Multi-Chain</span>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+            <p style="font-size:13px;color:var(--muted);margin:0;">
+              Native USDC from Circle exists on 7 of the 12 supported chains.
+              Bridge any USDC variant to ANET L1 and trade it against ANET in the native DEX
+              — just like USDC/ETH pools on Uniswap.
+            </p>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <span class="pill" style="font-size:10.5px;">ETH</span>
+              <span class="pill" style="font-size:10.5px;">BNB Chain</span>
+              <span class="pill" style="font-size:10.5px;">Polygon</span>
+              <span class="pill" style="font-size:10.5px;">Arbitrum</span>
+              <span class="pill" style="font-size:10.5px;">Avalanche</span>
+              <span class="pill" style="font-size:10.5px;">Optimism</span>
+              <span class="pill" style="font-size:10.5px;">Base</span>
+              <span class="pill" style="font-size:10.5px;">zkSync</span>
+              <span class="pill" style="font-size:10.5px;">Fantom</span>
+              <span class="pill" style="font-size:10.5px;">Cronos</span>
+              <span class="pill" style="font-size:10.5px;">Linea</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="setTab('bridge')">Bridge USDC → ANET L1 →</button>
+          </div>
+        </div>
+
+        <div class="card" style="border-color:rgba(38,161,122,0.35);">
+          <div class="card-header" style="border-color:rgba(38,161,122,0.2);">
+            <span class="card-title" style="color:#26A17B;">USDT ON ANET L1</span>
+            <span class="pill green" style="font-size:10.5px;">Multi-Chain</span>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+            <p style="font-size:13px;color:var(--muted);margin:0;">
+              Tether USDT is the most bridged stablecoin in the world.
+              Bridge USDT from any EVM chain into the ANET L1 — use it
+              to provide liquidity, trade ANET, or withdraw back to any chain.
+            </p>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <span class="pill green" style="font-size:10.5px;">ETH</span>
+              <span class="pill green" style="font-size:10.5px;">BNB Chain</span>
+              <span class="pill green" style="font-size:10.5px;">Polygon</span>
+              <span class="pill green" style="font-size:10.5px;">Arbitrum</span>
+              <span class="pill green" style="font-size:10.5px;">Avalanche</span>
+              <span class="pill green" style="font-size:10.5px;">Optimism</span>
+              <span class="pill green" style="font-size:10.5px;">Base</span>
+              <span class="pill green" style="font-size:10.5px;">zkSync</span>
+              <span class="pill green" style="font-size:10.5px;">Fantom</span>
+              <span class="pill green" style="font-size:10.5px;">Cronos</span>
+              <span class="pill green" style="font-size:10.5px;">Linea</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="setTab('bridge')">Bridge USDT → ANET L1 →</button>
+          </div>
+        </div>
+      </div>
+
+      <style>
+        @media (max-width: 640px) { .stable-grid { grid-template-columns: 1fr !important; } }
+      </style>
+
+      <!-- CTA row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:18px 22px;background:linear-gradient(135deg,rgba(88,197,255,0.06),rgba(34,231,184,0.04));border:1px solid var(--line-strong);border-radius:var(--radius);">
+        <div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;">Ready to trade ANET across every chain?</div>
+          <div style="font-size:12px;color:var(--muted);">Bridge contracts launch in Phase 2. Join the ANTS Program to stay updated.</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="setTab('swap')">Swap on L1 →</button>
+          <a class="btn btn-outline" href="ants-program.html">ANTS Program</a>
+        </div>
+      </div>
+
+    </div><!-- /tab-multichain -->
+
+    <!-- ════════════════════════════════════════
+         TAB: CASH OUT
+         ════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-cashout" role="tabpanel">
+
+      <!-- Header -->
+      <div style="margin-bottom:24px;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+          <h3 style="font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.08em;margin:0;">
+            CASH OUT YOUR MINED ANET
+          </h3>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin:0;max-width:700px;">
+          After reaching 1,000 validated sessions in the ANTS Program, your mined
+          <strong style="color:var(--accent);">ANET</strong> is ready to trade.
+          Follow the three steps below to convert to USDT or USDC.
+        </p>
+      </div>
+
+      <!-- Step progress bar -->
+      <div style="display:flex;align-items:center;gap:0;margin-bottom:28px;overflow-x:auto;padding-bottom:4px;">
+        <div class="cashout-step active" id="cstep-1">
+          <div class="cstep-num">1</div>
+          <div class="cstep-label">Connect Wallet</div>
+        </div>
+        <div class="cstep-line"></div>
+        <div class="cashout-step" id="cstep-2">
+          <div class="cstep-num">2</div>
+          <div class="cstep-label">Swap ANET → Stable</div>
+        </div>
+        <div class="cstep-line"></div>
+        <div class="cashout-step" id="cstep-3">
+          <div class="cstep-num">3</div>
+          <div class="cstep-label">Bridge to EVM</div>
+        </div>
+      </div>
+
+      <style>
+        .cashout-step{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:90px}
+        .cstep-num{width:32px;height:32px;border-radius:50%;border:2px solid var(--line-strong);background:var(--bg-2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;font-family:'Orbitron',sans-serif;color:var(--muted);transition:all .25s}
+        .cstep-label{font-size:11px;color:var(--muted-2);text-align:center;white-space:nowrap}
+        .cashout-step.active .cstep-num{border-color:var(--accent);color:var(--accent);background:rgba(88,197,255,0.1)}
+        .cashout-step.done .cstep-num{border-color:var(--accent-2);background:var(--accent-2);color:#050b12}
+        .cashout-step.done .cstep-label{color:var(--accent-2)}
+        .cstep-line{flex:1;min-width:32px;height:2px;background:var(--line);margin-bottom:17px}
+        @media(max-width:760px){.cashout-grid{grid-template-columns:1fr!important}}
+      </style>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" class="cashout-grid">
+
+        <!-- LEFT: Steps 1 & 2 -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <!-- Step 1 -->
+          <div class="card" id="cashout-card-1">
+            <div class="card-header">
+              <span class="card-title">STEP 1 — YOUR ANET WALLET</span>
+              <span class="pill" id="co-wallet-status-pill" style="font-size:10.5px;">Not connected</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(7,17,29,0.6);border:1px solid var(--line);border-radius:var(--radius-sm);">
+                <div>
+                  <div style="font-size:11px;color:var(--muted-2);margin-bottom:4px;">ADDRESS</div>
+                  <div style="font-size:12px;font-weight:600;font-family:monospace;" id="co-anet-addr">—</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:11px;color:var(--muted-2);margin-bottom:4px;">BALANCE</div>
+                  <div style="font-size:20px;font-weight:700;color:var(--accent);" id="co-anet-balance">—</div>
+                  <div style="font-size:10px;color:var(--muted-2);">ANET available</div>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-full" id="co-connect-btn" onclick="openAnetWalletModal()">
+                Connect ANET Wallet
+              </button>
+              <div class="info-box" style="font-size:12px;">
+                Your seed phrase signs the swap on-chain and is never stored. Connection is in-memory only.
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="card" id="cashout-card-2">
+            <div class="card-header">
+              <span class="card-title">STEP 2 — SWAP ANET → STABLECOIN</span>
+              <span class="pill live green" style="font-size:10.5px;">Live on L1</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+              <p style="font-size:12.5px;color:var(--muted);margin:0;">
+                Swap your ANET for USDT or USDC directly on the ANET L1 DEX.
+                Settlement is ~2 seconds. Your stablecoin stays in your ANET wallet until you bridge it out in Step 3.
+              </p>
+
+              <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:end;">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">AMOUNT (ANET)</label>
+                  <input class="form-input" id="co-anet-in" type="number" placeholder="0.00"
+                         min="0" step="any" oninput="getCashoutQuote()" />
+                  <button style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer;padding:3px 0 0;text-align:left;"
+                          onclick="setCashoutMax()">USE MAX</button>
+                </div>
+                <div style="padding-bottom:26px;color:var(--muted);font-size:20px;">→</div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">RECEIVE (STABLE)</label>
+                  <select class="form-input" id="co-stable-token" onchange="getCashoutQuote()">
+                    <option value="USDT">USDT</option>
+                    <option value="USDC">USDC</option>
+                    <option value="DAI">DAI</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Quote box -->
+              <div id="co-quote-box" style="display:none;flex-direction:column;gap:6px;padding:12px 14px;background:rgba(7,17,29,0.6);border:1px solid var(--line);border-radius:var(--radius-sm);font-size:12.5px;">
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="color:var(--muted);">You receive</span>
+                  <span style="font-weight:700;color:var(--accent-2);" id="co-receive-amt">—</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="color:var(--muted);">Swap fee (0.30%)</span>
+                  <span id="co-fee-amt">—</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="color:var(--muted);">Price impact</span>
+                  <span id="co-impact">—</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="color:var(--muted);">Settlement</span>
+                  <span style="color:var(--accent-2);">~2 seconds</span>
+                </div>
+              </div>
+
+              <div class="swap-status" id="co-swap-status"></div>
+
+              <button class="btn btn-primary btn-full" id="co-swap-btn"
+                      onclick="doCashout()" disabled style="padding:14px;font-size:15px;">
+                Get a quote first
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /left -->
+
+        <!-- RIGHT: Step 3 + FAQ -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <!-- Step 3: Bridge (Phase 2) -->
+          <div class="card" style="border-color:rgba(255,188,92,0.25);">
+            <div class="card-header" style="border-color:rgba(255,188,92,0.15);">
+              <span class="card-title">STEP 3 — BRIDGE TO YOUR EVM WALLET</span>
+              <span class="pill amber" style="font-size:10.5px;">Phase 2</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+              <div style="padding:12px 14px;border-radius:var(--radius-sm);background:rgba(255,188,92,0.06);border:1px solid rgba(255,188,92,0.2);font-size:12.5px;line-height:1.65;">
+                <strong style="color:var(--warn);">Bridge contracts are in development (Phase 2).</strong><br>
+                Once live, send your USDT/USDC from the ANET L1 directly to your MetaMask wallet on
+                BNB Chain, Ethereum, Arbitrum, or any of the 12 supported EVM chains.
+              </div>
+
+              <div style="font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:7px;">
+                <div style="display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--accent-2);flex-shrink:0;">✓</span> Your USDT/USDC stays safely in your ANET L1 wallet — no expiry.</div>
+                <div style="display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--accent-2);flex-shrink:0;">✓</span> You choose the destination EVM chain when bridging.</div>
+                <div style="display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--accent-2);flex-shrink:0;">✓</span> Bridge will use same seed-phrase-signed transaction — no new wallet needed.</div>
+                <div style="display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--warn);flex-shrink:0;">⏳</span> Estimated launch: Phase 2 — Q3 2026.</div>
+              </div>
+
+              <!-- Destination chains -->
+              <div style="font-size:11.5px;color:var(--muted-2);margin-bottom:2px;">Planned destination chains:</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                <span class="pill" style="font-size:10px;border-color:rgba(240,185,11,0.3);color:#F0B90B;">BNB Chain ★</span>
+                <span class="pill" style="font-size:10px;border-color:rgba(98,126,234,0.3);color:#627EEA;">Ethereum</span>
+                <span class="pill" style="font-size:10px;border-color:rgba(40,160,240,0.3);color:#28A0F0;">Arbitrum</span>
+                <span class="pill" style="font-size:10px;border-color:rgba(130,71,229,0.3);color:#8247E5;">Polygon</span>
+                <span class="pill" style="font-size:10px;border-color:rgba(0,82,255,0.3);color:#0052FF;">Base</span>
+                <span class="pill" style="font-size:10px;border-color:rgba(255,4,32,0.3);color:#FF0420;">Optimism</span>
+                <span class="pill" style="font-size:10px;">+ 6 more</span>
+              </div>
+
+              <!-- Notify Me -->
+              <div style="padding:14px 16px;background:rgba(7,17,29,0.7);border:1px solid var(--line-strong);border-radius:var(--radius-sm);">
+                <div style="font-size:13px;font-weight:700;margin-bottom:10px;">🔔 Notify me when the bridge goes live</div>
+                <div style="display:flex;gap:8px;">
+                  <input class="form-input" id="co-notify-email" type="email"
+                         placeholder="your@email.com" style="flex:1;padding:10px 12px;font-size:13px;" />
+                  <button class="btn btn-outline" onclick="submitBridgeNotify()"
+                          style="white-space:nowrap;padding:10px 16px;font-size:13px;">
+                    Notify Me
+                  </button>
+                </div>
+                <div id="co-notify-status" style="font-size:12px;margin-top:8px;display:none;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FAQ -->
+          <div class="card">
+            <div class="card-header"><span class="card-title">FREQUENTLY ASKED</span></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;">
+              <details style="border-bottom:1px solid var(--line);padding-bottom:10px;">
+                <summary style="cursor:pointer;font-weight:600;color:var(--fg);list-style:none;display:flex;justify-content:space-between;">
+                  Do I need to convert ANTS to ANET first? <span style="color:var(--muted);">▾</span>
+                </summary>
+                <p style="color:var(--muted);margin:8px 0 0;">No. ANTS are the base unit of ANET — 1 ANET = 100,000,000 ants. Your mined balance IS your ANET. No extra conversion step needed.</p>
+              </details>
+              <details style="border-bottom:1px solid var(--line);padding-bottom:10px;">
+                <summary style="cursor:pointer;font-weight:600;color:var(--fg);list-style:none;display:flex;justify-content:space-between;">
+                  Where does my USDT go after the swap? <span style="color:var(--muted);">▾</span>
+                </summary>
+                <p style="color:var(--muted);margin:8px 0 0;">It stays in your ANET L1 wallet. Verify on the <a href="https://explorer.a-network.net/explorer" target="_blank" rel="noopener" style="color:var(--accent);">explorer</a>. Use Step 3 to move it to an EVM chain when Phase 2 launches.</p>
+              </details>
+              <details style="border-bottom:1px solid var(--line);padding-bottom:10px;">
+                <summary style="cursor:pointer;font-weight:600;color:var(--fg);list-style:none;display:flex;justify-content:space-between;">
+                  Is there a minimum cashout amount? <span style="color:var(--muted);">▾</span>
+                </summary>
+                <p style="color:var(--muted);margin:8px 0 0;">No minimum on the DEX swap itself. The bridge may impose a minimum to cover EVM gas fees — published when Phase 2 launches.</p>
+              </details>
+              <details>
+                <summary style="cursor:pointer;font-weight:600;color:var(--fg);list-style:none;display:flex;justify-content:space-between;">
+                  What is the swap fee? <span style="color:var(--muted);">▾</span>
+                </summary>
+                <p style="color:var(--muted);margin:8px 0 0;">0.30% LP fee per swap — goes entirely to liquidity providers. No additional platform fee.</p>
+              </details>
+            </div>
+          </div>
+
+        </div><!-- /right -->
+      </div><!-- /cashout-grid -->
+
+    </div><!-- /tab-cashout -->
+
+    <!-- ════════════════════════════════════════
+         TAB: MARKETS
+         ════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-markets" role="tabpanel">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <div>
+          <h3 style="font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.08em;margin-bottom:4px;">
+            LIQUIDITY POOL MARKETS
+          </h3>
+          <p style="font-size:13px;color:var(--muted);margin:0;">
+            All active ANET-paired pools on the A Network Layer 1 DEX.
+            Data refreshes every 30 seconds.
+          </p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="refreshPools();refreshMarketActivity()">↺ Refresh</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:12px 14px;background:rgba(7,17,29,0.55);border:1px solid var(--line);border-radius:var(--radius-sm);">
+        <div style="font-size:12px;color:var(--muted);">Selected market pair</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <select class="form-input" id="market-pair-select" style="min-width:220px;padding:9px 12px;font-size:12.5px;" onchange="renderMarketMicrostructure()">
+            <option value="">Loading pools…</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="renderMarketMicrostructure()">Update Book</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="markets-table-wrap">
+          <table class="markets-table" aria-label="DEX pool markets">
+            <thead>
+              <tr>
+                <th>PAIR</th>
+                <th>PRICE (ANET per token)</th>
+                <th>ANET RESERVE</th>
+                <th>TOKEN RESERVE</th>
+                <th>FEE</th>
+                <th>LP PROVIDERS</th>
+              </tr>
+            </thead>
+            <tbody id="markets-tbody">
+              <tr>
+                <td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">
+                  <span class="spinner"></span>&nbsp; Loading markets…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:16px;" class="markets-advanced-grid">
+        <div class="card">
+          <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <span class="card-title">ORDER BOOK (POOL-DEPTH MODEL)</span>
+            <span class="pill" style="font-size:10px;">AMM Derived</span>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div class="markets-table-wrap" style="max-height:390px;overflow:auto;">
+              <table class="markets-table" aria-label="Order book">
+                <thead>
+                  <tr>
+                    <th>PRICE (ANET)</th>
+                    <th>SIZE</th>
+                    <th>TOTAL (ANET)</th>
+                  </tr>
+                </thead>
+                <tbody id="ob-asks">
+                  <tr><td colspan="3" style="padding:20px;text-align:center;color:var(--muted);">Loading asks…</td></tr>
+                </tbody>
+                <tbody>
+                  <tr><td colspan="3" style="text-align:center;background:rgba(88,197,255,0.06);font-weight:700;color:var(--accent);padding:9px;" id="ob-mid">Mid: —</td></tr>
+                </tbody>
+                <tbody id="ob-bids">
+                  <tr><td colspan="3" style="padding:20px;text-align:center;color:var(--muted);">Loading bids…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <span class="card-title">LAST TRADES</span>
+              <span class="pill green" style="font-size:10px;">DEX + Chain</span>
+            </div>
+            <div class="card-body" style="padding:0;">
+              <div class="markets-table-wrap" style="max-height:190px;overflow:auto;">
+                <table class="markets-table" aria-label="Last trades">
+                  <thead>
+                    <tr>
+                      <th>SIDE</th>
+                      <th>PRICE</th>
+                      <th>AMOUNT</th>
+                      <th>TIME</th>
+                    </tr>
+                  </thead>
+                  <tbody id="last-trades-tbody">
+                    <tr><td colspan="4" style="padding:18px;text-align:center;color:var(--muted);">No recent trades yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <span class="card-title">ON-CHAIN LATEST TX</span>
+              <a href="https://explorer.a-network.net/explorer/blocks" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="padding:5px 9px;">Ledger ↗</a>
+            </div>
+            <div class="card-body" style="padding:0;">
+              <div class="markets-table-wrap" style="max-height:190px;overflow:auto;">
+                <table class="markets-table" aria-label="Latest chain transactions">
+                  <thead>
+                    <tr>
+                      <th>BLOCK</th>
+                      <th>FROM</th>
+                      <th>MEMO / EVENT</th>
+                      <th>TIME</th>
+                    </tr>
+                  </thead>
+                  <tbody id="chain-tx-tbody">
+                    <tr><td colspan="4" style="padding:18px;text-align:center;color:var(--muted);">Loading latest transactions…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>
+        @media (max-width: 940px) {
+          .markets-advanced-grid { grid-template-columns: 1fr !important; }
+        }
+      </style>
+
+      <!-- DEX screener link -->
+      <div style="margin-top:20px;padding:16px 20px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:3px;">ANET/WBNB on BNB Chain</div>
+          <div style="font-size:12px;color:var(--muted);">
+            The ANET/WBNB pair also trades on PancakeSwap (BNB Chain).
+            This is a separate market from the L1 native DEX.
+          </div>
+        </div>
+        <a class="btn btn-outline btn-sm"
+           href="https://dexscreener.com/bsc/0x791055a7d52aa392eae8de04250497f33807e46a"
+           target="_blank" rel="noopener noreferrer">
+          View on DexScreener ↗
+        </a>
+      </div>
+
+    </div><!-- /tab-markets -->
+
+    <!-- ── Footer ──────────────────────────────── -->
+    <footer>
+      <div class="foot-links">
+        <a href="index.html">Home</a>
+        <a href="web4.html">Web4 Architecture</a>
+        <a href="whitepaper.html">Whitepaper</a>
+        <a href="ants-program.html">ANTS Program</a>
+        <a href="https://explorer.a-network.net/explorer" target="_blank" rel="noopener">L1 Explorer ↗</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </div>
+      <div class="copyright">© 2026 A Network. Native Layer 1 DEX.</div>
+    </footer>
+
+  </div><!-- /shell -->
+
+  <script src="assets/js/dex.js"></script>
+
+  <!-- LP pool list renderer (runs after pools load) -->
+  <script>
+    // Extend pool rendering for liquidity tab
+    const _origRefreshPools = refreshPools;
+    async function refreshPools() {
+      await _origRefreshPools();
+      renderLiqPoolList();
+    }
+
+    function renderLiqPoolList() {
+      const el = document.getElementById('liq-pool-list');
+      if (!el) return;
+      if (state.pools.length === 0) {
+        el.innerHTML = '<div class="empty-state" style="padding:24px 0;"><div class="empty-icon">🌊</div><p>No pools yet. Create the first one above.</p></div>';
+        return;
+      }
+      el.innerHTML = state.pools.map(pool => {
+        const sym = pool.token_symbol || '';
+        const anetRes = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
+        const tokRes  = Number(pool.token_reserve_units || 0) / 100000000;
+        const feePct  = ((pool.fee_bps || 30) / 100).toFixed(2);
+        return `
+        <div class="lp-position-row">
+          <div>
+            <div class="lp-pair">ANET / ${sym}</div>
+            <div style="font-size:11px;color:var(--muted-2);margin-top:2px;">
+              ${fmt(anetRes,2)} ANET · ${fmt(tokRes,4)} ${sym} · Fee: ${feePct}%
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="setTab('swap');selectPool('${sym}')">Trade →</button>
+        </div>`;
+      }).join('');
+    }
+
+    // Hide wallet hint once ANET wallet is connected
+    const _origUpdateAnetUI = updateAnetWalletUI;
+    function updateAnetWalletUI() {
+      _origUpdateAnetUI();
+      const hint = document.getElementById('wallet-hint');
+      if (hint) hint.style.display = state.anetWallet.address ? 'none' : 'block';
+    }
+  </script>
+
+</body>
+</html>
