@@ -47,7 +47,8 @@
   const state = {
     apiBase: resolveInitialApiBase(),
     minAnts: 1000,
-    myAssets: []
+    myAssets: [],
+    apiReady: false
   };
 
   if (els.apiBaseUrl) {
@@ -68,11 +69,18 @@
   }
 
   async function bootstrap() {
-    await onTestApi();
-    await onLoadFeed();
+    const connected = await onTestApi();
+    if (connected) {
+      await onLoadFeed();
+    }
   }
 
   function resolveInitialApiBase() {
+    const fromQuery = String(new URLSearchParams(window.location.search).get("api") || "").trim();
+    if (fromQuery) {
+      return fromQuery.replace(/\/$/, "");
+    }
+
     const saved = String(localStorage.getItem("anet_nft_api_base") || "").trim();
     if (saved) {
       return saved;
@@ -82,7 +90,7 @@
       return "http://localhost:3001";
     }
 
-    return window.location.origin;
+    return "";
   }
 
   function setStatus(el, type, message) {
@@ -107,7 +115,7 @@
   async function apiFetch(path, options = {}) {
     const base = getApiBase();
     if (!base) {
-      throw new Error("API base URL is required.");
+      throw new Error("Set API base URL first (your backend domain), then test API.");
     }
 
     const response = await fetch(`${base}${path}`, {
@@ -187,6 +195,7 @@
   function getProfilePayload() {
     return {
       uid: normalizeUid(els.profileUid?.value),
+      anet_profile_id: normalizeUid(els.profileUid?.value),
       username: String(els.profileUsername?.value || "").trim(),
       wallet_address: String(els.profileWallet?.value || "").trim().toUpperCase(),
       display_name: String(els.profileDisplayName?.value || "").trim(),
@@ -201,6 +210,7 @@
   function getAssetPayload() {
     return {
       uid: normalizeUid(els.assetUid?.value),
+      anet_profile_id: normalizeUid(els.assetUid?.value),
       ants_balance: toNumberOrZero(els.assetAntsBalance?.value),
       name: String(els.assetName?.value || "").trim(),
       slug: String(els.assetSlug?.value || "").trim(),
@@ -233,7 +243,7 @@
     if (!els.assetList) return;
 
     if (!state.myAssets.length) {
-      els.assetList.innerHTML = '<div class="status info">No assets found for this UID.</div>';
+      els.assetList.innerHTML = '<div class="status info">No assets found for this ANET Profile ID.</div>';
       return;
     }
 
@@ -312,6 +322,7 @@
 
         const payload = {
           uid,
+          anet_profile_id: uid,
           name: card.querySelector(".asset-name")?.value || "",
           status: card.querySelector(".asset-status")?.value || "active",
           description: card.querySelector(".asset-description")?.value || "",
@@ -386,7 +397,7 @@
   async function onSaveApiBase() {
     const base = String(els.apiBaseUrl?.value || "").trim().replace(/\/$/, "");
     if (!base) {
-      setStatus(els.apiStatus, "bad", "Please enter API base URL.");
+      setStatus(els.apiStatus, "bad", "Please enter API base URL (backend domain). Example: https://your-backend.onrender.com");
       return;
     }
 
@@ -398,6 +409,7 @@
     try {
       const result = await apiFetch("/api/nft/config");
       state.minAnts = Number(result?.policy?.minAntsForProfileCreation || 1000);
+      state.apiReady = true;
       if (els.kpiMinAnts) {
         els.kpiMinAnts.textContent = String(state.minAnts);
       }
@@ -406,15 +418,32 @@
         "good",
         `Connected. No-burn policy is ${result?.policy?.noBurn ? "active" : "unknown"}. Min profile stake: ${state.minAnts} ANTS.`
       );
+      return true;
     } catch (error) {
-      setStatus(els.apiStatus, "bad", error.message || "Could not reach NFT API");
+      state.apiReady = false;
+      const base = getApiBase();
+      if (base && base === window.location.origin) {
+        setStatus(
+          els.apiStatus,
+          "bad",
+          "API URL points to static website domain. Set API base URL to your backend service domain (for example Render backend URL)."
+        );
+      } else {
+        setStatus(els.apiStatus, "bad", error.message || "Could not reach NFT API");
+      }
+      return false;
     }
   }
 
   async function onLoadProfile() {
+    if (!state.apiReady) {
+      setStatus(els.profileStatus, "bad", "Connect NFT API first using Test API.");
+      return;
+    }
+
     const uid = normalizeUid(els.profileUid?.value);
     if (!uid) {
-      setStatus(els.profileStatus, "bad", "UID is required.");
+      setStatus(els.profileStatus, "bad", "ANET Profile ID is required.");
       return;
     }
 
@@ -422,7 +451,7 @@
       const result = await apiFetch(`/api/nft/profile/${encodeURIComponent(uid)}`);
       renderProfile(result.profile);
       renderAssets(result.assets || []);
-      setStatus(els.profileStatus, "good", `Profile loaded for UID ${uid}.`);
+      setStatus(els.profileStatus, "good", `Profile loaded for ANET Profile ID ${uid}.`);
       if (result.profile?.antsBalance != null) {
         syncAntsAcrossForms(result.profile.antsBalance);
       }
@@ -432,9 +461,14 @@
   }
 
   async function onSaveProfile() {
+    if (!state.apiReady) {
+      setStatus(els.profileStatus, "bad", "Connect NFT API first using Test API.");
+      return;
+    }
+
     const payload = getProfilePayload();
     if (!payload.uid) {
-      setStatus(els.profileStatus, "bad", "UID is required.");
+      setStatus(els.profileStatus, "bad", "ANET Profile ID is required.");
       return;
     }
 
@@ -446,16 +480,21 @@
       renderProfile(result.profile);
       syncUidAcrossForms(payload.uid);
       syncAntsAcrossForms(payload.ants_balance);
-      setStatus(els.profileStatus, "good", `Profile saved for UID ${payload.uid}.`);
+      setStatus(els.profileStatus, "good", `Profile saved for ANET Profile ID ${payload.uid}.`);
     } catch (error) {
       setStatus(els.profileStatus, "bad", error.message || "Profile save failed.");
     }
   }
 
   async function onCreateAsset() {
+    if (!state.apiReady) {
+      setStatus(els.assetStatusBox, "bad", "Connect NFT API first using Test API.");
+      return;
+    }
+
     const payload = getAssetPayload();
     if (!payload.uid || !payload.name) {
-      setStatus(els.assetStatusBox, "bad", "UID and asset name are required.");
+      setStatus(els.assetStatusBox, "bad", "ANET Profile ID and asset name are required.");
       return;
     }
 
@@ -474,9 +513,14 @@
   }
 
   async function onLoadAssets() {
+    if (!state.apiReady) {
+      setStatus(els.assetStatusBox, "bad", "Connect NFT API first using Test API.");
+      return;
+    }
+
     const uid = normalizeUid(els.assetUid?.value || els.profileUid?.value);
     if (!uid) {
-      setStatus(els.assetStatusBox, "bad", "UID is required to load assets.");
+      setStatus(els.assetStatusBox, "bad", "ANET Profile ID is required to load assets.");
       return;
     }
 
@@ -490,6 +534,13 @@
   }
 
   async function onLoadFeed() {
+    if (!state.apiReady) {
+      if (els.feedList) {
+        els.feedList.innerHTML = '<div class="status info">Connect NFT API first, then refresh feed.</div>';
+      }
+      return;
+    }
+
     try {
       const result = await apiFetch("/api/nft/colony/feed?limit=30");
       renderFeed(result.assets || []);

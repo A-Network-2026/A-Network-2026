@@ -99,6 +99,14 @@ function normalizePiUid(uid) {
   return String(uid || '').trim();
 }
 
+function normalizeAnetProfileId(value) {
+  return normalizePiUid(value);
+}
+
+function getAnetProfileIdFromBody(body) {
+  return normalizeAnetProfileId(body?.anet_profile_id || body?.profile_id || body?.uid);
+}
+
 function normalizePositiveInteger(value) {
   const amount = Number(value);
   return Number.isInteger(amount) && amount > 0 ? amount : null;
@@ -292,8 +300,10 @@ function mapNftProfileRow(row) {
   if (!row) {
     return null;
   }
+  const anetProfileId = normalizeAnetProfileId(row.uid);
   return {
-    uid: normalizePiUid(row.uid),
+    uid: anetProfileId,
+    anetProfileId,
     username: String(row.username || '').trim(),
     walletAddress: String(row.wallet_address || '').trim().toUpperCase(),
     displayName: String(row.display_name || '').trim(),
@@ -313,9 +323,11 @@ function mapNftAssetRow(row) {
   if (!row) {
     return null;
   }
+  const anetProfileId = normalizeAnetProfileId(row.uid);
   return {
     id: String(row.id || '').trim(),
-    uid: normalizePiUid(row.uid),
+    uid: anetProfileId,
+    anetProfileId,
     slug: String(row.slug || '').trim(),
     name: String(row.name || '').trim(),
     description: String(row.description || '').trim(),
@@ -747,9 +759,9 @@ app.get('/api/nft/profile/:uid', async (req, res) => {
   }
 
   try {
-    const uid = normalizePiUid(req.params?.uid);
+    const uid = normalizeAnetProfileId(req.params?.uid || req.params?.profileId);
     if (!uid) {
-      return res.status(400).json({ ok: false, error: 'uid is required' });
+      return res.status(400).json({ ok: false, error: 'anet profile id is required' });
     }
 
     const profile = await getNftProfile(uid);
@@ -762,6 +774,7 @@ app.get('/api/nft/profile/:uid', async (req, res) => {
     return res.status(profile ? 200 : 404).json({
       ok: Boolean(profile),
       uid,
+      anetProfileId: uid,
       minAntsForProfileCreation: NFT_MIN_PROFILE_ANTS,
       profile,
       assets: assets.map(mapNftAssetRow),
@@ -778,9 +791,9 @@ app.post('/api/nft/profile/upsert', async (req, res) => {
   }
 
   try {
-    const uid = normalizePiUid(req.body?.uid);
+    const uid = getAnetProfileIdFromBody(req.body);
     if (!uid) {
-      return res.status(400).json({ ok: false, error: 'uid is required' });
+      return res.status(400).json({ ok: false, error: 'anet profile id is required' });
     }
 
     const username = normalizeShortText(req.body?.username, 80);
@@ -879,9 +892,9 @@ app.get('/api/nft/assets/:uid', async (req, res) => {
   }
 
   try {
-    const uid = normalizePiUid(req.params?.uid);
+    const uid = normalizeAnetProfileId(req.params?.uid || req.params?.profileId);
     if (!uid) {
-      return res.status(400).json({ ok: false, error: 'uid is required' });
+      return res.status(400).json({ ok: false, error: 'anet profile id is required' });
     }
 
     const assets = await dbAll(
@@ -893,6 +906,7 @@ app.get('/api/nft/assets/:uid', async (req, res) => {
     return res.status(200).json({
       ok: true,
       uid,
+      anetProfileId: uid,
       count: assets.length,
       assets: assets.map(mapNftAssetRow)
     });
@@ -907,9 +921,9 @@ app.post('/api/nft/assets/create', async (req, res) => {
   }
 
   try {
-    const uid = normalizePiUid(req.body?.uid);
+    const uid = getAnetProfileIdFromBody(req.body);
     if (!uid) {
-      return res.status(400).json({ ok: false, error: 'uid is required' });
+      return res.status(400).json({ ok: false, error: 'anet profile id is required' });
     }
 
     const profile = await getNftProfile(uid);
@@ -999,14 +1013,14 @@ app.patch('/api/nft/assets/:assetId', async (req, res) => {
 
   try {
     const assetId = normalizeShortText(req.params?.assetId, 120);
-    const uid = normalizePiUid(req.body?.uid);
+    const uid = getAnetProfileIdFromBody(req.body);
     if (!assetId || !uid) {
-      return res.status(400).json({ ok: false, error: 'assetId and uid are required' });
+      return res.status(400).json({ ok: false, error: 'assetId and anet profile id are required' });
     }
 
     const existing = await dbGet(nftDb, 'SELECT * FROM nft_assets WHERE id = ? AND uid = ?', [assetId, uid]);
     if (!existing) {
-      return res.status(404).json({ ok: false, error: 'NFT asset not found for this uid' });
+      return res.status(404).json({ ok: false, error: 'NFT asset not found for this ANET profile ID' });
     }
 
     const now = new Date().toISOString();
