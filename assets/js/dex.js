@@ -1408,6 +1408,14 @@ async function doCreatePool() {
   if (isNaN(anetAmt) || anetAmt <= 0) { toast('Enter ANET amount', 'error'); return; }
   if (isNaN(tokAmt)  || tokAmt <= 0)  { toast('Enter token amount', 'error'); return; }
 
+  // For stable launch pairs, enforce a 1:1 bootstrap ratio at submission.
+  const submitTokAmt = isStableSymbol(sym) ? anetAmt : tokAmt;
+  if (isStableSymbol(sym) && Math.abs(tokAmt - anetAmt) > 0.0000001) {
+    const tokEl = document.getElementById('create-token-amount');
+    if (tokEl) tokEl.value = String(anetAmt);
+    toast(`Adjusted ${sym} amount to match ANET for 1:1 launch price.`, 'info', 3500);
+  }
+
   const btn = document.getElementById('create-pool-btn');
   btn.disabled = true;
   btn.textContent = 'Creating…';
@@ -1418,15 +1426,13 @@ async function doCreatePool() {
       senderSeed: state.anetWallet.seedPhrase,
       tokenSymbol: sym,
       anetAmountAnts: anet2ants(anetAmt),
-      tokenAmountUnits: Math.round(tokAmt * ANTS_PER_ANET),
+      tokenAmountUnits: Math.round(submitTokAmt * ANTS_PER_ANET),
       feeBps: fee,
     });
     toast(`Pool ANET/${sym} created!`, 'success', 6000);
     await refreshPools();
-    document.getElementById('create-token-sym').value = '';
-    document.getElementById('create-anet-amount').value = '';
-    document.getElementById('create-token-amount').value = '';
-    updateCreatePoolDepthPreview();
+    applyCreatePoolStartDefaults();
+    syncCreatePoolPegDraft();
   } catch (e) {
     toast(e.message || 'Create pool failed', 'error');
   } finally {
@@ -1437,6 +1443,19 @@ async function doCreatePool() {
 
 function isStableSymbol(sym) {
   return ['USDT', 'USDC', 'DAI', 'BUSD'].includes((sym || '').toUpperCase());
+}
+
+function applyCreatePoolStartDefaults() {
+  const symEl  = document.getElementById('create-token-sym');
+  const anetEl = document.getElementById('create-anet-amount');
+  const tokEl  = document.getElementById('create-token-amount');
+  const feeEl  = document.getElementById('create-fee-bps');
+  if (!symEl || !anetEl || !tokEl || !feeEl) return;
+
+  if (!symEl.value || !symEl.value.trim()) symEl.value = 'USDT';
+  if (!anetEl.value || parseFloat(anetEl.value) <= 0) anetEl.value = '1';
+  tokEl.value = anetEl.value;
+  if (!feeEl.value || parseInt(feeEl.value, 10) <= 0) feeEl.value = '30';
 }
 
 function quickCreateStablePool(symbol) {
@@ -1565,10 +1584,11 @@ function initCreatePoolHelpers() {
   const anetEl = document.getElementById('create-anet-amount');
   const tokEl  = document.getElementById('create-token-amount');
   if (!symEl || !anetEl || !tokEl) return;
+  applyCreatePoolStartDefaults();
   symEl.addEventListener('input', syncCreatePoolPegDraft);
   anetEl.addEventListener('input', syncCreatePoolPegDraft);
   tokEl.addEventListener('input', updateCreatePoolDepthPreview);
-  updateCreatePoolDepthPreview();
+  syncCreatePoolPegDraft();
 }
 
 /* ── Bridge UI ──────────────────────────────── */
