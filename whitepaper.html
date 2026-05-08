@@ -8,9 +8,9 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v2.1 | Dual Economic Architecture · Layer 1 · Web3 · Smart Contracts</title>
+  <title>A-Network Whitepaper v2.2 | Mine -> Cashout/Swap -> NFT Activation · Layer 1 · Web3 · Marketplace</title>
 
-  <meta name="description" content="The official A-Network v2.1 whitepaper. Covers the dual economic architecture (closed-loop Layer 1 + open-market Web3 BSC token), ANTS-first accounting, DEX-based liquidity, planned smart contract layer with ANTS gas, phased roadmap, and security model." />
+  <meta name="description" content="The official A-Network v2.2 whitepaper. Defines the unified miner lifecycle rule (mine first, then first successful cashout/swap, then NFT activation), ANTS accounting, Layer 1 + Web3 architecture, DEX settlement flow, NFT marketplace and domain-auction policy, security model, and future external integration path." />
 
   <meta name="theme-color" content="#07101a" />
 
@@ -570,7 +570,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v2.1 · 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v2.2 · 2026</sub>
 
       </div>
 
@@ -581,6 +581,8 @@
     <div class="nav-section">Overview</div>
 
     <a class="nav-item" href="#abstract">Abstract</a>
+
+    <a class="nav-item" href="#protocol-v22">v2.2 Protocol Update</a>
 
     <a class="nav-item" href="#introduction">Introduction</a>
 
@@ -714,16 +716,16 @@
 
     <div class="hero">
 
-      <div class="hero-badge">Technical Paper v2.1</div>
+      <div class="hero-badge">Technical Paper v2.2</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Users complete 6-hour Ant Work sessions to accrue ANTS &mdash; the smallest unit of Layer 1 value and the future gas currency for smart contract execution. The 21,000,000 ANET BEP-20 token on BSC provides external market visibility. Version 2.1 refreshes and consolidates the dual-economy model, Smart Contract Vision phase, ANTS-as-gas design, and official explorer and market references.</p>
+      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 2.2 formalizes one lifecycle rule for all participants: <strong>mine first, complete first successful cashout/swap through authorized DEX flow, then NFT profile is activated</strong>. This update also specifies the ANET NFT marketplace model, .ant domain-auction minimum policy, and integration-ready external rails for future third-party exchange connectivity.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> &mdash; 2.1</div>
-        <div class="hero-meta-item"><strong>Published</strong> &mdash; April 29, 2026</div>
+        <div class="hero-meta-item"><strong>Version</strong> &mdash; 2.2</div>
+        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 8, 2026</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong> &mdash; Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>Web3 Token</strong> &mdash; 21,000,000 ANET BEP-20 on BNB Chain &middot; DEX-listed</div>
         <div class="hero-meta-item"><strong>Denomination</strong> &mdash; 1 ANET = 100,000,000 ANTS</div>
-        <div class="hero-meta-item"><strong>Smart Contract Layer</strong> &mdash; Planned &middot; ANTS as gas &middot; EVM evaluation</div>
+        <div class="hero-meta-item"><strong>NFT Activation Rule</strong> &mdash; Mine &rarr; First cashout/swap success &rarr; NFT unlock</div>
       </div>
     </div>
 
@@ -792,6 +794,191 @@
         <div class="stat-card"><div class="sc-val">4</div><div class="sc-label">Ecosystem Phases</div></div>
 
       </div>
+
+    </section>
+
+
+
+    <div class="divider"></div>
+
+
+
+
+    <!-- Section 1A v2.2 PROTOCOL UPDATE -->
+
+    <section class="wp-section" id="protocol-v22">
+
+      <div class="section-label">Section 1A</div>
+
+      <h2>Version 2.2 Protocol Update &mdash; Unified Miner Lifecycle</h2>
+
+
+
+      <p>Version 2.2 defines a single mandatory lifecycle for all participants and system modules. The objective is policy consistency across mining, DEX settlement, and NFT identity utility. The rule is strict and global: <strong>mine first, complete first successful cashout/swap event, then unlock NFT profile capability</strong>.</p>
+
+
+
+      <div class="panel panel-green">
+
+        <h4>Canonical Lifecycle Rule (v2.2)</h4>
+
+        <ol>
+
+          <li><strong>Miner Entry:</strong> User starts as a miner and accumulates participation through the standard 6-hour Ant Work cycle.</li>
+
+          <li><strong>Settlement Event:</strong> User completes a valid, backend-authorized DEX cashout/swap execution event.</li>
+
+          <li><strong>NFT Activation:</strong> System activates (or allows activation of) ANET NFT profile identity only after that first successful settlement event is recorded.</li>
+
+        </ol>
+
+      </div>
+
+
+
+      <h3>State Machine Definition</h3>
+
+      <div class="table-scroll">
+
+        <table class="wp-table">
+
+          <thead>
+
+            <tr><th>State</th><th>Condition</th><th>Allowed Actions</th><th>Blocked Actions</th></tr>
+
+          </thead>
+
+          <tbody>
+
+            <tr>
+
+              <td><strong>MINER_ONLY</strong></td>
+
+              <td>No successful DEX execute/cashout event for user</td>
+
+              <td>Mine sessions, check DEX status, request quote/execute under standard unlock policy</td>
+
+              <td>NFT profile first-time creation, NFT utility layer actions requiring profile</td>
+
+            </tr>
+
+            <tr>
+
+              <td><strong>NFT_ACTIVATED</strong></td>
+
+              <td>At least one successful DEX execute/cashout settlement event recorded</td>
+
+              <td>NFT profile create/update, NFT asset create/edit, marketplace listing/bid/buy/close, domain auction</td>
+
+              <td>Bypass of market policy (ownership checks, listing checks, minimum rules)</td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+
+      <h3>Protocol Invariants</h3>
+
+      <ul>
+
+        <li><strong>Invariant 1:</strong> NFT profile cannot be first-created before first successful settlement event.</li>
+
+        <li><strong>Invariant 2:</strong> DEX quote and execute remain available through existing eligibility and security controls.</li>
+
+        <li><strong>Invariant 3:</strong> First successful DEX execute acts as NFT activation trigger for that ANET profile identity.</li>
+
+        <li><strong>Invariant 4:</strong> Marketplace ownership transfer only occurs through settled listing actions.</li>
+
+        <li><strong>Invariant 5:</strong> Domain-auction policy remains strict: .ant asset identity plus minimum bid threshold.</li>
+
+      </ul>
+
+
+
+      <h3>NFT Marketplace Governance (v2.2)</h3>
+
+      <p>The integrated marketplace supports fixed listings, auction listings, and domain-auction listings. Domain auctions are treated as a special policy class for identity namespace assets and include explicit constraints.</p>
+
+
+
+      <div class="table-scroll">
+
+        <table class="wp-table">
+
+          <thead>
+
+            <tr><th>Listing Type</th><th>Use Case</th><th>Core Rule</th><th>Settlement Path</th></tr>
+
+          </thead>
+
+          <tbody>
+
+            <tr><td><strong>fixed</strong></td><td>Direct-price NFT sale</td><td>Ask price must be positive</td><td>Immediate buy action</td></tr>
+
+            <tr><td><strong>auction</strong></td><td>Timed competitive bidding</td><td>Minimum bid must be valid and increasing</td><td>Buy-now or close-to-highest-bid</td></tr>
+
+            <tr><td><strong>domain-auction</strong></td><td>.ant domain identity asset</td><td>Asset must map to .ant identity and bid floor policy applies</td><td>Timed auction with policy floor</td></tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+
+      <h3>Implementation Notes for v2.2</h3>
+
+      <ul>
+
+        <li>Backend policy endpoint now exposes explicit NFT activation semantics in addition to no-burn and domain auction parameters.</li>
+
+        <li>DEX execute path records settlement request state and can auto-provision cashout-activated NFT profile identity if absent.</li>
+
+        <li>NFT profile first creation gate validates cashout/swap activation condition instead of requiring pre-trade NFT registration.</li>
+
+        <li>Marketplace list view supports board segmentation including domain-auction-focused board filtering.</li>
+
+      </ul>
+
+
+
+      <div class="notice success">
+
+        <div class="notice-icon">Rule</div>
+
+        <div class="notice-body">
+
+          <strong>Single Rule Commitment</strong>
+
+          The v2.2 design intent is operational clarity: every user follows the same onboarding path and no separate privileged NFT entry path exists. In short: <strong>mine, settle first cashout/swap, then NFT</strong>.
+
+        </div>
+
+      </div>
+
+
+
+      <h3>Future External Exchange Path</h3>
+
+      <p>The v2.2 architecture remains compatible with future third-party rails (including centralized exchange and institutional integration models) by design. External channels are treated as integration layers on top of existing identity, listing, and settlement primitives rather than replacement logic.</p>
+
+      <ul>
+
+        <li>External listing/index APIs can mirror marketplace inventory while preserving on-platform ownership authority.</li>
+
+        <li>Webhook/event relays can stream listing creation, bid settlement, and final transfer states to partners.</li>
+
+        <li>Custodial buyer support can be added as an adapter layer without modifying core miner lifecycle invariants.</li>
+
+        <li>Compliance overlays (regional, KYC, sanctions filters) can remain optional and integration-specific.</li>
+
+      </ul>
 
     </section>
 
@@ -1263,7 +1450,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
         <li>Mining output and fee models are defined in ANTS.</li>
         <li>The block explorer records ANTS-denominated balances and transactions.</li>
         <li>ANTS functions as the gas unit for the planned smart contract layer.</li>
-        <li>The Layer 1 economy has <strong>no inherent cashout mechanism</strong> &mdash; it is a closed-loop participation system.</li>
+        <li>Settlement/cashout can occur only through authorized bridge and DEX execution flow under policy controls.</li>
       </ul>
       <p>Spendable Layer 1 ANET is a higher-denomination representation. <strong>1 ANET = 100,000,000 ANTS.</strong> This ratio is fixed. Conversion from ANTS to spendable ANET is available once a participant reaches the 1,000-session genesis threshold.</p>
 
@@ -1293,8 +1480,8 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <div class="notice warn">
         <div class="notice-icon">Warn</div>
         <div class="notice-body">
-          <strong>No Built-In Cashout on Layer 1</strong>
-          The Layer 1 closed-loop economy does not include a built-in fiat or external-token cashout mechanism. Participation earns ANTS within the network&rsquo;s own utility economy. Any external value exchange involving the Web3 BEP-20 ANET token is subject to independent market conditions and is not guaranteed by A-Network.
+          <strong>Policy-Gated Settlement and Cashout</strong>
+          A-Network settlement/cashout operations are available only through authenticated backend DEX flow and do not bypass mining, security, or identity policy. External value exchange involving the Web3 BEP-20 ANET token remains market-determined and not guaranteed by A-Network.
         </div>
       </div>
       <ul>
@@ -3386,7 +3573,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <div class="wp-footer">
 
-      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> &middot; Official Whitepaper v2.1 &middot; April 29, 2026</p>
+      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> &middot; Official Whitepaper v2.2 &middot; May 8, 2026</p>
 
       <p>Website: <a href="https://a-network.net">a-network.net</a> &middot; Contract: <a href="https://bscscan.com/address/0x791055A7d52AA392eaE8De04250497f33807E46A">0x791055A7...E46A</a> &middot; App: <a href="https://play.google.com/store/apps/details?id=com.anetwork.app">Google Play</a></p>
 
