@@ -1408,9 +1408,11 @@ async function doCreatePool() {
   if (isNaN(anetAmt) || anetAmt <= 0) { toast('Enter ANET amount', 'error'); return; }
   if (isNaN(tokAmt)  || tokAmt <= 0)  { toast('Enter token amount', 'error'); return; }
 
-  // For stable launch pairs, enforce a 1:1 bootstrap ratio at submission.
-  const submitTokAmt = isStableSymbol(sym) ? anetAmt : tokAmt;
-  if (isStableSymbol(sym) && Math.abs(tokAmt - anetAmt) > 0.0000001) {
+  const discoveryMode = isCreatePoolDiscoveryModeEnabled();
+
+  // When discovery mode is OFF, enforce stable-pair 1:1 bootstrap at submission.
+  const submitTokAmt = (!discoveryMode && isStableSymbol(sym)) ? anetAmt : tokAmt;
+  if (!discoveryMode && isStableSymbol(sym) && Math.abs(tokAmt - anetAmt) > 0.0000001) {
     const tokEl = document.getElementById('create-token-amount');
     if (tokEl) tokEl.value = String(anetAmt);
     toast(`Adjusted ${sym} amount to match ANET for 1:1 launch price.`, 'info', 3500);
@@ -1445,17 +1447,55 @@ function isStableSymbol(sym) {
   return ['USDT', 'USDC', 'DAI', 'BUSD'].includes((sym || '').toUpperCase());
 }
 
+function isCreatePoolDiscoveryModeEnabled() {
+  const el = document.getElementById('create-discovery-mode');
+  return !!el && el.checked;
+}
+
 function applyCreatePoolStartDefaults() {
   const symEl  = document.getElementById('create-token-sym');
   const anetEl = document.getElementById('create-anet-amount');
   const tokEl  = document.getElementById('create-token-amount');
   const feeEl  = document.getElementById('create-fee-bps');
+  const discoveryEl = document.getElementById('create-discovery-mode');
   if (!symEl || !anetEl || !tokEl || !feeEl) return;
 
   if (!symEl.value || !symEl.value.trim()) symEl.value = 'USDT';
   if (!anetEl.value || parseFloat(anetEl.value) <= 0) anetEl.value = '1';
   tokEl.value = anetEl.value;
   if (!feeEl.value || parseInt(feeEl.value, 10) <= 0) feeEl.value = '30';
+  if (discoveryEl) discoveryEl.checked = true;
+}
+
+function useAvailableAnetForCreatePool() {
+  const anetEl = document.getElementById('create-anet-amount');
+  const tokEl = document.getElementById('create-token-amount');
+  const symEl = document.getElementById('create-token-sym');
+  if (!anetEl || !tokEl || !symEl) return;
+
+  if (!state.anetWallet.address) {
+    toast('Connect ANET wallet first to use available balance.', 'error');
+    openAnetWalletModal();
+    return;
+  }
+  if (state.anetWallet.balance == null || Number(state.anetWallet.balance) <= 0) {
+    toast('No ANET balance available in connected wallet.', 'error');
+    return;
+  }
+
+  const availableAnet = Number(state.anetWallet.balance) / ANTS_PER_ANET;
+  const amount = Number(Math.max(availableAnet, 0).toFixed(8));
+  anetEl.value = String(amount);
+
+  const sym = (symEl.value || '').trim().toUpperCase();
+  if (!isCreatePoolDiscoveryModeEnabled() && isStableSymbol(sym)) {
+    tokEl.value = String(amount);
+  } else if (!tokEl.value || parseFloat(tokEl.value) <= 0) {
+    tokEl.value = String(amount);
+  }
+
+  syncCreatePoolPegDraft();
+  toast(`Filled ANET amount from wallet balance: ${fmt(amount, 8)} ANET`, 'info', 4500);
 }
 
 function quickCreateStablePool(symbol) {
@@ -1486,12 +1526,18 @@ function syncCreatePoolPegDraft() {
 
   const sym = (symEl.value || '').trim().toUpperCase();
   const anetAmt = parseFloat(anetEl.value || '0');
+  const discoveryMode = isCreatePoolDiscoveryModeEnabled();
 
-  if (isStableSymbol(sym) && !isNaN(anetAmt) && anetAmt > 0) {
+  if (!discoveryMode && isStableSymbol(sym) && !isNaN(anetAmt) && anetAmt > 0) {
     tokEl.value = String(anetAmt);
     if (hintEl) {
       hintEl.textContent = `Peg mode active: ${sym} amount mirrors ANET amount (1 ANET = $1).`;
       hintEl.style.color = 'var(--accent-2)';
+    }
+  } else if (discoveryMode) {
+    if (hintEl) {
+      hintEl.textContent = 'Discovery mode active: market sets price from your ANET/TOKEN ratio (no forced peg).';
+      hintEl.style.color = 'var(--accent)';
     }
   } else if (hintEl) {
     hintEl.textContent = 'Tip: for USDT/USDC pools, keep TOKEN AMOUNT equal to ANET AMOUNT to start at 1 ANET = $1.';
@@ -1583,11 +1629,13 @@ function initCreatePoolHelpers() {
   const symEl  = document.getElementById('create-token-sym');
   const anetEl = document.getElementById('create-anet-amount');
   const tokEl  = document.getElementById('create-token-amount');
+  const discoveryEl = document.getElementById('create-discovery-mode');
   if (!symEl || !anetEl || !tokEl) return;
   applyCreatePoolStartDefaults();
   symEl.addEventListener('input', syncCreatePoolPegDraft);
   anetEl.addEventListener('input', syncCreatePoolPegDraft);
   tokEl.addEventListener('input', updateCreatePoolDepthPreview);
+  if (discoveryEl) discoveryEl.addEventListener('change', syncCreatePoolPegDraft);
   syncCreatePoolPegDraft();
 }
 
