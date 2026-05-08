@@ -566,7 +566,7 @@
     <section class="studio-grid" aria-label="NFT identity studio">
       <article class="studio-card">
         <h3>Backend Connection</h3>
-        <p class="muted">Set NFT API base URL then test connectivity.</p>
+        <p class="muted">Set NFT API base URL, then login as miner using your generated wallet address.</p>
 
         <div class="row-1 field">
           <label for="api-base-url">API Base URL</label>
@@ -579,6 +579,29 @@
         </div>
 
         <div id="api-status" class="status info">Set your backend URL. Example: https://api.a-network.net or http://localhost:3001</div>
+
+        <div class="row" style="margin-top:12px;">
+          <div class="field">
+            <label for="miner-login-uid">Miner UID / ANET Profile ID</label>
+            <input id="miner-login-uid" class="input" type="text" placeholder="your uid">
+          </div>
+          <div class="field">
+            <label for="miner-login-username">Pi Username</label>
+            <input id="miner-login-username" class="input" type="text" placeholder="your pi username">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="miner-login-wallet">Generated Wallet Address</label>
+          <input id="miner-login-wallet" class="input" type="text" placeholder="ANET wallet address">
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="miner-login-btn" type="button">Miner Login</button>
+          <button class="btn btn-alt" id="miner-logout-btn" type="button">Logout</button>
+        </div>
+
+        <div id="miner-auth-status" class="status info">Miner login required for NFT and marketplace actions.</div>
       </article>
 
       <article class="studio-card">

@@ -198,7 +198,7 @@ The codebase currently implements:
 - AdMob integration (banner/interstitial/rewarded — currently disabled by default)
 - Seed phrase vault with encrypted-at-rest storage and PIN + OTP reveal flow
 - In-app legal links for Privacy Policy, Terms of Service, and Account Deletion
-- Public docs: website, privacy, terms, whitepaper (v2.1)
+- Public docs: website, privacy, terms, whitepaper (v2.2)
 - Layer 1 private mainnet running (see [ROADMAP_2026.md](ROADMAP_2026.md))
 
 The codebase does not currently implement:
@@ -605,12 +605,38 @@ Ads:
 
 - `POST /ads/impression`
 
+NFT Studio / Marketplace (miner-gated):
+
+- `GET /api/nft/config`
+- `POST /api/nft/auth/miner-login`
+- `POST /api/nft/auth/logout`
+- `GET /api/nft/profile/:uid`
+- `POST /api/nft/profile/upsert`
+- `GET /api/nft/assets/:uid`
+- `POST /api/nft/assets/create`
+- `PATCH /api/nft/assets/:assetId`
+- `GET /api/nft/colony/feed`
+- `GET /api/nft/market/listings`
+- `POST /api/nft/market/listings/create`
+- `POST /api/nft/market/listings/:listingId/bid`
+- `POST /api/nft/market/listings/:listingId/buy`
+- `POST /api/nft/market/listings/:listingId/close`
+- `GET /api/nft/market/listings/:listingId/bids`
+
+NFT policy knowledge (production):
+
+- Miner-only access: NFT and marketplace routes require a valid miner session token from `POST /api/nft/auth/miner-login`
+- Session ownership enforced: session uid must match request uid for profile, asset, and market actions
+- NFT activation rule: first successful cashout or swap activates NFT profile creation (no pre-cashout NFT requirement)
+- Domain auctions: only `.ant` assets are eligible for `domain-auction`, with minimum bid floor of `10,000 ANTS`
+- No-burn model: profile and marketplace activity use closed-loop utility accounting
+
 ## Website And Legal Pages
 
 Public pages live in the repository root (served via GitHub Pages / CNAME):
 
 - `index.html` — Main website
-- `whitepaper.html` — Official Whitepaper v2.1 (April 29, 2026)
+- `whitepaper.html` — Official Whitepaper v2.2 (May 2026)
 - `privacy.html` — Privacy Policy
 - `terms.html` — Terms of Service
 - `delete-account.html` — Account Deletion instructions

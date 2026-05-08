@@ -6,6 +6,12 @@
     apiStatus: document.getElementById("api-status"),
     saveApiBtn: document.getElementById("save-api-btn"),
     testApiBtn: document.getElementById("test-api-btn"),
+    minerLoginUid: document.getElementById("miner-login-uid"),
+    minerLoginUsername: document.getElementById("miner-login-username"),
+    minerLoginWallet: document.getElementById("miner-login-wallet"),
+    minerLoginBtn: document.getElementById("miner-login-btn"),
+    minerLogoutBtn: document.getElementById("miner-logout-btn"),
+    minerAuthStatus: document.getElementById("miner-auth-status"),
 
     profileUid: document.getElementById("profile-uid"),
     profileUsername: document.getElementById("profile-username"),
@@ -65,7 +71,10 @@
     minDomainAuctionBidAnts: 10000,
     myAssets: [],
     marketListings: [],
-    apiReady: false
+    apiReady: false,
+    minerAuthenticated: false,
+    minerSessionToken: "",
+    minerUid: ""
   };
 
   if (els.apiBaseUrl) {
@@ -78,6 +87,8 @@
   function wireEvents() {
     els.saveApiBtn?.addEventListener("click", onSaveApiBase);
     els.testApiBtn?.addEventListener("click", onTestApi);
+    els.minerLoginBtn?.addEventListener("click", onMinerLogin);
+    els.minerLogoutBtn?.addEventListener("click", onMinerLogout);
     els.profileSaveBtn?.addEventListener("click", onSaveProfile);
     els.profileLoadBtn?.addEventListener("click", onLoadProfile);
     els.assetCreateBtn?.addEventListener("click", onCreateAsset);
@@ -93,9 +104,16 @@
   async function bootstrap() {
     onMarketListingTypeChanged();
     const connected = await onTestApi();
-    if (connected) {
+    if (connected && state.minerAuthenticated) {
       await onLoadFeed();
       await onLoadMarketListings();
+    } else {
+      if (els.feedList) {
+        els.feedList.innerHTML = '<div class="status info">Miner login required to view NFT feed.</div>';
+      }
+      if (els.marketList) {
+        els.marketList.innerHTML = '<div class="status info">Miner login required to view marketplace listings.</div>';
+      }
     }
   }
 
@@ -142,10 +160,23 @@
       throw new Error("Set API base URL first (your backend domain), then test API.");
     }
 
+    const isProtectedNftRoute = path.startsWith("/api/nft/")
+      && path !== "/api/nft/config"
+      && path !== "/api/nft/auth/miner-login";
+
+    if (isProtectedNftRoute && !state.minerSessionToken) {
+      throw new Error("Miner login required for NFT access.");
+    }
+
+    const authHeaders = isProtectedNftRoute
+      ? { "X-ANET-MINER-SESSION": state.minerSessionToken }
+      : {};
+
     const response = await fetch(`${base}${path}`, {
       method: options.method || "GET",
       headers: {
         "Content-Type": "application/json",
+        ...authHeaders,
         ...(options.headers || {})
       },
       body: options.body ? JSON.stringify(options.body) : undefined
@@ -186,6 +217,54 @@
     if (els.assetUid) els.assetUid.value = uid;
     if (els.marketSellerId) els.marketSellerId.value = uid;
     if (els.marketActorId) els.marketActorId.value = uid;
+  }
+
+  function getMinerLoginPayload() {
+    return {
+      uid: normalizeUid(els.minerLoginUid?.value),
+      anet_profile_id: normalizeUid(els.minerLoginUid?.value),
+      username: String(els.minerLoginUsername?.value || "").trim(),
+      wallet_address: String(els.minerLoginWallet?.value || "").trim().toUpperCase()
+    };
+  }
+
+  function setMinerAuthState(payload) {
+    const uid = normalizeUid(payload?.uid);
+    state.minerAuthenticated = Boolean(payload?.sessionToken && uid);
+    state.minerSessionToken = String(payload?.sessionToken || "");
+    state.minerUid = uid;
+
+    if (state.minerAuthenticated) {
+      syncUidAcrossForms(uid);
+      if (els.minerLoginUid) {
+        els.minerLoginUid.value = uid;
+      }
+      if (els.profileUsername && !els.profileUsername.value) {
+        els.profileUsername.value = String(payload?.username || "");
+      }
+      if (els.profileWallet && !els.profileWallet.value) {
+        els.profileWallet.value = String(payload?.walletAddress || "");
+      }
+      setStatus(
+        els.minerAuthStatus,
+        "good",
+        `Miner authenticated for ANET Profile ID ${uid}. ${payload?.nftActivated ? "NFT activated." : "Complete first cashout/swap to activate NFT profile."}`
+      );
+      return;
+    }
+
+    state.minerAuthenticated = false;
+    state.minerSessionToken = "";
+    state.minerUid = "";
+    setStatus(els.minerAuthStatus, "info", "Miner login required for NFT and marketplace actions.");
+  }
+
+  function ensureMinerLoggedIn(statusEl) {
+    if (state.minerAuthenticated && state.minerSessionToken) {
+      return true;
+    }
+    setStatus(statusEl || els.minerAuthStatus, "bad", "Login as miner first (UID + username + wallet address).");
+    return false;
   }
 
   function syncAntsAcrossForms(ants) {
@@ -280,7 +359,7 @@
   }
 
   function getMarketListingPayload() {
-    const sellerId = normalizeUid(els.marketSellerId?.value || els.profileUid?.value);
+    const sellerId = normalizeUid(els.marketSellerId?.value || els.profileUid?.value || state.minerUid);
     const listingType = String(els.marketListingType?.value || "fixed").trim().toLowerCase();
     return {
       uid: sellerId,
@@ -295,7 +374,7 @@
   }
 
   function getMarketActorId() {
-    return normalizeUid(els.marketActorId?.value || els.profileUid?.value);
+    return normalizeUid(els.marketActorId?.value || els.profileUid?.value || state.minerUid);
   }
 
   function formatUtc(value) {
@@ -666,6 +745,51 @@
     setStatus(els.apiStatus, "good", `Saved API base URL: ${base}`);
   }
 
+  async function onMinerLogin() {
+    if (!state.apiReady) {
+      setStatus(els.minerAuthStatus, "bad", "Connect NFT API first using Test API.");
+      return;
+    }
+
+    const payload = getMinerLoginPayload();
+    if (!payload.uid || !payload.username || !payload.wallet_address) {
+      setStatus(els.minerAuthStatus, "bad", "UID, username, and wallet address are required for miner login.");
+      return;
+    }
+
+    try {
+      const result = await apiFetch("/api/nft/auth/miner-login", {
+        method: "POST",
+        body: payload
+      });
+      setMinerAuthState(result);
+      await onLoadProfile();
+      await onLoadFeed();
+      await onLoadMarketListings();
+    } catch (error) {
+      setMinerAuthState(null);
+      setStatus(els.minerAuthStatus, "bad", error.message || "Miner login failed.");
+    }
+  }
+
+  async function onMinerLogout() {
+    try {
+      if (state.minerSessionToken) {
+        await apiFetch("/api/nft/auth/logout", { method: "POST" });
+      }
+    } catch {
+      // Best-effort logout.
+    }
+
+    setMinerAuthState(null);
+    if (els.feedList) {
+      els.feedList.innerHTML = '<div class="status info">Miner login required to view NFT feed.</div>';
+    }
+    if (els.marketList) {
+      els.marketList.innerHTML = '<div class="status info">Miner login required to view marketplace listings.</div>';
+    }
+  }
+
   async function onTestApi() {
     try {
       const result = await apiFetch("/api/nft/config");
@@ -681,6 +805,9 @@
         "good",
         `Connected. No-burn policy is ${result?.policy?.noBurn ? "active" : "unknown"}. NFT unlock rule: first successful cashout/swap activates profile.`
       );
+      if (!state.minerAuthenticated) {
+        setStatus(els.minerAuthStatus, "info", "Miner login required for NFT and marketplace actions.");
+      }
       return true;
     } catch (error) {
       state.apiReady = false;
@@ -703,8 +830,11 @@
       setStatus(els.profileStatus, "bad", "Connect NFT API first using Test API.");
       return;
     }
+    if (!ensureMinerLoggedIn(els.profileStatus)) {
+      return;
+    }
 
-    const uid = normalizeUid(els.profileUid?.value);
+    const uid = normalizeUid(els.profileUid?.value || state.minerUid);
     if (!uid) {
       setStatus(els.profileStatus, "bad", "ANET Profile ID is required.");
       return;
@@ -726,6 +856,9 @@
   async function onSaveProfile() {
     if (!state.apiReady) {
       setStatus(els.profileStatus, "bad", "Connect NFT API first using Test API.");
+      return;
+    }
+    if (!ensureMinerLoggedIn(els.profileStatus)) {
       return;
     }
 
@@ -754,6 +887,9 @@
       setStatus(els.assetStatusBox, "bad", "Connect NFT API first using Test API.");
       return;
     }
+    if (!ensureMinerLoggedIn(els.assetStatusBox)) {
+      return;
+    }
 
     const payload = getAssetPayload();
     if (!payload.uid || !payload.name) {
@@ -780,8 +916,11 @@
       setStatus(els.assetStatusBox, "bad", "Connect NFT API first using Test API.");
       return;
     }
+    if (!ensureMinerLoggedIn(els.assetStatusBox)) {
+      return;
+    }
 
-    const uid = normalizeUid(els.assetUid?.value || els.profileUid?.value);
+    const uid = normalizeUid(els.assetUid?.value || els.profileUid?.value || state.minerUid);
     if (!uid) {
       setStatus(els.assetStatusBox, "bad", "ANET Profile ID is required to load assets.");
       return;
@@ -803,6 +942,12 @@
       }
       return;
     }
+    if (!ensureMinerLoggedIn()) {
+      if (els.feedList) {
+        els.feedList.innerHTML = '<div class="status info">Miner login required to view NFT feed.</div>';
+      }
+      return;
+    }
 
     try {
       const result = await apiFetch("/api/nft/colony/feed?limit=30");
@@ -817,6 +962,9 @@
   async function onCreateMarketListing() {
     if (!state.apiReady) {
       setStatus(els.marketStatus, "bad", "Connect NFT API first using Test API.");
+      return;
+    }
+    if (!ensureMinerLoggedIn(els.marketStatus)) {
       return;
     }
 
@@ -862,6 +1010,12 @@
     if (!state.apiReady) {
       if (els.marketList) {
         els.marketList.innerHTML = '<div class="status info">Connect NFT API first, then refresh marketplace.</div>';
+      }
+      return;
+    }
+    if (!ensureMinerLoggedIn(els.marketStatus)) {
+      if (els.marketList) {
+        els.marketList.innerHTML = '<div class="status info">Miner login required to view marketplace listings.</div>';
       }
       return;
     }

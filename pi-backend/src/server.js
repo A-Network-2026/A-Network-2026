@@ -907,6 +907,73 @@ function upsertLifetimeUnlock(payment, paymentId, txid) {
 app.use(cors({ origin: ALLOWED_ORIGIN === '*' ? true : ALLOWED_ORIGIN }));
 app.use(express.json());
 
+const nftMinerSessions = new Map();
+const NFT_MINER_SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+
+function pruneExpiredNftMinerSessions() {
+  const now = Date.now();
+  for (const [token, session] of nftMinerSessions.entries()) {
+    if (!session?.expiresAt || Date.parse(session.expiresAt) <= now) {
+      nftMinerSessions.delete(token);
+    }
+  }
+}
+
+function getNftMinerSessionToken(req) {
+  const headerToken = String(req.headers?.['x-anet-miner-session'] || '').trim();
+  if (headerToken) {
+    return headerToken;
+  }
+
+  const authHeader = String(req.headers?.authorization || '').trim();
+  if (authHeader.toLowerCase().startsWith('bearer ')) {
+    return authHeader.slice(7).trim();
+  }
+  return '';
+}
+
+function createNftMinerSession(uid, username, walletAddress) {
+  const token = `nft_miner_${crypto.randomUUID()}`;
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + NFT_MINER_SESSION_TTL_MS).toISOString();
+  const session = {
+    token,
+    uid: normalizeAnetProfileId(uid),
+    username: String(username || '').trim(),
+    walletAddress: String(walletAddress || '').trim().toUpperCase(),
+    createdAt: now.toISOString(),
+    expiresAt
+  };
+  nftMinerSessions.set(token, session);
+  return session;
+}
+
+function requireNftMinerSession(req, res) {
+  pruneExpiredNftMinerSessions();
+  const token = getNftMinerSessionToken(req);
+  if (!token) {
+    res.status(401).json({ ok: false, error: 'Miner login required for NFT access' });
+    return null;
+  }
+
+  const session = nftMinerSessions.get(token);
+  if (!session) {
+    res.status(401).json({ ok: false, error: 'Invalid or expired miner session. Login again.' });
+    return null;
+  }
+  return session;
+}
+
+function requireSessionUidMatch(res, session, requestedUid) {
+  const sessionUid = normalizeAnetProfileId(session?.uid);
+  const targetUid = normalizeAnetProfileId(requestedUid);
+  if (!sessionUid || !targetUid || sessionUid !== targetUid) {
+    res.status(403).json({ ok: false, error: 'Miner session does not match requested ANET profile ID' });
+    return false;
+  }
+  return true;
+}
+
 app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'a-network-pi-backend' });
 });
@@ -1000,8 +1067,63 @@ app.get('/api/nft/config', (_req, res) => {
   });
 });
 
+app.post('/api/nft/auth/miner-login', async (req, res) => {
+  try {
+    const uid = normalizeAnetProfileId(req.body?.uid || req.body?.anet_profile_id);
+    const username = String(req.body?.username || '').trim();
+    const walletAddress = String(req.body?.wallet_address || '').trim().toUpperCase();
+
+    if (!uid || !username || !walletAddress) {
+      return res.status(400).json({
+        ok: false,
+        error: 'uid, username, and wallet_address are required'
+      });
+    }
+
+    const access = await requireUnlockAndEligibility(uid, username, walletAddress);
+    if (access.error) {
+      return res.status(access.status || 403).json({
+        ok: false,
+        error: access.error,
+        unlock: access.unlock || null,
+        eligibility: access.eligibility || null,
+        walletBinding: access.walletBinding || null
+      });
+    }
+
+    const session = createNftMinerSession(uid, username, walletAddress);
+    const activation = await requireNftActivationByCashout(uid);
+    return res.status(200).json({
+      ok: true,
+      sessionToken: session.token,
+      expiresAt: session.expiresAt,
+      uid: session.uid,
+      username: session.username,
+      walletAddress: session.walletAddress,
+      nftActivated: Boolean(activation.ok),
+      walletBinding: access.walletBinding || null,
+      eligibility: access.eligibility || null
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post('/api/nft/auth/logout', (req, res) => {
+  const token = getNftMinerSessionToken(req);
+  if (token) {
+    nftMinerSessions.delete(token);
+  }
+  return res.status(200).json({ ok: true });
+});
+
 app.get('/api/nft/profile/:uid', async (req, res) => {
   if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
     return;
   }
 
@@ -1009,6 +1131,9 @@ app.get('/api/nft/profile/:uid', async (req, res) => {
     const uid = normalizeAnetProfileId(req.params?.uid || req.params?.profileId);
     if (!uid) {
       return res.status(400).json({ ok: false, error: 'anet profile id is required' });
+    }
+    if (!requireSessionUidMatch(res, minerSession, uid)) {
+      return;
     }
 
     const profile = await getNftProfile(uid);
@@ -1037,10 +1162,18 @@ app.post('/api/nft/profile/upsert', async (req, res) => {
     return;
   }
 
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
   try {
     const uid = getAnetProfileIdFromBody(req.body);
     if (!uid) {
       return res.status(400).json({ ok: false, error: 'anet profile id is required' });
+    }
+    if (!requireSessionUidMatch(res, minerSession, uid)) {
+      return;
     }
 
     const username = normalizeShortText(req.body?.username, 80);
@@ -1138,10 +1271,18 @@ app.get('/api/nft/assets/:uid', async (req, res) => {
     return;
   }
 
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
   try {
     const uid = normalizeAnetProfileId(req.params?.uid || req.params?.profileId);
     if (!uid) {
       return res.status(400).json({ ok: false, error: 'anet profile id is required' });
+    }
+    if (!requireSessionUidMatch(res, minerSession, uid)) {
+      return;
     }
 
     const assets = await dbAll(
@@ -1167,10 +1308,18 @@ app.post('/api/nft/assets/create', async (req, res) => {
     return;
   }
 
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
   try {
     const uid = getAnetProfileIdFromBody(req.body);
     if (!uid) {
       return res.status(400).json({ ok: false, error: 'anet profile id is required' });
+    }
+    if (!requireSessionUidMatch(res, minerSession, uid)) {
+      return;
     }
 
     const profile = await getNftProfile(uid);
@@ -1250,11 +1399,19 @@ app.patch('/api/nft/assets/:assetId', async (req, res) => {
     return;
   }
 
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
   try {
     const assetId = normalizeShortText(req.params?.assetId, 120);
     const uid = getAnetProfileIdFromBody(req.body);
     if (!assetId || !uid) {
       return res.status(400).json({ ok: false, error: 'assetId and anet profile id are required' });
+    }
+    if (!requireSessionUidMatch(res, minerSession, uid)) {
+      return;
     }
 
     const existing = await dbGet(nftDb, 'SELECT * FROM nft_assets WHERE id = ? AND uid = ?', [assetId, uid]);
@@ -1311,6 +1468,11 @@ app.get('/api/nft/colony/feed', async (req, res) => {
     return;
   }
 
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
   try {
     const limit = Math.min(200, Math.max(1, Number(req.query?.limit || 30)));
     const assets = await dbAll(
@@ -1338,6 +1500,11 @@ app.get('/api/nft/colony/feed', async (req, res) => {
 
 app.get('/api/nft/market/listings', async (req, res) => {
   if (!requireNftDatabase(res)) {
+    return;
+  }
+
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
     return;
   }
 
@@ -1403,6 +1570,11 @@ app.get('/api/nft/market/listings/:listingId/bids', async (req, res) => {
     return;
   }
 
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
   try {
     const listingId = normalizeShortText(req.params?.listingId, 120);
     if (!listingId) {
@@ -1436,6 +1608,11 @@ app.post('/api/nft/market/listings/create', async (req, res) => {
     return;
   }
 
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
   try {
     const sellerUid = getAnetProfileIdFromBody(req.body);
     const assetId = normalizeShortText(req.body?.asset_id, 120);
@@ -1447,6 +1624,9 @@ app.post('/api/nft/market/listings/create', async (req, res) => {
 
     if (!sellerUid || !assetId) {
       return res.status(400).json({ ok: false, error: 'anet profile id and asset_id are required' });
+    }
+    if (!requireSessionUidMatch(res, minerSession, sellerUid)) {
+      return;
     }
     if (!['fixed', 'auction', 'domain-auction'].includes(listingType)) {
       return res.status(400).json({ ok: false, error: 'listing_type must be fixed, auction, or domain-auction' });
@@ -1545,12 +1725,20 @@ app.post('/api/nft/market/listings/:listingId/bid', async (req, res) => {
     return;
   }
 
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
   try {
     const listingId = normalizeShortText(req.params?.listingId, 120);
     const bidderUid = getAnetProfileIdFromBody(req.body);
     const amountAnts = normalizeNonNegativeInteger(req.body?.amount_ants, 0);
     if (!listingId || !bidderUid || amountAnts <= 0) {
       return res.status(400).json({ ok: false, error: 'listingId, anet profile id and amount_ants are required' });
+    }
+    if (!requireSessionUidMatch(res, minerSession, bidderUid)) {
+      return;
     }
 
     const listing = await getMarketListingById(listingId);
@@ -1624,11 +1812,19 @@ app.post('/api/nft/market/listings/:listingId/buy', async (req, res) => {
     return;
   }
 
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
   try {
     const listingId = normalizeShortText(req.params?.listingId, 120);
     const buyerUid = getAnetProfileIdFromBody(req.body);
     if (!listingId || !buyerUid) {
       return res.status(400).json({ ok: false, error: 'listingId and anet profile id are required' });
+    }
+    if (!requireSessionUidMatch(res, minerSession, buyerUid)) {
+      return;
     }
 
     const listing = await getMarketListingById(listingId);
@@ -1664,11 +1860,19 @@ app.post('/api/nft/market/listings/:listingId/close', async (req, res) => {
     return;
   }
 
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
   try {
     const listingId = normalizeShortText(req.params?.listingId, 120);
     const sellerUid = getAnetProfileIdFromBody(req.body);
     if (!listingId || !sellerUid) {
       return res.status(400).json({ ok: false, error: 'listingId and anet profile id are required' });
+    }
+    if (!requireSessionUidMatch(res, minerSession, sellerUid)) {
+      return;
     }
 
     const listing = await getMarketListingById(listingId);
