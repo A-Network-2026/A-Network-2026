@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network NFT | Closed-Loop Utility Layer</title>
+  <meta name="description" content="A Network NFT utility layer for no-burn tokenomics, ecosystem contribution tracking, and future closed-loop economic access.">
+  <meta name="theme-color" content="#07101a">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="A Network">
+  <meta property="og:title" content="A Network NFT | Closed-Loop Utility Layer">
+  <meta property="og:description" content="No-burn ecosystem model where swap contribution can be recorded as NFT identity and utility for future closed-loop access.">
+  <meta property="og:url" content="https://a-network.net/nft.html">
+  <meta property="og:image" content="https://a-network.net/logo.png">
+  <link rel="canonical" href="https://a-network.net/nft.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050b12;
+      --bg-2: #091725;
+      --panel: rgba(10, 24, 39, 0.86);
+      --line: rgba(88, 197, 255, 0.18);
+      --line-strong: rgba(88, 197, 255, 0.35);
+      --text: #eff6ff;
+      --muted: #9eb2c9;
+      --accent: #58c5ff;
+      --accent-2: #22e7b8;
+      --warn: #ffbc5c;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 12%, rgba(34, 231, 184, 0.08), transparent 30%),
+        radial-gradient(circle at 78% 22%, rgba(88, 197, 255, 0.16), transparent 28%),
+        linear-gradient(180deg, #07101a 0%, var(--bg) 100%);
+      line-height: 1.55;
+    }
+
+    .shell {
+      width: min(1120px, calc(100% - 30px));
+      margin: 0 auto;
+      padding-bottom: 40px;
+    }
+
+    header {
+      margin-top: 18px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: rgba(4, 10, 18, 0.72);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand img {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      border: 1px solid var(--line-strong);
+      object-fit: cover;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: "Orbitron", sans-serif;
+      font-size: 1.05rem;
+      letter-spacing: 0.08em;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    nav a.active {
+      color: var(--accent-2);
+    }
+
+    .hero {
+      margin-top: 22px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--accent-2);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      line-height: 1.08;
+    }
+
+    h2 .accent { color: var(--accent); }
+
+    .lead {
+      color: var(--muted);
+      max-width: 900px;
+      margin: 0;
+    }
+
+    .grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .policy {
+      margin-top: 18px;
+      border: 1px solid var(--line-strong);
+      border-radius: 14px;
+      background: rgba(88, 197, 255, 0.08);
+      padding: 14px;
+    }
+
+    .policy strong {
+      color: var(--accent-2);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .cta-row {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: 1px solid transparent;
+    }
+
+    .btn-main {
+      background: linear-gradient(120deg, var(--accent), #31a9ff);
+      color: #04213a;
+    }
+
+    .btn-alt {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--line-strong);
+    }
+
+    footer {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .foot-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .foot-links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.86rem;
+    }
+
+    @media (max-width: 920px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      nav {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="index.html">
+        <img src="logo.png" alt="A Network logo">
+        <div>
+          <h1>A NETWORK</h1>
+          <p>NFT Utility Layer</p>
+        </div>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="dex.html">DEX</a>
+        <a href="web4.html">Web4</a>
+        <a href="whitepaper.html">Whitepaper</a>
+        <a href="nft.html" class="active">NFT</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <span class="eyebrow">A Network NFT Architecture</span>
+      <h2>No Burn. <span class="accent">Closed-Loop Utility.</span></h2>
+      <p class="lead">
+        This page defines the A Network NFT direction: ANET used in swap and ecosystem activity is retained inside
+        ecosystem reserves and utility routing, not burned. NFT records can represent contribution, participation,
+        and future utility access within a closed-loop economy.
+      </p>
+
+      <div class="grid">
+        <article class="card">
+          <h3>1) No-Burn Rule</h3>
+          <p>
+            A Network does not depend on token burn for this model. Supply policy remains transparent, while ecosystem
+            value is routed through participation, liquidity, and utility access.
+          </p>
+        </article>
+        <article class="card">
+          <h3>2) NFT Contribution Identity</h3>
+          <p>
+            Qualified actions can be represented as NFT records. This enables on-chain proof of contribution and can be
+            used for access tiers, campaign rights, and ecosystem roles.
+          </p>
+        </article>
+        <article class="card">
+          <h3>3) Closed Economic Loop</h3>
+          <p>
+            Future NFT utility can gate internal benefits: platform discounts, ecosystem missions, feature unlocks,
+            governance participation, and community program rewards.
+          </p>
+        </article>
+      </div>
+
+      <div class="policy">
+        <strong>Policy Snapshot</strong>
+        ANET is intended to circulate inside the ecosystem utility loop. No forced burn mechanism is required for this
+        design path. NFT is treated as a programmable utility and participation layer.
+      </div>
+
+      <div class="cta-row">
+        <a class="btn btn-main" href="dex.html">Open Native DEX</a>
+        <a class="btn btn-alt" href="ants-program.html">View ANTS Program</a>
+        <a class="btn btn-alt" href="https://play.google.com/store/apps/details?id=com.anetwork.app&pcampaignid=web_share" target="_blank" rel="noopener noreferrer">Install App</a>
+      </div>
+    </section>
+
+    <footer>
+      <div class="foot-links">
+        <a href="index.html">Home</a>
+        <a href="dex.html">DEX</a>
+        <a href="web4.html">Web4</a>
+        <a href="whitepaper.html">Whitepaper</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </div>
+      <div>© 2026 A Network. NFT utility layer roadmap page.</div>
+    </footer>
+  </div>
+</body>
+</html>
