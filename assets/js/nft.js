@@ -61,6 +61,7 @@
   const state = {
     apiBase: resolveInitialApiBase(),
     minAnts: 1000,
+    minDomainAuctionBidAnts: 10000,
     myAssets: [],
     marketListings: [],
     apiReady: false
@@ -259,7 +260,8 @@
 
   function onMarketListingTypeChanged() {
     const listingType = String(els.marketListingType?.value || "fixed").trim().toLowerCase();
-    const isAuction = listingType === "auction";
+    const isAuction = listingType === "auction" || listingType === "domain-auction";
+    const isDomainAuction = listingType === "domain-auction";
 
     if (els.marketDurationHours) {
       els.marketDurationHours.disabled = !isAuction;
@@ -269,6 +271,9 @@
     }
     if (els.marketAskPrice) {
       els.marketAskPrice.disabled = isAuction;
+    }
+    if (els.marketMinBid && isDomainAuction && toNumberOrZero(els.marketMinBid.value) < state.minDomainAuctionBidAnts) {
+      els.marketMinBid.value = String(state.minDomainAuctionBidAnts);
     }
   }
 
@@ -475,6 +480,7 @@
 
     els.marketList.innerHTML = state.marketListings.map((listing) => {
       const listingType = String(listing.listingType || "fixed").toLowerCase();
+      const listingTypeLabel = listingType === "domain-auction" ? "domain-auction (.ant)" : listingType;
       const status = String(listing.status || "active").toLowerCase();
       const owner = listing?.sellerDisplayName || listing?.sellerUid || "unknown";
       const assetName = listing?.asset?.name || "Unnamed Asset";
@@ -490,7 +496,7 @@
         ? `
           <div class="asset-actions">
             <input class="input market-bid-amount" type="number" min="0" step="1" placeholder="Bid ANTS" style="max-width:150px;">
-            ${listingType === "auction" ? '<button class="btn btn-alt market-bid-btn" type="button">Place Bid</button>' : ''}
+            ${listingType === "auction" || listingType === "domain-auction" ? '<button class="btn btn-alt market-bid-btn" type="button">Place Bid</button>' : ''}
             <button class="btn btn-main market-buy-btn" type="button">Buy</button>
             <button class="btn btn-danger market-close-btn" type="button">Close</button>
             <button class="btn btn-alt market-bids-btn" type="button">View Bids</button>
@@ -505,7 +511,7 @@
             <span class="pill">${escapeHtml(status)}</span>
           </div>
           <div class="asset-head" style="margin-top:4px;">
-            <span class="pill">${escapeHtml(listingType)}</span>
+            <span class="pill">${escapeHtml(listingTypeLabel)}</span>
             ${expiredBadge}
           </div>
           <div class="mono">Listing: ${escapeHtml(listing.id || "")}</div>
@@ -662,7 +668,9 @@
     try {
       const result = await apiFetch("/api/nft/config");
       state.minAnts = Number(result?.policy?.minAntsForProfileCreation || 1000);
+      state.minDomainAuctionBidAnts = Number(result?.policy?.minDomainAuctionBidAnts || 10000);
       state.apiReady = true;
+      onMarketListingTypeChanged();
       if (els.kpiMinAnts) {
         els.kpiMinAnts.textContent = String(state.minAnts);
       }
@@ -822,6 +830,13 @@
     if (payload.listing_type === "auction" && payload.min_bid_ants <= 0) {
       setStatus(els.marketStatus, "bad", "Auction listing requires minimum bid > 0.");
       return;
+    }
+    if (payload.listing_type === "domain-auction") {
+      const minDomainBid = Number(state.minDomainAuctionBidAnts || 10000);
+      if (payload.min_bid_ants < minDomainBid) {
+        setStatus(els.marketStatus, "bad", `Domain auction minimum bid is ${minDomainBid} ANTS.`);
+        return;
+      }
     }
 
     try {

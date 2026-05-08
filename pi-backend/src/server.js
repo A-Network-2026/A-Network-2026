@@ -42,6 +42,7 @@ const BTC_ENABLE_TEST_ADMIN = (process.env.BTC_ENABLE_TEST_ADMIN || 'false').toL
 const NFT_DB_PATH = process.env.NFT_DB_PATH || path.join(__dirname, '..', 'data', 'nft-identity.db');
 const NFT_MIN_PROFILE_ANTS = Math.max(1, Number(process.env.NFT_MIN_PROFILE_ANTS || 1000));
 const NFT_MAX_BIO_LENGTH = Math.max(80, Number(process.env.NFT_MAX_BIO_LENGTH || 280));
+const NFT_DOMAIN_MIN_BID_ANTS = Math.max(10000, Number(process.env.NFT_DOMAIN_MIN_BID_ANTS || 10000));
 
 let nftDb = null;
 
@@ -438,6 +439,12 @@ function mapNftMarketBidRow(row) {
     amountAnts: normalizeNonNegativeInteger(row.amount_ants, 0),
     createdAt: safeIsoDate(row.created_at)
   };
+}
+
+function isDomainAsset(assetRow) {
+  const slug = String(assetRow?.slug || '').trim().toLowerCase();
+  const name = String(assetRow?.name || '').trim().toLowerCase();
+  return slug.endsWith('.ant') || name.endsWith('.ant');
 }
 
 async function getMarketListingById(listingId) {
@@ -917,6 +924,7 @@ app.get('/api/nft/config', (_req, res) => {
     policy: {
       noBurn: true,
       minAntsForProfileCreation: NFT_MIN_PROFILE_ANTS,
+      minDomainAuctionBidAnts: NFT_DOMAIN_MIN_BID_ANTS,
       maxBioLength: NFT_MAX_BIO_LENGTH,
       model: 'nft-identity-and-closed-loop-utility'
     }
@@ -1382,8 +1390,8 @@ app.post('/api/nft/market/listings/create', async (req, res) => {
     if (!sellerUid || !assetId) {
       return res.status(400).json({ ok: false, error: 'anet profile id and asset_id are required' });
     }
-    if (!['fixed', 'auction'].includes(listingType)) {
-      return res.status(400).json({ ok: false, error: 'listing_type must be fixed or auction' });
+    if (!['fixed', 'auction', 'domain-auction'].includes(listingType)) {
+      return res.status(400).json({ ok: false, error: 'listing_type must be fixed, auction, or domain-auction' });
     }
 
     const sellerProfile = await getNftProfile(sellerUid);
@@ -1397,6 +1405,10 @@ app.post('/api/nft/market/listings/create', async (req, res) => {
     }
     if (normalizeAnetProfileId(asset.uid) !== sellerUid) {
       return res.status(403).json({ ok: false, error: 'Only current owner can list this NFT' });
+    }
+
+    if (listingType === 'domain-auction' && !isDomainAsset(asset)) {
+      return res.status(400).json({ ok: false, error: 'domain-auction requires NFT name or slug ending with .ant' });
     }
 
     const activeListing = await dbGet(
@@ -1414,10 +1426,13 @@ app.post('/api/nft/market/listings/create', async (req, res) => {
     if (listingType === 'auction' && minBidAnts <= 0) {
       return res.status(400).json({ ok: false, error: 'min_bid_ants must be greater than 0 for auction listing' });
     }
+    if (listingType === 'domain-auction' && minBidAnts < NFT_DOMAIN_MIN_BID_ANTS) {
+      return res.status(400).json({ ok: false, error: `domain-auction minimum bid is ${NFT_DOMAIN_MIN_BID_ANTS} ANTS` });
+    }
 
     const now = new Date();
     const createdAt = now.toISOString();
-    const endAt = listingType === 'auction'
+    const endAt = ['auction', 'domain-auction'].includes(listingType)
       ? new Date(now.getTime() + durationHours * 60 * 60 * 1000).toISOString()
       : null;
     const listingId = `nft_listing_${crypto.randomUUID()}`;
@@ -1455,7 +1470,7 @@ app.post('/api/nft/market/listings/create', async (req, res) => {
       askPriceAnts,
       minBidAnts,
       buyNowPriceAnts,
-      durationHours: listingType === 'auction' ? durationHours : null
+      durationHours: ['auction', 'domain-auction'].includes(listingType) ? durationHours : null
     });
 
     return res.status(201).json({
@@ -1487,7 +1502,7 @@ app.post('/api/nft/market/listings/:listingId/bid', async (req, res) => {
     if (listing.status !== 'active') {
       return res.status(409).json({ ok: false, error: 'Listing is not active' });
     }
-    if (listing.listingType !== 'auction') {
+    if (!['auction', 'domain-auction'].includes(listing.listingType)) {
       return res.status(400).json({ ok: false, error: 'Bids are only allowed on auction listings' });
     }
     if (listing.isExpired) {
@@ -1508,7 +1523,8 @@ app.post('/api/nft/market/listings/:listingId/bid', async (req, res) => {
       [listingId]
     );
     const currentHighest = normalizeNonNegativeInteger(highestBid?.highest_bid, 0);
-    const minRequired = Math.max(listing.minBidAnts, currentHighest + 1);
+    const domainFloor = listing.listingType === 'domain-auction' ? NFT_DOMAIN_MIN_BID_ANTS : 0;
+    const minRequired = Math.max(listing.minBidAnts, domainFloor, currentHighest + 1);
     if (amountAnts < minRequired) {
       return res.status(400).json({ ok: false, error: `Bid must be at least ${minRequired} ANTS` });
     }
@@ -1608,7 +1624,7 @@ app.post('/api/nft/market/listings/:listingId/close', async (req, res) => {
       return res.status(403).json({ ok: false, error: 'Only seller can close listing' });
     }
 
-    if (listing.listingType === 'auction') {
+    if (['auction', 'domain-auction'].includes(listing.listingType)) {
       const highest = await dbGet(
         nftDb,
         `SELECT bidder_uid, amount_ants
