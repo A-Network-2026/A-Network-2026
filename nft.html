@@ -29,6 +29,7 @@
       --accent: #58c5ff;
       --accent-2: #22e7b8;
       --warn: #ffbc5c;
+      --danger: #ff6b8a;
       --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
     }
 
@@ -48,7 +49,7 @@
     .shell {
       width: min(1120px, calc(100% - 30px));
       margin: 0 auto;
-      padding-bottom: 40px;
+      padding-bottom: 48px;
     }
 
     header {
@@ -195,6 +196,213 @@
       gap: 10px;
     }
 
+    .studio-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .studio-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 14px;
+    }
+
+    .studio-card h3 {
+      margin: 0 0 10px;
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.98rem;
+      letter-spacing: 0.04em;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin: 0;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .row-1 {
+      display: block;
+      margin-top: 10px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .input,
+    .textarea,
+    .select {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: rgba(3, 10, 17, 0.9);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 10px 11px;
+      outline: none;
+    }
+
+    .textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .input:focus,
+    .textarea:focus,
+    .select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(88, 197, 255, 0.2);
+    }
+
+    .btn {
+      cursor: pointer;
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border-color: rgba(255, 107, 138, 0.55);
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 9px 11px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      font-size: 0.86rem;
+      line-height: 1.4;
+    }
+
+    .status.info {
+      color: #dceeff;
+      background: rgba(88, 197, 255, 0.12);
+      border-color: rgba(88, 197, 255, 0.32);
+    }
+
+    .status.good {
+      color: #dbffef;
+      background: rgba(34, 231, 184, 0.12);
+      border-color: rgba(34, 231, 184, 0.32);
+    }
+
+    .status.bad {
+      color: #ffdbe4;
+      background: rgba(255, 107, 138, 0.12);
+      border-color: rgba(255, 107, 138, 0.32);
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .kpi {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px;
+    }
+
+    .kpi .value {
+      font-family: "Orbitron", sans-serif;
+      font-size: 1.1rem;
+      line-height: 1;
+      margin-bottom: 5px;
+      color: var(--accent-2);
+    }
+
+    .kpi .label {
+      font-size: 0.74rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }
+
+    .asset-list,
+    .feed-list {
+      margin-top: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .asset-item,
+    .feed-item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 11px;
+    }
+
+    .asset-head,
+    .feed-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      border: 1px solid var(--line-strong);
+      color: var(--accent);
+      white-space: nowrap;
+      background: rgba(88, 197, 255, 0.08);
+    }
+
+    .mono {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.8rem;
+      color: #9bc8e8;
+    }
+
+    .asset-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .preview {
+      margin-top: 12px;
+      border: 1px dashed var(--line-strong);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(10, 24, 39, 0.55);
+    }
+
+    .preview-title {
+      margin: 0 0 5px;
+      font-size: 0.9rem;
+      color: var(--accent-2);
+    }
+
     .btn {
       display: inline-flex;
       align-items: center;
@@ -245,6 +453,14 @@
       .grid {
         grid-template-columns: 1fr;
       }
+
+      .studio-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .kpis {
+        grid-template-columns: 1fr 1fr;
+      }
     }
 
     @media (max-width: 720px) {
@@ -255,6 +471,14 @@
 
       nav {
         justify-content: flex-start;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .kpis {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -317,11 +541,199 @@
         design path. NFT is treated as a programmable utility and participation layer.
       </div>
 
+      <div class="kpis">
+        <div class="kpi">
+          <div class="value" id="kpi-min-ants">1000</div>
+          <div class="label">Min ANTS For Identity</div>
+        </div>
+        <div class="kpi">
+          <div class="value" id="kpi-feed-count">0</div>
+          <div class="label">Colony Feed Items</div>
+        </div>
+        <div class="kpi">
+          <div class="value" id="kpi-my-assets">0</div>
+          <div class="label">My NFT Assets</div>
+        </div>
+      </div>
+
       <div class="cta-row">
         <a class="btn btn-main" href="dex.html">Open Native DEX</a>
         <a class="btn btn-alt" href="ants-program.html">View ANTS Program</a>
         <a class="btn btn-alt" href="https://play.google.com/store/apps/details?id=com.anetwork.app&pcampaignid=web_share" target="_blank" rel="noopener noreferrer">Install App</a>
       </div>
+    </section>
+
+    <section class="studio-grid" aria-label="NFT identity studio">
+      <article class="studio-card">
+        <h3>Backend Connection</h3>
+        <p class="muted">Set NFT API base URL then test connectivity.</p>
+
+        <div class="row-1 field">
+          <label for="api-base-url">API Base URL</label>
+          <input id="api-base-url" class="input" type="text" placeholder="https://your-backend-domain">
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="save-api-btn" type="button">Save API URL</button>
+          <button class="btn btn-alt" id="test-api-btn" type="button">Test API</button>
+        </div>
+
+        <div id="api-status" class="status info">Set your backend URL. Example: https://api.a-network.net or http://localhost:3001</div>
+      </article>
+
+      <article class="studio-card">
+        <h3>NFT Identity Profile</h3>
+        <p class="muted">Minimum 1000 ANTS required for first profile creation.</p>
+
+        <div class="row">
+          <div class="field">
+            <label for="profile-uid">UID</label>
+            <input id="profile-uid" class="input" type="text" placeholder="pi uid">
+          </div>
+          <div class="field">
+            <label for="profile-username">Username</label>
+            <input id="profile-username" class="input" type="text" placeholder="username">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="profile-wallet">Wallet Address</label>
+            <input id="profile-wallet" class="input" type="text" placeholder="ANET wallet">
+          </div>
+          <div class="field">
+            <label for="profile-ants-balance">ANTS Balance</label>
+            <input id="profile-ants-balance" class="input" type="number" min="0" step="1" placeholder="1000">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="profile-display-name">Display Name</label>
+            <input id="profile-display-name" class="input" type="text" placeholder="public display name">
+          </div>
+          <div class="field">
+            <label for="profile-avatar">Avatar URI</label>
+            <input id="profile-avatar" class="input" type="text" placeholder="https://...">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="profile-banner">Banner URI</label>
+          <input id="profile-banner" class="input" type="text" placeholder="https://...">
+        </div>
+
+        <div class="row-1 field">
+          <label for="profile-bio">Bio</label>
+          <textarea id="profile-bio" class="textarea" placeholder="Tell the colony who you are"></textarea>
+        </div>
+
+        <div class="row-1 field">
+          <label for="profile-theme">Theme JSON</label>
+          <textarea id="profile-theme" class="textarea" placeholder='{"accent":"#22e7b8","mode":"colony"}'></textarea>
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="profile-save-btn" type="button">Create or Update Profile</button>
+          <button class="btn btn-alt" id="profile-load-btn" type="button">Load Profile</button>
+        </div>
+
+        <div id="profile-status" class="status info">Profile studio ready.</div>
+
+        <div class="preview" id="profile-preview">
+          <p class="preview-title">Profile Preview</p>
+          <div class="mono" id="profile-preview-json">No profile loaded yet.</div>
+        </div>
+      </article>
+
+      <article class="studio-card">
+        <h3>Create Custom NFT Asset</h3>
+        <p class="muted">Users can create and customize their own NFT assets inside the ecosystem loop.</p>
+
+        <div class="row">
+          <div class="field">
+            <label for="asset-uid">UID</label>
+            <input id="asset-uid" class="input" type="text" placeholder="same profile uid">
+          </div>
+          <div class="field">
+            <label for="asset-ants-balance">ANTS Balance</label>
+            <input id="asset-ants-balance" class="input" type="number" min="0" step="1" placeholder="1000">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="asset-name">Asset Name</label>
+            <input id="asset-name" class="input" type="text" placeholder="Ant Colony Badge">
+          </div>
+          <div class="field">
+            <label for="asset-slug">Slug</label>
+            <input id="asset-slug" class="input" type="text" placeholder="ant-colony-badge">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="asset-description">Description</label>
+          <textarea id="asset-description" class="textarea" placeholder="Describe your NFT utility"></textarea>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="asset-image">Image URI</label>
+            <input id="asset-image" class="input" type="text" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="asset-metadata">Metadata URI</label>
+            <input id="asset-metadata" class="input" type="text" placeholder="https://...">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="asset-ants-stake">ANTS Stake</label>
+            <input id="asset-ants-stake" class="input" type="number" min="0" step="1" placeholder="0">
+          </div>
+          <div class="field">
+            <label for="asset-status">Status</label>
+            <select id="asset-status" class="select">
+              <option value="active">active</option>
+              <option value="draft">draft</option>
+              <option value="locked">locked</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="asset-traits">Traits JSON Array</label>
+          <textarea id="asset-traits" class="textarea" placeholder='[{"trait_type":"Colony","value":"Atlas"}]'></textarea>
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="asset-create-btn" type="button">Create NFT Asset</button>
+          <button class="btn btn-alt" id="asset-load-btn" type="button">Load My Assets</button>
+        </div>
+
+        <div id="asset-status-box" class="status info">Asset studio ready.</div>
+      </article>
+
+      <article class="studio-card">
+        <h3>My NFT Assets</h3>
+        <p class="muted">Edit existing assets to let users keep customizing their digital identity.</p>
+        <div id="asset-list" class="asset-list">
+          <div class="status info">No assets loaded yet.</div>
+        </div>
+      </article>
+
+      <article class="studio-card" style="grid-column: 1 / -1;">
+        <h3>Ant Colony Feed</h3>
+        <p class="muted">Recent NFT activity from users across the ecosystem.</p>
+        <div class="asset-actions">
+          <button class="btn btn-main" id="feed-refresh-btn" type="button">Refresh Feed</button>
+        </div>
+        <div id="feed-list" class="feed-list">
+          <div class="status info">Feed not loaded yet.</div>
+        </div>
+      </article>
     </section>
 
     <footer>
@@ -336,5 +748,6 @@
       <div>© 2026 A Network. NFT utility layer roadmap page.</div>
     </footer>
   </div>
+  <script src="assets/js/nft.js"></script>
 </body>
 </html>
