@@ -1123,18 +1123,23 @@
             Data refreshes every 30 seconds.
           </p>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="refreshPools();refreshMarketActivity()">↺ Refresh</button>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-sm" id="market-view-production-btn" onclick="setMarketViewMode('production')" style="padding:6px 10px;">Production DEX</button>
+          <button class="btn btn-outline btn-sm" id="market-view-test-btn" onclick="setMarketViewMode('test')" style="padding:6px 10px;">Public Test View</button>
+          <button class="btn btn-ghost btn-sm" onclick="refreshPools();refreshMarketActivity()">↺ Refresh</button>
+        </div>
       </div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:12px 14px;background:rgba(7,17,29,0.55);border:1px solid var(--line);border-radius:var(--radius-sm);">
         <div style="font-size:12px;color:var(--muted);">Selected market pair</div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <select class="form-input" id="market-pair-select" style="min-width:220px;padding:9px 12px;font-size:12.5px;" onchange="renderMarketMicrostructure()">
+          <select class="form-input" id="market-pair-select" style="min-width:220px;padding:9px 12px;font-size:12.5px;" onchange="refreshSelectedMarketViews()">
             <option value="">Loading pools…</option>
           </select>
-          <button class="btn btn-outline btn-sm" onclick="renderMarketMicrostructure()">Update Book</button>
+          <button class="btn btn-outline btn-sm" onclick="refreshSelectedMarketViews()">Update Book</button>
         </div>
       </div>
+      <div id="market-env-note" style="margin-top:-4px;margin-bottom:14px;padding:10px 12px;border:1px dashed var(--line);border-radius:var(--radius-sm);font-size:12px;color:var(--muted);"></div>
 
       <div class="card">
         <div class="markets-table-wrap">
@@ -1175,6 +1180,7 @@
         <div class="card-body">
           <div id="dex-chart-container" style="position:relative;height:300px;border:1px solid var(--line);border-radius:8px;background:rgba(88,197,255,0.02);overflow:hidden;">
             <svg id="dex-chart-svg" style="display:block;width:100%;height:100%;"></svg>
+            <div id="dex-chart-empty-note" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;text-align:center;color:var(--muted);font-size:13px;line-height:1.5;">Loading market chart…</div>
             <div id="dex-chart-cross-v" class="cp-live-cross-v is-hidden"></div>
             <div id="dex-chart-cross-h" class="cp-live-cross-h is-hidden"></div>
             <div id="dex-chart-tooltip" class="cp-live-tooltip is-hidden"></div>

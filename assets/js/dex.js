@@ -155,6 +155,33 @@ const DEX_CHART_TIMEFRAMES = [
 const DEX_CHART_DEFAULT_TIMEFRAME = '1m';
 const DEX_CHART_HISTORY_POINTS = 2880;       // 24h at 30s samples
 const DEX_CHART_MAX_VISIBLE_CANDLES = 150;
+const MARKET_VIEW_MODES = {
+  PRODUCTION: 'production',
+  TEST: 'test',
+};
+const PUBLIC_TEST_POOLS = [
+  {
+    token_symbol: 'WBNB',
+    anet_reserve_anet: 125000,
+    token_reserve_units: 3125 * ANTS_PER_ANET,
+    fee_bps: 30,
+    lp_holders: 42,
+  },
+  {
+    token_symbol: 'USDT',
+    anet_reserve_anet: 98000,
+    token_reserve_units: 245000 * ANTS_PER_ANET,
+    fee_bps: 30,
+    lp_holders: 61,
+  },
+  {
+    token_symbol: 'WBTC',
+    anet_reserve_anet: 76000,
+    token_reserve_units: 118 * ANTS_PER_ANET,
+    fee_bps: 30,
+    lp_holders: 18,
+  },
+];
 
 /* ── App state ──────────────────────────────── */
 const state = {
@@ -178,6 +205,7 @@ const state = {
   bridgeDirection: 'evm_to_anet',  // 'evm_to_anet' | 'anet_to_evm'
   selectedBridgeChain: 56,          // BNB Chain default
   marketPair: '',
+  marketViewMode: MARKET_VIEW_MODES.PRODUCTION,
   recentLocalTrades: [],
   chainTxs: [],
   miniPriceSeries: {},
@@ -648,13 +676,9 @@ function submitBridgeNotify() {
 async function refreshPools() {
   state.pools = await loadPools();
   captureMiniChartSnapshots();
-  captureDexChartSnapshot();
   renderPoolsSidebar();
   renderMarketsTable();
-  hydrateMarketPairSelector();
-  renderMarketMicrostructure();
-  const history = readDexChartHistory();
-  renderDexChart(history);
+  refreshSelectedMarketViews();
   renderLiqPoolList();
   updateHeroStats();
   renderMiniLiveChart();
@@ -1197,16 +1221,75 @@ async function refreshMarketActivity() {
   renderLastTradesTable();
 }
 
+function getMarketPoolsForView() {
+  return state.marketViewMode === MARKET_VIEW_MODES.TEST ? PUBLIC_TEST_POOLS : state.pools;
+}
+
+function renderMarketEnvironmentNote() {
+  const noteEl = document.getElementById('market-env-note');
+  if (!noteEl) return;
+
+  const cashoutLine = 'Cashout unlocks after 1,000 validated ANTS sessions.';
+  if (state.marketViewMode === MARKET_VIEW_MODES.TEST) {
+    noteEl.textContent = `Public Test View shows demo pools for transparent public preview. Production settlement happens only in Production DEX. ${cashoutLine}`;
+    return;
+  }
+
+  if (!state.pools.length) {
+    noteEl.textContent = `Production DEX is live but this endpoint currently has no active pools. Switch to Public Test View to preview depth and chart behavior. ${cashoutLine}`;
+    return;
+  }
+
+  noteEl.textContent = `Production DEX market data is live from active on-chain pools. ${cashoutLine}`;
+}
+
+function syncMarketViewButtons() {
+  const productionBtn = document.getElementById('market-view-production-btn');
+  const testBtn = document.getElementById('market-view-test-btn');
+  if (productionBtn) {
+    productionBtn.classList.toggle('btn-outline', state.marketViewMode !== MARKET_VIEW_MODES.PRODUCTION);
+    productionBtn.classList.toggle('btn', state.marketViewMode === MARKET_VIEW_MODES.PRODUCTION);
+  }
+  if (testBtn) {
+    testBtn.classList.toggle('btn-outline', state.marketViewMode !== MARKET_VIEW_MODES.TEST);
+    testBtn.classList.toggle('btn', state.marketViewMode === MARKET_VIEW_MODES.TEST);
+  }
+}
+
+function refreshSelectedMarketViews() {
+  renderMarketMicrostructure();
+  captureDexChartSnapshot();
+  const history = readDexChartHistory();
+  renderDexChart(history);
+  renderMarketEnvironmentNote();
+}
+
+function setMarketViewMode(mode) {
+  const nextMode = mode === MARKET_VIEW_MODES.TEST ? MARKET_VIEW_MODES.TEST : MARKET_VIEW_MODES.PRODUCTION;
+  if (nextMode === state.marketViewMode) return;
+
+  state.marketViewMode = nextMode;
+  state.marketPair = '';
+  state.dexChartViewStart = 0;
+  state.dexChartViewCount = 0;
+  state.dexChartLastRender = null;
+
+  syncMarketViewButtons();
+  renderMarketsTable();
+  refreshSelectedMarketViews();
+}
+
 function hydrateMarketPairSelector() {
   const sel = document.getElementById('market-pair-select');
   if (!sel) return;
-  if (state.pools.length === 0) {
+  const pools = getMarketPoolsForView();
+  if (pools.length === 0) {
     sel.innerHTML = '<option value="">No pools available</option>';
     return;
   }
-  sel.innerHTML = state.pools.map(p => `<option value="${p.token_symbol}">ANET / ${p.token_symbol}</option>`).join('');
-  if (!state.marketPair || !state.pools.some(p => p.token_symbol === state.marketPair)) {
-    state.marketPair = state.selectedPool || state.pools[0].token_symbol;
+  sel.innerHTML = pools.map(p => `<option value="${p.token_symbol}">ANET / ${p.token_symbol}</option>`).join('');
+  if (!state.marketPair || !pools.some(p => p.token_symbol === state.marketPair)) {
+    state.marketPair = state.selectedPool || pools[0].token_symbol;
   }
   sel.value = state.marketPair;
 }
@@ -1214,8 +1297,9 @@ function hydrateMarketPairSelector() {
 function getSelectedMarketPool() {
   const sel = document.getElementById('market-pair-select');
   if (sel && sel.value) state.marketPair = sel.value;
-  if (!state.marketPair && state.pools.length) state.marketPair = state.pools[0].token_symbol;
-  return state.pools.find(p => p.token_symbol === state.marketPair) || null;
+  const pools = getMarketPoolsForView();
+  if (!state.marketPair && pools.length) state.marketPair = pools[0].token_symbol;
+  return pools.find(p => p.token_symbol === state.marketPair) || null;
 }
 
 function renderMarketMicrostructure() {
@@ -1352,13 +1436,18 @@ function renderChainTxTable() {
 function renderMarketsTable() {
   const tbody = document.getElementById('markets-tbody');
   if (!tbody) return;
-  if (state.pools.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">No pools found. Pools will appear here once created.</td></tr>`;
+  const pools = getMarketPoolsForView();
+  if (pools.length === 0) {
+    const message = state.marketViewMode === MARKET_VIEW_MODES.PRODUCTION
+      ? 'No production pools found yet. Pools will appear here once created on the live endpoint.'
+      : 'No public test pools configured.';
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">${message}</td></tr>`;
     hydrateMarketPairSelector();
     renderMarketMicrostructure();
+    renderMarketEnvironmentNote();
     return;
   }
-  tbody.innerHTML = state.pools.map(pool => {
+  tbody.innerHTML = pools.map(pool => {
     const sym = pool.token_symbol || '';
     const anetRes = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
     const tokRes  = Number(pool.token_reserve_units || 0) / ANTS_PER_ANET;
@@ -1383,6 +1472,7 @@ function renderMarketsTable() {
     </tr>`;
   }).join('');
   hydrateMarketPairSelector();
+  renderMarketEnvironmentNote();
 }
 
 /* ── DEX Chart functions ────────────────────– */
@@ -1393,7 +1483,7 @@ function getDexChartTimeframe() {
 
 function getDexChartHistoryKey() {
   const pool = getSelectedMarketPool();
-  return pool ? `dex_chart_history_${normalizeKey(pool.token_symbol)}` : null;
+  return pool ? `dex_chart_history_${state.marketViewMode}_${normalizeKey(pool.token_symbol)}` : null;
 }
 
 function normalizeKey(value) {
@@ -1444,7 +1534,13 @@ function captureDexChartSnapshot() {
   const pool = getSelectedMarketPool();
   if (!pool) return;
   
-  const price = getPoolPriceInAnet(pool);
+  let price = getPoolPriceInAnet(pool);
+  if (state.marketViewMode === MARKET_VIEW_MODES.TEST && Number.isFinite(price) && price > 0) {
+    const tick = Math.floor(Date.now() / 30000);
+    const phase = (normalizeKey(pool.token_symbol).charCodeAt(0) % 11) / 7;
+    const pulse = (Math.sin((tick + phase) / 4.8) * 0.012) + (Math.cos((tick + phase) / 8.2) * 0.006);
+    price = Math.max(price * 0.9, price * (1 + pulse));
+  }
   if (price == null || !isFinite(price) || price <= 0) return;
   
   const key = getDexChartHistoryKey();
@@ -1507,8 +1603,21 @@ function aggregateDexChartHistory(history, bucketMs) {
 
 function renderDexChart(history) {
   const svg = document.getElementById('dex-chart-svg');
+  const emptyNoteEl = document.getElementById('dex-chart-empty-note');
   if (!svg || !Array.isArray(history) || history.length === 0) {
     if (svg) svg.innerHTML = '';
+    if (emptyNoteEl) {
+      emptyNoteEl.style.display = 'flex';
+      emptyNoteEl.textContent = state.marketViewMode === MARKET_VIEW_MODES.TEST
+        ? 'Public Test View is preparing demo candles. Keep this tab open for a few refresh cycles.'
+        : 'No production chart candles yet. Create/activate a live pool or switch to Public Test View.';
+    }
+    const startEl = document.getElementById('dex-chart-start');
+    const midEl = document.getElementById('dex-chart-mid');
+    const endEl = document.getElementById('dex-chart-end');
+    if (startEl) startEl.textContent = '—';
+    if (midEl) midEl.textContent = '—';
+    if (endEl) endEl.textContent = '—';
     return;
   }
 
@@ -1525,7 +1634,14 @@ function renderDexChart(history) {
   state.dexChartViewCount = viewCount;
   
   const ohlc = fullOhlc.slice(viewStart, viewStart + viewCount);
-  if (!ohlc.length) return;
+  if (!ohlc.length) {
+    if (emptyNoteEl) {
+      emptyNoteEl.style.display = 'flex';
+      emptyNoteEl.textContent = 'Not enough points to render candles yet.';
+    }
+    return;
+  }
+  if (emptyNoteEl) emptyNoteEl.style.display = 'none';
 
   const allHighs = ohlc.map((c) => c.high);
   const allLows = ohlc.map((c) => c.low);
@@ -2210,8 +2326,8 @@ async function init() {
   renderBridgeUI();
   buildBridgeTokenOptions(state.selectedBridgeChain);
   initCreatePoolHelpers();
-  hydrateMarketPairSelector();
-  renderMarketMicrostructure();
+  syncMarketViewButtons();
+  refreshSelectedMarketViews();
   refreshMarketActivity();
 
   // DEX Chart event listeners
