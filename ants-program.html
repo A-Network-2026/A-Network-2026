@@ -33,6 +33,7 @@
       </a>
       <nav>
         <a href="index.html">Home</a>
+        <a href="#colony-progress">Colony Progress</a>
         <a href="#language">Language</a>
         <a href="#roles">Ant Roles</a>
         <a href="#layers">4 Layers</a>
@@ -79,6 +80,86 @@
           <p>
             Members can inspect public blockchain activity through ANET-Chain. That chain view supports transparency, transfer visibility, and settlement observation, while the ANTS Program remains the human entry layer where miners, developers, and aligned backers organize through colony groups before broader Web4 settlement flows.
           </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="colony-progress">
+      <div class="section-card colony-progress-card">
+        <div class="section-head">
+          <div>
+            <h2>Colony Progress Tracker</h2>
+            <p class="section-copy">Live colony and mining activity from ANET chain stats. Pick a colony room from chain data and track its member momentum with baseline protection.</p>
+          </div>
+          <div class="progress-chip-wrap">
+            <span class="progress-chip" id="cp-status">Loading...</span>
+          </div>
+        </div>
+
+        <div class="cp-controls">
+          <label class="cp-select-label" for="cp-colony-select">Colony Focus</label>
+          <select id="cp-colony-select" class="cp-select" aria-label="Select colony room">
+            <option value="all">All Colony Network</option>
+          </select>
+        </div>
+
+        <div class="cp-transparency" aria-label="Transparency and data provenance">
+          <p class="cp-transparency-title">Transparency Panel</p>
+          <div class="cp-transparency-grid">
+            <p><span>Source</span><strong id="cp-source-endpoint">https://explorer.a-network.net/stats/investor</strong></p>
+            <p><span>Mode</span><strong id="cp-data-mode">loading</strong></p>
+            <p><span>Last Updated</span><strong id="cp-last-updated">-</strong></p>
+            <p><span>Anti-Spam Rule</span><strong id="cp-metric-rule">Colony mode prefers mining-strength proxy, not message count.</strong></p>
+          </div>
+          <details class="cp-raw-details">
+            <summary>Show raw metric snapshot</summary>
+            <pre id="cp-raw-preview" class="cp-raw-preview">{}</pre>
+            <div class="cp-copy-row">
+              <button type="button" class="cp-copy-btn" id="cp-copy-snapshot">Copy Snapshot</button>
+              <span class="cp-copy-status" id="cp-copy-status" aria-live="polite"></span>
+            </div>
+          </details>
+        </div>
+
+        <div class="cp-kpis">
+          <article class="cp-kpi">
+            <p class="cp-kpi-label">Tracked Colony Members</p>
+            <p class="cp-kpi-value" id="cp-members">-</p>
+            <p class="cp-kpi-note">Baseline: 1 member</p>
+          </article>
+          <article class="cp-kpi">
+            <p class="cp-kpi-label">Active Miners</p>
+            <p class="cp-kpi-value" id="cp-active-miners">-</p>
+            <p class="cp-kpi-note">From real mining activity</p>
+          </article>
+          <article class="cp-kpi">
+            <p class="cp-kpi-label">Colony Rooms</p>
+            <p class="cp-kpi-value" id="cp-colony-rooms">-</p>
+            <p class="cp-kpi-note">Community room network</p>
+          </article>
+          <article class="cp-kpi">
+            <p class="cp-kpi-label" id="cp-kpi4-label">Total Mining Sessions</p>
+            <p class="cp-kpi-value" id="cp-total-sessions">-</p>
+            <p class="cp-kpi-note" id="cp-kpi4-note">Historical participation</p>
+          </article>
+        </div>
+
+        <div class="cp-progress-track" aria-label="Colony member progress toward 1000">
+          <div class="cp-progress-fill" id="cp-progress-fill" style="width:0%"></div>
+        </div>
+        <p class="cp-progress-caption" id="cp-progress-caption">Progress to 1,000-member colony milestone: 0%</p>
+
+        <div class="cp-chart-wrap">
+          <div class="cp-chart-head">
+            <p>Live Member Trend</p>
+            <small>Last 24 samples</small>
+          </div>
+          <div class="cp-bars" id="cp-bars" aria-label="Colony progress bars"></div>
+          <div class="cp-axis" id="cp-axis" aria-hidden="true">
+            <span id="cp-axis-start">-</span>
+            <span id="cp-axis-mid">-</span>
+            <span id="cp-axis-end">-</span>
+          </div>
         </div>
       </div>
     </section>
@@ -174,6 +255,7 @@
     </footer>
   </div>
   <script src="assets/js/site-ai.js" defer></script>
+  <script src="assets/js/ants-program.js?v=20260509-4" defer></script>
 </body>
 </html>
 
