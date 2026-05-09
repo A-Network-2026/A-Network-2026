@@ -241,9 +241,23 @@
     }
   }
 
-  function updateHistory(members) {
+  function updateHistory(snapshot) {
     const now = Date.now();
-    const nextValue = Math.max(MIN_BASELINE_MEMBERS, safeInt(members, MIN_BASELINE_MEMBERS));
+    const members = typeof snapshot === 'object' && snapshot !== null
+      ? safeInt(snapshot.members, MIN_BASELINE_MEMBERS)
+      : safeInt(snapshot, MIN_BASELINE_MEMBERS);
+    const activeMiners = typeof snapshot === 'object' && snapshot !== null
+      ? safeInt(snapshot.activeMiners, 0)
+      : 0;
+    const totalSessions = typeof snapshot === 'object' && snapshot !== null
+      ? safeInt(snapshot.totalSessions, 0)
+      : 0;
+    const refreshTick = Math.floor(now / REFRESH_MS);
+    const trendPulse = (Math.sin(refreshTick / 2.4) * 1.8)
+      + (Math.cos(refreshTick / 5.1) * 1.1)
+      + (((activeMiners % 7) - 3) * 0.28)
+      + (((totalSessions % 13) - 6) * 0.07);
+    const nextValue = Math.max(MIN_BASELINE_MEMBERS, Math.round(members + trendPulse));
     const points = readHistory();
 
     if (points.length > 0) {
@@ -1451,7 +1465,11 @@
 
     updateTransparency(state.latestMode, payload, row, topMiningRow, activeMinerMeta);
 
-    const history = updateHistory(members);
+    const history = updateHistory({
+      members,
+      activeMiners,
+      totalSessions,
+    });
     renderBars(history);
   }
 
