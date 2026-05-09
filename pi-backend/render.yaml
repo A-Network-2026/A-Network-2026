@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: pi-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: "3001"
+      - key: PI_SANDBOX
+        value: "false"
+      - key: PI_ENABLE_TEST_ADMIN
+        value: "true"
+      - key: PI_ALLOW_TEST_ASSET_MINT
+        value: "true"
+      - key: PI_ALLOW_INELIGIBLE_FOR_DEX_TEST
+        value: "true"
+      - key: PI_REQUIRED_SESSIONS
+        value: "1000"
+      - key: PI_ENFORCE_PRIMARY_WALLET_BINDING
+        value: "true"
+      - key: ALLOWED_ORIGIN
+        value: "https://a-network.net"
+      - key: ANET_CHAIN_API_BASE_URL
+        value: "https://explorer.a-network.net"
+      - key: NFT_MIN_PROFILE_ANTS
+        value: "1000"
+      - key: NFT_MAX_BIO_LENGTH
+        value: "280"
+      # These need to be set manually in Render dashboard as they contain secrets:
+      # - PI_API_KEY
+      # - PI_APP_WALLET
+      # - ANET_L1_DEX_ADMIN_KEY
+      # - PI_ADMIN_KEY
