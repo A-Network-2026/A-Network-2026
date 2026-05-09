@@ -348,6 +348,94 @@
       overflow-wrap: anywhere;
     }
 
+    .cp-reward {
+      margin-bottom: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(4, 14, 23, 0.74);
+      padding: 12px;
+    }
+
+    .cp-reward-title {
+      margin: 0 0 8px;
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      color: var(--accent-2);
+      text-transform: uppercase;
+    }
+
+    .cp-reward-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 12px;
+    }
+
+    .cp-reward-grid p {
+      margin: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .cp-reward-grid span {
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }
+
+    .cp-reward-grid strong {
+      color: var(--text);
+      font-size: 0.84rem;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .cp-why-top {
+      margin: 10px 0 0;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(108, 231, 177, 0.24);
+      background: rgba(108, 231, 177, 0.08);
+      color: #d8fbe9;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .cp-room-list {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .cp-room-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(2, 9, 15, 0.72);
+    }
+
+    .cp-room-item.is-selected {
+      border-color: var(--line-strong);
+      background: rgba(88, 197, 255, 0.12);
+    }
+
+    .cp-room-name {
+      margin: 0 0 6px;
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .cp-room-meta {
+      margin: 2px 0;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
     .cp-transparency {
       margin-bottom: 12px;
       border: 1px solid var(--line);
@@ -618,7 +706,12 @@
       }
 
       .cp-leader-grid,
+      .cp-reward-grid,
       .cp-transparency-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cp-room-list {
         grid-template-columns: 1fr;
       }
     }

@@ -17,6 +17,12 @@
     topAntCode: document.getElementById('cp-top-ant-code'),
     topScore: document.getElementById('cp-top-score'),
     topBasis: document.getElementById('cp-top-basis'),
+    selectedRooms: document.getElementById('cp-selected-rooms'),
+    rewardOwner: document.getElementById('cp-reward-owner'),
+    rewardMembers: document.getElementById('cp-reward-members'),
+    rewardBasis: document.getElementById('cp-reward-basis'),
+    whyTop: document.getElementById('cp-why-top'),
+    roomList: document.getElementById('cp-room-list'),
     sourceEndpoint: document.getElementById('cp-source-endpoint'),
     dataMode: document.getElementById('cp-data-mode'),
     lastUpdated: document.getElementById('cp-last-updated'),
@@ -321,6 +327,70 @@
     return topRow;
   }
 
+  function rankRoomRows(metrics) {
+    const usage = Array.isArray(metrics?.group_usage) ? metrics.group_usage : [];
+    return usage.slice().sort((a, b) => {
+      const miningDiff = safeInt(b?.active_chat_ants) - safeInt(a?.active_chat_ants);
+      if (miningDiff !== 0) return miningDiff;
+      const roomDiff = safeInt(b?.room_count) - safeInt(a?.room_count);
+      if (roomDiff !== 0) return roomDiff;
+      return safeInt(b?.message_count) - safeInt(a?.message_count);
+    });
+  }
+
+  function renderRoomCandidates(metrics, selectedRow) {
+    if (!refs.roomList) return;
+
+    const ranked = rankRoomRows(metrics).slice(0, 6);
+    if (!ranked.length) {
+      refs.roomList.innerHTML = '<div class="cp-room-item"><p class="cp-room-name">No room data yet.</p><p class="cp-room-meta">Waiting for chain metrics.</p></div>';
+      return;
+    }
+
+    const selectedKey = normalizeKey(selectedRow?.room_name || '');
+    refs.roomList.innerHTML = ranked
+      .map((row, idx) => {
+        const roomKey = normalizeKey(row?.room_name || '');
+        const selectedClass = selectedKey && roomKey === selectedKey ? ' is-selected' : '';
+        return `<article class="cp-room-item${selectedClass}"><p class="cp-room-name">#${idx + 1} ${displayLabel(row.room_name)}</p><p class="cp-room-meta">Owner: ${displayLabel(row.top_owner_label, 'N/A')}</p><p class="cp-room-meta">Rooms: ${formatNumber(safeInt(row.room_count, 0))}</p><p class="cp-room-meta">Mining members: ${formatNumber(safeInt(row.active_chat_ants, 0))}</p></article>`;
+      })
+      .join('');
+  }
+
+  function renderRewardTarget(row, topMiningRow, metrics) {
+    const targetRow = row || topMiningRow;
+    renderRoomCandidates(metrics, row);
+
+    if (!targetRow) {
+      if (refs.selectedRooms) refs.selectedRooms.textContent = '-';
+      if (refs.rewardOwner) refs.rewardOwner.textContent = '-';
+      if (refs.rewardMembers) refs.rewardMembers.textContent = '-';
+      if (refs.rewardBasis) refs.rewardBasis.textContent = 'active_chat_ants + room_count';
+      if (refs.whyTop) refs.whyTop.textContent = 'No colony room data yet. Once mining metrics arrive, the owner reward target and reason will appear here.';
+      return;
+    }
+
+    const roomCount = Math.max(1, safeInt(targetRow.room_count, 1));
+    const activeMembers = Math.max(1, safeInt(targetRow.active_chat_ants, 1));
+    const ownerCode = displayLabel(targetRow.top_owner_label, 'N/A');
+    const colonyName = displayLabel(targetRow.room_name, 'Unknown Colony');
+    const totalParticipants = Math.max(1, safeInt(metrics.total_group_participants, 1));
+    const share = ((activeMembers / totalParticipants) * 100).toFixed(1);
+
+    if (refs.selectedRooms) refs.selectedRooms.textContent = formatNumber(roomCount);
+    if (refs.rewardOwner) refs.rewardOwner.textContent = ownerCode;
+    if (refs.rewardMembers) refs.rewardMembers.textContent = formatNumber(activeMembers);
+    if (refs.rewardBasis) refs.rewardBasis.textContent = 'active_chat_ants + room_count';
+
+    if (refs.whyTop) {
+      refs.whyTop.textContent = `This colony room is ranked top for rewards because owner ${ownerCode} leads ${roomCount} active room(s), and both the owner and members show strong mining participation (${activeMembers} active mining members, ${share}% of tracked participants). Ranking uses mining activity, not referrals.`;
+    }
+
+    if (row && topMiningRow && normalizeKey(row.room_name) !== normalizeKey(topMiningRow.room_name) && refs.whyTop) {
+      refs.whyTop.textContent += ` Global top mining colony right now is ${displayLabel(topMiningRow.room_name)}.`;
+    }
+  }
+
   function extractTrackedMembers(metrics, row) {
     if (row) {
       return Math.max(MIN_BASELINE_MEMBERS, safeInt(row.active_chat_ants, MIN_BASELINE_MEMBERS));
@@ -430,6 +500,15 @@
             ranking_basis: 'active_chat_ants (mining-based)',
           }
         : null,
+      reward_target: row
+        ? {
+            selected_colony: displayLabel(row.room_name),
+            reward_owner: displayLabel(row.top_owner_label, 'N/A'),
+            room_count: safeInt(row.room_count),
+            member_mining_activity: safeInt(row.active_chat_ants),
+            rationale: 'Owner room ranking is based on active_chat_ants and room_count, not referrals.',
+          }
+        : null,
     };
 
     refs.rawPreview.textContent = JSON.stringify(snapshot, null, 2);
@@ -442,6 +521,7 @@
     renderColonySelect(options);
 
     const row = selectedColonyRow(options);
+    renderRewardTarget(row, topMiningRow, metrics);
     const members = extractTrackedMembers(metrics, row);
     const activeMinerMeta = resolveActiveMiners(metrics);
     const activeMiners = safeInt(activeMinerMeta.value);
