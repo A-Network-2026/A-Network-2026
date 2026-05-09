@@ -1106,7 +1106,6 @@
     const lastX = leftPad + (ohlc.length - 1) * candleStep + candleStep * 0.5;
     const lastMarker = `<circle class=\"cp-last-dot\" cx=\"${lastX.toFixed(2)}\" cy=\"${lastY.toFixed(2)}\" r=\"3.5\" fill=\"#58c5ff\" stroke=\"#d9fbff\" stroke-width=\"1.8\"></circle>`;
 
-    const timeframe = getLiveTimeframe();
     const title = `Live member trend OHLC chart (${timeframe.label}). Green = up, red = down. Last close: ${formatNumber(lastCandle?.close ?? MIN_BASELINE_MEMBERS)}.`;
     refs.bars.innerHTML = `<svg class=\"cp-chart-svg\" width=\"${width}\" height=\"${height}\" viewBox=\"0 0 ${width} ${height}\" role=\"img\" aria-label=\"${title}\"><title>${title}</title>${gridLines}${candleSvgs}${lastMarker}${rightAxisLabels}</svg><div id=\"cp-live-cross-v\" class=\"cp-live-cross-v is-hidden\"></div><div id=\"cp-live-cross-h\" class=\"cp-live-cross-h is-hidden\"></div><div id=\"cp-live-tooltip\" class=\"cp-live-tooltip is-hidden\"></div>`;
 
