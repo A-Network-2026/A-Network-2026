@@ -660,6 +660,54 @@
       font-size: 0.75rem;
     }
 
+    .cp-live-toolbar {
+      margin: 8px 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .cp-live-timeframes {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(4, 12, 19, 0.56);
+    }
+
+    .cp-live-timeframes button {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+    }
+
+    .cp-live-timeframes button:hover {
+      color: var(--text);
+      border-color: rgba(88, 197, 255, 0.36);
+      background: rgba(88, 197, 255, 0.12);
+    }
+
+    .cp-live-timeframes button.is-active {
+      color: #031018;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+
+    .cp-live-hint {
+      color: var(--muted);
+      font-size: 0.74rem;
+    }
+
     .cp-bars {
       position: relative;
       height: 320px;
@@ -1047,6 +1095,10 @@
         height: 260px;
       }
 
+      .cp-live-toolbar {
+        align-items: flex-start;
+      }
+
       .cp-select {
         width: 100%;
       }
@@ -1069,6 +1121,11 @@
 
       .cp-bars {
         height: 220px;
+      }
+
+      .cp-live-timeframes {
+        width: 100%;
+        justify-content: space-between;
       }
 
       .cp-axis {

@@ -176,8 +176,20 @@
 
         <div class="cp-chart-wrap">
           <div class="cp-chart-head">
-            <p>Live Member Trend</p>
-            <small>Last 24 samples</small>
+            <div>
+              <p>Live Member Trend</p>
+              <small>TradingView-style live view with timeframe controls.</small>
+            </div>
+            <small>Green candles: up | Red candles: down</small>
+          </div>
+          <div class="cp-live-toolbar">
+            <div class="cp-live-timeframes" id="cp-live-timeframes" aria-label="Live member trend timeframe options">
+              <button type="button" data-bucket="1" class="is-active">1m</button>
+              <button type="button" data-bucket="5">5m</button>
+              <button type="button" data-bucket="15">15m</button>
+              <button type="button" data-bucket="60">1h</button>
+            </div>
+            <small class="cp-live-hint">Real member history, aggregated by selected timeframe.</small>
           </div>
           <div class="cp-bars" id="cp-bars" aria-label="Colony progress bars"></div>
           <div class="cp-axis" id="cp-axis" aria-hidden="true">
@@ -315,7 +327,7 @@
     </footer>
   </div>
   <script src="assets/js/site-ai.js" defer></script>
-  <script src="assets/js/ants-program.js?v=20260509-15" defer></script>
+  <script src="assets/js/ants-program.js?v=20260509-16" defer></script>
 </body>
 </html>
 

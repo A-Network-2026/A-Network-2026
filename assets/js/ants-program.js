@@ -4,7 +4,8 @@
   const CHAIN_API = 'https://explorer.a-network.net';
   const STATS_ENDPOINT = '/stats/investor';
   const HISTORY_KEY = 'anet_ants_colony_member_history_v1';
-  const MAX_POINTS = 24;
+  const LIVE_HISTORY_POINTS = 240;
+  const LIVE_DEFAULT_BUCKET_MINUTES = 1;
   const MILESTONE_MEMBERS = 1000;
   const MIN_BASELINE_MEMBERS = 1;
   const REFRESH_MS = 30000;
@@ -46,6 +47,7 @@
     axisStart: document.getElementById('cp-axis-start'),
     axisMid: document.getElementById('cp-axis-mid'),
     axisEnd: document.getElementById('cp-axis-end'),
+    liveTimeframes: document.getElementById('cp-live-timeframes'),
     tpowBars: document.getElementById('cp-tpow-bars'),
     tpowOwnerSelect: document.getElementById('cp-tpow-owner-select'),
     tpowOwnerDisplay: document.getElementById('cp-tpow-owner'),
@@ -72,6 +74,7 @@
     latestActiveMinerMeta: null,
     latestRoomReward: null,
     liveLastRender: null,
+    liveBucketMinutes: LIVE_DEFAULT_BUCKET_MINUTES,
     tpowBucketMinutes: TPOW_BUCKET_MINUTES,
     tpowViewStart: 0,
     tpowViewCount: 0,
@@ -192,7 +195,7 @@
           v: safeInt(item?.v, MIN_BASELINE_MEMBERS),
         }))
         .filter((item) => item.t > 0)
-        .slice(-MAX_POINTS);
+        .slice(-LIVE_HISTORY_POINTS);
     } catch (_) {
       return [];
     }
@@ -200,7 +203,7 @@
 
   function writeHistory(points) {
     try {
-      localStorage.setItem(getHistoryKey(), JSON.stringify(points.slice(-MAX_POINTS)));
+      localStorage.setItem(getHistoryKey(), JSON.stringify(points.slice(-LIVE_HISTORY_POINTS)));
     } catch (_) {
       // Ignore localStorage write failures (privacy mode, quota, etc.)
     }
@@ -223,18 +226,66 @@
     }
 
     points.push({ t: now, v: nextValue });
-    const trimmed = points.slice(-MAX_POINTS);
+    const trimmed = points.slice(-LIVE_HISTORY_POINTS);
     writeHistory(trimmed);
     return trimmed;
   }
 
   function buildFallbackHistory() {
     const points = [];
-    for (let i = 0; i < MAX_POINTS; i += 1) {
-      points.push({ t: Date.now() - (MAX_POINTS - i) * REFRESH_MS, v: MIN_BASELINE_MEMBERS });
+    for (let i = 0; i < LIVE_HISTORY_POINTS; i += 1) {
+      points.push({ t: Date.now() - (LIVE_HISTORY_POINTS - i) * REFRESH_MS, v: MIN_BASELINE_MEMBERS });
     }
     writeHistory(points);
     return points;
+  }
+
+  function getLiveBucketSamples() {
+    // Base sample is REFRESH_MS (30s), so N minutes = N*2 samples.
+    const bucketMinutes = Math.max(1, safeInt(state.liveBucketMinutes, LIVE_DEFAULT_BUCKET_MINUTES));
+    const samples = Math.round((bucketMinutes * 60 * 1000) / REFRESH_MS);
+    return Math.max(1, samples);
+  }
+
+  function setActiveLiveTimeframeButton() {
+    if (!refs.liveTimeframes) return;
+    const buttons = refs.liveTimeframes.querySelectorAll('button[data-bucket]');
+    buttons.forEach((btn) => {
+      const bucket = safeInt(btn.dataset.bucket, LIVE_DEFAULT_BUCKET_MINUTES);
+      if (bucket === state.liveBucketMinutes) {
+        btn.classList.add('is-active');
+      } else {
+        btn.classList.remove('is-active');
+      }
+    });
+  }
+
+  function aggregateLiveHistory(history, bucketSamples) {
+    if (!Array.isArray(history) || history.length === 0) return [];
+    const out = [];
+    for (let i = 0; i < history.length; i += bucketSamples) {
+      const chunk = history.slice(i, i + bucketSamples);
+      if (!chunk.length) continue;
+      out.push({
+        t: chunk[0].t,
+        open: chunk[0].v,
+        high: Math.max(...chunk.map((x) => x.v)),
+        low: Math.min(...chunk.map((x) => x.v)),
+        close: chunk[chunk.length - 1].v,
+        isBullish: chunk[chunk.length - 1].v >= chunk[0].v,
+      });
+    }
+    return out;
+  }
+
+  function onLiveTimeframeClick(event) {
+    const button = event.target.closest('button[data-bucket]');
+    if (!button) return;
+    const bucket = safeInt(button.dataset.bucket, LIVE_DEFAULT_BUCKET_MINUTES);
+    if (bucket === state.liveBucketMinutes) return;
+    state.liveBucketMinutes = bucket;
+    setActiveLiveTimeframeButton();
+    renderBars(readHistory());
   }
 
   function seededRandom(seed) {
@@ -711,8 +762,9 @@
   }
 
   function renderBars(history) {
-    const series = history.length ? history.slice(-MAX_POINTS) : buildFallbackHistory();
-    const ohlc = buildOHLCData(series);
+    const baseSeries = history.length ? history.slice(-LIVE_HISTORY_POINTS) : buildFallbackHistory();
+    const bucketSamples = getLiveBucketSamples();
+    const ohlc = aggregateLiveHistory(baseSeries, bucketSamples);
     if (!ohlc.length) return;
 
     const allHighs = ohlc.map((c) => c.high);
@@ -792,13 +844,14 @@
       valueToY,
     };
 
-    const first = series[0];
-    const middle = series[Math.floor(series.length / 2)];
-    const last = series[series.length - 1];
+    const first = ohlc[0];
+    const middle = ohlc[Math.floor(ohlc.length / 2)];
+    const last = ohlc[ohlc.length - 1];
 
     refs.axisStart.textContent = formatTPoWDateLabel(first?.t || 0);
     refs.axisMid.textContent = formatTPoWDateLabel(middle?.t || 0);
     refs.axisEnd.textContent = formatTPoWDateLabel(last?.t || 0);
+    setActiveLiveTimeframeButton();
   }
 
   function colonyOptions(metrics) {
@@ -1285,6 +1338,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     refs.colonySelect.addEventListener('change', onChangeColony);
     refs.copySnapshot?.addEventListener('click', onCopySnapshot);
+    refs.liveTimeframes?.addEventListener('click', onLiveTimeframeClick);
     refs.tpowOwnerSelect?.addEventListener('change', onChangeTPoWOwner);
     refs.tpowTimeframes?.addEventListener('click', onTPoWTimeframeClick);
     refs.bars?.addEventListener('mousemove', onLivePointerMove);
@@ -1297,6 +1351,7 @@
     window.addEventListener('mouseup', onTPoWDragEnd);
     
     // Initial render
+    setActiveLiveTimeframeButton();
     renderBars(readHistory());
     setActiveTPoWTimeframeButton();
     refreshColonyProgress();
