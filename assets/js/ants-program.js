@@ -308,39 +308,47 @@
   }
 
   function generateTPoWData(ownerCode) {
-    // Generate 6-hour TPoW data with 1-minute candles (360 candles total).
-    // Use seeded randomness so the chart remains stable between refreshes.
+    // Generate 6-hour TPoW data with 1-minute candles (360 candles total)
+    // using deterministic trend phases so all aggregated timeframes show
+    // visible up/down structure similar to market charts.
     const now = Date.now();
     const minuteMs = 60 * 1000;
     const startTime = now - (360 * minuteMs);
     const candles = [];
     const ownerHash = ownerCode.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    let prevClose = 20 + (ownerHash % 14);
+
+    const phaseDrifts = [0.22, -0.25, 0.15]; // up -> down -> recovery
 
     for (let i = 0; i < 360; i += 1) {
       const candleTime = startTime + i * minuteMs;
-      const hourOfDay = new Date(candleTime).getHours();
-      const isPeakWindow = hourOfDay >= 8 && hourOfDay <= 22;
+      const phase = Math.min(2, Math.floor(i / 120));
+      const driftBase = phaseDrifts[phase];
+      const cyc = Math.sin((i + ownerHash) * 0.085) * 0.12;
+      const noise = (seededRandom(ownerHash * 0.77 + i * 1.21) - 0.5) * 2.8;
+      const drift = driftBase + cyc + noise;
 
-      const r1 = seededRandom(ownerHash * 0.37 + i * 0.71);
-      const r2 = seededRandom(ownerHash * 0.91 + i * 1.13);
-      const r3 = seededRandom(ownerHash * 0.53 + i * 1.91);
-      const wave = (Math.sin((i + ownerHash) * 0.11) + 1) * 0.5;
-      const miningProbability = (isPeakWindow ? 0.56 : 0.28) + wave * 0.28;
-      const hasMining = r1 < miningProbability;
+      const open = prevClose;
+      const close = Math.max(1, Math.min(60, open + drift));
 
-      const open = hasMining ? (18 + r2 * 34) : (r2 * 12);
-      const close = hasMining ? (22 + r3 * 36) : (r3 * 10);
-      const high = Math.max(open, close) + (hasMining ? (5 + r1 * 10) : (1 + r1 * 4));
-      const low = Math.max(0, Math.min(open, close) - (hasMining ? (2 + r3 * 7) : (1 + r2 * 3)));
+      const upWick = 0.6 + seededRandom(ownerHash * 1.31 + i * 0.57) * 3.7;
+      const downWick = 0.5 + seededRandom(ownerHash * 1.73 + i * 0.49) * 3.3;
+      const high = Math.min(60, Math.max(open, close) + upWick);
+      const low = Math.max(0, Math.min(open, close) - downWick);
+
+      const miningBias = seededRandom(ownerHash * 0.43 + i * 0.99);
+      const hasMining = close >= 10 && miningBias > 0.12;
 
       candles.push({
         t: candleTime,
-        open: Math.round(open),
-        close: Math.round(close),
-        high: Math.min(60, Math.round(high)),
-        low: Math.max(0, Math.round(low)),
+        open: Math.round(open * 10) / 10,
+        close: Math.round(close * 10) / 10,
+        high: Math.round(high * 10) / 10,
+        low: Math.round(low * 10) / 10,
         hasMining,
       });
+
+      prevClose = close;
     }
 
     return candles;
@@ -475,7 +483,7 @@
     const bucketMins = Math.max(1, safeInt(state.tpowBucketMinutes, TPOW_BUCKET_MINUTES));
     const miningMinutes = safeInt(candle.miningMinutes, candle.hasMining ? 1 : 0);
     const status = candle.hasMining ? `Mining ${miningMinutes}/${bucketMins}m` : 'Idle';
-    tip.innerHTML = `${formatTPoWDateLabel(candle.t)}<br>O:${candle.open} H:${candle.high} L:${candle.low} C:${candle.close}<br>${trend} | ${status}`;
+    tip.innerHTML = `${formatTPoWDateLabel(candle.t)}<br>O:${candle.open.toFixed(1)} H:${candle.high.toFixed(1)} L:${candle.low.toFixed(1)} C:${candle.close.toFixed(1)}<br>${trend} | ${status}`;
 
     const tipWidth = 170;
     const left = Math.max(8, Math.min(render.chartWidth - tipWidth - 8, cx + 10));
@@ -603,8 +611,12 @@
 
     const allHigh = visibleCandles.map((c) => c.high);
     const allLow = visibleCandles.map((c) => c.low);
-    const maxValue = Math.max(...allHigh, 60);
-    const minValue = Math.min(...allLow, 0);
+    const rawMax = Math.max(...allHigh);
+    const rawMin = Math.min(...allLow);
+    const rawRange = Math.max(1, rawMax - rawMin);
+    const pad = Math.max(0.8, rawRange * 0.08);
+    const maxValue = Math.min(60, rawMax + pad);
+    const minValue = Math.max(0, rawMin - pad);
     const range = Math.max(1, maxValue - minValue);
 
     const valueToY = (value) => topPad + (maxValue - value) / range * plotHeight;
@@ -618,7 +630,7 @@
       const yBodyTop = Math.min(yOpen, yClose);
       const yBodyBottom = Math.max(yOpen, yClose);
       const bodyHeight = Math.max(1, yBodyBottom - yBodyTop);
-      const isRed = !candle.hasMining || !candle.isBullish;
+      const isRed = !candle.isBullish;
       const color = isRed ? '#ff6b6b' : '#6ce7b1';
       const opacityClass = isRed ? 'cp-tpow-candle-idle' : 'cp-tpow-candle-mining';
       const wick = `<line class="cp-tpow-wick" x1="${x.toFixed(2)}" y1="${yHigh.toFixed(2)}" x2="${x.toFixed(2)}" y2="${yLow.toFixed(2)}" stroke="${color}" stroke-width="1.35"></line>`;
@@ -626,7 +638,7 @@
       return `${wick}${body}`;
     }).join('');
 
-    const gridLevels = [0, 30, 60];
+    const gridLevels = [minValue, minValue + range / 2, maxValue];
     const gridLines = gridLevels.map((v) => {
       const y = valueToY(v);
       return `<line class="cp-grid-line" x1="${leftPad}" y1="${y.toFixed(2)}" x2="${(leftPad + plotWidth).toFixed(2)}" y2="${y.toFixed(2)}"></line>`;
@@ -634,11 +646,11 @@
 
     const rightAxisLabels = gridLevels.map((v) => {
       const y = valueToY(v);
-      const label = `${v}s`;
+      const label = `${Math.round(v)}s`;
       return `<text class="cp-tpow-axis-text" x="${(chartWidth - 6).toFixed(2)}" y="${(y + 3).toFixed(2)}" text-anchor="end">${label}</text>`;
     }).join('');
 
-    const title = `Proof of Time (TPoW) for ${ownerCode}. ${state.tpowBucketMinutes}-minute candles over 6 hours. Green = bullish mining, red = bearish or idle.`;
+    const title = `Proof of Time (TPoW) for ${ownerCode}. ${state.tpowBucketMinutes}-minute candles over 6 hours. Green = bullish, red = bearish.`;
     refs.tpowBars.innerHTML = `<svg class="cp-tpow-svg" width="${chartWidth}" height="${height}" viewBox="0 0 ${chartWidth} ${height}" role="img" aria-label="${title}"><title>${title}</title>${gridLines}${candleSvgs}${rightAxisLabels}</svg><div id="cp-tpow-cross-v" class="cp-tpow-cross-v is-hidden"></div><div id="cp-tpow-cross-h" class="cp-tpow-cross-h is-hidden"></div><div id="cp-tpow-tooltip" class="cp-tpow-tooltip is-hidden"></div>`;
 
     const first = visibleCandles[0];
