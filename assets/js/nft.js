@@ -66,6 +66,11 @@
     analyticsBars: document.getElementById("analytics-bars"),
     analyticsTopList: document.getElementById("analytics-top-list"),
 
+    nftViewer: document.getElementById("nft-image-viewer"),
+    nftViewerImage: document.getElementById("nft-viewer-image"),
+    nftViewerTitle: document.getElementById("nft-viewer-title"),
+    nftViewerClose: document.getElementById("nft-viewer-close"),
+
     kpiMinAnts: document.getElementById("kpi-min-ants"),
     kpiFeedCount: document.getElementById("kpi-feed-count"),
     kpiMyAssets: document.getElementById("kpi-my-assets")
@@ -106,6 +111,17 @@
     els.marketListingType?.addEventListener("change", onMarketListingTypeChanged);
     els.marketFilterStatus?.addEventListener("change", onLoadMarketListings);
     els.marketFilterType?.addEventListener("change", onLoadMarketListings);
+    els.nftViewerClose?.addEventListener("click", closeNftImageViewer);
+    els.nftViewer?.addEventListener("click", (event) => {
+      if (event.target === els.nftViewer) {
+        closeNftImageViewer();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeNftImageViewer();
+      }
+    });
   }
 
   async function bootstrap() {
@@ -540,8 +556,33 @@
         const imageUri = String(img.getAttribute("data-image-uri") || "").trim();
         trackMetricEvent("click", assetId, assetName, imageUri);
         renderAnalyticsPanel();
+        if (imageUri) {
+          openNftImageViewer(imageUri, assetName || "NFT Image");
+        }
       });
     });
+  }
+
+  function openNftImageViewer(imageUri, title) {
+    if (!els.nftViewer || !els.nftViewerImage) {
+      return;
+    }
+    els.nftViewerImage.src = String(imageUri || "").trim();
+    els.nftViewerImage.alt = String(title || "NFT Image");
+    if (els.nftViewerTitle) {
+      els.nftViewerTitle.textContent = String(title || "NFT Image");
+    }
+    els.nftViewer.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeNftImageViewer() {
+    if (!els.nftViewer || !els.nftViewerImage) {
+      return;
+    }
+    els.nftViewer.classList.remove("open");
+    els.nftViewerImage.src = "";
+    document.body.style.overflow = "";
   }
 
   function renderAssets(items) {
