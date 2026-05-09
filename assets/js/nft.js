@@ -567,6 +567,18 @@
       const imageHtml = item.imageUri
         ? `<div class="feed-image-container"><img src="${escapeHtmlAttr(item.imageUri)}" alt="${escapeHtmlAttr(item.name || 'NFT Art')}" class="feed-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23ddd%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3EImage not found%3C/text%3E%3C/svg%3E'"></div>`
         : `<div class="feed-image-container" style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#999;">No image</div>`;
+    
+          // Add error handlers to images
+          document.querySelectorAll('.feed-image').forEach(img => {
+            img.addEventListener('error', function() {
+              this.style.display = 'none';
+              const container = this.parentElement;
+              if (container) {
+                container.innerHTML = '<div style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#999; width:100%; height:100%;">Image failed to load</div>';
+              }
+            });
+          });
+        }
       
       return `
         <article class="feed-item">
@@ -649,6 +661,17 @@
     }).join("");
 
     const cards = Array.from(els.marketList.querySelectorAll(".asset-item"));
+    // Add error handlers to market images
+    document.querySelectorAll('.market-image').forEach(img => {
+      img.addEventListener('error', function() {
+        this.style.display = 'none';
+        const container = this.parentElement;
+        if (container) {
+          container.innerHTML = '<div style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#999; width:100%; height:100%;">Image failed to load</div>';
+        }
+      });
+    });
+
     cards.forEach((card) => {
       const listingId = String(card.getAttribute("data-listing-id") || "").trim();
       const statusBox = card.querySelector(".market-inline-status");
