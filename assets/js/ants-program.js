@@ -9,6 +9,7 @@
   const MIN_BASELINE_MEMBERS = 1;
   const REFRESH_MS = 30000;
   const ALL_COLONIES_KEY = 'all';
+  const TPOW_BUCKET_MINUTES = 5;
 
   const refs = {
     status: document.getElementById('cp-status'),
@@ -284,34 +285,57 @@
     return candles;
   }
 
+  function aggregateTPoWCandles(candles, bucketMinutes = TPOW_BUCKET_MINUTES) {
+    const bucketSize = Math.max(1, safeInt(bucketMinutes, TPOW_BUCKET_MINUTES));
+    if (!Array.isArray(candles) || candles.length === 0) return [];
+
+    const out = [];
+    for (let i = 0; i < candles.length; i += bucketSize) {
+      const chunk = candles.slice(i, i + bucketSize);
+      if (!chunk.length) continue;
+
+      out.push({
+        t: chunk[0].t,
+        open: chunk[0].open,
+        close: chunk[chunk.length - 1].close,
+        high: Math.max(...chunk.map((c) => c.high)),
+        low: Math.min(...chunk.map((c) => c.low)),
+        hasMining: chunk.some((c) => c.hasMining),
+      });
+    }
+
+    return out;
+  }
+
   function renderTPoWChart(ownerCode) {
     if (!ownerCode || !refs.tpowBars) return;
 
-    const candles = generateTPoWData(ownerCode);
-    const miningCandles = candles.filter((c) => c.hasMining).length;
-    const idleCandles = candles.length - miningCandles;
-    const activityRate = ((miningCandles / candles.length) * 100).toFixed(1);
-    const lastMiningCandle = [...candles].reverse().find((c) => c.hasMining);
+    const minuteCandles = generateTPoWData(ownerCode);
+    const candles = aggregateTPoWCandles(minuteCandles, TPOW_BUCKET_MINUTES);
+    const miningMinutes = minuteCandles.filter((c) => c.hasMining).length;
+    const idleMinutes = minuteCandles.length - miningMinutes;
+    const activityRate = ((miningMinutes / minuteCandles.length) * 100).toFixed(1);
+    const lastMiningCandle = [...minuteCandles].reverse().find((c) => c.hasMining);
 
-    if (refs.tpowMiningMins) refs.tpowMiningMins.textContent = miningCandles;
+    if (refs.tpowMiningMins) refs.tpowMiningMins.textContent = miningMinutes;
     if (refs.tpowActivityRate) refs.tpowActivityRate.textContent = `${activityRate}%`;
-    if (refs.tpowIdleMins) refs.tpowIdleMins.textContent = idleCandles;
+    if (refs.tpowIdleMins) refs.tpowIdleMins.textContent = idleMinutes;
     if (refs.tpowLastActivity && lastMiningCandle) {
       refs.tpowLastActivity.textContent = formatTPoWDateLabel(lastMiningCandle.t);
     }
 
     const containerRect = refs.tpowBars.getBoundingClientRect();
     const viewportWidth = Math.max(320, containerRect.width || window.innerWidth * 0.9);
-    const height = 220;
+    const height = 360;
     const rightAxisWidth = 48;
-    const leftPad = 12;
-    const topPad = 14;
-    const bottomPad = 14;
-    const candleStep = 3.2;
-    const bodyWidth = 2.2;
-    const chartWidth = Math.max(viewportWidth, candles.length * candleStep + leftPad * 2 + rightAxisWidth);
+    const leftPad = 14;
+    const topPad = 16;
+    const bottomPad = 18;
+    const chartWidth = viewportWidth;
     const plotWidth = chartWidth - leftPad * 2 - rightAxisWidth;
     const plotHeight = height - topPad - bottomPad;
+    const candleStep = Math.max(6.4, plotWidth / Math.max(1, candles.length));
+    const bodyWidth = Math.max(4, candleStep * 0.58);
 
     const allHigh = candles.map((c) => c.high);
     const allLow = candles.map((c) => c.low);
@@ -332,7 +356,7 @@
       const bodyHeight = Math.max(1, yBodyBottom - yBodyTop);
       const color = candle.hasMining ? '#6ce7b1' : '#ff6b6b';
       const opacityClass = candle.hasMining ? 'cp-tpow-candle-mining' : 'cp-tpow-candle-idle';
-      const wick = `<line class="cp-tpow-wick" x1="${x.toFixed(2)}" y1="${yHigh.toFixed(2)}" x2="${x.toFixed(2)}" y2="${yLow.toFixed(2)}" stroke="${color}" stroke-width="1"></line>`;
+      const wick = `<line class="cp-tpow-wick" x1="${x.toFixed(2)}" y1="${yHigh.toFixed(2)}" x2="${x.toFixed(2)}" y2="${yLow.toFixed(2)}" stroke="${color}" stroke-width="1.35"></line>`;
       const body = `<rect class="cp-tpow-candle ${opacityClass}" x="${(x - bodyWidth / 2).toFixed(2)}" y="${yBodyTop.toFixed(2)}" width="${bodyWidth.toFixed(2)}" height="${bodyHeight.toFixed(2)}" fill="${color}" opacity="0.92" rx="0.4"></rect>`;
       return `${wick}${body}`;
     }).join('');
@@ -349,7 +373,7 @@
       return `<text class="cp-tpow-axis-text" x="${(chartWidth - 6).toFixed(2)}" y="${(y + 3).toFixed(2)}" text-anchor="end">${label}</text>`;
     }).join('');
 
-    const title = `Proof of Time (TPoW) for ${ownerCode}. 1-minute candles over 6 hours. Green = mining activity, red = idle.`;
+    const title = `Proof of Time (TPoW) for ${ownerCode}. ${TPOW_BUCKET_MINUTES}-minute candles over 6 hours. Green = mining activity, red = idle.`;
     refs.tpowBars.innerHTML = `<svg class="cp-tpow-svg" width="${chartWidth}" height="${height}" viewBox="0 0 ${chartWidth} ${height}" role="img" aria-label="${title}"><title>${title}</title>${gridLines}${candleSvgs}${rightAxisLabels}</svg>`;
 
     const first = candles[0];
