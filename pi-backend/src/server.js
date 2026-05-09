@@ -28,6 +28,7 @@ const PI_MAX_AMOUNT = Number(process.env.PI_MAX_AMOUNT || 1);
 const PI_CASHOUT_STATE_PATH = process.env.PI_CASHOUT_STATE_PATH || path.join(__dirname, '..', 'data', 'dex-access-state.json');
 const PI_ADMIN_KEY = process.env.PI_ADMIN_KEY || '';
 const ANET_CHAIN_API_BASE_URL = (process.env.ANET_CHAIN_API_BASE_URL || '').replace(/\/$/, '');
+const ANET_CHAIN_API_FALLBACK_BASE_URL = (process.env.ANET_CHAIN_API_FALLBACK_BASE_URL || '').replace(/\/$/, '');
 const ANET_L1_DEX_ADMIN_KEY = process.env.ANET_L1_DEX_ADMIN_KEY || '';
 const PI_REQUIRED_SESSIONS = Number(process.env.PI_REQUIRED_SESSIONS || 1000);
 const PI_ALLOW_INELIGIBLE_FOR_DEX_TEST = (process.env.PI_ALLOW_INELIGIBLE_FOR_DEX_TEST || 'false').toLowerCase() === 'true';
@@ -2702,28 +2703,50 @@ async function postToLayer1(pathname, payload) {
     headers['x-anet-admin-key'] = ANET_L1_DEX_ADMIN_KEY;
   }
 
-  const response = await fetch(`${ANET_CHAIN_API_BASE_URL}${pathname}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(payload)
-  });
+  const requestOnce = async (baseUrl) => {
+    const response = await fetch(`${baseUrl}${pathname}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
 
-  const text = await response.text();
-  let body;
-  try {
-    body = text ? JSON.parse(text) : {};
-  } catch {
-    body = { raw: text };
+    const text = await response.text();
+    let body;
+    try {
+      body = text ? JSON.parse(text) : {};
+    } catch {
+      body = { raw: text };
+    }
+
+    return { response, body };
+  };
+
+  const primary = await requestOnce(ANET_CHAIN_API_BASE_URL);
+  if (primary.response.ok) {
+    return primary.body;
   }
 
-  if (!response.ok) {
-    const error = new Error(`Layer 1 request failed (${response.status})`);
-    error.status = response.status;
-    error.body = body;
+  const shouldRetryFallback =
+    primary.response.status === 404 &&
+    ANET_CHAIN_API_FALLBACK_BASE_URL &&
+    ANET_CHAIN_API_FALLBACK_BASE_URL !== ANET_CHAIN_API_BASE_URL;
+
+  if (shouldRetryFallback) {
+    const fallback = await requestOnce(ANET_CHAIN_API_FALLBACK_BASE_URL);
+    if (fallback.response.ok) {
+      return fallback.body;
+    }
+
+    const error = new Error(`Layer 1 request failed (${fallback.response.status})`);
+    error.status = fallback.response.status;
+    error.body = fallback.body;
     throw error;
   }
 
-  return body;
+  const error = new Error(`Layer 1 request failed (${primary.response.status})`);
+  error.status = primary.response.status;
+  error.body = primary.body;
+  throw error;
 }
 
 async function getFromLayer1(pathname) {
@@ -2731,26 +2754,48 @@ async function getFromLayer1(pathname) {
     throw new Error('Layer 1 DEX bridge is not configured');
   }
 
-  const response = await fetch(`${ANET_CHAIN_API_BASE_URL}${pathname}`, {
-    method: 'GET'
-  });
+  const requestOnce = async (baseUrl) => {
+    const response = await fetch(`${baseUrl}${pathname}`, {
+      method: 'GET'
+    });
 
-  const text = await response.text();
-  let body;
-  try {
-    body = text ? JSON.parse(text) : {};
-  } catch {
-    body = { raw: text };
+    const text = await response.text();
+    let body;
+    try {
+      body = text ? JSON.parse(text) : {};
+    } catch {
+      body = { raw: text };
+    }
+
+    return { response, body };
+  };
+
+  const primary = await requestOnce(ANET_CHAIN_API_BASE_URL);
+  if (primary.response.ok) {
+    return primary.body;
   }
 
-  if (!response.ok) {
-    const error = new Error(`Layer 1 request failed (${response.status})`);
-    error.status = response.status;
-    error.body = body;
+  const shouldRetryFallback =
+    primary.response.status === 404 &&
+    ANET_CHAIN_API_FALLBACK_BASE_URL &&
+    ANET_CHAIN_API_FALLBACK_BASE_URL !== ANET_CHAIN_API_BASE_URL;
+
+  if (shouldRetryFallback) {
+    const fallback = await requestOnce(ANET_CHAIN_API_FALLBACK_BASE_URL);
+    if (fallback.response.ok) {
+      return fallback.body;
+    }
+
+    const error = new Error(`Layer 1 request failed (${fallback.response.status})`);
+    error.status = fallback.response.status;
+    error.body = fallback.body;
     throw error;
   }
 
-  return body;
+  const error = new Error(`Layer 1 request failed (${primary.response.status})`);
+  error.status = primary.response.status;
+  error.body = primary.body;
+  throw error;
 }
 
 async function getLatestLayer1BlockHeight() {
