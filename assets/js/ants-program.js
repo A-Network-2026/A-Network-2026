@@ -6,7 +6,17 @@
   const HISTORY_KEY = 'anet_ants_colony_member_history_v1';
   const LIVE_HISTORY_POINTS = 2880; // Keep 24h at 30s sampling so 1h timeframe has enough candles.
   const LIVE_MAX_VISIBLE_CANDLES = 180;
-  const LIVE_DEFAULT_BUCKET_MINUTES = 1;
+  const LIVE_TIMEFRAMES = [
+    { key: '1m', label: '1m', bucketMs: 60 * 1000 },
+    { key: '5m', label: '5m', bucketMs: 5 * 60 * 1000 },
+    { key: '15m', label: '15m', bucketMs: 15 * 60 * 1000 },
+    { key: '1h', label: '1h', bucketMs: 60 * 60 * 1000 },
+    { key: '1d', label: '1d', bucketMs: 24 * 60 * 60 * 1000 },
+    { key: '1w', label: '1w', bucketMs: 7 * 24 * 60 * 60 * 1000 },
+    { key: '1M', label: '1M', bucketMs: 30 * 24 * 60 * 60 * 1000 },
+    { key: '1Y', label: '1Y', bucketMs: 365 * 24 * 60 * 60 * 1000 },
+  ];
+  const LIVE_DEFAULT_TIMEFRAME = '1m';
   const MILESTONE_MEMBERS = 1000;
   const MIN_BASELINE_MEMBERS = 1;
   const REFRESH_MS = 30000;
@@ -76,7 +86,7 @@
     latestActiveMinerMeta: null,
     latestRoomReward: null,
     liveLastRender: null,
-    liveBucketMinutes: LIVE_DEFAULT_BUCKET_MINUTES,
+    liveTimeframeKey: LIVE_DEFAULT_TIMEFRAME,
     tpowBucketMinutes: TPOW_BUCKET_MINUTES,
     tpowViewStart: 0,
     tpowViewCount: 0,
@@ -266,28 +276,16 @@
     return trimmed;
   }
 
-  function buildFallbackHistory() {
-    const points = [];
-    for (let i = 0; i < LIVE_HISTORY_POINTS; i += 1) {
-      points.push({ t: Date.now() - (LIVE_HISTORY_POINTS - i) * REFRESH_MS, v: MIN_BASELINE_MEMBERS });
-    }
-    writeHistory(points);
-    return points;
-  }
-
-  function getLiveBucketSamples() {
-    // Base sample is REFRESH_MS (30s), so N minutes = N*2 samples.
-    const bucketMinutes = Math.max(1, safeInt(state.liveBucketMinutes, LIVE_DEFAULT_BUCKET_MINUTES));
-    const samples = Math.round((bucketMinutes * 60 * 1000) / REFRESH_MS);
-    return Math.max(1, samples);
+  function getLiveTimeframe() {
+    return LIVE_TIMEFRAMES.find((item) => item.key === state.liveTimeframeKey) || LIVE_TIMEFRAMES[0];
   }
 
   function setActiveLiveTimeframeButton() {
     if (!refs.liveTimeframes) return;
-    const buttons = refs.liveTimeframes.querySelectorAll('button[data-bucket]');
+    const buttons = refs.liveTimeframes.querySelectorAll('button[data-timeframe]');
     buttons.forEach((btn) => {
-      const bucket = safeInt(btn.dataset.bucket, LIVE_DEFAULT_BUCKET_MINUTES);
-      if (bucket === state.liveBucketMinutes) {
+      const timeframeKey = String(btn.dataset.timeframe || '');
+      if (timeframeKey === state.liveTimeframeKey) {
         btn.classList.add('is-active');
       } else {
         btn.classList.remove('is-active');
@@ -295,30 +293,45 @@
     });
   }
 
-  function aggregateLiveHistory(history, bucketSamples) {
+  function aggregateLiveHistory(history, bucketMs) {
     if (!Array.isArray(history) || history.length === 0) return [];
+    const windowMs = Math.max(60 * 1000, safeInt(bucketMs, 60 * 1000));
     const out = [];
-    for (let i = 0; i < history.length; i += bucketSamples) {
-      const chunk = history.slice(i, i + bucketSamples);
-      if (!chunk.length) continue;
-      out.push({
-        t: chunk[0].t,
-        open: chunk[0].v,
-        high: Math.max(...chunk.map((x) => x.v)),
-        low: Math.min(...chunk.map((x) => x.v)),
-        close: chunk[chunk.length - 1].v,
-        isBullish: chunk[chunk.length - 1].v >= chunk[0].v,
-      });
-    }
+    let current = null;
+
+    history.forEach((point) => {
+      if (!Number.isFinite(point?.t)) return;
+      const bucketStart = Math.floor(point.t / windowMs) * windowMs;
+      if (!current || current.t !== bucketStart) {
+        current = {
+          t: bucketStart,
+          open: point.v,
+          high: point.v,
+          low: point.v,
+          close: point.v,
+        };
+        out.push(current);
+        return;
+      }
+
+      current.high = Math.max(current.high, point.v);
+      current.low = Math.min(current.low, point.v);
+      current.close = point.v;
+    });
+
+    out.forEach((item) => {
+      item.isBullish = item.close >= item.open;
+    });
+
     return out;
   }
 
   function onLiveTimeframeClick(event) {
-    const button = event.target.closest('button[data-bucket]');
+    const button = event.target.closest('button[data-timeframe]');
     if (!button) return;
-    const bucket = safeInt(button.dataset.bucket, LIVE_DEFAULT_BUCKET_MINUTES);
-    if (bucket === state.liveBucketMinutes) return;
-    state.liveBucketMinutes = bucket;
+    const timeframe = String(button.dataset.timeframe || LIVE_DEFAULT_TIMEFRAME);
+    if (timeframe === state.liveTimeframeKey) return;
+    state.liveTimeframeKey = timeframe;
     setActiveLiveTimeframeButton();
     renderBars(readHistory());
   }
@@ -927,10 +940,8 @@
     }
 
     const baseSeries = history.slice(-LIVE_HISTORY_POINTS);
-    const requestedBucketSamples = getLiveBucketSamples();
-    const maxBucketSamples = Math.max(2, Math.floor(baseSeries.length / LIVE_MAX_VISIBLE_CANDLES));
-    const bucketSamples = Math.max(1, Math.min(requestedBucketSamples, maxBucketSamples));
-    const fullOhlc = aggregateLiveHistory(baseSeries, bucketSamples);
+    const timeframe = getLiveTimeframe();
+    const fullOhlc = aggregateLiveHistory(baseSeries, timeframe.bucketMs);
     const ohlc = fullOhlc.slice(-LIVE_MAX_VISIBLE_CANDLES);
     if (!ohlc.length) return;
 
@@ -1011,7 +1022,8 @@
     const lastX = leftPad + (ohlc.length - 1) * candleStep + candleStep * 0.5;
     const lastMarker = `<circle class=\"cp-last-dot\" cx=\"${lastX.toFixed(2)}\" cy=\"${lastY.toFixed(2)}\" r=\"3.5\" fill=\"#58c5ff\" stroke=\"#d9fbff\" stroke-width=\"1.8\"></circle>`;
 
-    const title = `Live member trend OHLC chart. Green = up, red = down. Last close: ${formatNumber(lastCandle?.close ?? MIN_BASELINE_MEMBERS)}.`;
+    const timeframe = getLiveTimeframe();
+    const title = `Live member trend OHLC chart (${timeframe.label}). Green = up, red = down. Last close: ${formatNumber(lastCandle?.close ?? MIN_BASELINE_MEMBERS)}.`;
     refs.bars.innerHTML = `<svg class=\"cp-chart-svg\" width=\"${width}\" height=\"${height}\" viewBox=\"0 0 ${width} ${height}\" role=\"img\" aria-label=\"${title}\"><title>${title}</title>${gridLines}${candleSvgs}${lastMarker}${rightAxisLabels}</svg><div id=\"cp-live-cross-v\" class=\"cp-live-cross-v is-hidden\"></div><div id=\"cp-live-cross-h\" class=\"cp-live-cross-h is-hidden\"></div><div id=\"cp-live-tooltip\" class=\"cp-live-tooltip is-hidden\"></div>`;
 
     state.liveLastRender = {
@@ -1033,6 +1045,9 @@
     refs.axisStart.textContent = formatTPoWDateLabel(first?.t || 0);
     refs.axisMid.textContent = formatTPoWDateLabel(middle?.t || 0);
     refs.axisEnd.textContent = formatTPoWDateLabel(last?.t || 0);
+    if (refs.liveTimeframes) {
+      refs.liveTimeframes.dataset.activeTimeframe = timeframe.label;
+    }
     setActiveLiveTimeframeButton();
   }
 
