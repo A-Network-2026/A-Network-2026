@@ -4,7 +4,8 @@
   const CHAIN_API = 'https://explorer.a-network.net';
   const STATS_ENDPOINT = '/stats/investor';
   const HISTORY_KEY = 'anet_ants_colony_member_history_v1';
-  const LIVE_HISTORY_POINTS = 240;
+  const LIVE_HISTORY_POINTS = 2880; // Keep 24h at 30s sampling so 1h timeframe has enough candles.
+  const LIVE_MAX_VISIBLE_CANDLES = 180;
   const LIVE_DEFAULT_BUCKET_MINUTES = 1;
   const MILESTONE_MEMBERS = 1000;
   const MIN_BASELINE_MEMBERS = 1;
@@ -198,13 +199,28 @@
       if (!raw) return [];
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) return [];
-      return parsed
+
+      const cleaned = parsed
         .map((item) => ({
           t: safeInt(item?.t),
           v: safeInt(item?.v, MIN_BASELINE_MEMBERS),
         }))
         .filter((item) => item.t > 0)
         .slice(-LIVE_HISTORY_POINTS);
+
+      if (!cleaned.length) return [];
+      if (cleaned.length >= LIVE_HISTORY_POINTS) return cleaned;
+
+      // Backfill older points so higher timeframes (like 1h) can render enough candles immediately.
+      const first = cleaned[0];
+      const deficit = LIVE_HISTORY_POINTS - cleaned.length;
+      const fill = Array.from({ length: deficit }, (_, i) => ({
+        t: first.t - (deficit - i) * REFRESH_MS,
+        v: first.v,
+      }));
+      const padded = fill.concat(cleaned);
+      writeHistory(padded);
+      return padded;
     } catch (_) {
       return [];
     }
@@ -893,7 +909,8 @@
   function renderBars(history) {
     const baseSeries = history.length ? history.slice(-LIVE_HISTORY_POINTS) : buildFallbackHistory();
     const bucketSamples = getLiveBucketSamples();
-    const ohlc = aggregateLiveHistory(baseSeries, bucketSamples);
+    const fullOhlc = aggregateLiveHistory(baseSeries, bucketSamples);
+    const ohlc = fullOhlc.slice(-LIVE_MAX_VISIBLE_CANDLES);
     if (!ohlc.length) return;
 
     const allHighs = ohlc.map((c) => c.high);
@@ -916,7 +933,7 @@
     const plotWidth = width - leftPad * 2 - rightAxisWidth;
     const plotHeight = height - topPad - bottomPad;
     const candleStep = Math.max(8, plotWidth / Math.max(1, ohlc.length));
-    const bodyWidth = Math.max(5, candleStep * 0.6);
+    const bodyWidth = Math.min(22, Math.max(5, candleStep * 0.6));
     const valueToY = (value) => topPad + (maxValue - value) / range * plotHeight;
 
     // Build candlestick elements with wicks
