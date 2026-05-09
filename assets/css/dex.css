@@ -157,6 +157,38 @@ header nav a.active {
   flex-wrap: wrap;
 }
 
+.cashout-ready-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid rgba(34, 231, 184, 0.35);
+  background: linear-gradient(135deg, rgba(34, 231, 184, 0.16), rgba(88, 197, 255, 0.08));
+  color: #b9ffe9;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.cashout-ready-badge:hover {
+  border-color: rgba(34, 231, 184, 0.6);
+  color: #d7fff2;
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.cashout-ready-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  box-shadow: 0 0 8px rgba(34, 231, 184, 0.75);
+}
+
 /* ── Buttons ─────────────────────────────────── */
 .btn {
   display: inline-flex;
