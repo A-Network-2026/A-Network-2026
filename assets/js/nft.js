@@ -73,7 +73,24 @@
 
     kpiMinAnts: document.getElementById("kpi-min-ants"),
     kpiFeedCount: document.getElementById("kpi-feed-count"),
-    kpiMyAssets: document.getElementById("kpi-my-assets")
+    kpiMyAssets: document.getElementById("kpi-my-assets"),
+
+    collectionsRefreshBtn: document.getElementById("collections-refresh-btn"),
+    collectionsList: document.getElementById("collections-list"),
+
+    domainUid: document.getElementById("domain-uid"),
+    domainName: document.getElementById("domain-name"),
+    domainDescription: document.getElementById("domain-description"),
+    domainLogoUri: document.getElementById("domain-logo-uri"),
+    domainBannerUri: document.getElementById("domain-banner-uri"),
+    domainImageUri: document.getElementById("domain-image-uri"),
+    domainAntsStake: document.getElementById("domain-ants-stake"),
+    domainTheme: document.getElementById("domain-theme"),
+    domainLinks: document.getElementById("domain-links"),
+    domainCreateBtn: document.getElementById("domain-create-btn"),
+    domainLoadBtn: document.getElementById("domain-load-btn"),
+    domainStatus: document.getElementById("domain-status"),
+    domainList: document.getElementById("domain-list")
   };
 
   const state = {
@@ -122,6 +139,9 @@
         closeNftImageViewer();
       }
     });
+    els.collectionsRefreshBtn?.addEventListener("click", onLoadCollections);
+    els.domainCreateBtn?.addEventListener("click", onCreateColonyDomain);
+    els.domainLoadBtn?.addEventListener("click", onLoadColonyDomains);
   }
 
   async function bootstrap() {
@@ -130,6 +150,7 @@
     onMarketListingTypeChanged();
     const connected = await onTestApi();
     if (connected) {
+      await onLoadCollections();
       await onLoadFeed();
       await onLoadMarketListings();
     }
@@ -271,6 +292,7 @@
     if (els.assetUid) els.assetUid.value = uid;
     if (els.marketSellerId) els.marketSellerId.value = uid;
     if (els.marketActorId) els.marketActorId.value = uid;
+    if (els.domainUid) els.domainUid.value = uid;
   }
 
   function getMinerLoginPayload() {
@@ -745,6 +767,13 @@
         ? `<div class="feed-image-container"><img src="${escapeHtmlAttr(imageUri)}" alt="${escapeHtmlAttr(assetName || 'NFT Art')}" class="feed-image track-nft-image" data-asset-id="${escapeHtmlAttr(assetId)}" data-asset-name="${escapeHtmlAttr(assetName)}" data-image-uri="${escapeHtmlAttr(imageUri)}" loading="lazy"></div>`
         : `<div class="feed-image-container" style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#999;">No image</div>`;
 
+      const domainBadge = item.isDomain || item.assetType === "domain"
+        ? `<span class="badge-domain">&#x1F41C; .ant Domain</span>`
+        : "";
+      const genesisBadge = item.isGenesis || item.assetType === "genesis"
+        ? `<span class="badge-genesis">&#x2B50; Genesis #${item.serialNumber != null ? item.serialNumber : "?"}</span>`
+        : "";
+
       return `
         <article class="feed-item">
           ${imageHtml}
@@ -752,10 +781,12 @@
             <strong>${escapeHtml(item.name || "Unnamed")}</strong>
             <span class="pill">${escapeHtml(item.ownerDisplayName || item.uid || "unknown")}</span>
           </div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">${domainBadge}${genesisBadge}</div>
           <div class="mono">${escapeHtml(item.id || "")}</div>
           <p class="muted" style="margin-top:7px;">
             Status: ${escapeHtml(item.status || "active")} | Stake: ${escapeHtml(String(item.antsStake || 0))} ANTS
           </p>
+          ${item.isDomain && item.colony?.description ? `<p class="muted" style="margin-top:4px;">${escapeHtml(item.colony.description.slice(0, 120))}${item.colony.description.length > 120 ? "…" : ""}</p>` : ""}
         </article>
       `;
     }).join("");
@@ -798,6 +829,13 @@
         ? `<div class="market-image-container"><img src="${escapeHtmlAttr(assetImageUri)}" alt="${escapeHtmlAttr(assetName)}" class="market-image track-nft-image" data-asset-id="${escapeHtmlAttr(trackedAssetId)}" data-asset-name="${escapeHtmlAttr(assetName)}" data-image-uri="${escapeHtmlAttr(assetImageUri)}" loading="lazy"></div>`
         : `<div class="market-image-container" style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#999;">No image</div>`;
 
+      const domainBadge = listing?.asset?.isDomain || listing?.asset?.assetType === "domain"
+        ? `<span class="badge-domain">&#x1F41C; .ant Domain</span>`
+        : "";
+      const genesisBadge = listing?.asset?.isGenesis || listing?.asset?.assetType === "genesis"
+        ? `<span class="badge-genesis">&#x2B50; Genesis #${listing?.asset?.serialNumber != null ? listing.asset.serialNumber : "?"}</span>`
+        : "";
+
       const marketActions = status === "active"
         ? `
           <div class="asset-actions">
@@ -821,6 +859,7 @@
             <span class="pill">${escapeHtml(listingTypeLabel)}</span>
             ${expiredBadge}
           </div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">${domainBadge}${genesisBadge}</div>
           <div class="mono">Listing: ${escapeHtml(listing.id || "")}</div>
           <div class="mono">Asset: ${escapeHtml(listing.assetId || "")}</div>
           <p class="muted" style="margin-top:7px;">Seller: ${escapeHtml(owner)} | ${escapeHtml(timeText)}</p>
@@ -828,6 +867,7 @@
             Ask: ${escapeHtml(String(ask))} ANTS | Min Bid: ${escapeHtml(String(minBid))} ANTS | Buy Now: ${escapeHtml(String(buyNow))} ANTS
           </p>
           <p class="muted" style="margin-top:7px;">Highest Bid: ${escapeHtml(String(highest))} ANTS (${escapeHtml(String(bidCount))} bids)</p>
+          ${listing?.asset?.isDomain && listing?.asset?.colony?.description ? `<p class="muted" style="margin-top:4px;">${escapeHtml((listing.asset.colony.description || "").slice(0, 120))}${(listing.asset.colony.description || "").length > 120 ? "…" : ""}</p>` : ""}
           ${marketActions}
           <div class="status info market-inline-status" style="display:none; margin-top:8px;"></div>
         </article>
@@ -1296,5 +1336,208 @@
       }
       setStatus(els.marketStatus, "bad", error.message || "Marketplace load failed.");
     }
+  }
+
+  // ─── Genesis Collections ─────────────────────────────────────────────────
+
+  async function onLoadCollections() {
+    if (!state.apiReady) {
+      return;
+    }
+    try {
+      const result = await apiFetch("/api/nft/collections");
+      renderCollections(result.collections || []);
+    } catch {
+      if (els.collectionsList) {
+        els.collectionsList.innerHTML = '<div class="status bad">Could not load collections.</div>';
+      }
+    }
+  }
+
+  function renderCollections(collections) {
+    if (!els.collectionsList) return;
+    if (!collections.length) {
+      els.collectionsList.innerHTML = '<div class="status info">No collections yet.</div>';
+      return;
+    }
+    els.collectionsList.innerHTML = collections.map((col) => {
+      const pct = col.maxSupply > 0 ? Math.min(100, Math.round((col.currentSupply / col.maxSupply) * 100)) : 0;
+      const typeLabel = col.collectionType === "genesis" ? "GENESIS" : col.collectionType === "domain" ? "DOMAIN" : "STANDARD";
+      const badgeClass = col.collectionType === "genesis" ? "badge-genesis" : "pill";
+      const remaining = col.maxSupply > 0 ? `${col.remaining} remaining` : "Unlimited";
+      const soldOutText = col.soldOut ? ' — <strong style="color:var(--danger)">SOLD OUT</strong>' : "";
+
+      return `
+        <div class="collection-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <strong style="font-family:'Orbitron',sans-serif; font-size:0.85rem;">${escapeHtml(col.name)}</strong>
+            <span class="${badgeClass}">${escapeHtml(typeLabel)}</span>
+          </div>
+          <p class="muted" style="font-size:0.8rem;">${escapeHtml((col.description || "").slice(0, 100))}${(col.description || "").length > 100 ? "…" : ""}</p>
+          ${col.maxSupply > 0 ? `
+            <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--muted); margin-bottom:4px;">
+              <span>${escapeHtml(String(col.currentSupply))} / ${escapeHtml(String(col.maxSupply))} minted</span>
+              <span>${escapeHtml(remaining)}${soldOutText}</span>
+            </div>
+            <div class="supply-bar-track">
+              <div class="supply-bar-fill" style="width:${escapeHtmlAttr(String(pct))}%"></div>
+            </div>
+          ` : `<div class="muted" style="font-size:0.78rem;">Supply: Unlimited</div>`}
+        </div>
+      `;
+    }).join("");
+  }
+
+  // ─── Colony Domain Studio ─────────────────────────────────────────────────
+
+  function getDomainPayload() {
+    const uid = normalizeUid(els.domainUid?.value || els.profileUid?.value || state.minerUid);
+    return {
+      uid,
+      anet_profile_id: uid,
+      domain_name: String(els.domainName?.value || "").trim().toLowerCase(),
+      description: String(els.domainDescription?.value || "").trim(),
+      colony_description: String(els.domainDescription?.value || "").trim(),
+      colony_logo_uri: String(els.domainLogoUri?.value || "").trim(),
+      colony_banner_uri: String(els.domainBannerUri?.value || "").trim(),
+      image_uri: String(els.domainImageUri?.value || els.domainLogoUri?.value || "").trim(),
+      ants_stake: toNumberOrZero(els.domainAntsStake?.value),
+      colony_theme: tryParseJson(String(els.domainTheme?.value || "{}").trim() || "{}", {}),
+      colony_links: tryParseJson(String(els.domainLinks?.value || "{}").trim() || "{}", {})
+    };
+  }
+
+  function clearDomainComposer() {
+    if (els.domainName) els.domainName.value = "";
+    if (els.domainDescription) els.domainDescription.value = "";
+    if (els.domainLogoUri) els.domainLogoUri.value = "";
+    if (els.domainBannerUri) els.domainBannerUri.value = "";
+    if (els.domainImageUri) els.domainImageUri.value = "";
+    if (els.domainAntsStake) els.domainAntsStake.value = "0";
+    if (els.domainTheme) els.domainTheme.value = "";
+    if (els.domainLinks) els.domainLinks.value = "";
+  }
+
+  async function onCreateColonyDomain() {
+    if (!state.apiReady) {
+      setStatus(els.domainStatus, "bad", "Connect NFT API first.");
+      return;
+    }
+    if (!ensureMinerLoggedIn(els.domainStatus)) {
+      return;
+    }
+
+    const payload = getDomainPayload();
+    if (!payload.uid) {
+      setStatus(els.domainStatus, "bad", "ANET Profile ID is required.");
+      return;
+    }
+    if (!payload.domain_name) {
+      setStatus(els.domainStatus, "bad", "Colony domain name is required.");
+      return;
+    }
+
+    setStatus(els.domainStatus, "info", "Registering colony domain…");
+    try {
+      const result = await apiFetch("/api/nft/domains/create", {
+        method: "POST",
+        body: payload
+      });
+      setStatus(els.domainStatus, "good", `Colony domain registered: ${result.domainName || result.asset?.name || "domain"}`);
+      clearDomainComposer();
+      await onLoadColonyDomains();
+      await onLoadFeed();
+    } catch (error) {
+      setStatus(els.domainStatus, "bad", error.message || "Domain registration failed.");
+    }
+  }
+
+  async function onLoadColonyDomains() {
+    if (!state.apiReady) {
+      setStatus(els.domainStatus, "bad", "Connect NFT API first.");
+      return;
+    }
+    try {
+      const result = await apiFetch("/api/nft/domains?limit=50");
+      renderColonyDomains(result.domains || []);
+    } catch (error) {
+      if (els.domainList) {
+        els.domainList.innerHTML = `<div class="status bad">${escapeHtml(error.message || "Could not load domains.")}</div>`;
+      }
+    }
+  }
+
+  function renderColonyDomains(domains) {
+    if (!els.domainList) return;
+    if (!domains.length) {
+      els.domainList.innerHTML = '<div class="status info">No colony domains registered yet. Be the first to build a .ant base!</div>';
+      return;
+    }
+
+    els.domainList.innerHTML = domains.map((domain) => {
+      const name = String(domain.name || domain.domainName || "unknown.ant");
+      const owner = String(domain.ownerDisplayName || domain.uid || "unknown");
+      const colDesc = String(domain.colony?.description || domain.description || "").trim();
+      const logoUri = String(domain.colony?.logoUri || "").trim();
+      const bannerUri = String(domain.colony?.bannerUri || "").trim();
+      const imageUri = String(domain.imageUri || logoUri || "").trim();
+      const assetId = String(domain.id || "").trim();
+
+      const bannerHtml = bannerUri
+        ? `<img src="${escapeHtmlAttr(bannerUri)}" class="colony-preview-banner" alt="Colony banner" loading="lazy">`
+        : `<div class="colony-preview-banner" style="background:linear-gradient(120deg,rgba(34,231,184,0.12),rgba(88,197,255,0.08));"></div>`;
+      const logoHtml = logoUri
+        ? `<img src="${escapeHtmlAttr(logoUri)}" class="colony-preview-logo" alt="Colony logo" loading="lazy">`
+        : imageUri
+          ? `<img src="${escapeHtmlAttr(imageUri)}" class="colony-preview-logo" alt="Colony image" loading="lazy">`
+          : `<div class="colony-preview-logo" style="display:flex;align-items:center;justify-content:center;font-size:18px;">&#x1F41C;</div>`;
+
+      const links = domain.colony?.links || {};
+      const linksHtml = Object.keys(links).length
+        ? `<p class="muted" style="margin-top:4px;font-size:0.78rem;">${Object.entries(links).map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(String(v))}`).join(" · ")}</p>`
+        : "";
+
+      return `
+        <div class="domain-item" data-domain-id="${escapeHtmlAttr(assetId)}">
+          <div class="colony-preview-card">
+            ${bannerHtml}
+            <div class="colony-preview-body">
+              ${logoHtml}
+              <div class="colony-preview-info">
+                <strong>${escapeHtml(name)} <span class="badge-domain">&#x1F41C; .ant</span></strong>
+                <p>Owner: ${escapeHtml(owner)}</p>
+                ${colDesc ? `<p>${escapeHtml(colDesc.slice(0, 100))}${colDesc.length > 100 ? "…" : ""}</p>` : ""}
+                ${linksHtml}
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+            <div class="mono" style="font-size:0.74rem;">${escapeHtml(assetId)}</div>
+          </div>
+          <div class="asset-actions" style="margin-top:8px;">
+            <button class="btn btn-alt domain-list-market-btn" type="button">List on Marketplace</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    // Wire "List on Marketplace" buttons for domain cards
+    Array.from(els.domainList.querySelectorAll(".domain-list-market-btn")).forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const card = btn.closest(".domain-item");
+        if (!card) return;
+        const domainId = String(card.getAttribute("data-domain-id") || "").trim();
+        const uid = normalizeUid(els.domainUid?.value || els.profileUid?.value || state.minerUid);
+        if (els.marketAssetId) els.marketAssetId.value = domainId;
+        if (els.marketSellerId) els.marketSellerId.value = uid;
+        if (els.marketActorId && uid) els.marketActorId.value = uid;
+        if (els.marketListingType) {
+          els.marketListingType.value = "domain-auction";
+          onMarketListingTypeChanged();
+        }
+        setStatus(els.marketStatus, "info", `Domain ${domainId} prepared for listing. Set your min bid and duration.`);
+        els.marketList?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
   }
 })();

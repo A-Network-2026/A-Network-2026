@@ -657,6 +657,139 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* --- Genesis + Colony Domain additions --- */
+    .badge-domain {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid rgba(34, 231, 184, 0.55);
+      color: var(--accent-2);
+      background: rgba(34, 231, 184, 0.10);
+      white-space: nowrap;
+    }
+
+    .badge-genesis {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid rgba(255, 188, 92, 0.6);
+      color: var(--warn);
+      background: rgba(255, 188, 92, 0.10);
+      white-space: nowrap;
+    }
+
+    .badge-tier {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid var(--line-strong);
+      color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      white-space: nowrap;
+    }
+
+    .colony-preview-card {
+      margin-top: 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(5, 14, 24, 0.88);
+    }
+
+    .colony-preview-banner {
+      width: 100%;
+      height: 90px;
+      object-fit: cover;
+      display: block;
+      background: rgba(34, 231, 184, 0.08);
+    }
+
+    .colony-preview-body {
+      padding: 10px 12px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .colony-preview-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 2px solid var(--line-strong);
+      object-fit: cover;
+      flex-shrink: 0;
+      background: rgba(88, 197, 255, 0.10);
+    }
+
+    .colony-preview-info strong {
+      font-size: 0.95rem;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .colony-preview-info p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .collections-grid {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .collection-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .collection-card .supply-bar-track {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+
+    .collection-card .supply-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-2), var(--accent));
+      transition: width 0.5s ease;
+    }
+
+    .domain-list {
+      margin-top: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .domain-item {
+      border: 1px solid rgba(34, 231, 184, 0.25);
+      border-radius: 12px;
+      background: rgba(34, 231, 184, 0.04);
+      padding: 11px;
+    }
   </style>
 </head>
 <body>
@@ -1020,6 +1153,80 @@
       </article>
 
       <article class="studio-card" style="grid-column: 1 / -1;">
+        <h3>Genesis Collection + Live Supply Stats</h3>
+        <p class="muted">The first 100 Genesis Ants are capped forever. Track minted supply and remaining slots in real time.</p>
+        <div class="asset-actions">
+          <button class="btn btn-alt" id="collections-refresh-btn" type="button">Refresh Collections</button>
+        </div>
+        <div id="collections-list" class="collections-grid">
+          <div class="status info">Collections not loaded yet.</div>
+        </div>
+      </article>
+
+      <article class="studio-card" style="grid-column: 1 / -1;">
+        <h3>Colony Domain Studio — Build Your .ant Base</h3>
+        <p class="muted">Register your own <strong>.ant</strong> colony domain as an NFT. Full authority: customize your base, set your logo, banner, theme, links — then buy, sell, or auction it on the marketplace.</p>
+
+        <div class="row">
+          <div class="field">
+            <label for="domain-uid">Your ANET Profile ID</label>
+            <input id="domain-uid" class="input" type="text" placeholder="your ANET profile id">
+          </div>
+          <div class="field">
+            <label for="domain-name">Colony Domain Name</label>
+            <input id="domain-name" class="input" type="text" placeholder="mycolony (or mycolony.ant)">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="domain-description">Colony Mission / Description</label>
+          <textarea id="domain-description" class="textarea" placeholder="What is your colony about? What's your mission?"></textarea>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="domain-logo-uri">Colony Logo URI</label>
+            <input id="domain-logo-uri" class="input" type="text" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="domain-banner-uri">Colony Banner URI</label>
+            <input id="domain-banner-uri" class="input" type="text" placeholder="https://...">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="domain-image-uri">NFT Image URI (marketplace thumbnail)</label>
+            <input id="domain-image-uri" class="input" type="text" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="domain-ants-stake">ANTS Stake</label>
+            <input id="domain-ants-stake" class="input" type="number" min="0" step="1" placeholder="0">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="domain-theme">Colony Theme JSON (colors, mode)</label>
+          <textarea id="domain-theme" class="textarea" placeholder='{"accent":"#22e7b8","mode":"dark"}'></textarea>
+        </div>
+
+        <div class="row-1 field">
+          <label for="domain-links">Social Links JSON (twitter, discord, website…)</label>
+          <textarea id="domain-links" class="textarea" placeholder='{"website":"https://...","twitter":"@handle"}'></textarea>
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="domain-create-btn" type="button">Register Colony Domain</button>
+          <button class="btn btn-alt" id="domain-load-btn" type="button">Load Colony Domains</button>
+        </div>
+        <div id="domain-status" class="status info">Register your .ant domain — your base in the colony.</div>
+
+        <div id="domain-list" class="domain-list">
+          <div class="status info">No colony domains loaded yet.</div>
+        </div>
+      </article>
+
+      <article class="studio-card" style="grid-column: 1 / -1;">
         <h3>Ant Colony Feed</h3>
         <p class="muted">Recent NFT activity from users across the ecosystem.</p>
         <div class="asset-actions">
@@ -1079,6 +1286,6 @@
     </div>
   </div>
 
-  <script src="assets/js/nft.js?v=20260509-3"></script>
+  <script src="assets/js/nft.js?v=20260509-4"></script>
 </body>
 </html>

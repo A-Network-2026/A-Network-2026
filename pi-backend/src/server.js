@@ -267,6 +267,68 @@ async function initializeNftDatabase() {
   await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_market_listings_status ON nft_market_listings(status)');
   await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_market_listings_asset ON nft_market_listings(asset_id)');
   await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_market_bids_listing ON nft_market_bids(listing_id)');
+
+  // --- Genesis + Colony Domain migrations (safe ALTER TABLE) ---
+  const existingAssetCols = await dbAll(nftDb, `PRAGMA table_info(nft_assets)`, []);
+  const assetColNames = existingAssetCols.map((c) => c.name);
+  const assetMigrations = [
+    ['asset_type', `ALTER TABLE nft_assets ADD COLUMN asset_type TEXT DEFAULT 'standard'`],
+    ['collection_id', `ALTER TABLE nft_assets ADD COLUMN collection_id TEXT DEFAULT NULL`],
+    ['serial_number', `ALTER TABLE nft_assets ADD COLUMN serial_number INTEGER DEFAULT NULL`],
+    ['domain_name', `ALTER TABLE nft_assets ADD COLUMN domain_name TEXT DEFAULT NULL`],
+    ['colony_description', `ALTER TABLE nft_assets ADD COLUMN colony_description TEXT DEFAULT ''`],
+    ['colony_logo_uri', `ALTER TABLE nft_assets ADD COLUMN colony_logo_uri TEXT DEFAULT ''`],
+    ['colony_banner_uri', `ALTER TABLE nft_assets ADD COLUMN colony_banner_uri TEXT DEFAULT ''`],
+    ['colony_links_json', `ALTER TABLE nft_assets ADD COLUMN colony_links_json TEXT DEFAULT '{}'`],
+    ['colony_theme_json', `ALTER TABLE nft_assets ADD COLUMN colony_theme_json TEXT DEFAULT '{}'`],
+    ['holder_tier', `ALTER TABLE nft_assets ADD COLUMN holder_tier TEXT DEFAULT 'worker'`],
+    ['utility_flags_json', `ALTER TABLE nft_assets ADD COLUMN utility_flags_json TEXT DEFAULT '{}'`]
+  ];
+  for (const [col, sql] of assetMigrations) {
+    if (!assetColNames.includes(col)) {
+      await dbRun(nftDb, sql);
+    }
+  }
+
+  await dbRun(nftDb, `
+    CREATE TABLE IF NOT EXISTS nft_collections (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      slug TEXT DEFAULT '',
+      description TEXT DEFAULT '',
+      collection_type TEXT DEFAULT 'standard',
+      max_supply INTEGER DEFAULT 0,
+      current_supply INTEGER DEFAULT 0,
+      image_uri TEXT DEFAULT '',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+  await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_collections_slug ON nft_collections(slug)');
+  await dbRun(nftDb, 'CREATE UNIQUE INDEX IF NOT EXISTS idx_nft_assets_domain_name ON nft_assets(domain_name) WHERE domain_name IS NOT NULL');
+
+  // Seed Genesis Ants collection if not present
+  const existingGenesis = await dbGet(nftDb, `SELECT id FROM nft_collections WHERE slug = 'genesis-ants'`, []);
+  if (!existingGenesis) {
+    const now = new Date().toISOString();
+    await dbRun(nftDb,
+      `INSERT INTO nft_collections (id, name, slug, description, collection_type, max_supply, current_supply, image_uri, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        `col_genesis_ants`,
+        'Genesis Ants',
+        'genesis-ants',
+        'The original 100 Genesis Ants — the founding colony of A Network. Capped forever at 100. Holders gain Architect-tier access, boosted rewards, and governance weight.',
+        'genesis',
+        100,
+        0,
+        'https://a-network.net/assets/Ant-001-NFT.png',
+        now,
+        now
+      ]
+    );
+    console.log('[NFT] Genesis Ants collection seeded.');
+  }
 }
 
 function requireNftDatabase(res) {
@@ -365,6 +427,8 @@ function mapNftAssetRow(row) {
     return null;
   }
   const anetProfileId = normalizeAnetProfileId(row.uid);
+  const assetType = String(row.asset_type || 'standard').trim().toLowerCase();
+  const domainName = String(row.domain_name || '').trim().toLowerCase() || null;
   return {
     id: String(row.id || '').trim(),
     uid: anetProfileId,
@@ -378,7 +442,22 @@ function mapNftAssetRow(row) {
     status: String(row.status || 'active').trim(),
     antsStake: normalizeNonNegativeInteger(row.ants_stake, 0),
     createdAt: safeIsoDate(row.created_at),
-    updatedAt: safeIsoDate(row.updated_at)
+    updatedAt: safeIsoDate(row.updated_at),
+    assetType,
+    collectionId: String(row.collection_id || '').trim() || null,
+    serialNumber: row.serial_number != null ? Number(row.serial_number) : null,
+    domainName,
+    isDomain: assetType === 'domain' || (domainName !== null),
+    isGenesis: assetType === 'genesis',
+    colony: {
+      description: String(row.colony_description || '').trim(),
+      logoUri: String(row.colony_logo_uri || '').trim(),
+      bannerUri: String(row.colony_banner_uri || '').trim(),
+      links: parseJsonSafe(row.colony_links_json, {}),
+      theme: parseJsonSafe(row.colony_theme_json, {})
+    },
+    holderTier: String(row.holder_tier || 'worker').trim().toLowerCase(),
+    utilityFlags: parseJsonSafe(row.utility_flags_json, {})
   };
 }
 
@@ -423,7 +502,20 @@ function mapNftMarketListingRow(row) {
       status: String(row.asset_status || 'active').trim(),
       antsStake: normalizeNonNegativeInteger(row.asset_ants_stake, 0),
       createdAt: safeIsoDate(row.asset_created_at),
-      updatedAt: safeIsoDate(row.asset_updated_at)
+      updatedAt: safeIsoDate(row.asset_updated_at),
+      assetType: String(row.asset_type_col || 'standard').trim().toLowerCase(),
+      domainName: String(row.asset_domain_name || '').trim().toLowerCase() || null,
+      isDomain: String(row.asset_type_col || '').trim().toLowerCase() === 'domain' || String(row.asset_domain_name || '').trim().length > 0,
+      isGenesis: String(row.asset_type_col || '').trim().toLowerCase() === 'genesis',
+      colony: {
+        description: String(row.asset_colony_description || '').trim(),
+        logoUri: String(row.asset_colony_logo_uri || '').trim(),
+        bannerUri: String(row.asset_colony_banner_uri || '').trim(),
+        links: parseJsonSafe(row.asset_colony_links_json, {}),
+        theme: parseJsonSafe(row.asset_colony_theme_json, {})
+      },
+      holderTier: String(row.asset_holder_tier || 'worker').trim().toLowerCase(),
+      serialNumber: row.asset_serial_number != null ? Number(row.asset_serial_number) : null
     },
     sellerDisplayName: normalizeShortText(row.seller_display_name || row.seller_username || row.seller_uid, 80),
     isExpired
@@ -458,6 +550,14 @@ async function getMarketListingById(listingId) {
             a.metadata_uri AS asset_metadata_uri, a.traits_json AS asset_traits_json,
             a.status AS asset_status, a.ants_stake AS asset_ants_stake,
             a.created_at AS asset_created_at, a.updated_at AS asset_updated_at,
+            a.asset_type AS asset_type_col, a.domain_name AS asset_domain_name,
+            a.colony_description AS asset_colony_description,
+            a.colony_logo_uri AS asset_colony_logo_uri,
+            a.colony_banner_uri AS asset_colony_banner_uri,
+            a.colony_links_json AS asset_colony_links_json,
+            a.colony_theme_json AS asset_colony_theme_json,
+            a.holder_tier AS asset_holder_tier,
+            a.serial_number AS asset_serial_number,
             p.display_name AS seller_display_name, p.username AS seller_username,
             IFNULL(b.bid_count, 0) AS bid_count, IFNULL(b.highest_bid_ants, 0) AS highest_bid_ants
      FROM nft_market_listings l
@@ -1590,6 +1690,14 @@ app.get('/api/nft/market/listings', async (req, res) => {
                         a.metadata_uri AS asset_metadata_uri, a.traits_json AS asset_traits_json,
                         a.status AS asset_status, a.ants_stake AS asset_ants_stake,
                         a.created_at AS asset_created_at, a.updated_at AS asset_updated_at,
+                        a.asset_type AS asset_type_col, a.domain_name AS asset_domain_name,
+                        a.colony_description AS asset_colony_description,
+                        a.colony_logo_uri AS asset_colony_logo_uri,
+                        a.colony_banner_uri AS asset_colony_banner_uri,
+                        a.colony_links_json AS asset_colony_links_json,
+                        a.colony_theme_json AS asset_colony_theme_json,
+                        a.holder_tier AS asset_holder_tier,
+                        a.serial_number AS asset_serial_number,
                         p.display_name AS seller_display_name, p.username AS seller_username,
                         IFNULL(b.bid_count, 0) AS bid_count, IFNULL(b.highest_bid_ants, 0) AS highest_bid_ants
                  FROM nft_market_listings l
@@ -1970,6 +2078,250 @@ app.post('/api/nft/market/listings/:listingId/close', async (req, res) => {
       ok: true,
       settled: false,
       listing: await getMarketListingById(listing.id)
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// ─── Genesis Collections ───────────────────────────────────────────────────
+
+app.get('/api/nft/collections', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+  try {
+    const collections = await dbAll(nftDb, `SELECT * FROM nft_collections ORDER BY created_at ASC`, []);
+    return res.status(200).json({
+      ok: true,
+      count: collections.length,
+      collections: collections.map((c) => ({
+        id: String(c.id || '').trim(),
+        name: String(c.name || '').trim(),
+        slug: String(c.slug || '').trim(),
+        description: String(c.description || '').trim(),
+        collectionType: String(c.collection_type || 'standard').trim(),
+        maxSupply: Number(c.max_supply || 0),
+        currentSupply: Number(c.current_supply || 0),
+        remaining: c.max_supply > 0 ? Math.max(0, Number(c.max_supply) - Number(c.current_supply)) : null,
+        soldOut: c.max_supply > 0 && Number(c.current_supply) >= Number(c.max_supply),
+        imageUri: String(c.image_uri || '').trim(),
+        createdAt: safeIsoDate(c.created_at),
+        updatedAt: safeIsoDate(c.updated_at)
+      }))
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// Admin-only: create a new collection
+app.post('/api/nft/collections/create', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+  const adminKey = String(req.body?.admin_key || req.headers?.['x-admin-key'] || '').trim();
+  if (!PI_ADMIN_KEY || adminKey !== PI_ADMIN_KEY) {
+    return res.status(403).json({ ok: false, error: 'Admin key required' });
+  }
+  try {
+    const name = normalizeShortText(req.body?.name, 120);
+    if (!name) {
+      return res.status(400).json({ ok: false, error: 'name is required' });
+    }
+    const slug = normalizeShortText(req.body?.slug || name.toLowerCase().replace(/[^a-z0-9-]/g, '-'), 80);
+    const description = normalizeShortText(req.body?.description, 600);
+    const collectionType = ['genesis', 'domain', 'standard'].includes(String(req.body?.collection_type || '').trim().toLowerCase())
+      ? String(req.body.collection_type).trim().toLowerCase()
+      : 'standard';
+    const maxSupply = normalizeNonNegativeInteger(req.body?.max_supply, 0);
+    const imageUri = normalizeUri(req.body?.image_uri, 500);
+    const now = new Date().toISOString();
+    const id = `col_${crypto.randomUUID()}`;
+
+    await dbRun(nftDb,
+      `INSERT INTO nft_collections (id, name, slug, description, collection_type, max_supply, current_supply, image_uri, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+      [id, name, slug, description, collectionType, maxSupply, imageUri, now, now]
+    );
+    const created = await dbGet(nftDb, 'SELECT * FROM nft_collections WHERE id = ?', [id]);
+    return res.status(201).json({ ok: true, collection: created });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// ─── Colony Domain Endpoints ───────────────────────────────────────────────
+
+// Create a .ant colony domain NFT
+app.post('/api/nft/domains/create', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
+  try {
+    const uid = getAnetProfileIdFromBody(req.body);
+    if (!uid) {
+      return res.status(400).json({ ok: false, error: 'anet profile id is required' });
+    }
+    if (!requireSessionUidMatch(res, minerSession, uid)) {
+      return;
+    }
+
+    const profile = await getNftProfile(uid);
+    if (!profile) {
+      return res.status(404).json({ ok: false, error: 'NFT profile not found. Create profile first.' });
+    }
+
+    const rawDomain = normalizeShortText(req.body?.domain_name || req.body?.name, 80).toLowerCase().trim();
+    if (!rawDomain) {
+      return res.status(400).json({ ok: false, error: 'domain_name is required (must end in .ant)' });
+    }
+    const domainName = rawDomain.endsWith('.ant') ? rawDomain : `${rawDomain}.ant`;
+
+    // Domain name format: lowercase alphanumeric + hyphens + .ant
+    if (!/^[a-z0-9][a-z0-9-]{0,61}\.ant$/.test(domainName)) {
+      return res.status(400).json({ ok: false, error: 'Domain name must be lowercase alphanumeric with hyphens, ending in .ant (max 62 chars before .ant)' });
+    }
+
+    // Uniqueness check
+    const existing = await dbGet(nftDb, 'SELECT id FROM nft_assets WHERE domain_name = ?', [domainName]);
+    if (existing) {
+      return res.status(409).json({ ok: false, error: `Domain ${domainName} is already registered` });
+    }
+
+    const colonyDescription = normalizeShortText(req.body?.colony_description, 600);
+    const colonyLogoUri = normalizeUri(req.body?.colony_logo_uri, 500);
+    const colonyBannerUri = normalizeUri(req.body?.colony_banner_uri, 500);
+    const colonyLinksJson = normalizeThemeJson(req.body?.colony_links);
+    const colonyThemeJson = normalizeThemeJson(req.body?.colony_theme);
+    const imageUri = normalizeUri(req.body?.image_uri || colonyLogoUri || colonyBannerUri, 500);
+    const description = normalizeShortText(req.body?.description || `Colony domain ${domainName}`, 600);
+    const antsStake = normalizeNonNegativeInteger(req.body?.ants_stake, 0);
+    const traitsJson = normalizeTraitsJson([
+      { trait_type: 'domain', value: domainName },
+      { trait_type: 'asset_type', value: 'colony-domain' },
+      ...(Array.isArray(req.body?.traits) ? req.body.traits : [])
+    ]);
+    const now = new Date().toISOString();
+    const assetId = `nft_asset_${crypto.randomUUID()}`;
+    const slug = domainName.replace(/\./g, '-');
+
+    await dbRun(nftDb,
+      `INSERT INTO nft_assets (
+         id, uid, slug, name, description, image_uri, metadata_uri, traits_json,
+         status, ants_stake, created_at, updated_at,
+         asset_type, domain_name, colony_description, colony_logo_uri,
+         colony_banner_uri, colony_links_json, colony_theme_json, holder_tier, utility_flags_json
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        assetId, uid, slug, domainName, description, imageUri,
+        normalizeUri(req.body?.metadata_uri, 500), traitsJson,
+        'active', antsStake, now, now,
+        'domain', domainName, colonyDescription, colonyLogoUri,
+        colonyBannerUri, colonyLinksJson, colonyThemeJson, 'worker', '{}'
+      ]
+    );
+
+    const antsBalance = normalizeNonNegativeInteger(req.body?.ants_balance, profile.antsBalance || 0);
+    await dbRun(nftDb, 'UPDATE nft_profiles SET ants_balance = ?, updated_at = ? WHERE uid = ?', [antsBalance, now, uid]);
+    await appendNftActivity(uid, 'COLONY_DOMAIN_CREATED', { id: assetId, domainName });
+
+    const created = await dbGet(nftDb, 'SELECT * FROM nft_assets WHERE id = ?', [assetId]);
+    return res.status(201).json({
+      ok: true,
+      asset: mapNftAssetRow(created),
+      domainName
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// Customize a colony domain base (owner only)
+app.patch('/api/nft/domains/:domainId/customize', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
+  try {
+    const domainId = normalizeShortText(req.params?.domainId, 120);
+    const uid = getAnetProfileIdFromBody(req.body);
+    if (!domainId || !uid) {
+      return res.status(400).json({ ok: false, error: 'domainId and anet profile id are required' });
+    }
+    if (!requireSessionUidMatch(res, minerSession, uid)) {
+      return;
+    }
+
+    const asset = await dbGet(nftDb, 'SELECT * FROM nft_assets WHERE id = ?', [domainId]);
+    if (!asset) {
+      return res.status(404).json({ ok: false, error: 'Domain asset not found' });
+    }
+    if (normalizeAnetProfileId(asset.uid) !== uid) {
+      return res.status(403).json({ ok: false, error: 'Only the domain owner can customize it' });
+    }
+    if (String(asset.asset_type || '').trim().toLowerCase() !== 'domain') {
+      return res.status(400).json({ ok: false, error: 'Asset is not a colony domain' });
+    }
+
+    const now = new Date().toISOString();
+    const updates = {};
+    if (req.body?.colony_description !== undefined) updates.colony_description = normalizeShortText(req.body.colony_description, 600);
+    if (req.body?.colony_logo_uri !== undefined) updates.colony_logo_uri = normalizeUri(req.body.colony_logo_uri, 500);
+    if (req.body?.colony_banner_uri !== undefined) updates.colony_banner_uri = normalizeUri(req.body.colony_banner_uri, 500);
+    if (req.body?.colony_links !== undefined) updates.colony_links_json = normalizeThemeJson(req.body.colony_links);
+    if (req.body?.colony_theme !== undefined) updates.colony_theme_json = normalizeThemeJson(req.body.colony_theme);
+    if (req.body?.image_uri !== undefined) updates.image_uri = normalizeUri(req.body.image_uri, 500);
+    if (req.body?.description !== undefined) updates.description = normalizeShortText(req.body.description, 600);
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ ok: false, error: 'No customization fields provided' });
+    }
+
+    const setClauses = Object.keys(updates).map((k) => `${k} = ?`).join(', ');
+    const values = [...Object.values(updates), now, domainId];
+    await dbRun(nftDb, `UPDATE nft_assets SET ${setClauses}, updated_at = ? WHERE id = ?`, values);
+    await appendNftActivity(uid, 'COLONY_DOMAIN_CUSTOMIZED', { id: domainId, fields: Object.keys(updates) });
+
+    const updated = await dbGet(nftDb, 'SELECT * FROM nft_assets WHERE id = ?', [domainId]);
+    return res.status(200).json({ ok: true, asset: mapNftAssetRow(updated) });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// Get all colony domains (public)
+app.get('/api/nft/domains', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+  try {
+    const limit = Math.min(200, Math.max(1, Number(req.query?.limit || 50)));
+    const rows = await dbAll(nftDb,
+      `SELECT a.*, p.display_name, p.username
+       FROM nft_assets a
+       LEFT JOIN nft_profiles p ON p.uid = a.uid
+       WHERE a.asset_type = 'domain'
+       ORDER BY datetime(a.created_at) DESC
+       LIMIT ?`,
+      [limit]
+    );
+    return res.status(200).json({
+      ok: true,
+      count: rows.length,
+      domains: rows.map((row) => ({
+        ...mapNftAssetRow(row),
+        ownerDisplayName: normalizeShortText(row.display_name || row.username || row.uid, 80)
+      }))
     });
   } catch (error) {
     return res.status(500).json({ ok: false, error: error.message });
