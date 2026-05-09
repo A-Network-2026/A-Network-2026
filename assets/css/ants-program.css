@@ -304,6 +304,50 @@
       box-shadow: 0 0 0 2px rgba(108, 231, 177, 0.2);
     }
 
+    .cp-leader {
+      margin-bottom: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(6, 16, 25, 0.72);
+      padding: 12px;
+    }
+
+    .cp-leader-title {
+      margin: 0 0 8px;
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      color: var(--accent-3);
+      text-transform: uppercase;
+    }
+
+    .cp-leader-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 12px;
+    }
+
+    .cp-leader-grid p {
+      margin: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .cp-leader-grid span {
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }
+
+    .cp-leader-grid strong {
+      color: var(--text);
+      font-size: 0.84rem;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
     .cp-transparency {
       margin-bottom: 12px;
       border: 1px solid var(--line);
@@ -549,6 +593,7 @@
         width: 100%;
       }
 
+      .cp-leader-grid,
       .cp-transparency-grid {
         grid-template-columns: 1fr;
       }

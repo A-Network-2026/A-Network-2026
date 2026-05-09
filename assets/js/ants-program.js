@@ -13,6 +13,10 @@
   const refs = {
     status: document.getElementById('cp-status'),
     colonySelect: document.getElementById('cp-colony-select'),
+    topColony: document.getElementById('cp-top-colony'),
+    topAntCode: document.getElementById('cp-top-ant-code'),
+    topScore: document.getElementById('cp-top-score'),
+    topBasis: document.getElementById('cp-top-basis'),
     sourceEndpoint: document.getElementById('cp-source-endpoint'),
     dataMode: document.getElementById('cp-data-mode'),
     lastUpdated: document.getElementById('cp-last-updated'),
@@ -98,6 +102,11 @@
   function setCopyStatus(message) {
     if (!refs.copyStatus) return;
     refs.copyStatus.textContent = message;
+  }
+
+  function displayLabel(value, fallback = '-') {
+    const text = String(value || '').trim();
+    return text || fallback;
   }
 
   function legacyCopy(text) {
@@ -256,6 +265,39 @@
     return selected?.row || null;
   }
 
+  function getTopMiningRow(metrics) {
+    const usage = Array.isArray(metrics?.group_usage) ? metrics.group_usage : [];
+    if (!usage.length) return null;
+
+    const sorted = usage.slice().sort((a, b) => {
+      const miningDiff = safeInt(b?.active_chat_ants) - safeInt(a?.active_chat_ants);
+      if (miningDiff !== 0) return miningDiff;
+      const roomDiff = safeInt(b?.room_count) - safeInt(a?.room_count);
+      if (roomDiff !== 0) return roomDiff;
+      return safeInt(b?.message_count) - safeInt(a?.message_count);
+    });
+
+    return sorted[0] || null;
+  }
+
+  function renderTopMiningLeader(metrics) {
+    const topRow = getTopMiningRow(metrics);
+    if (!topRow) {
+      if (refs.topColony) refs.topColony.textContent = '-';
+      if (refs.topAntCode) refs.topAntCode.textContent = '-';
+      if (refs.topScore) refs.topScore.textContent = '0';
+      if (refs.topBasis) refs.topBasis.textContent = 'active_chat_ants (mining-based)';
+      return null;
+    }
+
+    if (refs.topColony) refs.topColony.textContent = displayLabel(topRow.room_name);
+    if (refs.topAntCode) refs.topAntCode.textContent = displayLabel(topRow.top_owner_label, 'N/A');
+    if (refs.topScore) refs.topScore.textContent = formatNumber(safeInt(topRow.active_chat_ants));
+    if (refs.topBasis) refs.topBasis.textContent = 'active_chat_ants (mining-based)';
+
+    return topRow;
+  }
+
   function extractTrackedMembers(metrics, row) {
     if (row) {
       return Math.max(MIN_BASELINE_MEMBERS, safeInt(row.active_chat_ants, MIN_BASELINE_MEMBERS));
@@ -297,7 +339,7 @@
     }
   }
 
-  function updateTransparency(mode, payload, row) {
+  function updateTransparency(mode, payload, row, topMiningRow) {
     const now = Date.now();
     if (refs.dataMode) {
       refs.dataMode.textContent = mode;
@@ -331,6 +373,14 @@
             total_colony_rooms: safeInt(metrics.total_colony_rooms),
             total_sessions: safeInt(metrics.total_sessions),
           },
+      top_mining_colony: topMiningRow
+        ? {
+            room_name: displayLabel(topMiningRow.room_name),
+            top_ant_code: displayLabel(topMiningRow.top_owner_label, 'N/A'),
+            active_chat_ants: safeInt(topMiningRow.active_chat_ants),
+            ranking_basis: 'active_chat_ants (mining-based)',
+          }
+        : null,
     };
 
     refs.rawPreview.textContent = JSON.stringify(snapshot, null, 2);
@@ -338,6 +388,7 @@
 
   function renderMetrics(payload, sourceLabel) {
     const metrics = payload?.metrics || {};
+    const topMiningRow = renderTopMiningLeader(metrics);
     const options = colonyOptions(metrics);
     renderColonySelect(options);
 
@@ -364,7 +415,7 @@
       ? `Baseline Met (${scopeName} • ${sourceLabel})`
       : `Baseline Pending (${scopeName} • ${sourceLabel})`;
 
-    updateTransparency(state.latestMode, payload, row);
+    updateTransparency(state.latestMode, payload, row, topMiningRow);
 
     const history = updateHistory(members);
     renderBars(history);
