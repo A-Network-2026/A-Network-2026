@@ -1532,11 +1532,6 @@ app.get('/api/nft/colony/feed', async (req, res) => {
     return;
   }
 
-  const minerSession = requireNftMinerSession(req, res);
-  if (!minerSession) {
-    return;
-  }
-
   try {
     const limit = Math.min(200, Math.max(1, Number(req.query?.limit || 30)));
     const assets = await dbAll(
@@ -1564,11 +1559,6 @@ app.get('/api/nft/colony/feed', async (req, res) => {
 
 app.get('/api/nft/market/listings', async (req, res) => {
   if (!requireNftDatabase(res)) {
-    return;
-  }
-
-  const minerSession = requireNftMinerSession(req, res);
-  if (!minerSession) {
     return;
   }
 
@@ -1631,11 +1621,6 @@ app.get('/api/nft/market/listings', async (req, res) => {
 
 app.get('/api/nft/market/listings/:listingId/bids', async (req, res) => {
   if (!requireNftDatabase(res)) {
-    return;
-  }
-
-  const minerSession = requireNftMinerSession(req, res);
-  if (!minerSession) {
     return;
   }
 

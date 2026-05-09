@@ -104,16 +104,9 @@
   async function bootstrap() {
     onMarketListingTypeChanged();
     const connected = await onTestApi();
-    if (connected && state.minerAuthenticated) {
+    if (connected) {
       await onLoadFeed();
       await onLoadMarketListings();
-    } else {
-      if (els.feedList) {
-        els.feedList.innerHTML = '<div class="status info">Miner login required to view NFT feed.</div>';
-      }
-      if (els.marketList) {
-        els.marketList.innerHTML = '<div class="status info">Miner login required to view marketplace listings.</div>';
-      }
     }
   }
 
@@ -160,9 +153,16 @@
       throw new Error("Set API base URL first (your backend domain), then test API.");
     }
 
+    const method = String(options.method || "GET").trim().toUpperCase();
+    const isPublicNftReadRoute = (
+      (path === "/api/nft/colony/feed" || path.startsWith("/api/nft/colony/feed?"))
+      || path.startsWith("/api/nft/market/listings")
+    ) && method === "GET";
+
     const isProtectedNftRoute = path.startsWith("/api/nft/")
       && path !== "/api/nft/config"
-      && path !== "/api/nft/auth/miner-login";
+      && path !== "/api/nft/auth/miner-login"
+      && !isPublicNftReadRoute;
 
     if (isProtectedNftRoute && !state.minerSessionToken) {
       throw new Error("Miner login required for NFT access.");
@@ -173,7 +173,7 @@
       : {};
 
     const response = await fetch(`${base}${path}`, {
-      method: options.method || "GET",
+      method,
       headers: {
         "Content-Type": "application/json",
         ...authHeaders,
@@ -256,7 +256,7 @@
     state.minerAuthenticated = false;
     state.minerSessionToken = "";
     state.minerUid = "";
-    setStatus(els.minerAuthStatus, "info", "Miner login required for NFT and marketplace actions.");
+    setStatus(els.minerAuthStatus, "info", "Miner login required for create/list/bid/buy actions. Feed and market browsing are public.");
   }
 
   function ensureMinerLoggedIn(statusEl) {
@@ -782,12 +782,8 @@
     }
 
     setMinerAuthState(null);
-    if (els.feedList) {
-      els.feedList.innerHTML = '<div class="status info">Miner login required to view NFT feed.</div>';
-    }
-    if (els.marketList) {
-      els.marketList.innerHTML = '<div class="status info">Miner login required to view marketplace listings.</div>';
-    }
+    await onLoadFeed();
+    await onLoadMarketListings();
   }
 
   async function onTestApi() {
@@ -806,7 +802,7 @@
         `Connected. No-burn policy is ${result?.policy?.noBurn ? "active" : "unknown"}. NFT unlock rule: first successful cashout/swap activates profile.`
       );
       if (!state.minerAuthenticated) {
-        setStatus(els.minerAuthStatus, "info", "Miner login required for NFT and marketplace actions.");
+        setStatus(els.minerAuthStatus, "info", "Miner login required for create/list/bid/buy actions. Feed and market browsing are public.");
       }
       return true;
     } catch (error) {
@@ -942,13 +938,6 @@
       }
       return;
     }
-    if (!ensureMinerLoggedIn()) {
-      if (els.feedList) {
-        els.feedList.innerHTML = '<div class="status info">Miner login required to view NFT feed.</div>';
-      }
-      return;
-    }
-
     try {
       const result = await apiFetch("/api/nft/colony/feed?limit=30");
       renderFeed(result.assets || []);
@@ -1013,13 +1002,6 @@
       }
       return;
     }
-    if (!ensureMinerLoggedIn(els.marketStatus)) {
-      if (els.marketList) {
-        els.marketList.innerHTML = '<div class="status info">Miner login required to view marketplace listings.</div>';
-      }
-      return;
-    }
-
     const status = String(els.marketFilterStatus?.value || "active").trim().toLowerCase() || "active";
     const listingType = String(els.marketFilterType?.value || "all").trim().toLowerCase() || "all";
 
