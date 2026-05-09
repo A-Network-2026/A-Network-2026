@@ -151,6 +151,7 @@
     const connected = await onTestApi();
     if (connected) {
       await onLoadCollections();
+      await onLoadColonyDomains();
       await onLoadFeed();
       await onLoadMarketListings();
     }
@@ -229,10 +230,14 @@
     }
 
     const method = String(options.method || "GET").trim().toUpperCase();
-    const isPublicNftReadRoute = (
+    const isPublicNftReadRoute = method === "GET" && (
       (path === "/api/nft/colony/feed" || path.startsWith("/api/nft/colony/feed?"))
       || path.startsWith("/api/nft/market/listings")
-    ) && method === "GET";
+      || path === "/api/nft/collections"
+      || path.startsWith("/api/nft/collections?")
+      || path === "/api/nft/domains"
+      || path.startsWith("/api/nft/domains?")
+    );
 
     const isProtectedNftRoute = path.startsWith("/api/nft/")
       && path !== "/api/nft/config"
