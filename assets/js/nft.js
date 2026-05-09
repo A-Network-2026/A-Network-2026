@@ -564,8 +564,13 @@
     }
 
     els.feedList.innerHTML = list.map((item) => {
+      const imageHtml = item.imageUri
+        ? `<div class="feed-image-container"><img src="${escapeHtmlAttr(item.imageUri)}" alt="${escapeHtmlAttr(item.name || 'NFT Art')}" class="feed-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23ddd%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3EImage not found%3C/text%3E%3C/svg%3E'"></div>`
+        : `<div class="feed-image-container" style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#999;">No image</div>`;
+      
       return `
         <article class="feed-item">
+          ${imageHtml}
           <div class="feed-head">
             <strong>${escapeHtml(item.name || "Unnamed")}</strong>
             <span class="pill">${escapeHtml(item.ownerDisplayName || item.uid || "unknown")}</span>
@@ -602,6 +607,11 @@
       const timeText = listing.endAt ? `Ends: ${formatUtc(listing.endAt)}` : `Listed: ${formatUtc(listing.createdAt)}`;
       const expiredBadge = listing.isExpired ? '<span class="pill">expired</span>' : "";
 
+      const assetImageUri = listing?.asset?.imageUri || "";
+      const imageHtml = assetImageUri
+        ? `<div class="market-image-container"><img src="${escapeHtmlAttr(assetImageUri)}" alt="${escapeHtmlAttr(assetName)}" class="market-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22250%22 height=%22250%22%3E%3Crect fill=%22%23ddd%22 width=%22250%22 height=%22250%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3EImage not found%3C/text%3E%3C/svg%3E'"></div>`
+        : `<div class="market-image-container" style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#999;">No image</div>`;
+
       const marketActions = status === "active"
         ? `
           <div class="asset-actions">
@@ -616,6 +626,7 @@
 
       return `
         <article class="asset-item" data-listing-id="${escapeHtmlAttr(listing.id || "")}">
+          ${imageHtml}
           <div class="asset-head">
             <strong>${escapeHtml(assetName)}</strong>
             <span class="pill">${escapeHtml(status)}</span>
