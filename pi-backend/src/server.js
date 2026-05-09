@@ -2697,9 +2697,14 @@ async function postToLayer1(pathname, payload) {
     throw new Error('Layer 1 DEX bridge is not configured');
   }
 
+  const headers = { 'Content-Type': 'application/json' };
+  if (ANET_L1_DEX_ADMIN_KEY) {
+    headers['x-anet-admin-key'] = ANET_L1_DEX_ADMIN_KEY;
+  }
+
   const response = await fetch(`${ANET_CHAIN_API_BASE_URL}${pathname}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(payload)
   });
 
