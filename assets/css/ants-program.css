@@ -403,6 +403,37 @@
       line-height: 1.5;
     }
 
+    .cp-reward-actions {
+      margin-top: 10px;
+    }
+
+    .cp-open-room-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line-strong);
+      background: rgba(108, 231, 177, 0.14);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 160ms ease, border-color 160ms ease;
+    }
+
+    .cp-open-room-btn:hover {
+      background: rgba(108, 231, 177, 0.22);
+      border-color: rgba(108, 231, 177, 0.72);
+    }
+
+    .cp-open-room-btn.is-disabled {
+      opacity: 0.55;
+      pointer-events: none;
+      border-color: var(--line);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
     .cp-room-list {
       margin-top: 10px;
       display: grid;

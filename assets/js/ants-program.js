@@ -22,6 +22,7 @@
     rewardMembers: document.getElementById('cp-reward-members'),
     rewardBasis: document.getElementById('cp-reward-basis'),
     whyTop: document.getElementById('cp-why-top'),
+    openRoom: document.getElementById('cp-open-room'),
     roomList: document.getElementById('cp-room-list'),
     sourceEndpoint: document.getElementById('cp-source-endpoint'),
     dataMode: document.getElementById('cp-data-mode'),
@@ -421,6 +422,26 @@
       .join('');
   }
 
+  function setOpenRoomTarget(href) {
+    if (!refs.openRoom) return;
+
+    if (!href) {
+      refs.openRoom.classList.add('is-disabled');
+      refs.openRoom.setAttribute('aria-disabled', 'true');
+      refs.openRoom.setAttribute('href', '#');
+      refs.openRoom.removeAttribute('target');
+      refs.openRoom.removeAttribute('rel');
+      return;
+    }
+
+    const absolute = href.startsWith('http') ? href : `${CHAIN_API}${href}`;
+    refs.openRoom.classList.remove('is-disabled');
+    refs.openRoom.setAttribute('aria-disabled', 'false');
+    refs.openRoom.setAttribute('href', absolute);
+    refs.openRoom.setAttribute('target', '_blank');
+    refs.openRoom.setAttribute('rel', 'noopener noreferrer');
+  }
+
   function renderRewardFallback(targetRow, topMiningRow, metrics) {
     if (!targetRow) {
       if (refs.selectedRooms) refs.selectedRooms.textContent = '-';
@@ -429,6 +450,7 @@
       if (refs.rewardBasis) refs.rewardBasis.textContent = 'Active miner status + ants + msgs/30d';
       if (refs.whyTop) refs.whyTop.textContent = 'No colony room data yet. Once mining metrics arrive, the owner reward target and reason will appear here.';
       renderRoomListItems([]);
+      setOpenRoomTarget('');
       state.latestRoomReward = null;
       return;
     }
@@ -453,6 +475,7 @@
     }
 
     renderRoomListItems([]);
+    setOpenRoomTarget('');
     state.latestRoomReward = {
       selected_colony: colonyName,
       reward_owner: ownerCode,
@@ -490,6 +513,7 @@
       }
 
       renderRoomListItems(ranked);
+      setOpenRoomTarget(topRoom.href || '');
 
       state.latestRoomReward = {
         selected_colony: displayLabel(targetRow.room_name),
