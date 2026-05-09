@@ -1015,6 +1015,65 @@ app.post('/api/pi/admin/force-unlock', (req, res) => {
   return res.status(200).json({ ok: true, unlock: record });
 });
 
+app.post('/api/pi/admin/force-dex-record', async (req, res) => {
+  if (!PI_ENABLE_TEST_ADMIN) {
+    return res.status(403).json({ ok: false, error: 'Admin force-dex-record is disabled in this environment' });
+  }
+
+  if (!PI_ADMIN_KEY) {
+    return res.status(503).json({ ok: false, error: 'PI_ADMIN_KEY is not configured on this deployment' });
+  }
+
+  const providedKey = String(req.body?.admin_key || '').trim();
+  if (providedKey !== PI_ADMIN_KEY) {
+    return res.status(401).json({ ok: false, error: 'Invalid admin key' });
+  }
+
+  const uid = normalizePiUid(req.body?.uid);
+  const username = String(req.body?.username || '').trim();
+  const trader = String(req.body?.trader || '').trim().toUpperCase();
+  const tokenSymbol = String(req.body?.token_symbol || '').trim().toUpperCase();
+  const amountIn = normalizePositiveInteger(req.body?.amount_in);
+  const anetToToken = Boolean(req.body?.anet_to_token);
+
+  if (!uid) {
+    return res.status(400).json({ ok: false, error: 'uid is required' });
+  }
+  if (!trader) {
+    return res.status(400).json({ ok: false, error: 'trader is required' });
+  }
+  if (!tokenSymbol) {
+    return res.status(400).json({ ok: false, error: 'token_symbol is required' });
+  }
+  if (!amountIn) {
+    return res.status(400).json({ ok: false, error: 'amount_in must be a positive integer' });
+  }
+
+  const requestRecord = {
+    id: `dex_${Date.now()}`,
+    uid,
+    username,
+    trader,
+    token_symbol: tokenSymbol,
+    amount_in: amountIn,
+    anet_to_token: anetToToken,
+    requestedAt: new Date().toISOString(),
+    chainResponse: {
+      pair_id: `ANET-${tokenSymbol}`,
+      amount_out: '1',
+      fee_paid: '0',
+      synthetic: true,
+      source: 'admin-force-dex-record'
+    }
+  };
+
+  cashoutState.cashoutRequests.push(requestRecord);
+  persistState();
+
+  await ensureCashoutActivatedNftProfile(uid, username, trader);
+
+  return res.status(200).json({ ok: true, request: requestRecord });
+});
 
 app.get('/api/pi/config', (_req, res) => {
   res.json({
