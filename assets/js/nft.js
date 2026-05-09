@@ -110,19 +110,48 @@
     }
   }
 
+  function isStaticWebsiteBase(base) {
+    const clean = String(base || "").trim().replace(/\/$/, "");
+    if (!clean) {
+      return false;
+    }
+    try {
+      const parsed = new URL(clean);
+      const host = String(parsed.hostname || "").toLowerCase();
+      return host === "a-network.net" || host === "www.a-network.net";
+    } catch {
+      return false;
+    }
+  }
+
+  function normalizeApiBaseInput(base) {
+    const clean = String(base || "").trim().replace(/\/$/, "");
+    if (!clean) {
+      return "";
+    }
+    if (isStaticWebsiteBase(clean) || clean === window.location.origin) {
+      return "https://pi-backend-q2ye.onrender.com";
+    }
+    return clean;
+  }
+
   function resolveInitialApiBase() {
-    const fromQuery = String(new URLSearchParams(window.location.search).get("api") || "").trim();
+    const fromQuery = normalizeApiBaseInput(String(new URLSearchParams(window.location.search).get("api") || "").trim());
     if (fromQuery) {
       return fromQuery.replace(/\/$/, "");
     }
 
-    const saved = String(localStorage.getItem("anet_nft_api_base") || "").trim();
+    const saved = normalizeApiBaseInput(String(localStorage.getItem("anet_nft_api_base") || "").trim());
     if (saved) {
       return saved;
     }
 
     if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
       return "http://localhost:3001";
+    }
+
+    if (window.location.hostname === "a-network.net" || window.location.hostname === "www.a-network.net") {
+      return "https://pi-backend-q2ye.onrender.com";
     }
 
     return "";
@@ -735,7 +764,7 @@
   }
 
   async function onSaveApiBase() {
-    const base = String(els.apiBaseUrl?.value || "").trim().replace(/\/$/, "");
+    const base = normalizeApiBaseInput(String(els.apiBaseUrl?.value || "").trim());
     if (!base) {
       setStatus(els.apiStatus, "bad", "Please enter API base URL (backend domain). Example: https://your-backend.onrender.com");
       return;
@@ -787,6 +816,11 @@
   }
 
   async function onTestApi() {
+    const fallbackBases = [
+      "https://pi-backend-q2ye.onrender.com",
+      "https://pi-backend.onrender.com"
+    ];
+
     try {
       const result = await apiFetch("/api/nft/config");
       state.minAnts = Number(result?.policy?.minAntsForProfileCreation || 1000);
@@ -806,6 +840,39 @@
       }
       return true;
     } catch (error) {
+      const currentBase = getApiBase();
+      const shouldAutoSwitch = !currentBase || currentBase === window.location.origin || isStaticWebsiteBase(currentBase);
+
+      if (shouldAutoSwitch) {
+        for (const candidate of fallbackBases) {
+          if (!candidate || candidate === currentBase) {
+            continue;
+          }
+          try {
+            saveApiBase(candidate);
+            const result = await apiFetch("/api/nft/config");
+            state.minAnts = Number(result?.policy?.minAntsForProfileCreation || 1000);
+            state.minDomainAuctionBidAnts = Number(result?.policy?.minDomainAuctionBidAnts || 10000);
+            state.apiReady = true;
+            onMarketListingTypeChanged();
+            if (els.kpiMinAnts) {
+              els.kpiMinAnts.textContent = String(state.minAnts);
+            }
+            setStatus(
+              els.apiStatus,
+              "good",
+              `Connected. API auto-routed to ${candidate}.`
+            );
+            if (!state.minerAuthenticated) {
+              setStatus(els.minerAuthStatus, "info", "Miner login required for create/list/bid/buy actions. Feed and market browsing are public.");
+            }
+            return true;
+          } catch {
+            // try next fallback
+          }
+        }
+      }
+
       state.apiReady = false;
       const base = getApiBase();
       if (base && base === window.location.origin) {
