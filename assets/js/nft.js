@@ -60,6 +60,12 @@
     marketFilterType: document.getElementById("market-filter-type"),
     marketList: document.getElementById("market-list"),
 
+    analyticsViewTotal: document.getElementById("analytics-view-total"),
+    analyticsClickTotal: document.getElementById("analytics-click-total"),
+    analyticsUniqueAssets: document.getElementById("analytics-unique-assets"),
+    analyticsBars: document.getElementById("analytics-bars"),
+    analyticsTopList: document.getElementById("analytics-top-list"),
+
     kpiMinAnts: document.getElementById("kpi-min-ants"),
     kpiFeedCount: document.getElementById("kpi-feed-count"),
     kpiMyAssets: document.getElementById("kpi-my-assets")
@@ -74,7 +80,8 @@
     apiReady: false,
     minerAuthenticated: false,
     minerSessionToken: "",
-    minerUid: ""
+    minerUid: "",
+    analytics: loadAnalyticsState()
   };
 
   if (els.apiBaseUrl) {
@@ -102,6 +109,8 @@
   }
 
   async function bootstrap() {
+    renderAnalyticsPanel();
+    window.setInterval(renderAnalyticsPanel, 5000);
     onMarketListingTypeChanged();
     const connected = await onTestApi();
     if (connected) {
@@ -417,6 +426,124 @@
     return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
   }
 
+  function loadAnalyticsState() {
+    const fallback = { assets: {}, events: [] };
+    try {
+      const raw = localStorage.getItem("anet_nft_live_metrics_v1");
+      if (!raw) return fallback;
+      const parsed = JSON.parse(raw);
+      return {
+        assets: parsed && typeof parsed.assets === "object" ? parsed.assets : {},
+        events: Array.isArray(parsed?.events) ? parsed.events : []
+      };
+    } catch {
+      return fallback;
+    }
+  }
+
+  function saveAnalyticsState() {
+    localStorage.setItem("anet_nft_live_metrics_v1", JSON.stringify(state.analytics));
+  }
+
+  function upsertAssetMetric(assetId, name, imageUri) {
+    const key = String(assetId || "").trim();
+    if (!key) return null;
+    if (!state.analytics.assets[key]) {
+      state.analytics.assets[key] = {
+        id: key,
+        name: String(name || "Unnamed"),
+        imageUri: String(imageUri || ""),
+        views: 0,
+        clicks: 0,
+        lastViewAt: 0,
+        lastClickAt: 0
+      };
+    }
+    const item = state.analytics.assets[key];
+    if (name) item.name = String(name);
+    if (imageUri) item.imageUri = String(imageUri);
+    return item;
+  }
+
+  function trackMetricEvent(kind, assetId, name, imageUri) {
+    const asset = upsertAssetMetric(assetId, name, imageUri);
+    if (!asset) return;
+    const now = Date.now();
+    if (kind === "view") {
+      asset.views += 1;
+      asset.lastViewAt = now;
+    } else {
+      asset.clicks += 1;
+      asset.lastClickAt = now;
+    }
+    state.analytics.events.push({ t: now, k: kind, a: asset.id });
+    const cutoff = now - (30 * 60 * 1000);
+    state.analytics.events = state.analytics.events.filter((evt) => Number(evt?.t || 0) >= cutoff);
+    saveAnalyticsState();
+  }
+
+  function renderAnalyticsPanel() {
+    const assets = Object.values(state.analytics.assets || {});
+    const totalViews = assets.reduce((sum, item) => sum + Number(item.views || 0), 0);
+    const totalClicks = assets.reduce((sum, item) => sum + Number(item.clicks || 0), 0);
+
+    if (els.analyticsViewTotal) els.analyticsViewTotal.textContent = String(totalViews);
+    if (els.analyticsClickTotal) els.analyticsClickTotal.textContent = String(totalClicks);
+    if (els.analyticsUniqueAssets) els.analyticsUniqueAssets.textContent = String(assets.length);
+
+    if (els.analyticsBars) {
+      const now = Date.now();
+      const bucketMs = 60 * 1000;
+      const buckets = [];
+      for (let i = 11; i >= 0; i -= 1) {
+        const start = now - (i * bucketMs);
+        const end = start + bucketMs;
+        const count = state.analytics.events.filter((evt) => evt.t >= start && evt.t < end).length;
+        buckets.push(count);
+      }
+      const max = Math.max(1, ...buckets);
+      els.analyticsBars.innerHTML = buckets.map((count) => {
+        const h = Math.max(8, Math.round((count / max) * 64));
+        return `<div class="analytics-bar" style="height:${h}px" title="${count} events"></div>`;
+      }).join("");
+    }
+
+    if (els.analyticsTopList) {
+      const top = assets
+        .sort((a, b) => ((b.views + b.clicks) - (a.views + a.clicks)))
+        .slice(0, 5);
+      if (!top.length) {
+        els.analyticsTopList.innerHTML = '<div class="muted">No tracking data yet.</div>';
+      } else {
+        els.analyticsTopList.innerHTML = top.map((item) => {
+          return `<div class="mono">${escapeHtml(item.name)} | views: ${escapeHtml(String(item.views))} | clicks: ${escapeHtml(String(item.clicks))}</div>`;
+        }).join("");
+      }
+    }
+  }
+
+  function attachImageErrorHandlers(scopeEl) {
+    if (!scopeEl) return;
+    const imgs = Array.from(scopeEl.querySelectorAll("img.track-nft-image"));
+    imgs.forEach((img) => {
+      img.addEventListener("error", () => {
+        img.style.display = "none";
+        const container = img.parentElement;
+        if (container) {
+          container.innerHTML = '<div style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#999; width:100%; height:100%;">Image not found</div>';
+        }
+      }, { once: true });
+
+      img.addEventListener("click", () => {
+        const assetId = String(img.getAttribute("data-asset-id") || "").trim();
+        const assetName = String(img.getAttribute("data-asset-name") || "").trim();
+        const imageUri = String(img.getAttribute("data-image-uri") || "").trim();
+        trackMetricEvent("click", assetId, assetName, imageUri);
+        renderAnalyticsPanel();
+      });
+    });
+  }
+
   function renderAssets(items) {
     state.myAssets = Array.isArray(items) ? items : [];
     if (els.kpiMyAssets) {
@@ -560,26 +687,23 @@
 
     if (!list.length) {
       els.feedList.innerHTML = '<div class="status info">No colony activity yet.</div>';
+      renderAnalyticsPanel();
       return;
     }
 
     els.feedList.innerHTML = list.map((item) => {
+      const assetId = String(item.id || "").trim();
+      const assetName = String(item.name || "Unnamed").trim();
+      const imageUri = String(item.imageUri || "").trim();
+
+      if (assetId) {
+        trackMetricEvent("view", assetId, assetName, imageUri);
+      }
+
       const imageHtml = item.imageUri
-        ? `<div class="feed-image-container"><img src="${escapeHtmlAttr(item.imageUri)}" alt="${escapeHtmlAttr(item.name || 'NFT Art')}" class="feed-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23ddd%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3EImage not found%3C/text%3E%3C/svg%3E'"></div>`
+        ? `<div class="feed-image-container"><img src="${escapeHtmlAttr(imageUri)}" alt="${escapeHtmlAttr(assetName || 'NFT Art')}" class="feed-image track-nft-image" data-asset-id="${escapeHtmlAttr(assetId)}" data-asset-name="${escapeHtmlAttr(assetName)}" data-image-uri="${escapeHtmlAttr(imageUri)}" loading="lazy"></div>`
         : `<div class="feed-image-container" style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#999;">No image</div>`;
-    
-          // Add error handlers to images
-          document.querySelectorAll('.feed-image').forEach(img => {
-            img.addEventListener('error', function() {
-              this.style.display = 'none';
-              const container = this.parentElement;
-              if (container) {
-                container.innerHTML = '<div style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#999; width:100%; height:100%;">Image failed to load</div>';
-              }
-            });
-          });
-        }
-      
+
       return `
         <article class="feed-item">
           ${imageHtml}
@@ -594,6 +718,9 @@
         </article>
       `;
     }).join("");
+
+    attachImageErrorHandlers(els.feedList);
+    renderAnalyticsPanel();
   }
 
   function renderMarketListings(items) {
@@ -602,6 +729,7 @@
 
     if (!state.marketListings.length) {
       els.marketList.innerHTML = '<div class="status info">No marketplace listings found for selected filter.</div>';
+      renderAnalyticsPanel();
       return;
     }
 
@@ -620,8 +748,13 @@
       const expiredBadge = listing.isExpired ? '<span class="pill">expired</span>' : "";
 
       const assetImageUri = listing?.asset?.imageUri || "";
+      const trackedAssetId = String(listing.assetId || listing?.asset?.id || "").trim();
+      if (trackedAssetId) {
+        trackMetricEvent("view", trackedAssetId, assetName, assetImageUri);
+      }
+
       const imageHtml = assetImageUri
-        ? `<div class="market-image-container"><img src="${escapeHtmlAttr(assetImageUri)}" alt="${escapeHtmlAttr(assetName)}" class="market-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22250%22 height=%22250%22%3E%3Crect fill=%22%23ddd%22 width=%22250%22 height=%22250%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3EImage not found%3C/text%3E%3C/svg%3E'"></div>`
+        ? `<div class="market-image-container"><img src="${escapeHtmlAttr(assetImageUri)}" alt="${escapeHtmlAttr(assetName)}" class="market-image track-nft-image" data-asset-id="${escapeHtmlAttr(trackedAssetId)}" data-asset-name="${escapeHtmlAttr(assetName)}" data-image-uri="${escapeHtmlAttr(assetImageUri)}" loading="lazy"></div>`
         : `<div class="market-image-container" style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#999;">No image</div>`;
 
       const marketActions = status === "active"
@@ -637,7 +770,7 @@
         : '<div class="status info">Listing closed.</div>';
 
       return `
-        <article class="asset-item" data-listing-id="${escapeHtmlAttr(listing.id || "")}">
+        <article class="asset-item" data-listing-id="${escapeHtmlAttr(listing.id || "")}" data-asset-id="${escapeHtmlAttr(trackedAssetId)}" data-asset-name="${escapeHtmlAttr(assetName)}" data-image-uri="${escapeHtmlAttr(assetImageUri)}">
           ${imageHtml}
           <div class="asset-head">
             <strong>${escapeHtml(assetName)}</strong>
@@ -661,19 +794,13 @@
     }).join("");
 
     const cards = Array.from(els.marketList.querySelectorAll(".asset-item"));
-    // Add error handlers to market images
-    document.querySelectorAll('.market-image').forEach(img => {
-      img.addEventListener('error', function() {
-        this.style.display = 'none';
-        const container = this.parentElement;
-        if (container) {
-          container.innerHTML = '<div style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#999; width:100%; height:100%;">Image failed to load</div>';
-        }
-      });
-    });
+    attachImageErrorHandlers(els.marketList);
 
     cards.forEach((card) => {
       const listingId = String(card.getAttribute("data-listing-id") || "").trim();
+      const assetId = String(card.getAttribute("data-asset-id") || "").trim();
+      const assetName = String(card.getAttribute("data-asset-name") || "").trim();
+      const imageUri = String(card.getAttribute("data-image-uri") || "").trim();
       const statusBox = card.querySelector(".market-inline-status");
 
       const setInline = (type, message) => {
@@ -684,6 +811,8 @@
       };
 
       card.querySelector(".market-bid-btn")?.addEventListener("click", async () => {
+        trackMetricEvent("click", assetId, assetName, imageUri);
+        renderAnalyticsPanel();
         const actorId = getMarketActorId();
         const amount = toNumberOrZero(card.querySelector(".market-bid-amount")?.value);
         if (!actorId || !listingId || amount <= 0) {
@@ -710,6 +839,8 @@
       });
 
       card.querySelector(".market-buy-btn")?.addEventListener("click", async () => {
+        trackMetricEvent("click", assetId, assetName, imageUri);
+        renderAnalyticsPanel();
         const actorId = getMarketActorId();
         if (!actorId || !listingId) {
           setInline("bad", "Need profile ID for buy action.");
@@ -734,6 +865,8 @@
       });
 
       card.querySelector(".market-close-btn")?.addEventListener("click", async () => {
+        trackMetricEvent("click", assetId, assetName, imageUri);
+        renderAnalyticsPanel();
         const actorId = getMarketActorId();
         if (!actorId || !listingId) {
           setInline("bad", "Need seller profile ID for close action.");
@@ -758,6 +891,8 @@
       });
 
       card.querySelector(".market-bids-btn")?.addEventListener("click", async () => {
+        trackMetricEvent("click", assetId, assetName, imageUri);
+        renderAnalyticsPanel();
         if (!listingId) {
           setInline("bad", "Missing listing ID.");
           return;
@@ -777,6 +912,8 @@
         }
       });
     });
+
+    renderAnalyticsPanel();
   }
 
   function escapeHtml(value) {
