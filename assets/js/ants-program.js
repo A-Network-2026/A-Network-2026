@@ -936,20 +936,31 @@
     const plotHeight = height - topPad - bottomPad;
     const candleStep = Math.max(8, plotWidth / Math.max(1, ohlc.length));
     const bodyWidth = Math.min(22, Math.max(5, candleStep * 0.6));
+    const minVisibleSpread = Math.max(0.6, rawRange * 0.04);
+    const minVisibleBody = Math.max(1.5, plotHeight * 0.014);
     const valueToY = (value) => topPad + (maxValue - value) / range * plotHeight;
 
     // Build candlestick elements with wicks
     const candleSvgs = ohlc
       .map((candle, index) => {
         const x = leftPad + index * candleStep + candleStep * 0.5;
-        const yHigh = valueToY(candle.high);
-        const yLow = valueToY(candle.low);
+        const spread = Math.max(candle.high - candle.low, minVisibleSpread);
+        const centerValue = (candle.open + candle.close) / 2;
+        const displayHigh = candle.high > candle.low ? candle.high : centerValue + spread / 2;
+        const displayLow = candle.high > candle.low ? candle.low : centerValue - spread / 2;
+        const yHigh = valueToY(displayHigh);
+        const yLow = valueToY(displayLow);
         const yOpen = valueToY(candle.open);
         const yClose = valueToY(candle.close);
 
-        const yBodyTop = Math.min(yOpen, yClose);
-        const yBodyBottom = Math.max(yOpen, yClose);
-        const bodyHeight = Math.max(1, yBodyBottom - yBodyTop);
+        let yBodyTop = Math.min(yOpen, yClose);
+        let yBodyBottom = Math.max(yOpen, yClose);
+        if (yBodyBottom - yBodyTop < minVisibleBody) {
+          const bodyCenter = (yBodyTop + yBodyBottom) / 2;
+          yBodyTop = Math.max(topPad, bodyCenter - minVisibleBody / 2);
+          yBodyBottom = Math.min(topPad + plotHeight, bodyCenter + minVisibleBody / 2);
+        }
+        const bodyHeight = Math.max(minVisibleBody, yBodyBottom - yBodyTop);
 
         const color = candle.isBullish ? '#6ce7b1' : '#ff6b6b'; // green for up, red for down
         const opacityClass = candle.isBullish ? 'cp-candle-mining' : 'cp-candle-missed';
