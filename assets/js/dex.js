@@ -11,6 +11,62 @@
 /* ── Constants ──────────────────────────────── */
 const CHAIN_API = 'https://explorer.a-network.net';
 const ANTS_PER_ANET = 100_000_000;  // 1 ANET = 10^8 ants
+const INVESTOR_WEB_VIEW_ONLY = true;
+const WALLET_APP_DEEPLINK = 'anet://dex';
+const WALLET_APP_FALLBACK_URL = 'https://play.google.com/store/apps/details?id=net.anetwork.app';
+
+function openWalletApp(actionLabel = 'trade') {
+  const action = String(actionLabel || 'trade').trim().toLowerCase();
+  const deepLink = `${WALLET_APP_DEEPLINK}?action=${encodeURIComponent(action)}`;
+  window.location.href = deepLink;
+  window.setTimeout(() => {
+    window.open(WALLET_APP_FALLBACK_URL, '_blank', 'noopener');
+  }, 600);
+}
+
+function applyInvestorViewMode() {
+  if (!INVESTOR_WEB_VIEW_ONLY) return;
+
+  const banner = document.getElementById('investor-view-banner');
+  if (banner) banner.style.display = 'block';
+
+  const connectBtn = document.getElementById('anet-wallet-btn');
+  if (connectBtn) {
+    connectBtn.innerHTML = '<span class="dot"></span><span>Open Wallet App</span>';
+  }
+
+  const coConnectBtn = document.getElementById('co-connect-btn');
+  if (coConnectBtn) {
+    coConnectBtn.textContent = 'Open Wallet App';
+    coConnectBtn.disabled = false;
+  }
+
+  const swapBtn = document.getElementById('do-swap-btn');
+  if (swapBtn) {
+    swapBtn.disabled = false;
+    swapBtn.textContent = 'Buy/Sell in Wallet App';
+  }
+
+  const cashoutBtn = document.getElementById('co-swap-btn');
+  if (cashoutBtn) {
+    cashoutBtn.disabled = false;
+    cashoutBtn.textContent = 'Cashout in Wallet App';
+  }
+
+  const addLiqBtn = document.getElementById('add-liq-btn');
+  if (addLiqBtn) {
+    addLiqBtn.disabled = true;
+    addLiqBtn.textContent = 'Liquidity via Wallet App';
+    addLiqBtn.title = 'Investor web view does not allow liquidity writes.';
+  }
+
+  const createPoolBtn = document.getElementById('create-pool-btn');
+  if (createPoolBtn) {
+    createPoolBtn.disabled = true;
+    createPoolBtn.textContent = 'Create Pool in Wallet App';
+    createPoolBtn.title = 'Investor web view does not allow pool creation.';
+  }
+}
 
 const EVM_CHAINS = {
   1:       { name: 'Ethereum',       symbol: 'ETH',   color: '#627EEA', rpc: 'https://cloudflare-eth.com',                      explorer: 'https://etherscan.io' },
@@ -431,6 +487,11 @@ async function switchEvmChain(chainId) {
 
 /* ── ANET Wallet ────────────────────────────── */
 function openAnetWalletModal() {
+  if (INVESTOR_WEB_VIEW_ONLY) {
+    toast('Web portal is investor view only. Open A Network wallet app to authorize.', 'info', 5000);
+    openWalletApp('connect');
+    return;
+  }
   const overlay = document.getElementById('anet-wallet-modal');
   if (overlay) overlay.classList.add('open');
 }
@@ -441,6 +502,11 @@ function closeAnetWalletModal() {
 }
 
 async function connectAnetWallet() {
+  if (INVESTOR_WEB_VIEW_ONLY) {
+    toast('Use A Network wallet app for secure sign-in and trading.', 'info', 5000);
+    openWalletApp('connect');
+    return;
+  }
   const address = document.getElementById('anet-address-input')?.value?.trim();
   const sessionToken = document.getElementById('anet-session-input')?.value?.trim();
   if (!address) { toast('Please enter your ANET wallet address', 'error'); return; }
@@ -587,6 +653,11 @@ function setCashoutMax() {
 }
 
 async function doCashout() {
+  if (INVESTOR_WEB_VIEW_ONLY) {
+    toast('Cashout is executed in the A Network wallet app.', 'info', 5000);
+    openWalletApp('cashout');
+    return;
+  }
   if (!state.anetWallet.address || !state.anetWallet.sessionToken) {
     openAnetWalletModal();
     return;
@@ -995,6 +1066,11 @@ function renderQuote(q, isAnetToToken) {
 }
 
 async function doSwap() {
+  if (INVESTOR_WEB_VIEW_ONLY) {
+    toast('Buy/Sell executes in the A Network wallet app.', 'info', 5000);
+    openWalletApp('swap');
+    return;
+  }
   if (!state.anetWallet.address || !state.anetWallet.sessionToken) {
     openAnetWalletModal();
     return;
@@ -1856,6 +1932,11 @@ function renderLiquidityPools() {
 }
 
 async function doAddLiquidity() {
+  if (INVESTOR_WEB_VIEW_ONLY) {
+    toast('Investor web view is read-only for liquidity writes. Use wallet app.', 'info', 5000);
+    openWalletApp('liquidity');
+    return;
+  }
   if (!state.anetWallet.address || !state.anetWallet.sessionToken) { openAnetWalletModal(); return; }
 
   const sym    = document.getElementById('liq-pool-select')?.value;
@@ -1891,6 +1972,11 @@ async function doAddLiquidity() {
 }
 
 async function doCreatePool() {
+  if (INVESTOR_WEB_VIEW_ONLY) {
+    toast('Pool creation is available in wallet app only.', 'info', 5000);
+    openWalletApp('create-pool');
+    return;
+  }
   if (!state.anetWallet.address || !state.anetWallet.sessionToken) { openAnetWalletModal(); return; }
 
   const sym    = document.getElementById('create-token-sym')?.value?.trim()?.toUpperCase();
@@ -2305,6 +2391,8 @@ function initEvmEventListeners() {
 
 /* ── Init ───────────────────────────────────── */
 async function init() {
+  applyInvestorViewMode();
+
   // Check if MetaMask already connected
   if (window.ethereum?.selectedAddress) {
     state.evmWallet.address = window.ethereum.selectedAddress;
