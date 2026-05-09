@@ -218,11 +218,44 @@
     return points;
   }
 
+  function buildOHLCData(series) {
+    // Convert point series into OHLC candles with proper high/low wicks
+    if (!series || series.length === 0) return [];
+    
+    return series.map((point, idx) => {
+      const prev = idx > 0 ? series[idx - 1].v : point.v;
+      const next = idx < series.length - 1 ? series[idx + 1].v : point.v;
+      
+      // Calculate high and low from nearby points (volatility range)
+      const nearby = [prev, point.v, next];
+      const high = Math.max(...nearby);
+      const low = Math.min(...nearby);
+      
+      // OHLC structure
+      const open = prev;
+      const close = point.v;
+      const isBullish = close >= open;
+      
+      return {
+        t: point.t,
+        open,
+        high,
+        low,
+        close,
+        isBullish,
+      };
+    });
+  }
+
   function renderBars(history) {
     const series = history.length ? history.slice(-MAX_POINTS) : buildFallbackHistory();
-    const maxValue = Math.max(...series.map((p) => p.v), MIN_BASELINE_MEMBERS);
-    const minValue = Math.min(...series.map((p) => p.v), MIN_BASELINE_MEMBERS);
-    const avgValue = (maxValue + minValue) / 2;
+    const ohlc = buildOHLCData(series);
+    
+    // Get price range from all high/low values
+    const allHighs = ohlc.map(c => c.high);
+    const allLows = ohlc.map(c => c.low);
+    const maxValue = Math.max(...allHighs, MIN_BASELINE_MEMBERS);
+    const minValue = Math.min(...allLows, MIN_BASELINE_MEMBERS);
     const range = Math.max(1, maxValue - minValue);
 
     // Responsive dimensions based on container width
@@ -232,25 +265,44 @@
     const height = 300;
     const paddingX = 16;
     const paddingY = 16;
-    const candleWidth = Math.max(6, (width - paddingX * 2) / Math.max(1, series.length));
-    const spacing = Math.max(2, candleWidth * 0.15);
+    const candleWidth = Math.max(4, (width - paddingX * 2) / Math.max(1, ohlc.length));
+    const spacing = Math.max(1, candleWidth * 0.2);
+    const bodyWidth = Math.max(2, candleWidth - spacing);
 
-    // Build candlesticks (green = above average/mining day, red = below average/missed day)
-    const candles = series.map((point, index) => {
-      const x = paddingX + index * (candleWidth + spacing) + candleWidth / 2;
-      const normalized = (point.v - minValue) / range;
-      const bodyHeight = normalized * (height - paddingY * 2);
-      const y = height - paddingY - bodyHeight;
-      const isMiningDay = point.v >= avgValue;
-      return {
-        x: x.toFixed(2),
-        y: y.toFixed(2),
-        bodyHeight: bodyHeight.toFixed(2),
-        v: point.v,
-        isMiningDay,
-        ts: point.t,
-      };
-    });
+    // Build candlestick elements with wicks
+    const candleSvgs = ohlc
+      .map((candle, index) => {
+        const x = paddingX + index * (candleWidth + spacing) + candleWidth / 2;
+        
+        // Normalize values to pixel positions
+        const normalizedHigh = (candle.high - minValue) / range;
+        const normalizedLow = (candle.low - minValue) / range;
+        const normalizedOpen = (candle.open - minValue) / range;
+        const normalizedClose = (candle.close - minValue) / range;
+        
+        const yHigh = height - paddingY - normalizedHigh * (height - paddingY * 2);
+        const yLow = height - paddingY - normalizedLow * (height - paddingY * 2);
+        const yOpen = height - paddingY - normalizedOpen * (height - paddingY * 2);
+        const yClose = height - paddingY - normalizedClose * (height - paddingY * 2);
+        
+        // Determine body position
+        const yBodyTop = Math.min(yOpen, yClose);
+        const yBodyBottom = Math.max(yOpen, yClose);
+        const bodyHeight = Math.max(1, yBodyBottom - yBodyTop);
+        
+        // Colors
+        const color = candle.isBullish ? '#6ce7b1' : '#ff6b6b'; // green for up, red for down
+        const opacityClass = candle.isBullish ? 'cp-candle-mining' : 'cp-candle-missed';
+        
+        // Wick (thin line from high to low)
+        const wickSvg = `<line class=\"cp-wick\" x1=\"${x.toFixed(2)}\" y1=\"${yHigh.toFixed(2)}\" x2=\"${x.toFixed(2)}\" y2=\"${yLow.toFixed(2)}\" stroke=\"${color}\" stroke-width=\"1\" opacity=\"0.6\"></line>`;
+        
+        // Body (rectangle from open to close)
+        const bodySvg = `<rect class=\"cp-candle ${opacityClass}\" x=\"${(x - bodyWidth / 2).toFixed(2)}\" y=\"${yBodyTop.toFixed(2)}\" width=\"${bodyWidth.toFixed(2)}\" height=\"${bodyHeight.toFixed(2)}\" fill=\"${color}\" opacity=\"0.85\" rx=\"0.5\"></rect>`;
+        
+        return `${wickSvg}${bodySvg}`;
+      })
+      .join('');
 
     // Grid lines
     const gridLines = [0.25, 0.5, 0.75]
@@ -260,22 +312,14 @@
       })
       .join('');
 
-    // Render candlesticks
-    const candleSvgs = candles
-      .map((candle) => {
-        const color = candle.isMiningDay ? '#6ce7b1' : '#ff6b6b'; // green for mining, red for missed
-        const opacityClass = candle.isMiningDay ? 'cp-candle-mining' : 'cp-candle-missed';
-        const rectY = Math.max(paddingY, height - paddingY - parseFloat(candle.bodyHeight));
-        return `<rect class=\"cp-candle ${opacityClass}\" x=\"${(parseFloat(candle.x) - candleWidth / 2).toFixed(2)}\" y=\"${rectY.toFixed(2)}\" width=\"${candleWidth.toFixed(2)}\" height=\"${candle.bodyHeight}\" fill=\"${color}\" opacity=\"0.85\" rx=\"1\"></rect>`;
-      })
-      .join('');
+    // Last candle marker
+    const lastCandle = ohlc[ohlc.length - 1];
+    const lastNormalized = (lastCandle.close - minValue) / range;
+    const lastY = height - paddingY - lastNormalized * (height - paddingY * 2);
+    const lastX = paddingX + (ohlc.length - 1) * (candleWidth + spacing) + candleWidth / 2;
+    const lastMarker = `<circle class=\"cp-last-dot\" cx=\"${lastX.toFixed(2)}\" cy=\"${lastY.toFixed(2)}\" r=\"3.5\" fill=\"#58c5ff\" stroke=\"#d9fbff\" stroke-width=\"1.8\"></circle>`;
 
-    // Last point marker
-    const lastCandle = candles[candles.length - 1];
-    const lastPointY = Math.max(paddingY, height - paddingY - parseFloat(lastCandle.bodyHeight));
-    const lastMarker = `<circle class=\"cp-last-dot\" cx=\"${lastCandle.x}\" cy=\"${(lastPointY + parseFloat(lastCandle.bodyHeight) / 2).toFixed(2)}\" r=\"3\" fill=\"#58c5ff\" stroke=\"#d9fbff\" stroke-width=\"1.6\"></circle>`;
-
-    const title = `Mining activity candlestick chart. Green = mining day, Red = missed day. Last: ${formatNumber(lastCandle?.v ?? MIN_BASELINE_MEMBERS)} members`;
+    const title = `Mining activity OHLC candlestick chart. Green = bullish (close > open), Red = bearish (close < open). Last: ${formatNumber(lastCandle?.close ?? MIN_BASELINE_MEMBERS)} members`;
     refs.bars.innerHTML = `<svg class=\"cp-chart-svg\" viewBox=\"0 0 ${width} ${height}\" role=\"img\" aria-label=\"${title}\" preserveAspectRatio=\"xMidYMid meet\"><title>${title}</title>${gridLines}${candleSvgs}${lastMarker}</svg>`;
 
     // Update axis labels with dates

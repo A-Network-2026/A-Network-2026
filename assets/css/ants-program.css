@@ -682,6 +682,10 @@
       stroke-dasharray: 3 5;
     }
 
+    .cp-wick {
+      stroke-linecap: round;
+    }
+
     .cp-area {
       fill: rgba(88, 197, 255, 0.2);
     }
