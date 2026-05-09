@@ -46,7 +46,10 @@ const NFT_DB_PATH = process.env.NFT_DB_PATH || path.join(__dirname, '..', 'data'
 const NFT_MIN_PROFILE_ANTS = Math.max(1, Number(process.env.NFT_MIN_PROFILE_ANTS || 1000));
 const NFT_MAX_BIO_LENGTH = Math.max(80, Number(process.env.NFT_MAX_BIO_LENGTH || 280));
 const NFT_DOMAIN_MIN_BID_ANTS = Math.max(10000, Number(process.env.NFT_DOMAIN_MIN_BID_ANTS || 10000));
-const AI_OWNER_WALLET = String(process.env.AI_OWNER_WALLET || '').trim().toUpperCase();
+const AI_OWNER_WALLET = String(process.env.AI_OWNER_WALLET || process.env.PI_APP_WALLET || '').trim().toUpperCase();
+const AI_OWNER_WALLET_SOURCE = process.env.AI_OWNER_WALLET
+  ? 'AI_OWNER_WALLET'
+  : (process.env.PI_APP_WALLET ? 'PI_APP_WALLET' : 'none');
 
 let nftDb = null;
 
@@ -1279,6 +1282,7 @@ app.get('/api/ai/config', (_req, res) => {
     ok: true,
     policy: {
       ownerWalletConfigured: Boolean(AI_OWNER_WALLET),
+      ownerWalletSource: AI_OWNER_WALLET_SOURCE,
       trainingFlow: 'users-submit-owner-approves',
       loginFlow: 'wallet-address-via-nft-miner-session'
     }
