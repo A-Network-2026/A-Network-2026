@@ -1,6 +1,7 @@
 "use strict";
 
 (function initANetworkSiteAI() {
+  const AI_ICON_PATH = "assets/ai-assistant-icon.svg";
   const PAGE_SOURCES = [
     "index.html",
     "ants-program.html",
@@ -46,10 +47,15 @@
     root.innerHTML = `
       <style>
         #anet-site-ai { position: fixed; right: 16px; bottom: 16px; z-index: 99999; font-family: "Space Grotesk", sans-serif; }
-        #anet-site-ai .ai-toggle { border: 1px solid rgba(88,197,255,.45); background: linear-gradient(120deg, #22e7b8, #58c5ff); color: #04213a; font-weight: 800; border-radius: 999px; padding: 10px 16px; cursor: pointer; box-shadow: 0 12px 34px rgba(0,0,0,.35); }
+        #anet-site-ai .ai-toggle { border: 1px solid rgba(88,197,255,.45); background: linear-gradient(120deg, #22e7b8, #58c5ff); color: #04213a; font-weight: 800; border-radius: 999px; padding: 8px 14px 8px 8px; cursor: pointer; box-shadow: 0 12px 34px rgba(0,0,0,.35); display: inline-flex; align-items: center; gap: 8px; }
+        #anet-site-ai .ai-toggle:hover { transform: translateY(-1px); box-shadow: 0 18px 40px rgba(0,0,0,.42); }
+        #anet-site-ai .ai-toggle-avatar { width: 30px; height: 30px; border-radius: 999px; border: 1px solid rgba(4, 33, 58, 0.35); object-fit: cover; box-shadow: 0 0 0 2px rgba(255,255,255,0.16); }
+        #anet-site-ai .ai-toggle-text { letter-spacing: .02em; }
         #anet-site-ai .ai-panel { display: none; width: min(420px, calc(100vw - 28px)); height: min(640px, calc(100vh - 90px)); background: rgba(5, 14, 24, 0.97); border: 1px solid rgba(88,197,255,.28); border-radius: 14px; overflow: hidden; box-shadow: 0 20px 70px rgba(0,0,0,.55); }
         #anet-site-ai.open .ai-panel { display: grid; grid-template-rows: auto 1fr auto auto; }
         #anet-site-ai .ai-head { display:flex; align-items:center; justify-content:space-between; gap:8px; padding: 10px 12px; background: rgba(88,197,255,.08); border-bottom:1px solid rgba(88,197,255,.2); }
+        #anet-site-ai .ai-head-left { display: flex; align-items: center; gap: 9px; min-width: 0; }
+        #anet-site-ai .ai-head-avatar { width: 34px; height: 34px; border-radius: 10px; border:1px solid rgba(88,197,255,.35); object-fit: cover; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(88,197,255,.15); }
         #anet-site-ai .ai-title { margin: 0; font-family: "Orbitron", sans-serif; font-size: .9rem; letter-spacing: .04em; color:#eff6ff; }
         #anet-site-ai .ai-sub { margin: 2px 0 0; color:#9eb2c9; font-size:.74rem; }
         #anet-site-ai .ai-close { border:1px solid rgba(88,197,255,.3); background:transparent; color:#eff6ff; border-radius:8px; padding:6px 8px; cursor:pointer; }
@@ -69,12 +75,18 @@
         #anet-site-ai .ai-btn { border:1px solid rgba(88,197,255,.35); background: transparent; color:#eff6ff; border-radius:8px; padding:7px 9px; cursor:pointer; font-size:.78rem; }
         #anet-site-ai .ai-btn.main { background: rgba(34,231,184,.15); border-color: rgba(34,231,184,.45); color:#d8fff3; }
       </style>
-      <button class="ai-toggle" id="anet-ai-toggle" type="button">A Network AI</button>
+      <button class="ai-toggle" id="anet-ai-toggle" type="button" aria-label="Open A Network AI">
+        <img class="ai-toggle-avatar" src="${AI_ICON_PATH}" alt="A Network AI icon" loading="lazy">
+        <span class="ai-toggle-text">A Network AI</span>
+      </button>
       <div class="ai-panel" id="anet-ai-panel" aria-live="polite">
         <div class="ai-head">
-          <div>
-            <p class="ai-title">A Network AI</p>
-            <p class="ai-sub">Grounded on your site pages + approved training</p>
+          <div class="ai-head-left">
+            <img class="ai-head-avatar" src="${AI_ICON_PATH}" alt="A Network AI avatar" loading="lazy">
+            <div>
+              <p class="ai-title">A Network AI</p>
+              <p class="ai-sub">Grounded on your site pages + approved training</p>
+            </div>
           </div>
           <button class="ai-close" id="anet-ai-close" type="button">Close</button>
         </div>

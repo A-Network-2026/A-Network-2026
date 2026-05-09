@@ -1,0 +1,38 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A Network AI assistant icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22e7b8"/>
+      <stop offset="100%" stop-color="#58c5ff"/>
+    </linearGradient>
+    <radialGradient id="face" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#0f2236"/>
+      <stop offset="100%" stop-color="#071320"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+  <rect x="38" y="38" width="436" height="436" rx="96" fill="#061220" opacity="0.55"/>
+
+  <g filter="url(#glow)">
+    <rect x="120" y="132" width="272" height="248" rx="92" fill="url(#face)" stroke="#58c5ff" stroke-width="8"/>
+
+    <circle cx="200" cy="232" r="26" fill="#22e7b8"/>
+    <circle cx="312" cy="232" r="26" fill="#22e7b8"/>
+    <circle cx="200" cy="232" r="9" fill="#061220"/>
+    <circle cx="312" cy="232" r="9" fill="#061220"/>
+
+    <rect x="180" y="300" width="152" height="20" rx="10" fill="#58c5ff"/>
+
+    <rect x="228" y="88" width="56" height="56" rx="20" fill="#22e7b8"/>
+    <rect x="248" y="64" width="16" height="28" rx="8" fill="#58c5ff"/>
+  </g>
+
+  <text x="256" y="438" text-anchor="middle" font-family="Orbitron, Arial, sans-serif" font-size="52" fill="#eff6ff" font-weight="700">AI</text>
+</svg>
