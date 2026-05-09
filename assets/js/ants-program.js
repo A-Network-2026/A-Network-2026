@@ -908,7 +908,9 @@
 
   function renderBars(history) {
     const baseSeries = history.length ? history.slice(-LIVE_HISTORY_POINTS) : buildFallbackHistory();
-    const bucketSamples = getLiveBucketSamples();
+    const requestedBucketSamples = getLiveBucketSamples();
+    const maxBucketSamples = Math.max(2, Math.floor(baseSeries.length / LIVE_MAX_VISIBLE_CANDLES));
+    const bucketSamples = Math.max(1, Math.min(requestedBucketSamples, maxBucketSamples));
     const fullOhlc = aggregateLiveHistory(baseSeries, bucketSamples);
     const ohlc = fullOhlc.slice(-LIVE_MAX_VISIBLE_CANDLES);
     if (!ohlc.length) return;
