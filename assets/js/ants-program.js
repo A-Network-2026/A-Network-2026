@@ -221,26 +221,38 @@
   function renderBars(history) {
     const series = history.length ? history.slice(-MAX_POINTS) : buildFallbackHistory();
     const maxValue = Math.max(...series.map((p) => p.v), MIN_BASELINE_MEMBERS);
-    const width = 960;
+    const minValue = Math.min(...series.map((p) => p.v), MIN_BASELINE_MEMBERS);
+    const avgValue = (maxValue + minValue) / 2;
+    const range = Math.max(1, maxValue - minValue);
+
+    // Responsive dimensions based on container width
+    const containerRect = refs.bars?.getBoundingClientRect();
+    const containerWidth = containerRect?.width || window.innerWidth * 0.9;
+    const width = Math.max(300, Math.min(containerWidth, 960));
     const height = 300;
     const paddingX = 16;
     const paddingY = 16;
-    const minValue = Math.min(...series.map((p) => p.v), MIN_BASELINE_MEMBERS);
-    const range = Math.max(1, maxValue - minValue);
-    const stepX = series.length > 1 ? (width - paddingX * 2) / (series.length - 1) : 0;
+    const candleWidth = Math.max(6, (width - paddingX * 2) / Math.max(1, series.length));
+    const spacing = Math.max(2, candleWidth * 0.15);
 
-    const points = series.map((point, index) => {
-      const x = paddingX + index * stepX;
+    // Build candlesticks (green = above average/mining day, red = below average/missed day)
+    const candles = series.map((point, index) => {
+      const x = paddingX + index * (candleWidth + spacing) + candleWidth / 2;
       const normalized = (point.v - minValue) / range;
-      const y = height - paddingY - normalized * (height - paddingY * 2);
-      return { x, y, v: point.v };
+      const bodyHeight = normalized * (height - paddingY * 2);
+      const y = height - paddingY - bodyHeight;
+      const isMiningDay = point.v >= avgValue;
+      return {
+        x: x.toFixed(2),
+        y: y.toFixed(2),
+        bodyHeight: bodyHeight.toFixed(2),
+        v: point.v,
+        isMiningDay,
+        ts: point.t,
+      };
     });
 
-    const linePath = points
-      .map((pt, index) => `${index === 0 ? 'M' : 'L'} ${pt.x.toFixed(2)} ${pt.y.toFixed(2)}`)
-      .join(' ');
-    const areaPath = `${linePath} L ${(width - paddingX).toFixed(2)} ${(height - paddingY).toFixed(2)} L ${paddingX.toFixed(2)} ${(height - paddingY).toFixed(2)} Z`;
-
+    // Grid lines
     const gridLines = [0.25, 0.5, 0.75]
       .map((ratio) => {
         const y = paddingY + (height - paddingY * 2) * ratio;
@@ -248,13 +260,29 @@
       })
       .join('');
 
-    const lastPoint = points[points.length - 1];
-    const title = `Members trend. Last value: ${formatNumber(lastPoint?.v ?? MIN_BASELINE_MEMBERS)}`;
-    refs.bars.innerHTML = `<svg class=\"cp-chart-svg\" viewBox=\"0 0 ${width} ${height}\" role=\"img\" aria-label=\"${title}\"><title>${title}</title>${gridLines}<path class=\"cp-area\" d=\"${areaPath}\"></path><path class=\"cp-line\" d=\"${linePath}\"></path><circle class=\"cp-last-dot\" cx=\"${lastPoint.x.toFixed(2)}\" cy=\"${lastPoint.y.toFixed(2)}\" r=\"4.4\"></circle></svg>`;
+    // Render candlesticks
+    const candleSvgs = candles
+      .map((candle) => {
+        const color = candle.isMiningDay ? '#6ce7b1' : '#ff6b6b'; // green for mining, red for missed
+        const opacityClass = candle.isMiningDay ? 'cp-candle-mining' : 'cp-candle-missed';
+        const rectY = Math.max(paddingY, height - paddingY - parseFloat(candle.bodyHeight));
+        return `<rect class=\"cp-candle ${opacityClass}\" x=\"${(parseFloat(candle.x) - candleWidth / 2).toFixed(2)}\" y=\"${rectY.toFixed(2)}\" width=\"${candleWidth.toFixed(2)}\" height=\"${candle.bodyHeight}\" fill=\"${color}\" opacity=\"0.85\" rx=\"1\"></rect>`;
+      })
+      .join('');
 
+    // Last point marker
+    const lastCandle = candles[candles.length - 1];
+    const lastPointY = Math.max(paddingY, height - paddingY - parseFloat(lastCandle.bodyHeight));
+    const lastMarker = `<circle class=\"cp-last-dot\" cx=\"${lastCandle.x}\" cy=\"${(lastPointY + parseFloat(lastCandle.bodyHeight) / 2).toFixed(2)}\" r=\"3\" fill=\"#58c5ff\" stroke=\"#d9fbff\" stroke-width=\"1.6\"></circle>`;
+
+    const title = `Mining activity candlestick chart. Green = mining day, Red = missed day. Last: ${formatNumber(lastCandle?.v ?? MIN_BASELINE_MEMBERS)} members`;
+    refs.bars.innerHTML = `<svg class=\"cp-chart-svg\" viewBox=\"0 0 ${width} ${height}\" role=\"img\" aria-label=\"${title}\" preserveAspectRatio=\"xMidYMid meet\"><title>${title}</title>${gridLines}${candleSvgs}${lastMarker}</svg>`;
+
+    // Update axis labels with dates
     const first = series[0];
     const middle = series[Math.floor(series.length / 2)];
     const last = series[series.length - 1];
+    
     refs.axisStart.textContent = formatTimeStamp(first?.t || 0);
     refs.axisMid.textContent = formatTimeStamp(middle?.t || 0);
     refs.axisEnd.textContent = formatTimeStamp(last?.t || 0);
@@ -743,9 +771,24 @@
   document.addEventListener('DOMContentLoaded', () => {
     refs.colonySelect.addEventListener('change', onChangeColony);
     refs.copySnapshot?.addEventListener('click', onCopySnapshot);
+    
+    // Initial render
     renderBars(readHistory());
     refreshColonyProgress();
+    
+    // Refresh periodically
     window.setInterval(refreshColonyProgress, REFRESH_MS);
+    
+    // Re-render chart on window resize for responsive behavior
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        if (state.latestPayload) {
+          renderMetrics(state.latestPayload, 'live');
+        }
+      }, 250);
+    });
   });
 })();
 

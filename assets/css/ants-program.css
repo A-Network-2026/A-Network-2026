@@ -695,10 +695,33 @@
       filter: drop-shadow(0 0 4px rgba(108, 231, 177, 0.4));
     }
 
+    .cp-candle {
+      transition: opacity 200ms ease;
+    }
+
+    .cp-candle-mining {
+      filter: drop-shadow(0 0 3px rgba(108, 231, 177, 0.5));
+    }
+
+    .cp-candle-mining:hover {
+      opacity: 1 !important;
+      filter: drop-shadow(0 0 6px rgba(108, 231, 177, 0.8));
+    }
+
+    .cp-candle-missed {
+      filter: drop-shadow(0 0 2px rgba(255, 107, 107, 0.4));
+    }
+
+    .cp-candle-missed:hover {
+      opacity: 1 !important;
+      filter: drop-shadow(0 0 5px rgba(255, 107, 107, 0.7));
+    }
+
     .cp-last-dot {
       fill: #58c5ff;
       stroke: #d9fbff;
       stroke-width: 1.6;
+      filter: drop-shadow(0 0 3px rgba(88, 197, 255, 0.6));
     }
 
     .cp-axis {
@@ -756,5 +779,3 @@
         height: 112px;
       }
     }
-  
-
