@@ -2396,7 +2396,16 @@ async function getSessionEligibility(walletAddress) {
   }
 
   try {
-    const account = await getFromLayer1(`/accounts/${encodeURIComponent(normalizedWallet)}`);
+    let account = null;
+    try {
+      account = await getFromLayer1(`/accounts/${encodeURIComponent(normalizedWallet)}`);
+    } catch (error) {
+      // Treat missing on-chain account as a valid zero-session state.
+      if (error?.status !== 404) {
+        throw error;
+      }
+    }
+
     const sessions = Number.isFinite(Number(account?.sessions)) ? Number(account.sessions) : 0;
     const requiredSessions = Number.isFinite(PI_REQUIRED_SESSIONS) && PI_REQUIRED_SESSIONS > 0
       ? PI_REQUIRED_SESSIONS
