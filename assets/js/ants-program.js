@@ -10,6 +10,7 @@
   const REFRESH_MS = 30000;
   const ALL_COLONIES_KEY = 'all';
   const TPOW_BUCKET_MINUTES = 5;
+  const TPOW_MIN_VISIBLE_CANDLES = 16;
 
   const refs = {
     status: document.getElementById('cp-status'),
@@ -48,6 +49,7 @@
     tpowBars: document.getElementById('cp-tpow-bars'),
     tpowOwnerSelect: document.getElementById('cp-tpow-owner-select'),
     tpowOwnerDisplay: document.getElementById('cp-tpow-owner'),
+    tpowTimeframes: document.getElementById('cp-tpow-timeframes'),
     tpowTimeStart: document.getElementById('cp-tpow-time-start'),
     tpowTimeMid: document.getElementById('cp-tpow-time-mid'),
     tpowTimeEnd: document.getElementById('cp-tpow-time-end'),
@@ -69,6 +71,11 @@
     roomFetchId: 0,
     latestActiveMinerMeta: null,
     latestRoomReward: null,
+    tpowBucketMinutes: TPOW_BUCKET_MINUTES,
+    tpowViewStart: 0,
+    tpowViewCount: 0,
+    tpowLastRender: null,
+    tpowDrag: null,
   };
 
   if (refs.sourceEndpoint) {
@@ -307,11 +314,186 @@
     return out;
   }
 
+  function getSelectedTPoWOwner() {
+    return refs.tpowOwnerSelect?.value || '';
+  }
+
+  function setActiveTPoWTimeframeButton() {
+    if (!refs.tpowTimeframes) return;
+    const buttons = refs.tpowTimeframes.querySelectorAll('button[data-bucket]');
+    buttons.forEach((btn) => {
+      const bucket = safeInt(btn.dataset.bucket, TPOW_BUCKET_MINUTES);
+      if (bucket === state.tpowBucketMinutes) {
+        btn.classList.add('is-active');
+      } else {
+        btn.classList.remove('is-active');
+      }
+    });
+  }
+
+  function clampTPoWView(candlesLength) {
+    const total = Math.max(1, candlesLength);
+    if (!state.tpowViewCount || state.tpowViewCount > total) {
+      state.tpowViewCount = total;
+    }
+    state.tpowViewCount = Math.max(TPOW_MIN_VISIBLE_CANDLES, Math.min(total, state.tpowViewCount));
+    const maxStart = Math.max(0, total - state.tpowViewCount);
+    state.tpowViewStart = Math.max(0, Math.min(maxStart, state.tpowViewStart || 0));
+  }
+
+  function resetTPoWViewport() {
+    state.tpowViewStart = 0;
+    state.tpowViewCount = 0;
+  }
+
+  function hideTPoWOverlay() {
+    const v = document.getElementById('cp-tpow-cross-v');
+    const h = document.getElementById('cp-tpow-cross-h');
+    const tip = document.getElementById('cp-tpow-tooltip');
+    if (v) v.classList.add('is-hidden');
+    if (h) h.classList.add('is-hidden');
+    if (tip) tip.classList.add('is-hidden');
+  }
+
+  function onTPoWPointerMove(event) {
+    const render = state.tpowLastRender;
+    if (!render || !refs.tpowBars) return;
+
+    const rect = refs.tpowBars.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const withinX = x >= render.plotLeft && x <= render.plotRight;
+    const withinY = y >= render.topPad && y <= render.bottomPad;
+    if (!withinX || !withinY) {
+      hideTPoWOverlay();
+      return;
+    }
+
+    const local = Math.floor((x - render.plotLeft) / render.candleStep);
+    const clampedLocal = Math.max(0, Math.min(render.visibleCount - 1, local));
+    const candleIndex = render.visibleStart + clampedLocal;
+    const candle = render.candles[candleIndex];
+    if (!candle) {
+      hideTPoWOverlay();
+      return;
+    }
+
+    const cx = render.plotLeft + (clampedLocal + 0.5) * render.candleStep;
+    const cy = render.valueToY(candle.close);
+
+    const v = document.getElementById('cp-tpow-cross-v');
+    const h = document.getElementById('cp-tpow-cross-h');
+    const tip = document.getElementById('cp-tpow-tooltip');
+    if (!v || !h || !tip) return;
+
+    v.classList.remove('is-hidden');
+    h.classList.remove('is-hidden');
+    tip.classList.remove('is-hidden');
+
+    v.style.left = `${cx.toFixed(1)}px`;
+    h.style.top = `${cy.toFixed(1)}px`;
+
+    const status = candle.hasMining ? 'Mining' : 'Idle';
+    tip.innerHTML = `${formatTPoWDateLabel(candle.t)}<br>O:${candle.open} H:${candle.high} L:${candle.low} C:${candle.close}<br>${status}`;
+
+    const tipWidth = 170;
+    const left = Math.max(8, Math.min(render.chartWidth - tipWidth - 8, cx + 10));
+    const top = Math.max(8, Math.min(render.chartHeight - 56, cy - 28));
+    tip.style.left = `${left.toFixed(1)}px`;
+    tip.style.top = `${top.toFixed(1)}px`;
+  }
+
+  function onTPoWWheel(event) {
+    const render = state.tpowLastRender;
+    const owner = getSelectedTPoWOwner();
+    if (!render || !owner) return;
+    event.preventDefault();
+
+    const total = render.totalCandles;
+    const oldCount = Math.max(1, state.tpowViewCount || total);
+    const oldStart = Math.max(0, state.tpowViewStart || 0);
+
+    let nextCount = oldCount;
+    if (event.deltaY < 0) {
+      nextCount = Math.max(TPOW_MIN_VISIBLE_CANDLES, Math.round(oldCount * 0.84));
+    } else {
+      nextCount = Math.min(total, Math.round(oldCount * 1.18));
+    }
+
+    if (nextCount === oldCount) return;
+
+    const rect = refs.tpowBars.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, (x - render.plotLeft) / Math.max(1, render.plotWidth)));
+    const anchor = oldStart + Math.floor(ratio * oldCount);
+    const nextStart = Math.round(anchor - ratio * nextCount);
+
+    state.tpowViewCount = nextCount;
+    state.tpowViewStart = Math.max(0, Math.min(total - nextCount, nextStart));
+    renderTPoWChart(owner);
+  }
+
+  function onTPoWDragStart(event) {
+    const render = state.tpowLastRender;
+    if (!render) return;
+    const rect = refs.tpowBars.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const withinX = x >= render.plotLeft && x <= render.plotRight;
+    const withinY = y >= render.topPad && y <= render.bottomPad;
+    if (!withinX || !withinY) return;
+
+    state.tpowDrag = {
+      startX: event.clientX,
+      startViewStart: state.tpowViewStart || 0,
+    };
+    refs.tpowBars.classList.add('is-dragging');
+  }
+
+  function onTPoWDragMove(event) {
+    if (!state.tpowDrag || !state.tpowLastRender) return;
+    const owner = getSelectedTPoWOwner();
+    if (!owner) return;
+
+    const render = state.tpowLastRender;
+    const dx = event.clientX - state.tpowDrag.startX;
+    const shift = Math.round(-dx / Math.max(1, render.candleStep));
+    const total = render.totalCandles;
+    const viewCount = state.tpowViewCount || total;
+    const maxStart = Math.max(0, total - viewCount);
+    const nextStart = Math.max(0, Math.min(maxStart, state.tpowDrag.startViewStart + shift));
+    if (nextStart === state.tpowViewStart) return;
+
+    state.tpowViewStart = nextStart;
+    renderTPoWChart(owner);
+  }
+
+  function onTPoWDragEnd() {
+    state.tpowDrag = null;
+    refs.tpowBars?.classList.remove('is-dragging');
+  }
+
+  function onTPoWTimeframeClick(event) {
+    const button = event.target.closest('button[data-bucket]');
+    if (!button) return;
+    const bucket = safeInt(button.dataset.bucket, TPOW_BUCKET_MINUTES);
+    if (bucket === state.tpowBucketMinutes) return;
+    state.tpowBucketMinutes = bucket;
+    resetTPoWViewport();
+    setActiveTPoWTimeframeButton();
+    const owner = getSelectedTPoWOwner();
+    if (owner) renderTPoWChart(owner);
+  }
+
   function renderTPoWChart(ownerCode) {
     if (!ownerCode || !refs.tpowBars) return;
 
     const minuteCandles = generateTPoWData(ownerCode);
-    const candles = aggregateTPoWCandles(minuteCandles, TPOW_BUCKET_MINUTES);
+    const candles = aggregateTPoWCandles(minuteCandles, state.tpowBucketMinutes);
+    clampTPoWView(candles.length);
+    const visibleStart = state.tpowViewStart;
+    const visibleCount = state.tpowViewCount;
+    const visibleCandles = candles.slice(visibleStart, visibleStart + visibleCount);
     const miningMinutes = minuteCandles.filter((c) => c.hasMining).length;
     const idleMinutes = minuteCandles.length - miningMinutes;
     const activityRate = ((miningMinutes / minuteCandles.length) * 100).toFixed(1);
@@ -334,18 +516,18 @@
     const chartWidth = viewportWidth;
     const plotWidth = chartWidth - leftPad * 2 - rightAxisWidth;
     const plotHeight = height - topPad - bottomPad;
-    const candleStep = Math.max(6.4, plotWidth / Math.max(1, candles.length));
+    const candleStep = Math.max(6.4, plotWidth / Math.max(1, visibleCandles.length));
     const bodyWidth = Math.max(4, candleStep * 0.58);
 
-    const allHigh = candles.map((c) => c.high);
-    const allLow = candles.map((c) => c.low);
+    const allHigh = visibleCandles.map((c) => c.high);
+    const allLow = visibleCandles.map((c) => c.low);
     const maxValue = Math.max(...allHigh, 60);
     const minValue = Math.min(...allLow, 0);
     const range = Math.max(1, maxValue - minValue);
 
     const valueToY = (value) => topPad + (maxValue - value) / range * plotHeight;
 
-    const candleSvgs = candles.map((candle, idx) => {
+    const candleSvgs = visibleCandles.map((candle, idx) => {
       const x = leftPad + idx * candleStep + candleStep * 0.5;
       const yHigh = valueToY(candle.high);
       const yLow = valueToY(candle.low);
@@ -373,15 +555,32 @@
       return `<text class="cp-tpow-axis-text" x="${(chartWidth - 6).toFixed(2)}" y="${(y + 3).toFixed(2)}" text-anchor="end">${label}</text>`;
     }).join('');
 
-    const title = `Proof of Time (TPoW) for ${ownerCode}. ${TPOW_BUCKET_MINUTES}-minute candles over 6 hours. Green = mining activity, red = idle.`;
-    refs.tpowBars.innerHTML = `<svg class="cp-tpow-svg" width="${chartWidth}" height="${height}" viewBox="0 0 ${chartWidth} ${height}" role="img" aria-label="${title}"><title>${title}</title>${gridLines}${candleSvgs}${rightAxisLabels}</svg>`;
+    const title = `Proof of Time (TPoW) for ${ownerCode}. ${state.tpowBucketMinutes}-minute candles over 6 hours. Green = mining activity, red = idle.`;
+    refs.tpowBars.innerHTML = `<svg class="cp-tpow-svg" width="${chartWidth}" height="${height}" viewBox="0 0 ${chartWidth} ${height}" role="img" aria-label="${title}"><title>${title}</title>${gridLines}${candleSvgs}${rightAxisLabels}</svg><div id="cp-tpow-cross-v" class="cp-tpow-cross-v is-hidden"></div><div id="cp-tpow-cross-h" class="cp-tpow-cross-h is-hidden"></div><div id="cp-tpow-tooltip" class="cp-tpow-tooltip is-hidden"></div>`;
 
-    const first = candles[0];
-    const mid = candles[Math.floor(candles.length / 2)];
-    const last = candles[candles.length - 1];
+    const first = visibleCandles[0];
+    const mid = visibleCandles[Math.floor(visibleCandles.length / 2)] || visibleCandles[0];
+    const last = visibleCandles[visibleCandles.length - 1];
     if (refs.tpowTimeStart) refs.tpowTimeStart.textContent = formatTPoWDateLabel(first.t);
     if (refs.tpowTimeMid) refs.tpowTimeMid.textContent = formatTPoWDateLabel(mid.t);
     if (refs.tpowTimeEnd) refs.tpowTimeEnd.textContent = formatTPoWDateLabel(last.t);
+
+    state.tpowLastRender = {
+      candles,
+      visibleStart,
+      visibleCount,
+      totalCandles: candles.length,
+      chartWidth,
+      chartHeight: height,
+      topPad,
+      bottomPad: topPad + plotHeight,
+      plotLeft: leftPad,
+      plotRight: leftPad + plotWidth,
+      plotWidth,
+      candleStep,
+      valueToY,
+    };
+    setActiveTPoWTimeframeButton();
   }
 
   function populateTPoWOwners(rooms) {
@@ -400,12 +599,16 @@
       return;
     }
     
+    const previous = refs.tpowOwnerSelect.value;
     const html = Array.from(owners)
       .sort()
       .map(owner => `<option value="${owner}">${owner}</option>`)
       .join('');
     
     refs.tpowOwnerSelect.innerHTML = html;
+    if (previous && owners.has(previous)) {
+      refs.tpowOwnerSelect.value = previous;
+    }
     
     // Auto-select first owner
     if (html && !refs.tpowOwnerSelect.value) {
@@ -418,6 +621,7 @@
     const selectedOwner = refs.tpowOwnerSelect?.value;
     if (!selectedOwner) return;
     
+    resetTPoWViewport();
     if (refs.tpowOwnerDisplay) refs.tpowOwnerDisplay.textContent = selectedOwner;
     renderTPoWChart(selectedOwner);
   }
@@ -1021,9 +1225,17 @@
     refs.colonySelect.addEventListener('change', onChangeColony);
     refs.copySnapshot?.addEventListener('click', onCopySnapshot);
     refs.tpowOwnerSelect?.addEventListener('change', onChangeTPoWOwner);
+    refs.tpowTimeframes?.addEventListener('click', onTPoWTimeframeClick);
+    refs.tpowBars?.addEventListener('mousemove', onTPoWPointerMove);
+    refs.tpowBars?.addEventListener('mouseleave', hideTPoWOverlay);
+    refs.tpowBars?.addEventListener('wheel', onTPoWWheel, { passive: false });
+    refs.tpowBars?.addEventListener('mousedown', onTPoWDragStart);
+    window.addEventListener('mousemove', onTPoWDragMove);
+    window.addEventListener('mouseup', onTPoWDragEnd);
     
     // Initial render
     renderBars(readHistory());
+    setActiveTPoWTimeframeButton();
     refreshColonyProgress();
     
     // Refresh periodically
@@ -1036,6 +1248,8 @@
       resizeTimeout = setTimeout(() => {
         if (state.latestPayload) {
           renderMetrics(state.latestPayload, 'live');
+          const owner = getSelectedTPoWOwner();
+          if (owner) renderTPoWChart(owner);
         }
       }, 250);
     });

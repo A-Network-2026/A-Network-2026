@@ -192,12 +192,21 @@
             <div>
               <p>Proof of Time (TPoW) Mining Activity</p>
               <small>Owner: <strong id="cp-tpow-owner">-</strong> | Last 6 hours</small>
-              <small>Default view: 5-minute candles, TradingView-style readability.</small>
+              <small>Use timeframe buttons, mouse wheel to zoom, and drag to pan.</small>
             </div>
             <label class="cp-select-label" for="cp-tpow-owner-select" style="margin: 0;">Select Owner:</label>
             <select id="cp-tpow-owner-select" class="cp-select" style="min-width: 140px;" aria-label="Select owner for TPoW mining chart">
               <option value="">Top Mining Owner</option>
             </select>
+          </div>
+          <div class="cp-tpow-toolbar">
+            <div class="cp-tpow-timeframes" id="cp-tpow-timeframes" aria-label="TPoW timeframe options">
+              <button type="button" data-bucket="1">1m</button>
+              <button type="button" data-bucket="5" class="is-active">5m</button>
+              <button type="button" data-bucket="15">15m</button>
+              <button type="button" data-bucket="60">1h</button>
+            </div>
+            <small class="cp-tpow-hint">Green candles: mining activity | Red candles: idle</small>
           </div>
           <div class="cp-tpow-bars" id="cp-tpow-bars" aria-label="Proof of Time mining candlesticks"></div>
           <div class="cp-tpow-timeline" id="cp-tpow-timeline" aria-hidden="true">
@@ -306,7 +315,7 @@
     </footer>
   </div>
   <script src="assets/js/site-ai.js" defer></script>
-  <script src="assets/js/ants-program.js?v=20260509-13" defer></script>
+  <script src="assets/js/ants-program.js?v=20260509-14" defer></script>
 </body>
 </html>
 
