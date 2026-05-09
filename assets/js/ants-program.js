@@ -80,6 +80,8 @@
     tpowViewCount: 0,
     tpowLastRender: null,
     tpowDrag: null,
+    tpowDataCache: {},
+    tpowOwnerOptionsHash: '',
   };
 
   if (refs.sourceEndpoint) {
@@ -360,10 +362,34 @@
         high: Math.max(...chunk.map((c) => c.high)),
         low: Math.min(...chunk.map((c) => c.low)),
         hasMining: chunk.some((c) => c.hasMining),
+        miningMinutes: chunk.filter((c) => c.hasMining).length,
+        isBullish: chunk[chunk.length - 1].close >= chunk[0].open,
       });
     }
 
     return out;
+  }
+
+  function getTPoWCandleSeries(ownerCode, bucketMinutes) {
+    if (!ownerCode) return { minuteCandles: [], candles: [] };
+    const key = String(ownerCode).trim();
+    if (!state.tpowDataCache[key]) {
+      state.tpowDataCache[key] = {
+        minuteCandles: generateTPoWData(key),
+        agg: {},
+      };
+    }
+
+    const entry = state.tpowDataCache[key];
+    const bucket = Math.max(1, safeInt(bucketMinutes, TPOW_BUCKET_MINUTES));
+    if (!entry.agg[bucket]) {
+      entry.agg[bucket] = aggregateTPoWCandles(entry.minuteCandles, bucket);
+    }
+
+    return {
+      minuteCandles: entry.minuteCandles,
+      candles: entry.agg[bucket],
+    };
   }
 
   function getSelectedTPoWOwner() {
@@ -445,8 +471,11 @@
     v.style.left = `${cx.toFixed(1)}px`;
     h.style.top = `${cy.toFixed(1)}px`;
 
-    const status = candle.hasMining ? 'Mining' : 'Idle';
-    tip.innerHTML = `${formatTPoWDateLabel(candle.t)}<br>O:${candle.open} H:${candle.high} L:${candle.low} C:${candle.close}<br>${status}`;
+    const trend = candle.isBullish ? 'Bullish' : 'Bearish';
+    const bucketMins = Math.max(1, safeInt(state.tpowBucketMinutes, TPOW_BUCKET_MINUTES));
+    const miningMinutes = safeInt(candle.miningMinutes, candle.hasMining ? 1 : 0);
+    const status = candle.hasMining ? `Mining ${miningMinutes}/${bucketMins}m` : 'Idle';
+    tip.innerHTML = `${formatTPoWDateLabel(candle.t)}<br>O:${candle.open} H:${candle.high} L:${candle.low} C:${candle.close}<br>${trend} | ${status}`;
 
     const tipWidth = 170;
     const left = Math.max(8, Math.min(render.chartWidth - tipWidth - 8, cx + 10));
@@ -540,8 +569,9 @@
   function renderTPoWChart(ownerCode) {
     if (!ownerCode || !refs.tpowBars) return;
 
-    const minuteCandles = generateTPoWData(ownerCode);
-    const candles = aggregateTPoWCandles(minuteCandles, state.tpowBucketMinutes);
+    const seriesPack = getTPoWCandleSeries(ownerCode, state.tpowBucketMinutes);
+    const minuteCandles = seriesPack.minuteCandles;
+    const candles = seriesPack.candles;
     clampTPoWView(candles.length);
     const visibleStart = state.tpowViewStart;
     const visibleCount = state.tpowViewCount;
@@ -588,8 +618,9 @@
       const yBodyTop = Math.min(yOpen, yClose);
       const yBodyBottom = Math.max(yOpen, yClose);
       const bodyHeight = Math.max(1, yBodyBottom - yBodyTop);
-      const color = candle.hasMining ? '#6ce7b1' : '#ff6b6b';
-      const opacityClass = candle.hasMining ? 'cp-tpow-candle-mining' : 'cp-tpow-candle-idle';
+      const isRed = !candle.hasMining || !candle.isBullish;
+      const color = isRed ? '#ff6b6b' : '#6ce7b1';
+      const opacityClass = isRed ? 'cp-tpow-candle-idle' : 'cp-tpow-candle-mining';
       const wick = `<line class="cp-tpow-wick" x1="${x.toFixed(2)}" y1="${yHigh.toFixed(2)}" x2="${x.toFixed(2)}" y2="${yLow.toFixed(2)}" stroke="${color}" stroke-width="1.35"></line>`;
       const body = `<rect class="cp-tpow-candle ${opacityClass}" x="${(x - bodyWidth / 2).toFixed(2)}" y="${yBodyTop.toFixed(2)}" width="${bodyWidth.toFixed(2)}" height="${bodyHeight.toFixed(2)}" fill="${color}" opacity="0.92" rx="0.4"></rect>`;
       return `${wick}${body}`;
@@ -607,7 +638,7 @@
       return `<text class="cp-tpow-axis-text" x="${(chartWidth - 6).toFixed(2)}" y="${(y + 3).toFixed(2)}" text-anchor="end">${label}</text>`;
     }).join('');
 
-    const title = `Proof of Time (TPoW) for ${ownerCode}. ${state.tpowBucketMinutes}-minute candles over 6 hours. Green = mining activity, red = idle.`;
+    const title = `Proof of Time (TPoW) for ${ownerCode}. ${state.tpowBucketMinutes}-minute candles over 6 hours. Green = bullish mining, red = bearish or idle.`;
     refs.tpowBars.innerHTML = `<svg class="cp-tpow-svg" width="${chartWidth}" height="${height}" viewBox="0 0 ${chartWidth} ${height}" role="img" aria-label="${title}"><title>${title}</title>${gridLines}${candleSvgs}${rightAxisLabels}</svg><div id="cp-tpow-cross-v" class="cp-tpow-cross-v is-hidden"></div><div id="cp-tpow-cross-h" class="cp-tpow-cross-h is-hidden"></div><div id="cp-tpow-tooltip" class="cp-tpow-tooltip is-hidden"></div>`;
 
     const first = visibleCandles[0];
@@ -656,8 +687,16 @@
       .sort()
       .map(owner => `<option value="${owner}">${owner}</option>`)
       .join('');
+
+    if (html === state.tpowOwnerOptionsHash) {
+      if (previous && owners.has(previous)) {
+        refs.tpowOwnerSelect.value = previous;
+      }
+      return;
+    }
     
     refs.tpowOwnerSelect.innerHTML = html;
+    state.tpowOwnerOptionsHash = html;
     if (previous && owners.has(previous)) {
       refs.tpowOwnerSelect.value = previous;
     }
@@ -769,8 +808,12 @@
 
     const allHighs = ohlc.map((c) => c.high);
     const allLows = ohlc.map((c) => c.low);
-    const maxValue = Math.max(...allHighs, MIN_BASELINE_MEMBERS);
-    const minValue = Math.min(...allLows, MIN_BASELINE_MEMBERS);
+    const rawMax = Math.max(...allHighs);
+    const rawMin = Math.min(...allLows);
+    const rawRange = Math.max(1, rawMax - rawMin);
+    const pad = Math.max(1, rawRange * 0.08);
+    const maxValue = rawMax + pad;
+    const minValue = Math.max(0, rawMin - pad);
     const range = Math.max(1, maxValue - minValue);
 
     const containerRect = refs.bars?.getBoundingClientRect();
