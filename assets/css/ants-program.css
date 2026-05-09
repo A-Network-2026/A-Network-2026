@@ -718,6 +718,7 @@
       background:
         linear-gradient(180deg, rgba(88, 197, 255, 0.05), rgba(108, 231, 177, 0.02));
       overflow: hidden;
+      cursor: grab;
     }
 
     .cp-chart-svg {
@@ -922,9 +923,14 @@
       background:
         linear-gradient(180deg, rgba(88, 197, 255, 0.05), rgba(108, 231, 177, 0.02));
       overflow: hidden;
+      cursor: grab;
     }
 
     .cp-tpow-bars.is-dragging {
+      cursor: grabbing;
+    }
+
+    .cp-bars.is-dragging {
       cursor: grabbing;
     }
 

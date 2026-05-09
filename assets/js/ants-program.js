@@ -87,6 +87,9 @@
     latestRoomReward: null,
     liveLastRender: null,
     liveTimeframeKey: LIVE_DEFAULT_TIMEFRAME,
+    liveViewStart: 0,
+    liveViewCount: 0,
+    liveDrag: null,
     tpowBucketMinutes: TPOW_BUCKET_MINUTES,
     tpowViewStart: 0,
     tpowViewCount: 0,
@@ -332,6 +335,8 @@
     const timeframe = String(button.dataset.timeframe || LIVE_DEFAULT_TIMEFRAME);
     if (timeframe === state.liveTimeframeKey) return;
     state.liveTimeframeKey = timeframe;
+    state.liveViewStart = 0;
+    state.liveViewCount = 0;
     setActiveLiveTimeframeButton();
     renderBars(readHistory());
   }
@@ -606,6 +611,75 @@
   function onTPoWDragEnd() {
     state.tpowDrag = null;
     refs.tpowBars?.classList.remove('is-dragging');
+  }
+
+  function onLiveWheel(event) {
+    const render = state.liveLastRender;
+    if (!render) return;
+    event.preventDefault();
+
+    const total = render.totalCandles;
+    const oldCount = Math.max(1, state.liveViewCount || total);
+    const oldStart = Math.max(0, state.liveViewStart || 0);
+
+    let nextCount = oldCount;
+    if (event.deltaY < 0) {
+      nextCount = Math.max(16, Math.round(oldCount * 0.84));
+    } else {
+      nextCount = Math.min(total, Math.round(oldCount * 1.18));
+    }
+
+    if (nextCount === oldCount) return;
+
+    const rect = refs.bars.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, (x - render.plotLeft) / Math.max(1, render.plotRight - render.plotLeft)));
+    const anchor = oldStart + Math.floor(ratio * oldCount);
+    const nextStart = Math.round(anchor - ratio * nextCount);
+
+    state.liveViewCount = nextCount;
+    state.liveViewStart = Math.max(0, Math.min(total - nextCount, nextStart));
+    const history = readHistory();
+    renderBars(history);
+  }
+
+  function onLiveDragStart(event) {
+    const render = state.liveLastRender;
+    if (!render) return;
+    const rect = refs.bars.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const withinX = x >= render.plotLeft && x <= render.plotRight;
+    const withinY = y >= render.topPad && y <= render.bottomPad;
+    if (!withinX || !withinY) return;
+
+    state.liveDrag = {
+      startX: event.clientX,
+      startViewStart: state.liveViewStart || 0,
+    };
+    refs.bars.classList.add('is-dragging');
+  }
+
+  function onLiveDragMove(event) {
+    if (!state.liveDrag || !state.liveLastRender) return;
+
+    const render = state.liveLastRender;
+    const dx = event.clientX - state.liveDrag.startX;
+    const shift = Math.round(-dx / Math.max(1, render.candleStep));
+    const total = render.totalCandles;
+    const viewCount = state.liveViewCount || total;
+    const maxStart = Math.max(0, total - viewCount);
+    const nextStart = Math.max(0, Math.min(maxStart, state.liveDrag.startViewStart + shift));
+    if (nextStart === state.liveViewStart) return;
+
+    state.liveViewStart = nextStart;
+    const history = readHistory();
+    renderBars(history);
+  }
+
+  function onLiveDragEnd() {
+    state.liveDrag = null;
+    refs.bars?.classList.remove('is-dragging');
   }
 
   function onTPoWTimeframeClick(event) {
@@ -942,7 +1016,17 @@
     const baseSeries = history.slice(-LIVE_HISTORY_POINTS);
     const timeframe = getLiveTimeframe();
     const fullOhlc = aggregateLiveHistory(baseSeries, timeframe.bucketMs);
-    const ohlc = fullOhlc.slice(-LIVE_MAX_VISIBLE_CANDLES);
+    
+    // Apply viewport slicing for pan/zoom
+    const total = fullOhlc.length;
+    let viewStart = Math.max(0, state.liveViewStart || 0);
+    let viewCount = state.liveViewCount || Math.min(LIVE_MAX_VISIBLE_CANDLES, total);
+    if (viewCount === 0 || viewCount > total) viewCount = total;
+    viewStart = Math.max(0, Math.min(total - viewCount, viewStart));
+    state.liveViewStart = viewStart;
+    state.liveViewCount = viewCount;
+    
+    const ohlc = fullOhlc.slice(viewStart, viewStart + viewCount);
     if (!ohlc.length) return;
 
     const allHighs = ohlc.map((c) => c.high);
@@ -1028,6 +1112,7 @@
 
     state.liveLastRender = {
       candles: ohlc,
+      totalCandles: fullOhlc.length,
       chartWidth: width,
       chartHeight: height,
       topPad,
@@ -1560,12 +1645,16 @@
     refs.tpowTimeframes?.addEventListener('click', onTPoWTimeframeClick);
     refs.bars?.addEventListener('mousemove', onLivePointerMove);
     refs.bars?.addEventListener('mouseleave', hideLiveOverlay);
+    refs.bars?.addEventListener('wheel', onLiveWheel, { passive: false });
+    refs.bars?.addEventListener('mousedown', onLiveDragStart);
     refs.tpowBars?.addEventListener('mousemove', onTPoWPointerMove);
     refs.tpowBars?.addEventListener('mouseleave', hideTPoWOverlay);
     refs.tpowBars?.addEventListener('wheel', onTPoWWheel, { passive: false });
     refs.tpowBars?.addEventListener('mousedown', onTPoWDragStart);
     window.addEventListener('mousemove', onTPoWDragMove);
     window.addEventListener('mouseup', onTPoWDragEnd);
+    window.addEventListener('mousemove', onLiveDragMove);
+    window.addEventListener('mouseup', onLiveDragEnd);
     
     // Initial render
     setActiveLiveTimeframeButton();
