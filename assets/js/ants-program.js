@@ -71,6 +71,7 @@
     roomFetchId: 0,
     latestActiveMinerMeta: null,
     latestRoomReward: null,
+    liveLastRender: null,
     tpowBucketMinutes: TPOW_BUCKET_MINUTES,
     tpowViewStart: 0,
     tpowViewCount: 0,
@@ -655,89 +656,149 @@
     });
   }
 
+  function hideLiveOverlay() {
+    const v = document.getElementById('cp-live-cross-v');
+    const h = document.getElementById('cp-live-cross-h');
+    const tip = document.getElementById('cp-live-tooltip');
+    if (v) v.classList.add('is-hidden');
+    if (h) h.classList.add('is-hidden');
+    if (tip) tip.classList.add('is-hidden');
+  }
+
+  function onLivePointerMove(event) {
+    const render = state.liveLastRender;
+    if (!render || !refs.bars) return;
+
+    const rect = refs.bars.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const withinX = x >= render.plotLeft && x <= render.plotRight;
+    const withinY = y >= render.topPad && y <= render.bottomPad;
+    if (!withinX || !withinY) {
+      hideLiveOverlay();
+      return;
+    }
+
+    const local = Math.floor((x - render.plotLeft) / render.candleStep);
+    const index = Math.max(0, Math.min(render.candles.length - 1, local));
+    const candle = render.candles[index];
+    if (!candle) {
+      hideLiveOverlay();
+      return;
+    }
+
+    const cx = render.plotLeft + (index + 0.5) * render.candleStep;
+    const cy = render.valueToY(candle.close);
+
+    const v = document.getElementById('cp-live-cross-v');
+    const h = document.getElementById('cp-live-cross-h');
+    const tip = document.getElementById('cp-live-tooltip');
+    if (!v || !h || !tip) return;
+
+    v.classList.remove('is-hidden');
+    h.classList.remove('is-hidden');
+    tip.classList.remove('is-hidden');
+
+    v.style.left = `${cx.toFixed(1)}px`;
+    h.style.top = `${cy.toFixed(1)}px`;
+    tip.innerHTML = `${formatTPoWDateLabel(candle.t)}<br>O:${formatNumber(candle.open)} H:${formatNumber(candle.high)} L:${formatNumber(candle.low)} C:${formatNumber(candle.close)}`;
+
+    const tipWidth = 190;
+    const left = Math.max(8, Math.min(render.chartWidth - tipWidth - 8, cx + 10));
+    const top = Math.max(8, Math.min(render.chartHeight - 56, cy - 28));
+    tip.style.left = `${left.toFixed(1)}px`;
+    tip.style.top = `${top.toFixed(1)}px`;
+  }
+
   function renderBars(history) {
     const series = history.length ? history.slice(-MAX_POINTS) : buildFallbackHistory();
     const ohlc = buildOHLCData(series);
-    
-    // Get price range from all high/low values
-    const allHighs = ohlc.map(c => c.high);
-    const allLows = ohlc.map(c => c.low);
+    if (!ohlc.length) return;
+
+    const allHighs = ohlc.map((c) => c.high);
+    const allLows = ohlc.map((c) => c.low);
     const maxValue = Math.max(...allHighs, MIN_BASELINE_MEMBERS);
     const minValue = Math.min(...allLows, MIN_BASELINE_MEMBERS);
     const range = Math.max(1, maxValue - minValue);
 
-    // Responsive dimensions based on container width
     const containerRect = refs.bars?.getBoundingClientRect();
-    const containerWidth = containerRect?.width || window.innerWidth * 0.9;
-    const width = Math.max(300, Math.min(containerWidth, 960));
-    const height = 300;
-    const paddingX = 16;
-    const paddingY = 16;
-    const candleWidth = Math.max(4, (width - paddingX * 2) / Math.max(1, ohlc.length));
-    const spacing = Math.max(1, candleWidth * 0.2);
-    const bodyWidth = Math.max(2, candleWidth - spacing);
+    const width = Math.max(320, containerRect?.width || window.innerWidth * 0.9);
+    const height = 320;
+    const rightAxisWidth = 58;
+    const leftPad = 14;
+    const topPad = 16;
+    const bottomPad = 18;
+    const plotWidth = width - leftPad * 2 - rightAxisWidth;
+    const plotHeight = height - topPad - bottomPad;
+    const candleStep = Math.max(8, plotWidth / Math.max(1, ohlc.length));
+    const bodyWidth = Math.max(5, candleStep * 0.6);
+    const valueToY = (value) => topPad + (maxValue - value) / range * plotHeight;
 
     // Build candlestick elements with wicks
     const candleSvgs = ohlc
       .map((candle, index) => {
-        const x = paddingX + index * (candleWidth + spacing) + candleWidth / 2;
-        
-        // Normalize values to pixel positions
-        const normalizedHigh = (candle.high - minValue) / range;
-        const normalizedLow = (candle.low - minValue) / range;
-        const normalizedOpen = (candle.open - minValue) / range;
-        const normalizedClose = (candle.close - minValue) / range;
-        
-        const yHigh = height - paddingY - normalizedHigh * (height - paddingY * 2);
-        const yLow = height - paddingY - normalizedLow * (height - paddingY * 2);
-        const yOpen = height - paddingY - normalizedOpen * (height - paddingY * 2);
-        const yClose = height - paddingY - normalizedClose * (height - paddingY * 2);
-        
-        // Determine body position
+        const x = leftPad + index * candleStep + candleStep * 0.5;
+        const yHigh = valueToY(candle.high);
+        const yLow = valueToY(candle.low);
+        const yOpen = valueToY(candle.open);
+        const yClose = valueToY(candle.close);
+
         const yBodyTop = Math.min(yOpen, yClose);
         const yBodyBottom = Math.max(yOpen, yClose);
         const bodyHeight = Math.max(1, yBodyBottom - yBodyTop);
-        
-        // Colors
+
         const color = candle.isBullish ? '#6ce7b1' : '#ff6b6b'; // green for up, red for down
         const opacityClass = candle.isBullish ? 'cp-candle-mining' : 'cp-candle-missed';
-        
-        // Wick (thin line from high to low)
-        const wickSvg = `<line class=\"cp-wick\" x1=\"${x.toFixed(2)}\" y1=\"${yHigh.toFixed(2)}\" x2=\"${x.toFixed(2)}\" y2=\"${yLow.toFixed(2)}\" stroke=\"${color}\" stroke-width=\"1\" opacity=\"0.6\"></line>`;
-        
-        // Body (rectangle from open to close)
-        const bodySvg = `<rect class=\"cp-candle ${opacityClass}\" x=\"${(x - bodyWidth / 2).toFixed(2)}\" y=\"${yBodyTop.toFixed(2)}\" width=\"${bodyWidth.toFixed(2)}\" height=\"${bodyHeight.toFixed(2)}\" fill=\"${color}\" opacity=\"0.85\" rx=\"0.5\"></rect>`;
-        
+
+        const wickSvg = `<line class=\"cp-wick\" x1=\"${x.toFixed(2)}\" y1=\"${yHigh.toFixed(2)}\" x2=\"${x.toFixed(2)}\" y2=\"${yLow.toFixed(2)}\" stroke=\"${color}\" stroke-width=\"1.4\" opacity=\"0.9\"></line>`;
+        const bodySvg = `<rect class=\"cp-candle ${opacityClass}\" x=\"${(x - bodyWidth / 2).toFixed(2)}\" y=\"${yBodyTop.toFixed(2)}\" width=\"${bodyWidth.toFixed(2)}\" height=\"${bodyHeight.toFixed(2)}\" fill=\"${color}\" opacity=\"0.93\" rx=\"0.6\"></rect>`;
+
         return `${wickSvg}${bodySvg}`;
       })
       .join('');
 
-    // Grid lines
-    const gridLines = [0.25, 0.5, 0.75]
-      .map((ratio) => {
-        const y = paddingY + (height - paddingY * 2) * ratio;
-        return `<line class=\"cp-grid-line\" x1=\"${paddingX}\" y1=\"${y.toFixed(2)}\" x2=\"${(width - paddingX).toFixed(2)}\" y2=\"${y.toFixed(2)}\"></line>`;
+    const gridLevels = [minValue, minValue + range / 2, maxValue];
+    const gridLines = gridLevels
+      .map((v) => {
+        const y = valueToY(v);
+        return `<line class=\"cp-grid-line\" x1=\"${leftPad}\" y1=\"${y.toFixed(2)}\" x2=\"${(leftPad + plotWidth).toFixed(2)}\" y2=\"${y.toFixed(2)}\"></line>`;
       })
       .join('');
 
-    // Last candle marker
+    const rightAxisLabels = gridLevels
+      .map((v) => {
+        const y = valueToY(v);
+        return `<text class=\"cp-live-axis-text\" x=\"${(width - 8).toFixed(2)}\" y=\"${(y + 4).toFixed(2)}\" text-anchor=\"end\">${formatNumber(Math.round(v))}</text>`;
+      })
+      .join('');
+
     const lastCandle = ohlc[ohlc.length - 1];
-    const lastNormalized = (lastCandle.close - minValue) / range;
-    const lastY = height - paddingY - lastNormalized * (height - paddingY * 2);
-    const lastX = paddingX + (ohlc.length - 1) * (candleWidth + spacing) + candleWidth / 2;
+    const lastY = valueToY(lastCandle.close);
+    const lastX = leftPad + (ohlc.length - 1) * candleStep + candleStep * 0.5;
     const lastMarker = `<circle class=\"cp-last-dot\" cx=\"${lastX.toFixed(2)}\" cy=\"${lastY.toFixed(2)}\" r=\"3.5\" fill=\"#58c5ff\" stroke=\"#d9fbff\" stroke-width=\"1.8\"></circle>`;
 
-    const title = `Mining activity OHLC candlestick chart. Green = bullish (close > open), Red = bearish (close < open). Last: ${formatNumber(lastCandle?.close ?? MIN_BASELINE_MEMBERS)} members`;
-    refs.bars.innerHTML = `<svg class=\"cp-chart-svg\" viewBox=\"0 0 ${width} ${height}\" role=\"img\" aria-label=\"${title}\" preserveAspectRatio=\"xMidYMid meet\"><title>${title}</title>${gridLines}${candleSvgs}${lastMarker}</svg>`;
+    const title = `Live member trend OHLC chart. Green = up, red = down. Last close: ${formatNumber(lastCandle?.close ?? MIN_BASELINE_MEMBERS)}.`;
+    refs.bars.innerHTML = `<svg class=\"cp-chart-svg\" width=\"${width}\" height=\"${height}\" viewBox=\"0 0 ${width} ${height}\" role=\"img\" aria-label=\"${title}\"><title>${title}</title>${gridLines}${candleSvgs}${lastMarker}${rightAxisLabels}</svg><div id=\"cp-live-cross-v\" class=\"cp-live-cross-v is-hidden\"></div><div id=\"cp-live-cross-h\" class=\"cp-live-cross-h is-hidden\"></div><div id=\"cp-live-tooltip\" class=\"cp-live-tooltip is-hidden\"></div>`;
 
-    // Update axis labels with dates
+    state.liveLastRender = {
+      candles: ohlc,
+      chartWidth: width,
+      chartHeight: height,
+      topPad,
+      bottomPad: topPad + plotHeight,
+      plotLeft: leftPad,
+      plotRight: leftPad + plotWidth,
+      candleStep,
+      valueToY,
+    };
+
     const first = series[0];
     const middle = series[Math.floor(series.length / 2)];
     const last = series[series.length - 1];
-    
-    refs.axisStart.textContent = formatTimeStamp(first?.t || 0);
-    refs.axisMid.textContent = formatTimeStamp(middle?.t || 0);
-    refs.axisEnd.textContent = formatTimeStamp(last?.t || 0);
+
+    refs.axisStart.textContent = formatTPoWDateLabel(first?.t || 0);
+    refs.axisMid.textContent = formatTPoWDateLabel(middle?.t || 0);
+    refs.axisEnd.textContent = formatTPoWDateLabel(last?.t || 0);
   }
 
   function colonyOptions(metrics) {
@@ -1226,6 +1287,8 @@
     refs.copySnapshot?.addEventListener('click', onCopySnapshot);
     refs.tpowOwnerSelect?.addEventListener('change', onChangeTPoWOwner);
     refs.tpowTimeframes?.addEventListener('click', onTPoWTimeframeClick);
+    refs.bars?.addEventListener('mousemove', onLivePointerMove);
+    refs.bars?.addEventListener('mouseleave', hideLiveOverlay);
     refs.tpowBars?.addEventListener('mousemove', onTPoWPointerMove);
     refs.tpowBars?.addEventListener('mouseleave', hideTPoWOverlay);
     refs.tpowBars?.addEventListener('wheel', onTPoWWheel, { passive: false });

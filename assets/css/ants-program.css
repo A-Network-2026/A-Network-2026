@@ -662,7 +662,7 @@
 
     .cp-bars {
       position: relative;
-      height: 136px;
+      height: 320px;
       border: 1px solid rgba(108, 231, 177, 0.2);
       border-radius: 12px;
       background:
@@ -674,6 +674,51 @@
       width: 100%;
       height: 100%;
       display: block;
+    }
+
+    .cp-live-axis-text {
+      fill: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .cp-live-cross-v,
+    .cp-live-cross-h {
+      position: absolute;
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0.92;
+    }
+
+    .cp-live-cross-v {
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(88, 197, 255, 0.72);
+    }
+
+    .cp-live-cross-h {
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: rgba(88, 197, 255, 0.44);
+    }
+
+    .cp-live-tooltip {
+      position: absolute;
+      z-index: 4;
+      pointer-events: none;
+      min-width: 182px;
+      padding: 8px 9px;
+      border-radius: 8px;
+      border: 1px solid rgba(88, 197, 255, 0.35);
+      background: rgba(4, 12, 19, 0.94);
+      color: #d7f4ff;
+      font-size: 0.71rem;
+      line-height: 1.45;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+      white-space: nowrap;
     }
 
     .cp-grid-line {
@@ -734,7 +779,20 @@
       justify-content: space-between;
       gap: 10px;
       color: var(--muted);
-      font-size: 0.72rem;
+      font-size: 0.8rem;
+      line-height: 1.3;
+    }
+
+    .cp-axis span {
+      flex: 1 1 0;
+    }
+
+    .cp-axis span:nth-child(2) {
+      text-align: center;
+    }
+
+    .cp-axis span:nth-child(3) {
+      text-align: right;
     }
 
     .cp-tpow-wrap {
@@ -986,7 +1044,7 @@
       }
 
       .cp-bars {
-        height: 124px;
+        height: 260px;
       }
 
       .cp-select {
@@ -1010,6 +1068,10 @@
       }
 
       .cp-bars {
-        height: 112px;
+        height: 220px;
+      }
+
+      .cp-axis {
+        font-size: 0.68rem;
       }
     }
