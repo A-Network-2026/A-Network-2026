@@ -186,7 +186,7 @@ const PUBLIC_TEST_POOLS = [
 /* ── App state ──────────────────────────────── */
 const state = {
   // ANET wallet (in-memory only, never persisted)
-  anetWallet: { address: '', seedPhrase: '', balance: null },
+  anetWallet: { address: '', sessionToken: '', balance: null },
 
   // EVM wallet
   evmWallet: { address: '', chainId: null, balance: null },
@@ -306,12 +306,13 @@ async function getSwapQuote({ tokenSymbol, amountIn, anetToToken }) {
   });
 }
 
-async function executeSwap({ trader, senderSeed, tokenSymbol, amountIn, anetToToken }) {
+async function executeSwap({ trader, sessionToken, tokenSymbol, amountIn, anetToToken }) {
   return apiFetch('/dex/swap/execute', {
     method: 'POST',
+    headers: sessionToken ? { 'X-ANET-SESSION': sessionToken } : {},
     body: JSON.stringify({
       trader,
-      sender_seed: senderSeed,
+      session_token: sessionToken,
       token_symbol: tokenSymbol,
       amount_in: amountIn,
       anet_to_token: anetToToken,
@@ -319,12 +320,13 @@ async function executeSwap({ trader, senderSeed, tokenSymbol, amountIn, anetToTo
   });
 }
 
-async function addLiquidity({ provider, senderSeed, tokenSymbol, anetAmountAnts, tokenAmountUnits }) {
+async function addLiquidity({ provider, sessionToken, tokenSymbol, anetAmountAnts, tokenAmountUnits }) {
   return apiFetch('/dex/pools/add-liquidity', {
     method: 'POST',
+    headers: sessionToken ? { 'X-ANET-SESSION': sessionToken } : {},
     body: JSON.stringify({
       provider,
-      sender_seed: senderSeed,
+      session_token: sessionToken,
       token_symbol: tokenSymbol,
       anet_amount_ants: anetAmountAnts,
       token_amount_units: tokenAmountUnits,
@@ -332,12 +334,13 @@ async function addLiquidity({ provider, senderSeed, tokenSymbol, anetAmountAnts,
   });
 }
 
-async function createPool({ provider, senderSeed, tokenSymbol, anetAmountAnts, tokenAmountUnits, feeBps }) {
+async function createPool({ provider, sessionToken, tokenSymbol, anetAmountAnts, tokenAmountUnits, feeBps }) {
   return apiFetch('/dex/pools/create', {
     method: 'POST',
+    headers: sessionToken ? { 'X-ANET-SESSION': sessionToken } : {},
     body: JSON.stringify({
       provider,
-      sender_seed: senderSeed,
+      session_token: sessionToken,
       token_symbol: tokenSymbol,
       anet_amount_ants: anetAmountAnts,
       token_amount_units: tokenAmountUnits,
@@ -439,14 +442,14 @@ function closeAnetWalletModal() {
 
 async function connectAnetWallet() {
   const address = document.getElementById('anet-address-input')?.value?.trim();
-  const seed = document.getElementById('anet-seed-input')?.value?.trim();
+  const sessionToken = document.getElementById('anet-session-input')?.value?.trim();
   if (!address) { toast('Please enter your ANET wallet address', 'error'); return; }
-  if (!seed)    { toast('Please enter your seed phrase', 'error'); return; }
+  if (!sessionToken) { toast('Please enter your ANET session token', 'error'); return; }
 
   try {
     const acct = await getAccount(address);
     state.anetWallet.address = address;
-    state.anetWallet.seedPhrase = seed;
+    state.anetWallet.sessionToken = sessionToken;
     state.anetWallet.balance = acct.ants_balance != null ? Number(acct.ants_balance) : null;
     updateAnetWalletUI();
     closeAnetWalletModal();
@@ -457,7 +460,7 @@ async function connectAnetWallet() {
 }
 
 function disconnectAnetWallet() {
-  state.anetWallet = { address: '', seedPhrase: '', balance: null };
+  state.anetWallet = { address: '', sessionToken: '', balance: null };
   updateAnetWalletUI();
   toast('ANET wallet disconnected', 'info');
 }
@@ -584,7 +587,7 @@ function setCashoutMax() {
 }
 
 async function doCashout() {
-  if (!state.anetWallet.address || !state.anetWallet.seedPhrase) {
+  if (!state.anetWallet.address || !state.anetWallet.sessionToken) {
     openAnetWalletModal();
     return;
   }
@@ -603,7 +606,7 @@ async function doCashout() {
   try {
     const result = await executeSwap({
       trader:      state.anetWallet.address,
-      senderSeed:  state.anetWallet.seedPhrase,
+      sessionToken: state.anetWallet.sessionToken,
       tokenSymbol: stable,
       amountIn:    anet2ants(amt),
       anetToToken: true,
@@ -992,7 +995,7 @@ function renderQuote(q, isAnetToToken) {
 }
 
 async function doSwap() {
-  if (!state.anetWallet.address || !state.anetWallet.seedPhrase) {
+  if (!state.anetWallet.address || !state.anetWallet.sessionToken) {
     openAnetWalletModal();
     return;
   }
@@ -1012,7 +1015,7 @@ async function doSwap() {
   try {
     const result = await executeSwap({
       trader: state.anetWallet.address,
-      senderSeed: state.anetWallet.seedPhrase,
+      sessionToken: state.anetWallet.sessionToken,
       tokenSymbol: tokenSym,
       amountIn: amountAnts,
       anetToToken: isAnetToToken,
@@ -1853,7 +1856,7 @@ function renderLiquidityPools() {
 }
 
 async function doAddLiquidity() {
-  if (!state.anetWallet.address || !state.anetWallet.seedPhrase) { openAnetWalletModal(); return; }
+  if (!state.anetWallet.address || !state.anetWallet.sessionToken) { openAnetWalletModal(); return; }
 
   const sym    = document.getElementById('liq-pool-select')?.value;
   const anetAmt = parseFloat(document.getElementById('liq-anet-amount')?.value);
@@ -1870,7 +1873,7 @@ async function doAddLiquidity() {
   try {
     const result = await addLiquidity({
       provider: state.anetWallet.address,
-      senderSeed: state.anetWallet.seedPhrase,
+      sessionToken: state.anetWallet.sessionToken,
       tokenSymbol: sym,
       anetAmountAnts: anet2ants(anetAmt),
       tokenAmountUnits: Math.round(tokAmt * ANTS_PER_ANET),
@@ -1888,7 +1891,7 @@ async function doAddLiquidity() {
 }
 
 async function doCreatePool() {
-  if (!state.anetWallet.address || !state.anetWallet.seedPhrase) { openAnetWalletModal(); return; }
+  if (!state.anetWallet.address || !state.anetWallet.sessionToken) { openAnetWalletModal(); return; }
 
   const sym    = document.getElementById('create-token-sym')?.value?.trim()?.toUpperCase();
   const anetAmt = parseFloat(document.getElementById('create-anet-amount')?.value);
@@ -1916,7 +1919,7 @@ async function doCreatePool() {
   try {
     await createPool({
       provider: state.anetWallet.address,
-      senderSeed: state.anetWallet.seedPhrase,
+      sessionToken: state.anetWallet.sessionToken,
       tokenSymbol: sym,
       anetAmountAnts: anet2ants(anetAmt),
       tokenAmountUnits: Math.round(submitTokAmt * ANTS_PER_ANET),

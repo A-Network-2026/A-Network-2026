@@ -36,9 +36,8 @@
       </div>
       <div class="modal-body">
         <div class="warn-box">
-          ⚠ Your seed phrase is transmitted over HTTPS to the A Network L1 node to authorize
-          on-chain transactions. Only connect on a trusted device. Never share your seed phrase
-          with anyone. This is a testnet environment.
+          ⚠ Security upgrade: this website does not accept seed phrase or private key.
+          Authorize in the official ANET wallet/app and use a short-lived session token for web actions.
         </div>
         <div class="form-group">
           <label class="form-label" for="anet-address-input">ANET Wallet Address</label>
@@ -46,9 +45,9 @@
                  placeholder="e.g. anet1abc…" autocomplete="off" spellcheck="false">
         </div>
         <div class="form-group">
-          <label class="form-label" for="anet-seed-input">Seed Phrase / Private Key</label>
-          <textarea class="form-input" id="anet-seed-input" rows="3"
-                    placeholder="Enter your 12 or 24-word seed phrase…" autocomplete="off" spellcheck="false"></textarea>
+          <label class="form-label" for="anet-session-input">ANET Session Token</label>
+          <input class="form-input" id="anet-session-input" type="password"
+                 placeholder="Paste short-lived session token from ANET app" autocomplete="off" spellcheck="false">
         </div>
         <button class="btn btn-primary btn-full" onclick="connectAnetWallet()">
           Connect Wallet
@@ -958,7 +957,7 @@
                 Connect ANET Wallet
               </button>
               <div class="info-box" style="font-size:12px;">
-                Your seed phrase signs the swap on-chain and is never stored. Connection is in-memory only.
+                No seed phrase is used on web. Wallet actions require secure app authorization + short-lived session token.
               </div>
             </div>
           </div>
@@ -1044,7 +1043,7 @@
               <div style="font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:7px;">
                 <div style="display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--accent-2);flex-shrink:0;">✓</span> Your USDT/USDC stays safely in your ANET L1 wallet — no expiry.</div>
                 <div style="display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--accent-2);flex-shrink:0;">✓</span> You choose the destination EVM chain when bridging.</div>
-                <div style="display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--accent-2);flex-shrink:0;">✓</span> Bridge will use same seed-phrase-signed transaction — no new wallet needed.</div>
+                <div style="display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--accent-2);flex-shrink:0;">✓</span> Bridge uses the same session-authorized wallet identity — no seed phrase required on web.</div>
                 <div style="display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--warn);flex-shrink:0;">⏳</span> Estimated launch: Phase 2 — Q3 2026.</div>
               </div>
 
