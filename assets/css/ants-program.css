@@ -895,6 +895,23 @@
       font-size: 0.74rem;
     }
 
+    .cp-owner-search {
+      min-width: 180px;
+      max-width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(4, 12, 19, 0.82);
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .cp-owner-search:focus {
+      border-color: var(--line-strong);
+      box-shadow: 0 0 0 2px rgba(108, 231, 177, 0.2);
+    }
+
     .cp-tpow-bars {
       position: relative;
       height: 360px;
@@ -1047,6 +1064,10 @@
     @media (max-width: 980px) {
       .cp-tpow-toolbar {
         align-items: flex-start;
+      }
+
+      .cp-owner-search {
+        width: 100%;
       }
 
       .cp-tpow-stats {

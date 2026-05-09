@@ -49,6 +49,7 @@
     axisEnd: document.getElementById('cp-axis-end'),
     liveTimeframes: document.getElementById('cp-live-timeframes'),
     tpowBars: document.getElementById('cp-tpow-bars'),
+    tpowOwnerSearch: document.getElementById('cp-tpow-owner-search'),
     tpowOwnerSelect: document.getElementById('cp-tpow-owner-select'),
     tpowOwnerDisplay: document.getElementById('cp-tpow-owner'),
     tpowTimeframes: document.getElementById('cp-tpow-timeframes'),
@@ -86,6 +87,8 @@
     tpowPendingOwnerRows: null,
     tpowRenderRaf: 0,
     tpowSelectedOwner: '',
+    tpowAllOwners: [],
+    tpowSearchQuery: '',
   };
 
   if (refs.sourceEndpoint) {
@@ -589,6 +592,29 @@
     });
   }
 
+  function applyTPoWOwnerFilter() {
+    if (!refs.tpowOwnerSelect) return;
+    const query = String(state.tpowSearchQuery || '').trim().toLowerCase();
+    const all = Array.isArray(state.tpowAllOwners) ? state.tpowAllOwners : [];
+    const filtered = query
+      ? all.filter((owner) => owner.toLowerCase().includes(query))
+      : all;
+
+    const previous = refs.tpowOwnerSelect.value || state.tpowSelectedOwner;
+    const html = filtered.map((owner) => `<option value="${owner}">${owner}</option>`).join('');
+    refs.tpowOwnerSelect.innerHTML = html || '<option value="">No matching owner</option>';
+
+    if (previous && filtered.includes(previous)) {
+      refs.tpowOwnerSelect.value = previous;
+    } else if (filtered.length) {
+      refs.tpowOwnerSelect.value = filtered[0];
+    }
+
+    if (refs.tpowOwnerSearch && document.activeElement !== refs.tpowOwnerSearch) {
+      refs.tpowOwnerSearch.value = refs.tpowOwnerSelect.value || '';
+    }
+  }
+
   function renderTPoWChart(ownerCode) {
     if (!ownerCode || !refs.tpowBars) return;
 
@@ -715,27 +741,27 @@
       return;
     }
     
+    const sortedOwners = Array.from(owners).sort();
     const previous = refs.tpowOwnerSelect.value;
-    const html = Array.from(owners)
-      .sort()
-      .map(owner => `<option value="${owner}">${owner}</option>`)
-      .join('');
+    const hash = sortedOwners.join('|');
 
-    if (html === state.tpowOwnerOptionsHash) {
+    if (hash === state.tpowOwnerOptionsHash) {
       if (previous && owners.has(previous)) {
         refs.tpowOwnerSelect.value = previous;
       }
       return;
     }
-    
-    refs.tpowOwnerSelect.innerHTML = html;
-    state.tpowOwnerOptionsHash = html;
+
+    state.tpowAllOwners = sortedOwners;
+    state.tpowOwnerOptionsHash = hash;
+    applyTPoWOwnerFilter();
+
     if (previous && owners.has(previous)) {
       refs.tpowOwnerSelect.value = previous;
     }
     
     // Auto-select first owner
-    if (html && !refs.tpowOwnerSelect.value) {
+    if (sortedOwners.length && !refs.tpowOwnerSelect.value) {
       refs.tpowOwnerSelect.selectedIndex = 0;
       onChangeTPoWOwner();
     }
@@ -748,7 +774,24 @@
     state.tpowSelectedOwner = selectedOwner;
     resetTPoWViewport();
     if (refs.tpowOwnerDisplay) refs.tpowOwnerDisplay.textContent = selectedOwner;
+    if (refs.tpowOwnerSearch && document.activeElement !== refs.tpowOwnerSearch) {
+      refs.tpowOwnerSearch.value = selectedOwner;
+    }
     scheduleTPoWRender(selectedOwner);
+  }
+
+  function onTPoWOwnerSearchInput(event) {
+    state.tpowSearchQuery = String(event.target?.value || '');
+    applyTPoWOwnerFilter();
+  }
+
+  function onTPoWOwnerSearchKeyDown(event) {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    const selected = refs.tpowOwnerSelect?.value;
+    if (selected) {
+      onChangeTPoWOwner();
+    }
   }
 
   function onTPoWOwnerFocus() {
@@ -1432,6 +1475,8 @@
     refs.tpowOwnerSelect?.addEventListener('change', onChangeTPoWOwner);
     refs.tpowOwnerSelect?.addEventListener('focus', onTPoWOwnerFocus);
     refs.tpowOwnerSelect?.addEventListener('blur', onTPoWOwnerBlur);
+    refs.tpowOwnerSearch?.addEventListener('input', onTPoWOwnerSearchInput);
+    refs.tpowOwnerSearch?.addEventListener('keydown', onTPoWOwnerSearchKeyDown);
     refs.tpowTimeframes?.addEventListener('click', onTPoWTimeframeClick);
     refs.bars?.addEventListener('mousemove', onLivePointerMove);
     refs.bars?.addEventListener('mouseleave', hideLiveOverlay);
