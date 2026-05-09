@@ -46,6 +46,7 @@ const NFT_DB_PATH = process.env.NFT_DB_PATH || path.join(__dirname, '..', 'data'
 const NFT_MIN_PROFILE_ANTS = Math.max(1, Number(process.env.NFT_MIN_PROFILE_ANTS || 1000));
 const NFT_MAX_BIO_LENGTH = Math.max(80, Number(process.env.NFT_MAX_BIO_LENGTH || 280));
 const NFT_DOMAIN_MIN_BID_ANTS = Math.max(10000, Number(process.env.NFT_DOMAIN_MIN_BID_ANTS || 10000));
+const AI_OWNER_WALLET = String(process.env.AI_OWNER_WALLET || '').trim().toUpperCase();
 
 let nftDb = null;
 
@@ -267,6 +268,24 @@ async function initializeNftDatabase() {
   await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_market_listings_status ON nft_market_listings(status)');
   await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_market_listings_asset ON nft_market_listings(asset_id)');
   await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_nft_market_bids_listing ON nft_market_bids(listing_id)');
+
+  await dbRun(nftDb, `
+    CREATE TABLE IF NOT EXISTS ai_training_data (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uid TEXT NOT NULL,
+      wallet_address TEXT NOT NULL,
+      source_page TEXT DEFAULT '',
+      prompt_text TEXT NOT NULL,
+      response_text TEXT NOT NULL,
+      tags_json TEXT DEFAULT '[]',
+      is_public INTEGER DEFAULT 0,
+      approved_by_owner INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+  await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_ai_training_uid ON ai_training_data(uid)');
+  await dbRun(nftDb, 'CREATE INDEX IF NOT EXISTS idx_ai_training_public ON ai_training_data(is_public, approved_by_owner)');
 
   // --- Genesis + Colony Domain migrations (safe ALTER TABLE) ---
   const existingAssetCols = await dbAll(nftDb, `PRAGMA table_info(nft_assets)`, []);
@@ -1079,6 +1098,30 @@ function requireSessionUidMatch(res, session, requestedUid) {
   return true;
 }
 
+function isAiOwnerWallet(walletAddress) {
+  const wallet = String(walletAddress || '').trim().toUpperCase();
+  return Boolean(AI_OWNER_WALLET) && wallet === AI_OWNER_WALLET;
+}
+
+function mapAiTrainingRow(row) {
+  if (!row) {
+    return null;
+  }
+  return {
+    id: normalizeNonNegativeInteger(row.id, 0),
+    uid: normalizeAnetProfileId(row.uid),
+    walletAddress: String(row.wallet_address || '').trim().toUpperCase(),
+    sourcePage: String(row.source_page || '').trim(),
+    prompt: String(row.prompt_text || '').trim(),
+    response: String(row.response_text || '').trim(),
+    tags: parseJsonSafe(row.tags_json, []),
+    isPublic: Number(row.is_public || 0) === 1,
+    approvedByOwner: Number(row.approved_by_owner || 0) === 1,
+    createdAt: safeIsoDate(row.created_at),
+    updatedAt: safeIsoDate(row.updated_at)
+  };
+}
+
 app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'a-network-pi-backend' });
 });
@@ -1229,6 +1272,171 @@ app.get('/api/nft/config', (_req, res) => {
       model: 'nft-identity-and-closed-loop-utility'
     }
   });
+});
+
+app.get('/api/ai/config', (_req, res) => {
+  return res.status(200).json({
+    ok: true,
+    policy: {
+      ownerWalletConfigured: Boolean(AI_OWNER_WALLET),
+      trainingFlow: 'users-submit-owner-approves',
+      loginFlow: 'wallet-address-via-nft-miner-session'
+    }
+  });
+});
+
+app.get('/api/ai/training/public', async (_req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+  try {
+    const rows = await dbAll(
+      nftDb,
+      `SELECT *
+       FROM ai_training_data
+       WHERE is_public = 1 AND approved_by_owner = 1
+       ORDER BY datetime(updated_at) DESC
+       LIMIT 300`,
+      []
+    );
+    return res.status(200).json({
+      ok: true,
+      count: rows.length,
+      examples: rows.map(mapAiTrainingRow)
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.get('/api/ai/training/mine', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
+  try {
+    const rows = await dbAll(
+      nftDb,
+      `SELECT *
+       FROM ai_training_data
+       WHERE uid = ?
+       ORDER BY datetime(updated_at) DESC
+       LIMIT 200`,
+      [normalizeAnetProfileId(minerSession.uid)]
+    );
+
+    return res.status(200).json({
+      ok: true,
+      count: rows.length,
+      isOwner: isAiOwnerWallet(minerSession.walletAddress),
+      examples: rows.map(mapAiTrainingRow)
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post('/api/ai/training/submit', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
+  try {
+    const uid = getAnetProfileIdFromBody(req.body);
+    if (!uid) {
+      return res.status(400).json({ ok: false, error: 'anet profile id is required' });
+    }
+    if (!requireSessionUidMatch(res, minerSession, uid)) {
+      return;
+    }
+
+    const promptText = normalizeShortText(req.body?.prompt, 1000);
+    const responseText = normalizeShortText(req.body?.response, 3000);
+    if (!promptText || !responseText) {
+      return res.status(400).json({ ok: false, error: 'prompt and response are required' });
+    }
+
+    const sourcePage = normalizeShortText(req.body?.source_page, 120);
+    const tagsJson = normalizeTraitsJson(req.body?.tags);
+    const requesterIsOwner = isAiOwnerWallet(minerSession.walletAddress);
+    const publishRequested = Boolean(req.body?.is_public);
+    const isPublic = requesterIsOwner ? (publishRequested ? 1 : 0) : 0;
+    const approvedByOwner = requesterIsOwner ? 1 : 0;
+    const now = new Date().toISOString();
+
+    await dbRun(
+      nftDb,
+      `INSERT INTO ai_training_data (
+         uid, wallet_address, source_page, prompt_text, response_text,
+         tags_json, is_public, approved_by_owner, created_at, updated_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        uid,
+        String(minerSession.walletAddress || '').trim().toUpperCase(),
+        sourcePage,
+        promptText,
+        responseText,
+        tagsJson,
+        isPublic,
+        approvedByOwner,
+        now,
+        now
+      ]
+    );
+
+    const created = await dbGet(nftDb, 'SELECT * FROM ai_training_data WHERE id = last_insert_rowid()', []);
+    return res.status(201).json({
+      ok: true,
+      queuedForOwnerApproval: !requesterIsOwner,
+      example: mapAiTrainingRow(created)
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post('/api/ai/training/:id/approve', async (req, res) => {
+  if (!requireNftDatabase(res)) {
+    return;
+  }
+  const minerSession = requireNftMinerSession(req, res);
+  if (!minerSession) {
+    return;
+  }
+
+  if (!isAiOwnerWallet(minerSession.walletAddress)) {
+    return res.status(403).json({ ok: false, error: 'Only AI owner wallet can approve training data' });
+  }
+
+  try {
+    const id = normalizeNonNegativeInteger(req.params?.id, 0);
+    if (!id) {
+      return res.status(400).json({ ok: false, error: 'training id is required' });
+    }
+    const now = new Date().toISOString();
+    await dbRun(
+      nftDb,
+      `UPDATE ai_training_data
+       SET approved_by_owner = 1, is_public = 1, updated_at = ?
+       WHERE id = ?`,
+      [now, id]
+    );
+    const updated = await dbGet(nftDb, 'SELECT * FROM ai_training_data WHERE id = ?', [id]);
+    if (!updated) {
+      return res.status(404).json({ ok: false, error: 'training row not found' });
+    }
+    return res.status(200).json({ ok: true, example: mapAiTrainingRow(updated) });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
 });
 
 app.post('/api/nft/auth/miner-login', async (req, res) => {
