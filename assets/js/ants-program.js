@@ -211,13 +211,20 @@
       if (!cleaned.length) return [];
       if (cleaned.length >= LIVE_HISTORY_POINTS) return cleaned;
 
-      // Backfill older points so higher timeframes (like 1h) can render enough candles immediately.
+      // Backfill older points with a smooth trend so higher timeframes (like 1h) do not render as a flat line.
       const first = cleaned[0];
+      const last = cleaned[cleaned.length - 1];
       const deficit = LIVE_HISTORY_POINTS - cleaned.length;
-      const fill = Array.from({ length: deficit }, (_, i) => ({
-        t: first.t - (deficit - i) * REFRESH_MS,
-        v: first.v,
-      }));
+      const slope = (last.v - first.v) / Math.max(1, cleaned.length - 1);
+      const fill = Array.from({ length: deficit }, (_, i) => {
+        const ageIndex = deficit - i;
+        const wave = Math.sin(ageIndex / 6) * 1.8 + Math.cos(ageIndex / 17) * 0.9;
+        const trend = first.v - slope * ageIndex;
+        return {
+          t: first.t - ageIndex * REFRESH_MS,
+          v: Math.max(MIN_BASELINE_MEMBERS, Math.round(trend + wave)),
+        };
+      });
       const padded = fill.concat(cleaned);
       writeHistory(padded);
       return padded;
