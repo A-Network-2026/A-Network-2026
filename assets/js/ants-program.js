@@ -82,6 +82,10 @@
     tpowDrag: null,
     tpowDataCache: {},
     tpowOwnerOptionsHash: '',
+    tpowOwnerSelectFocused: false,
+    tpowPendingOwnerRows: null,
+    tpowRenderRaf: 0,
+    tpowSelectedOwner: '',
   };
 
   if (refs.sourceEndpoint) {
@@ -571,7 +575,18 @@
     resetTPoWViewport();
     setActiveTPoWTimeframeButton();
     const owner = getSelectedTPoWOwner();
-    if (owner) renderTPoWChart(owner);
+    if (owner) scheduleTPoWRender(owner);
+  }
+
+  function scheduleTPoWRender(ownerCode) {
+    if (!ownerCode) return;
+    if (state.tpowRenderRaf) {
+      cancelAnimationFrame(state.tpowRenderRaf);
+    }
+    state.tpowRenderRaf = requestAnimationFrame(() => {
+      state.tpowRenderRaf = 0;
+      renderTPoWChart(ownerCode);
+    });
   }
 
   function renderTPoWChart(ownerCode) {
@@ -680,6 +695,12 @@
 
   function populateTPoWOwners(rooms) {
     if (!refs.tpowOwnerSelect) return;
+
+    // Do not rewrite options while the user is interacting with the select.
+    if (state.tpowOwnerSelectFocused) {
+      state.tpowPendingOwnerRows = Array.isArray(rooms) ? rooms.slice() : [];
+      return;
+    }
     
     // Extract unique owner codes from rooms
     const owners = new Set();
@@ -723,10 +744,24 @@
   function onChangeTPoWOwner() {
     const selectedOwner = refs.tpowOwnerSelect?.value;
     if (!selectedOwner) return;
-    
+
+    state.tpowSelectedOwner = selectedOwner;
     resetTPoWViewport();
     if (refs.tpowOwnerDisplay) refs.tpowOwnerDisplay.textContent = selectedOwner;
-    renderTPoWChart(selectedOwner);
+    scheduleTPoWRender(selectedOwner);
+  }
+
+  function onTPoWOwnerFocus() {
+    state.tpowOwnerSelectFocused = true;
+  }
+
+  function onTPoWOwnerBlur() {
+    state.tpowOwnerSelectFocused = false;
+    if (state.tpowPendingOwnerRows) {
+      const pending = state.tpowPendingOwnerRows;
+      state.tpowPendingOwnerRows = null;
+      populateTPoWOwners(pending);
+    }
   }
 
   function buildOHLCData(series) {
@@ -1395,6 +1430,8 @@
     refs.copySnapshot?.addEventListener('click', onCopySnapshot);
     refs.liveTimeframes?.addEventListener('click', onLiveTimeframeClick);
     refs.tpowOwnerSelect?.addEventListener('change', onChangeTPoWOwner);
+    refs.tpowOwnerSelect?.addEventListener('focus', onTPoWOwnerFocus);
+    refs.tpowOwnerSelect?.addEventListener('blur', onTPoWOwnerBlur);
     refs.tpowTimeframes?.addEventListener('click', onTPoWTimeframeClick);
     refs.bars?.addEventListener('mousemove', onLivePointerMove);
     refs.bars?.addEventListener('mouseleave', hideLiveOverlay);
@@ -1422,7 +1459,7 @@
         if (state.latestPayload) {
           renderMetrics(state.latestPayload, 'live');
           const owner = getSelectedTPoWOwner();
-          if (owner) renderTPoWChart(owner);
+          if (owner) scheduleTPoWRender(owner);
         }
       }, 250);
     });
