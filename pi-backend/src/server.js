@@ -30,6 +30,7 @@ const PI_ADMIN_KEY = process.env.PI_ADMIN_KEY || '';
 const ANET_CHAIN_API_BASE_URL = (process.env.ANET_CHAIN_API_BASE_URL || '').replace(/\/$/, '');
 const ANET_L1_DEX_ADMIN_KEY = process.env.ANET_L1_DEX_ADMIN_KEY || '';
 const PI_REQUIRED_SESSIONS = Number(process.env.PI_REQUIRED_SESSIONS || 1000);
+const PI_ALLOW_INELIGIBLE_FOR_DEX_TEST = (process.env.PI_ALLOW_INELIGIBLE_FOR_DEX_TEST || 'false').toLowerCase() === 'true';
 const ANET_TESTNET_COIN_LABEL = process.env.ANET_TESTNET_COIN_LABEL || 'ANET_TEST';
 const ANET_MAINNET_COIN_LABEL = process.env.ANET_MAINNET_COIN_LABEL || 'ANET';
 const PI_ENFORCE_PRIMARY_WALLET_BINDING = (process.env.PI_ENFORCE_PRIMARY_WALLET_BINDING || 'true').toLowerCase() === 'true';
@@ -531,7 +532,8 @@ function hasDexCashoutHistory(uid) {
 
 async function requireNftActivationByCashout(uid) {
   const profileId = normalizeAnetProfileId(uid);
-  if (!hasDexCashoutHistory(profileId)) {
+  // In test mode, bypass cashout requirement for NFT activation
+  if (!PI_ALLOW_INELIGIBLE_FOR_DEX_TEST && !hasDexCashoutHistory(profileId)) {
     return {
       ok: false,
       status: 403,
@@ -540,7 +542,8 @@ async function requireNftActivationByCashout(uid) {
   }
 
   return {
-    ok: true
+    ok: true,
+    testModeBypass: PI_ALLOW_INELIGIBLE_FOR_DEX_TEST
   };
 }
 
@@ -2397,14 +2400,16 @@ async function getSessionEligibility(walletAddress) {
     const requiredSessions = Number.isFinite(PI_REQUIRED_SESSIONS) && PI_REQUIRED_SESSIONS > 0
       ? PI_REQUIRED_SESSIONS
       : 1000;
-    const eligible = sessions >= requiredSessions;
+    // In test mode, bypass eligibility check
+    const eligible = PI_ALLOW_INELIGIBLE_FOR_DEX_TEST || (sessions >= requiredSessions);
 
     return {
       wallet: normalizedWallet,
       sessions,
       requiredSessions,
       eligible,
-      remainingSessions: Math.max(0, requiredSessions - sessions)
+      remainingSessions: Math.max(0, requiredSessions - sessions),
+      testModeBypass: PI_ALLOW_INELIGIBLE_FOR_DEX_TEST
     };
   } catch (error) {
     return {
