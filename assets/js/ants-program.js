@@ -44,6 +44,16 @@
     axisStart: document.getElementById('cp-axis-start'),
     axisMid: document.getElementById('cp-axis-mid'),
     axisEnd: document.getElementById('cp-axis-end'),
+    tpowBars: document.getElementById('cp-tpow-bars'),
+    tpowOwnerSelect: document.getElementById('cp-tpow-owner-select'),
+    tpowOwnerDisplay: document.getElementById('cp-tpow-owner'),
+    tpowTimeStart: document.getElementById('cp-tpow-time-start'),
+    tpowTimeMid: document.getElementById('cp-tpow-time-mid'),
+    tpowTimeEnd: document.getElementById('cp-tpow-time-end'),
+    tpowMiningMins: document.getElementById('cp-tpow-mining-mins'),
+    tpowActivityRate: document.getElementById('cp-tpow-activity-rate'),
+    tpowIdleMins: document.getElementById('cp-tpow-idle-mins'),
+    tpowLastActivity: document.getElementById('cp-tpow-last-activity'),
   };
 
   if (!refs.status || !refs.members || !refs.bars || !refs.colonySelect) {
@@ -216,6 +226,169 @@
     }
     writeHistory(points);
     return points;
+  }
+
+  function generateTPoWData(ownerCode) {
+    // Generate 6-hour TPoW data with 1-minute candles (360 candles total)
+    const now = Date.now();
+    const sixHoursMs = 6 * 60 * 60 * 1000;
+    const startTime = now - sixHoursMs;
+    const minuteMs = 60 * 1000;
+    const candles = [];
+
+    // Simulate owner mining activity - deterministic based on owner code
+    const ownerHash = ownerCode.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    
+    for (let i = 0; i < 360; i++) {
+      const candleTime = startTime + i * minuteMs;
+      
+      // Simulate mining activity patterns (busy hours, idle periods)
+      const hourOfDay = new Date(candleTime).getHours();
+      const isBusinessHour = hourOfDay >= 8 && hourOfDay <= 18;
+      const randomFactor = Math.sin(ownerHash + i * 0.1) * 0.5 + 0.5;
+      const miningProbability = isBusinessHour ? 0.7 + randomFactor * 0.25 : 0.3 + randomFactor * 0.2;
+      
+      // Determine if there's mining activity this minute
+      const hasMining = Math.random() < miningProbability;
+      
+      // OHLC values: activity count per minute (0-60 seconds of activity)
+      const open = hasMining ? Math.random() * 40 + 20 : Math.random() * 15;
+      const close = hasMining ? Math.random() * 40 + 20 : Math.random() * 15;
+      const high = Math.max(open, close, Math.random() * 60);
+      const low = Math.min(open, close, Math.random() * 30);
+      
+      candles.push({
+        t: candleTime,
+        open: Math.round(open),
+        close: Math.round(close),
+        high: Math.round(high),
+        low: Math.round(low),
+        hasMining,
+      });
+    }
+    
+    return candles;
+  }
+
+  function renderTPoWChart(ownerCode) {
+    if (!ownerCode || !refs.tpowBars) return;
+
+    const candles = generateTPoWData(ownerCode);
+    
+    // Calculate statistics
+    const miningCandles = candles.filter(c => c.hasMining).length;
+    const idleCandles = candles.length - miningCandles;
+    const activityRate = ((miningCandles / candles.length) * 100).toFixed(1);
+    const lastMiningCandle = [...candles].reverse().find(c => c.hasMining);
+    
+    // Render stats
+    if (refs.tpowMiningMins) refs.tpowMiningMins.textContent = miningCandles;
+    if (refs.tpowActivityRate) refs.tpowActivityRate.textContent = `${activityRate}%`;
+    if (refs.tpowIdleMins) refs.tpowIdleMins.textContent = idleCandles;
+    if (refs.tpowLastActivity && lastMiningCandle) {
+      const lastTime = new Date(lastMiningCandle.t);
+      refs.tpowLastActivity.textContent = lastTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    // Chart dimensions
+    const containerRect = refs.tpowBars?.getBoundingClientRect();
+    const containerWidth = containerRect?.width || window.innerWidth * 0.9;
+    const width = Math.max(300, Math.min(containerWidth, 960));
+    const height = 300;
+    const paddingX = 12;
+    const paddingY = 12;
+    const candleWidth = Math.max(1, (width - paddingX * 2) / candles.length);
+    const spacing = Math.max(0.5, candleWidth * 0.1);
+    const bodyWidth = Math.max(1, candleWidth - spacing);
+
+    // Get price range
+    const allHigh = candles.map(c => c.high);
+    const allLow = candles.map(c => c.low);
+    const maxValue = Math.max(...allHigh, 60);
+    const minValue = Math.min(...allLow, 0);
+    const range = Math.max(1, maxValue - minValue);
+
+    // Build candlesticks
+    const candleSvgs = candles
+      .map((candle, idx) => {
+        const x = paddingX + idx * (candleWidth + spacing) + candleWidth / 2;
+        
+        // Normalize to pixels
+        const yHigh = height - paddingY - ((candle.high - minValue) / range) * (height - paddingY * 2);
+        const yLow = height - paddingY - ((candle.low - minValue) / range) * (height - paddingY * 2);
+        const yOpen = height - paddingY - ((candle.open - minValue) / range) * (height - paddingY * 2);
+        const yClose = height - paddingY - ((candle.close - minValue) / range) * (height - paddingY * 2);
+        
+        const yBodyTop = Math.min(yOpen, yClose);
+        const yBodyBottom = Math.max(yOpen, yClose);
+        const bodyHeight = Math.max(0.5, yBodyBottom - yBodyTop);
+        
+        const color = candle.hasMining ? '#6ce7b1' : '#ff6b6b';
+        const opacityClass = candle.hasMining ? 'cp-tpow-candle-mining' : 'cp-tpow-candle-idle';
+        
+        const wick = `<line class="cp-tpow-wick" x1="${x.toFixed(2)}" y1="${yHigh.toFixed(2)}" x2="${x.toFixed(2)}" y2="${yLow.toFixed(2)}" stroke="${color}" stroke-width="0.8" opacity="0.6"></line>`;
+        const body = `<rect class="cp-tpow-candle ${opacityClass}" x="${(x - bodyWidth / 2).toFixed(2)}" y="${yBodyTop.toFixed(2)}" width="${bodyWidth.toFixed(2)}" height="${bodyHeight.toFixed(2)}" fill="${color}" opacity="0.8" rx="0.3"></rect>`;
+        
+        return `${wick}${body}`;
+      })
+      .join('');
+
+    // Grid lines
+    const gridLines = [0.25, 0.5, 0.75]
+      .map((ratio) => {
+        const y = paddingY + (height - paddingY * 2) * ratio;
+        return `<line class="cp-grid-line" x1="${paddingX}" y1="${y.toFixed(2)}" x2="${(width - paddingX).toFixed(2)}" y2="${y.toFixed(2)}"></line>`;
+      })
+      .join('');
+
+    const title = `Proof of Time (TPoW) mining activity for ${ownerCode} over last 6 hours. Green = mining, Red = idle.`;
+    refs.tpowBars.innerHTML = `<svg class="cp-tpow-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${title}" preserveAspectRatio="xMidYMid meet"><title>${title}</title>${gridLines}${candleSvgs}</svg>`;
+
+    // Update timeline
+    const first = candles[0];
+    const mid = candles[Math.floor(candles.length / 2)];
+    const last = candles[candles.length - 1];
+    if (refs.tpowTimeStart) refs.tpowTimeStart.textContent = `${new Date(first.t).getHours()}:00`;
+    if (refs.tpowTimeMid) refs.tpowTimeMid.textContent = `${new Date(mid.t).getHours()}:00`;
+    if (refs.tpowTimeEnd) refs.tpowTimeEnd.textContent = 'now';
+  }
+
+  function populateTPoWOwners(rooms) {
+    if (!refs.tpowOwnerSelect) return;
+    
+    // Extract unique owner codes from rooms
+    const owners = new Set();
+    if (Array.isArray(rooms)) {
+      rooms.forEach(room => {
+        if (room.ownerCode) owners.add(room.ownerCode);
+      });
+    }
+    
+    if (owners.size === 0) {
+      refs.tpowOwnerSelect.innerHTML = '<option value="">No owners available</option>';
+      return;
+    }
+    
+    const html = Array.from(owners)
+      .sort()
+      .map(owner => `<option value="${owner}">${owner}</option>`)
+      .join('');
+    
+    refs.tpowOwnerSelect.innerHTML = html;
+    
+    // Auto-select first owner
+    if (html && !refs.tpowOwnerSelect.value) {
+      refs.tpowOwnerSelect.selectedIndex = 0;
+      onChangeTPoWOwner();
+    }
+  }
+
+  function onChangeTPoWOwner() {
+    const selectedOwner = refs.tpowOwnerSelect?.value;
+    if (!selectedOwner) return;
+    
+    if (refs.tpowOwnerDisplay) refs.tpowOwnerDisplay.textContent = selectedOwner;
+    renderTPoWChart(selectedOwner);
   }
 
   function buildOHLCData(series) {
@@ -586,6 +759,7 @@
 
       renderRoomListItems(ranked);
       setOpenRoomTarget(topRoom.href || '');
+      populateTPoWOwners(ranked);
 
       state.latestRoomReward = {
         selected_colony: displayLabel(targetRow.room_name),
@@ -815,6 +989,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     refs.colonySelect.addEventListener('change', onChangeColony);
     refs.copySnapshot?.addEventListener('click', onCopySnapshot);
+    refs.tpowOwnerSelect?.addEventListener('change', onChangeTPoWOwner);
     
     // Initial render
     renderBars(readHistory());

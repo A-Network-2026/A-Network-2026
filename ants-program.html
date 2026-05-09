@@ -186,6 +186,31 @@
             <span id="cp-axis-end">-</span>
           </div>
         </div>
+
+        <div class="cp-chart-wrap cp-tpow-wrap">
+          <div class="cp-chart-head">
+            <div>
+              <p>Proof of Time (TPoW) Mining Activity</p>
+              <small>Owner: <strong id="cp-tpow-owner">-</strong> | Last 6 hours</small>
+            </div>
+            <label class="cp-select-label" for="cp-tpow-owner-select" style="margin: 0;">Select Owner:</label>
+            <select id="cp-tpow-owner-select" class="cp-select" style="min-width: 140px;" aria-label="Select owner for TPoW mining chart">
+              <option value="">Top Mining Owner</option>
+            </select>
+          </div>
+          <div class="cp-tpow-bars" id="cp-tpow-bars" aria-label="Proof of Time mining candlesticks"></div>
+          <div class="cp-tpow-timeline" id="cp-tpow-timeline" aria-hidden="true">
+            <span id="cp-tpow-time-start">6h ago</span>
+            <span id="cp-tpow-time-mid">3h ago</span>
+            <span id="cp-tpow-time-end">now</span>
+          </div>
+          <div class="cp-tpow-stats">
+            <p><span class="cp-tpow-stat-label">Mining Minutes:</span><strong id="cp-tpow-mining-mins">0</strong><span class="cp-tpow-stat-label"> / 360</span></p>
+            <p><span class="cp-tpow-stat-label">Activity Rate:</span><strong id="cp-tpow-activity-rate">0%</strong></p>
+            <p><span class="cp-tpow-stat-label">Idle Minutes:</span><strong id="cp-tpow-idle-mins">360</strong></p>
+            <p><span class="cp-tpow-stat-label">Last Activity:</span><strong id="cp-tpow-last-activity">-</strong></p>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -280,7 +305,7 @@
     </footer>
   </div>
   <script src="assets/js/site-ai.js" defer></script>
-  <script src="assets/js/ants-program.js?v=20260509-10" defer></script>
+  <script src="assets/js/ants-program.js?v=20260509-11" defer></script>
 </body>
 </html>
 

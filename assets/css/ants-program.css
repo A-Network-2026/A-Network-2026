@@ -737,6 +737,99 @@
       font-size: 0.72rem;
     }
 
+    .cp-tpow-wrap {
+      margin-top: 18px;
+    }
+
+    .cp-tpow-bars {
+      position: relative;
+      height: 136px;
+      border: 1px solid rgba(108, 231, 177, 0.2);
+      border-radius: 12px;
+      background:
+        linear-gradient(180deg, rgba(88, 197, 255, 0.05), rgba(108, 231, 177, 0.02));
+      overflow: hidden;
+    }
+
+    .cp-tpow-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .cp-tpow-wick {
+      stroke-linecap: round;
+    }
+
+    .cp-tpow-candle {
+      transition: opacity 200ms ease;
+    }
+
+    .cp-tpow-candle-mining {
+      filter: drop-shadow(0 0 3px rgba(108, 231, 177, 0.5));
+    }
+
+    .cp-tpow-candle-mining:hover {
+      opacity: 1 !important;
+      filter: drop-shadow(0 0 6px rgba(108, 231, 177, 0.8));
+    }
+
+    .cp-tpow-candle-idle {
+      filter: drop-shadow(0 0 2px rgba(255, 107, 107, 0.4));
+    }
+
+    .cp-tpow-candle-idle:hover {
+      opacity: 1 !important;
+      filter: drop-shadow(0 0 5px rgba(255, 107, 107, 0.7));
+    }
+
+    .cp-tpow-timeline {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+
+    .cp-tpow-stats {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(4, 12, 19, 0.62);
+    }
+
+    .cp-tpow-stats p {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cp-tpow-stat-label {
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      font-weight: 600;
+    }
+
+    .cp-tpow-stats strong {
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    @media (max-width: 980px) {
+      .cp-tpow-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
     footer {
       margin: 28px 0 20px;
       text-align: center;
