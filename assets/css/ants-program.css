@@ -542,20 +542,44 @@
     }
 
     .cp-bars {
-      display: grid;
-      grid-template-columns: repeat(24, minmax(0, 1fr));
-      gap: 4px;
-      align-items: end;
+      position: relative;
       height: 136px;
-      padding-top: 10px;
+      border: 1px solid rgba(108, 231, 177, 0.2);
+      border-radius: 12px;
+      background:
+        linear-gradient(180deg, rgba(88, 197, 255, 0.05), rgba(108, 231, 177, 0.02));
+      overflow: hidden;
     }
 
-    .cp-bar {
-      height: 8px;
-      border-radius: 6px 6px 2px 2px;
-      background: linear-gradient(180deg, rgba(88, 197, 255, 0.95), rgba(108, 231, 177, 0.75));
-      min-height: 5px;
-      transition: height 300ms ease;
+    .cp-chart-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .cp-grid-line {
+      stroke: rgba(157, 181, 202, 0.2);
+      stroke-width: 1;
+      stroke-dasharray: 3 5;
+    }
+
+    .cp-area {
+      fill: rgba(88, 197, 255, 0.2);
+    }
+
+    .cp-line {
+      fill: none;
+      stroke: #6ce7b1;
+      stroke-width: 2.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 4px rgba(108, 231, 177, 0.4));
+    }
+
+    .cp-last-dot {
+      fill: #58c5ff;
+      stroke: #d9fbff;
+      stroke-width: 1.6;
     }
 
     .cp-axis {
@@ -586,7 +610,7 @@
       }
 
       .cp-bars {
-        gap: 3px;
+        height: 124px;
       }
 
       .cp-select {

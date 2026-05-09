@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
   'use strict';
 
   const CHAIN_API = 'https://explorer.a-network.net';
@@ -26,6 +26,7 @@
     copyStatus: document.getElementById('cp-copy-status'),
     members: document.getElementById('cp-members'),
     activeMiners: document.getElementById('cp-active-miners'),
+    activeNote: document.getElementById('cp-active-note'),
     colonyRooms: document.getElementById('cp-colony-rooms'),
     totalSessions: document.getElementById('cp-total-sessions'),
     kpi4Label: document.getElementById('cp-kpi4-label'),
@@ -209,14 +210,36 @@
   function renderBars(history) {
     const series = history.length ? history.slice(-MAX_POINTS) : buildFallbackHistory();
     const maxValue = Math.max(...series.map((p) => p.v), MIN_BASELINE_MEMBERS);
+    const width = 960;
+    const height = 300;
+    const paddingX = 16;
+    const paddingY = 16;
+    const minValue = Math.min(...series.map((p) => p.v), MIN_BASELINE_MEMBERS);
+    const range = Math.max(1, maxValue - minValue);
+    const stepX = series.length > 1 ? (width - paddingX * 2) / (series.length - 1) : 0;
 
-    refs.bars.innerHTML = series
-      .map((point) => {
-        const heightPercent = Math.max(8, Math.round((point.v / maxValue) * 100));
-        const title = `Members: ${formatNumber(point.v)}`;
-        return `<div class=\"cp-bar\" style=\"height:${heightPercent}%\" title=\"${title}\" aria-label=\"${title}\"></div>`;
+    const points = series.map((point, index) => {
+      const x = paddingX + index * stepX;
+      const normalized = (point.v - minValue) / range;
+      const y = height - paddingY - normalized * (height - paddingY * 2);
+      return { x, y, v: point.v };
+    });
+
+    const linePath = points
+      .map((pt, index) => `${index === 0 ? 'M' : 'L'} ${pt.x.toFixed(2)} ${pt.y.toFixed(2)}`)
+      .join(' ');
+    const areaPath = `${linePath} L ${(width - paddingX).toFixed(2)} ${(height - paddingY).toFixed(2)} L ${paddingX.toFixed(2)} ${(height - paddingY).toFixed(2)} Z`;
+
+    const gridLines = [0.25, 0.5, 0.75]
+      .map((ratio) => {
+        const y = paddingY + (height - paddingY * 2) * ratio;
+        return `<line class=\"cp-grid-line\" x1=\"${paddingX}\" y1=\"${y.toFixed(2)}\" x2=\"${(width - paddingX).toFixed(2)}\" y2=\"${y.toFixed(2)}\"></line>`;
       })
       .join('');
+
+    const lastPoint = points[points.length - 1];
+    const title = `Members trend. Last value: ${formatNumber(lastPoint?.v ?? MIN_BASELINE_MEMBERS)}`;
+    refs.bars.innerHTML = `<svg class=\"cp-chart-svg\" viewBox=\"0 0 ${width} ${height}\" role=\"img\" aria-label=\"${title}\"><title>${title}</title>${gridLines}<path class=\"cp-area\" d=\"${areaPath}\"></path><path class=\"cp-line\" d=\"${linePath}\"></path><circle class=\"cp-last-dot\" cx=\"${lastPoint.x.toFixed(2)}\" cy=\"${lastPoint.y.toFixed(2)}\" r=\"4.4\"></circle></svg>`;
 
     const first = series[0];
     const middle = series[Math.floor(series.length / 2)];
@@ -320,6 +343,29 @@
     return safeInt(metrics.total_sessions);
   }
 
+  function resolveActiveMiners(metrics) {
+    const activeMiners = safeInt(metrics.total_active_miners);
+    if (activeMiners > 0) {
+      return {
+        value: activeMiners,
+        source: 'total_active_miners',
+      };
+    }
+
+    const realMiners = safeInt(metrics.total_real_miners);
+    if (realMiners > 0) {
+      return {
+        value: realMiners,
+        source: 'total_real_miners (fallback)',
+      };
+    }
+
+    return {
+      value: 0,
+      source: 'total_active_miners',
+    };
+  }
+
   function renderKpi4Mode(row) {
     if (!refs.kpi4Label || !refs.kpi4Note) return;
 
@@ -339,7 +385,7 @@
     }
   }
 
-  function updateTransparency(mode, payload, row, topMiningRow) {
+  function updateTransparency(mode, payload, row, topMiningRow, activeMinerMeta) {
     const now = Date.now();
     if (refs.dataMode) {
       refs.dataMode.textContent = mode;
@@ -370,8 +416,11 @@
         : {
             total_group_participants: safeInt(metrics.total_group_participants),
             total_active_miners: safeInt(metrics.total_active_miners),
+            total_real_miners: safeInt(metrics.total_real_miners),
             total_colony_rooms: safeInt(metrics.total_colony_rooms),
             total_sessions: safeInt(metrics.total_sessions),
+            active_miners_displayed: safeInt(activeMinerMeta?.value),
+            active_miners_source: displayLabel(activeMinerMeta?.source),
           },
       top_mining_colony: topMiningRow
         ? {
@@ -394,7 +443,8 @@
 
     const row = selectedColonyRow(options);
     const members = extractTrackedMembers(metrics, row);
-    const activeMiners = safeInt(metrics.total_active_miners);
+    const activeMinerMeta = resolveActiveMiners(metrics);
+    const activeMiners = safeInt(activeMinerMeta.value);
     const colonyRooms = extractColonyRooms(metrics, row);
     const totalSessions = extractMiningKpi(metrics, row);
 
@@ -402,6 +452,9 @@
 
     refs.members.textContent = formatNumber(members);
     refs.activeMiners.textContent = formatNumber(activeMiners);
+    if (refs.activeNote) {
+      refs.activeNote.textContent = `Source: ${activeMinerMeta.source}`;
+    }
     refs.colonyRooms.textContent = formatNumber(colonyRooms);
     refs.totalSessions.textContent = formatNumber(totalSessions);
 
@@ -412,10 +465,10 @@
     const baselineReached = members >= MIN_BASELINE_MEMBERS;
     const scopeName = row ? String(row.room_name || 'selected colony') : 'network';
     refs.status.textContent = baselineReached
-      ? `Baseline Met (${scopeName} • ${sourceLabel})`
-      : `Baseline Pending (${scopeName} • ${sourceLabel})`;
+      ? `Baseline Met (${scopeName} - ${sourceLabel})`
+      : `Baseline Pending (${scopeName} - ${sourceLabel})`;
 
-    updateTransparency(state.latestMode, payload, row, topMiningRow);
+    updateTransparency(state.latestMode, payload, row, topMiningRow, activeMinerMeta);
 
     const history = updateHistory(members);
     renderBars(history);
@@ -479,3 +532,4 @@
     window.setInterval(refreshColonyProgress, REFRESH_MS);
   });
 })();
+
