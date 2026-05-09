@@ -143,6 +143,19 @@ const TOKEN_COLORS = {
   LINK: '#2A5ADA', BNB:  '#F0B90B', ETH:  '#627EEA',
 };
 
+/* ── DEX Chart constants ────────────────────── */
+const DEX_CHART_TIMEFRAMES = [
+  { key: '1m', label: '1m', bucketMs: 60 * 1000 },
+  { key: '5m', label: '5m', bucketMs: 5 * 60 * 1000 },
+  { key: '15m', label: '15m', bucketMs: 15 * 60 * 1000 },
+  { key: '1h', label: '1h', bucketMs: 60 * 60 * 1000 },
+  { key: '1d', label: '1d', bucketMs: 24 * 60 * 60 * 1000 },
+  { key: '1w', label: '1w', bucketMs: 7 * 24 * 60 * 60 * 1000 },
+];
+const DEX_CHART_DEFAULT_TIMEFRAME = '1m';
+const DEX_CHART_HISTORY_POINTS = 2880;       // 24h at 30s samples
+const DEX_CHART_MAX_VISIBLE_CANDLES = 150;
+
 /* ── App state ──────────────────────────────── */
 const state = {
   // ANET wallet (in-memory only, never persisted)
@@ -168,6 +181,15 @@ const state = {
   recentLocalTrades: [],
   chainTxs: [],
   miniPriceSeries: {},
+  
+  // DEX Chart state (per-pair price history)
+  dexChartPriceHistory: {},         // { [pairKey]: [{t, v}, ...] }
+  dexChartTimeframeKey: '1m',       // current selected timeframe
+  dexChartViewStart: 0,             // viewport start for scroll/pan
+  dexChartViewCount: 0,             // viewport count for scroll/pan
+  dexChartDrag: null,               // drag state
+  dexChartLastRender: null,         // cached render metadata
+  
   loading: false,
 };
 
@@ -626,10 +648,13 @@ function submitBridgeNotify() {
 async function refreshPools() {
   state.pools = await loadPools();
   captureMiniChartSnapshots();
+  captureDexChartSnapshot();
   renderPoolsSidebar();
   renderMarketsTable();
   hydrateMarketPairSelector();
   renderMarketMicrostructure();
+  const history = readDexChartHistory();
+  renderDexChart(history);
   renderLiqPoolList();
   updateHeroStats();
   renderMiniLiveChart();
@@ -1360,6 +1385,349 @@ function renderMarketsTable() {
   hydrateMarketPairSelector();
 }
 
+/* ── DEX Chart functions ────────────────────– */
+function getDexChartTimeframe() {
+  const tf = DEX_CHART_TIMEFRAMES.find(t => t.key === state.dexChartTimeframeKey);
+  return tf || DEX_CHART_TIMEFRAMES[0];
+}
+
+function getDexChartHistoryKey() {
+  const pool = getSelectedMarketPool();
+  return pool ? `dex_chart_history_${normalizeKey(pool.token_symbol)}` : null;
+}
+
+function normalizeKey(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9_-]/g, '');
+}
+
+function readDexChartHistory() {
+  try {
+    const key = getDexChartHistoryKey();
+    if (!key) return [];
+    const raw = localStorage.getItem(key);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((item) => ({
+        t: safeIntDex(item?.t),
+        v: parseFloat(item?.v) || 0,
+      }))
+      .filter((item) => item.t > 0 && item.v > 0)
+      .slice(-DEX_CHART_HISTORY_POINTS);
+  } catch (_) {
+    return [];
+  }
+}
+
+function writeDexChartHistory(points) {
+  try {
+    const key = getDexChartHistoryKey();
+    if (!key) return;
+    localStorage.setItem(key, JSON.stringify(points.slice(-DEX_CHART_HISTORY_POINTS)));
+  } catch (_) {
+    // Ignore localStorage write failures
+  }
+}
+
+function safeIntDex(value, fallback = 0) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  return Math.max(0, Math.floor(num));
+}
+
+function captureDexChartSnapshot() {
+  const pool = getSelectedMarketPool();
+  if (!pool) return;
+  
+  const price = getPoolPriceInAnet(pool);
+  if (price == null || !isFinite(price) || price <= 0) return;
+  
+  const key = getDexChartHistoryKey();
+  if (!key) return;
+  
+  if (!state.dexChartPriceHistory[key]) {
+    state.dexChartPriceHistory[key] = [];
+  }
+  
+  const history = state.dexChartPriceHistory[key];
+  const now = Date.now();
+  const last = history[history.length - 1];
+  
+  if (last && Math.abs(last.v - price) < 1e-12 && now - last.t < 1000) {
+    last.t = now;
+  } else {
+    history.push({ t: now, v: price });
+  }
+  
+  if (history.length > DEX_CHART_HISTORY_POINTS) {
+    history.splice(0, history.length - DEX_CHART_HISTORY_POINTS);
+  }
+  
+  writeDexChartHistory(history);
+}
+
+function aggregateDexChartHistory(history, bucketMs) {
+  if (!Array.isArray(history) || history.length === 0) return [];
+  
+  const buckets = {};
+  history.forEach(point => {
+    const bucketKey = Math.floor(point.t / bucketMs);
+    if (!buckets[bucketKey]) {
+      buckets[bucketKey] = { times: [], prices: [] };
+    }
+    buckets[bucketKey].times.push(point.t);
+    buckets[bucketKey].prices.push(point.v);
+  });
+  
+  return Object.keys(buckets)
+    .sort((a, b) => Number(a) - Number(b))
+    .map(bucketKey => {
+      const bucket = buckets[bucketKey];
+      const prices = bucket.prices;
+      const open = prices[0];
+      const close = prices[prices.length - 1];
+      const high = Math.max(...prices);
+      const low = Math.min(...prices);
+      const isBullish = close >= open;
+      return {
+        t: Number(bucketKey) * bucketMs,
+        open,
+        close,
+        high,
+        low,
+        isBullish,
+      };
+    });
+}
+
+function renderDexChart(history) {
+  const svg = document.getElementById('dex-chart-svg');
+  if (!svg || !Array.isArray(history) || history.length === 0) {
+    if (svg) svg.innerHTML = '';
+    return;
+  }
+
+  const timeframe = getDexChartTimeframe();
+  const fullOhlc = aggregateDexChartHistory(history, timeframe.bucketMs);
+  
+  // Apply viewport slicing for pan/zoom
+  const total = fullOhlc.length;
+  let viewStart = Math.max(0, state.dexChartViewStart || 0);
+  let viewCount = state.dexChartViewCount || Math.min(DEX_CHART_MAX_VISIBLE_CANDLES, total);
+  if (viewCount === 0 || viewCount > total) viewCount = total;
+  viewStart = Math.max(0, Math.min(total - viewCount, viewStart));
+  state.dexChartViewStart = viewStart;
+  state.dexChartViewCount = viewCount;
+  
+  const ohlc = fullOhlc.slice(viewStart, viewStart + viewCount);
+  if (!ohlc.length) return;
+
+  const allHighs = ohlc.map((c) => c.high);
+  const allLows = ohlc.map((c) => c.low);
+  const rawMax = Math.max(...allHighs);
+  const rawMin = Math.min(...allLows);
+  const rawRange = Math.max(1, rawMax - rawMin);
+  const pad = Math.max(1, rawRange * 0.08);
+  const maxValue = rawMax + pad;
+  const minValue = Math.max(0, rawMin - pad);
+  const range = Math.max(1, maxValue - minValue);
+
+  const container = document.getElementById('dex-chart-container');
+  const rect = container?.getBoundingClientRect();
+  const width = Math.max(300, rect?.width || 600);
+  const height = 300;
+  const rightAxisWidth = 50;
+  const leftPad = 12;
+  const topPad = 12;
+  const bottomPad = 16;
+  const plotWidth = width - leftPad * 2 - rightAxisWidth;
+  const plotHeight = height - topPad - bottomPad;
+  const candleStep = Math.max(6, plotWidth / Math.max(1, ohlc.length));
+  const bodyWidth = Math.min(18, Math.max(4, candleStep * 0.55));
+  const minVisibleSpread = Math.max(0.6, rawRange * 0.04);
+  const minVisibleBody = Math.max(1, plotHeight * 0.01);
+  const valueToY = (value) => topPad + (maxValue - value) / range * plotHeight;
+
+  const candleSvgs = ohlc
+    .map((candle, index) => {
+      const x = leftPad + index * candleStep + candleStep * 0.5;
+      const spread = Math.max(candle.high - candle.low, minVisibleSpread);
+      const centerValue = (candle.open + candle.close) / 2;
+      const displayHigh = candle.high > candle.low ? candle.high : centerValue + spread / 2;
+      const displayLow = candle.high > candle.low ? candle.low : centerValue - spread / 2;
+      const yHigh = valueToY(displayHigh);
+      const yLow = valueToY(displayLow);
+      const yOpen = valueToY(candle.open);
+      const yClose = valueToY(candle.close);
+
+      let yBodyTop = Math.min(yOpen, yClose);
+      let yBodyBottom = Math.max(yOpen, yClose);
+      if (yBodyBottom - yBodyTop < minVisibleBody) {
+        const bodyCenter = (yBodyTop + yBodyBottom) / 2;
+        yBodyTop = Math.max(topPad, bodyCenter - minVisibleBody / 2);
+        yBodyBottom = Math.min(topPad + plotHeight, bodyCenter + minVisibleBody / 2);
+      }
+      const bodyHeight = Math.max(minVisibleBody, yBodyBottom - yBodyTop);
+
+      const color = candle.isBullish ? '#22e7b8' : '#ff7d8f';
+      const wickSvg = `<line class="dex-wick" x1="${x.toFixed(2)}" y1="${yHigh.toFixed(2)}" x2="${x.toFixed(2)}" y2="${yLow.toFixed(2)}" stroke="${color}" stroke-width="1.2" opacity="0.85"></line>`;
+      const bodySvg = `<rect class="dex-candle" x="${(x - bodyWidth / 2).toFixed(2)}" y="${yBodyTop.toFixed(2)}" width="${bodyWidth.toFixed(2)}" height="${bodyHeight.toFixed(2)}" fill="${color}" opacity="0.9" rx="0.4"></rect>`;
+
+      return `${wickSvg}${bodySvg}`;
+    })
+    .join('');
+
+  const gridLevels = [minValue, minValue + range / 2, maxValue];
+  const gridLines = gridLevels
+    .map((v) => {
+      const y = valueToY(v);
+      return `<line class="dex-grid-line" x1="${leftPad}" y1="${y.toFixed(2)}" x2="${(leftPad + plotWidth).toFixed(2)}" y2="${y.toFixed(2)}" stroke="rgba(88,197,255,0.1)" stroke-width="0.8"></line>`;
+    })
+    .join('');
+
+  const rightAxisLabels = gridLevels
+    .map((v) => {
+      const y = valueToY(v);
+      return `<text class="dex-axis-text" x="${(width - 6).toFixed(2)}" y="${(y + 3).toFixed(2)}" text-anchor="end" font-size="10" fill="var(--muted)">${fmt(v, 6)}</text>`;
+    })
+    .join('');
+
+  const lastCandle = ohlc[ohlc.length - 1];
+  const lastY = valueToY(lastCandle.close);
+  const lastX = leftPad + (ohlc.length - 1) * candleStep + candleStep * 0.5;
+  const lastMarker = `<circle class="dex-last-dot" cx="${lastX.toFixed(2)}" cy="${lastY.toFixed(2)}" r="2.5" fill="#58c5ff" stroke="rgba(216,251,255,0.6)" stroke-width="1.2"></circle>`;
+
+  const pool = getSelectedMarketPool();
+  const sym = pool?.token_symbol || '?';
+  const title = `DEX market chart OHLC candlesticks (${timeframe.label}). Green = up, red = down. Last: ${fmt(lastCandle?.close, 6)} ANET per ${sym}.`;
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('aria-label', title);
+  svg.innerHTML = `<title>${title}</title>${gridLines}${candleSvgs}${lastMarker}${rightAxisLabels}`;
+
+  state.dexChartLastRender = {
+    candles: ohlc,
+    totalCandles: fullOhlc.length,
+    chartWidth: width,
+    chartHeight: height,
+    topPad,
+    bottomPad: topPad + plotHeight,
+    plotLeft: leftPad,
+    plotRight: leftPad + plotWidth,
+    candleStep,
+    valueToY,
+  };
+
+  const first = ohlc[0];
+  const middle = ohlc[Math.floor(ohlc.length / 2)];
+  const last = ohlc[ohlc.length - 1];
+  
+  const formatLabel = (ts) => {
+    if (!ts || ts <= 0) return '-';
+    const date = new Date(ts);
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  };
+  
+  const startEl = document.getElementById('dex-chart-start');
+  const midEl = document.getElementById('dex-chart-mid');
+  const endEl = document.getElementById('dex-chart-end');
+  if (startEl) startEl.textContent = formatLabel(first?.t || 0);
+  if (midEl) midEl.textContent = formatLabel(middle?.t || 0);
+  if (endEl) endEl.textContent = formatLabel(last?.t || 0);
+  
+  setActiveDexChartTimeframeButton();
+}
+
+function setActiveDexChartTimeframeButton() {
+  const buttons = document.querySelectorAll('#dex-chart-timeframes button');
+  buttons.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.timeframe === state.dexChartTimeframeKey);
+  });
+}
+
+function setDexChartTimeframe(timeframeKey) {
+  if (timeframeKey === state.dexChartTimeframeKey) return;
+  state.dexChartTimeframeKey = timeframeKey;
+  state.dexChartViewStart = 0;
+  state.dexChartViewCount = 0;
+  setActiveDexChartTimeframeButton();
+  const history = readDexChartHistory();
+  renderDexChart(history);
+}
+
+function onDexChartWheel(event) {
+  const render = state.dexChartLastRender;
+  if (!render) return;
+  event.preventDefault();
+
+  const total = render.totalCandles;
+  const oldCount = Math.max(1, state.dexChartViewCount || total);
+  const oldStart = Math.max(0, state.dexChartViewStart || 0);
+
+  let nextCount = oldCount;
+  if (event.deltaY < 0) {
+    nextCount = Math.max(12, Math.round(oldCount * 0.84));
+  } else {
+    nextCount = Math.min(total, Math.round(oldCount * 1.18));
+  }
+
+  if (nextCount === oldCount) return;
+
+  const rect = document.getElementById('dex-chart-container').getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const ratio = Math.max(0, Math.min(1, (x - render.plotLeft) / Math.max(1, render.plotRight - render.plotLeft)));
+  const anchor = oldStart + Math.floor(ratio * oldCount);
+  const nextStart = Math.round(anchor - ratio * nextCount);
+
+  state.dexChartViewCount = nextCount;
+  state.dexChartViewStart = Math.max(0, Math.min(total - nextCount, nextStart));
+  const history = readDexChartHistory();
+  renderDexChart(history);
+}
+
+function onDexChartDragStart(event) {
+  const render = state.dexChartLastRender;
+  if (!render) return;
+  const rect = document.getElementById('dex-chart-container').getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  const withinX = x >= render.plotLeft && x <= render.plotRight;
+  const withinY = y >= render.topPad && y <= render.bottomPad;
+  if (!withinX || !withinY) return;
+
+  state.dexChartDrag = {
+    startX: event.clientX,
+    startViewStart: state.dexChartViewStart || 0,
+  };
+  document.getElementById('dex-chart-container').classList.add('is-dragging');
+}
+
+function onDexChartDragMove(event) {
+  if (!state.dexChartDrag || !state.dexChartLastRender) return;
+
+  const render = state.dexChartLastRender;
+  const dx = event.clientX - state.dexChartDrag.startX;
+  const shift = Math.round(-dx / Math.max(1, render.candleStep));
+  const total = render.totalCandles;
+  const viewCount = state.dexChartViewCount || total;
+  const maxStart = Math.max(0, total - viewCount);
+  const nextStart = Math.max(0, Math.min(maxStart, state.dexChartDrag.startViewStart + shift));
+  if (nextStart === state.dexChartViewStart) return;
+
+  state.dexChartViewStart = nextStart;
+  const history = readDexChartHistory();
+  renderDexChart(history);
+}
+
+function onDexChartDragEnd() {
+  state.dexChartDrag = null;
+  document.getElementById('dex-chart-container')?.classList.remove('is-dragging');
+}
+
 /* ── Liquidity panel ────────────────────────── */
 function renderLiquidityPools() {
   const sel = document.getElementById('liq-pool-select');
@@ -1845,6 +2213,15 @@ async function init() {
   hydrateMarketPairSelector();
   renderMarketMicrostructure();
   refreshMarketActivity();
+
+  // DEX Chart event listeners
+  const chartContainer = document.getElementById('dex-chart-container');
+  if (chartContainer) {
+    chartContainer.addEventListener('wheel', onDexChartWheel, { passive: false });
+    chartContainer.addEventListener('mousedown', onDexChartDragStart);
+  }
+  window.addEventListener('mousemove', onDexChartDragMove);
+  window.addEventListener('mouseup', onDexChartDragEnd);
 
   // Auto-refresh
   setInterval(refreshPools, 30_000);
