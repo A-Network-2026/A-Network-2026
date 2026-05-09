@@ -228,45 +228,59 @@
     return points;
   }
 
-  function generateTPoWData(ownerCode) {
-    // Generate 6-hour TPoW data with 1-minute candles (360 candles total)
-    const now = Date.now();
-    const sixHoursMs = 6 * 60 * 60 * 1000;
-    const startTime = now - sixHoursMs;
-    const minuteMs = 60 * 1000;
-    const candles = [];
+  function seededRandom(seed) {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  }
 
-    // Simulate owner mining activity - deterministic based on owner code
+  function formatTPoWDateLabel(ts) {
+    if (!Number.isFinite(ts) || ts <= 0) return '-';
+    const d = new Date(ts);
+    return d.toLocaleString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  }
+
+  function generateTPoWData(ownerCode) {
+    // Generate 6-hour TPoW data with 1-minute candles (360 candles total).
+    // Use seeded randomness so the chart remains stable between refreshes.
+    const now = Date.now();
+    const minuteMs = 60 * 1000;
+    const startTime = now - (360 * minuteMs);
+    const candles = [];
     const ownerHash = ownerCode.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    
-    for (let i = 0; i < 360; i++) {
+
+    for (let i = 0; i < 360; i += 1) {
       const candleTime = startTime + i * minuteMs;
-      
-      // Simulate mining activity patterns (busy hours, idle periods)
       const hourOfDay = new Date(candleTime).getHours();
-      const isBusinessHour = hourOfDay >= 8 && hourOfDay <= 18;
-      const randomFactor = Math.sin(ownerHash + i * 0.1) * 0.5 + 0.5;
-      const miningProbability = isBusinessHour ? 0.7 + randomFactor * 0.25 : 0.3 + randomFactor * 0.2;
-      
-      // Determine if there's mining activity this minute
-      const hasMining = Math.random() < miningProbability;
-      
-      // OHLC values: activity count per minute (0-60 seconds of activity)
-      const open = hasMining ? Math.random() * 40 + 20 : Math.random() * 15;
-      const close = hasMining ? Math.random() * 40 + 20 : Math.random() * 15;
-      const high = Math.max(open, close, Math.random() * 60);
-      const low = Math.min(open, close, Math.random() * 30);
-      
+      const isPeakWindow = hourOfDay >= 8 && hourOfDay <= 22;
+
+      const r1 = seededRandom(ownerHash * 0.37 + i * 0.71);
+      const r2 = seededRandom(ownerHash * 0.91 + i * 1.13);
+      const r3 = seededRandom(ownerHash * 0.53 + i * 1.91);
+      const wave = (Math.sin((i + ownerHash) * 0.11) + 1) * 0.5;
+      const miningProbability = (isPeakWindow ? 0.56 : 0.28) + wave * 0.28;
+      const hasMining = r1 < miningProbability;
+
+      const open = hasMining ? (18 + r2 * 34) : (r2 * 12);
+      const close = hasMining ? (22 + r3 * 36) : (r3 * 10);
+      const high = Math.max(open, close) + (hasMining ? (5 + r1 * 10) : (1 + r1 * 4));
+      const low = Math.max(0, Math.min(open, close) - (hasMining ? (2 + r3 * 7) : (1 + r2 * 3)));
+
       candles.push({
         t: candleTime,
         open: Math.round(open),
         close: Math.round(close),
-        high: Math.round(high),
-        low: Math.round(low),
+        high: Math.min(60, Math.round(high)),
+        low: Math.max(0, Math.round(low)),
         hasMining,
       });
     }
-    
+
     return candles;
   }
 
@@ -274,83 +288,76 @@
     if (!ownerCode || !refs.tpowBars) return;
 
     const candles = generateTPoWData(ownerCode);
-    
-    // Calculate statistics
-    const miningCandles = candles.filter(c => c.hasMining).length;
+    const miningCandles = candles.filter((c) => c.hasMining).length;
     const idleCandles = candles.length - miningCandles;
     const activityRate = ((miningCandles / candles.length) * 100).toFixed(1);
-    const lastMiningCandle = [...candles].reverse().find(c => c.hasMining);
-    
-    // Render stats
+    const lastMiningCandle = [...candles].reverse().find((c) => c.hasMining);
+
     if (refs.tpowMiningMins) refs.tpowMiningMins.textContent = miningCandles;
     if (refs.tpowActivityRate) refs.tpowActivityRate.textContent = `${activityRate}%`;
     if (refs.tpowIdleMins) refs.tpowIdleMins.textContent = idleCandles;
     if (refs.tpowLastActivity && lastMiningCandle) {
-      const lastTime = new Date(lastMiningCandle.t);
-      refs.tpowLastActivity.textContent = lastTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      refs.tpowLastActivity.textContent = formatTPoWDateLabel(lastMiningCandle.t);
     }
-    
-    // Chart dimensions
-    const containerRect = refs.tpowBars?.getBoundingClientRect();
-    const containerWidth = containerRect?.width || window.innerWidth * 0.9;
-    const width = Math.max(300, Math.min(containerWidth, 960));
-    const height = 300;
-    const paddingX = 12;
-    const paddingY = 12;
-    const candleWidth = Math.max(1, (width - paddingX * 2) / candles.length);
-    const spacing = Math.max(0.5, candleWidth * 0.1);
-    const bodyWidth = Math.max(1, candleWidth - spacing);
 
-    // Get price range
-    const allHigh = candles.map(c => c.high);
-    const allLow = candles.map(c => c.low);
+    const containerRect = refs.tpowBars.getBoundingClientRect();
+    const viewportWidth = Math.max(320, containerRect.width || window.innerWidth * 0.9);
+    const height = 220;
+    const rightAxisWidth = 48;
+    const leftPad = 12;
+    const topPad = 14;
+    const bottomPad = 14;
+    const candleStep = 3.2;
+    const bodyWidth = 2.2;
+    const chartWidth = Math.max(viewportWidth, candles.length * candleStep + leftPad * 2 + rightAxisWidth);
+    const plotWidth = chartWidth - leftPad * 2 - rightAxisWidth;
+    const plotHeight = height - topPad - bottomPad;
+
+    const allHigh = candles.map((c) => c.high);
+    const allLow = candles.map((c) => c.low);
     const maxValue = Math.max(...allHigh, 60);
     const minValue = Math.min(...allLow, 0);
     const range = Math.max(1, maxValue - minValue);
 
-    // Build candlesticks
-    const candleSvgs = candles
-      .map((candle, idx) => {
-        const x = paddingX + idx * (candleWidth + spacing) + candleWidth / 2;
-        
-        // Normalize to pixels
-        const yHigh = height - paddingY - ((candle.high - minValue) / range) * (height - paddingY * 2);
-        const yLow = height - paddingY - ((candle.low - minValue) / range) * (height - paddingY * 2);
-        const yOpen = height - paddingY - ((candle.open - minValue) / range) * (height - paddingY * 2);
-        const yClose = height - paddingY - ((candle.close - minValue) / range) * (height - paddingY * 2);
-        
-        const yBodyTop = Math.min(yOpen, yClose);
-        const yBodyBottom = Math.max(yOpen, yClose);
-        const bodyHeight = Math.max(0.5, yBodyBottom - yBodyTop);
-        
-        const color = candle.hasMining ? '#6ce7b1' : '#ff6b6b';
-        const opacityClass = candle.hasMining ? 'cp-tpow-candle-mining' : 'cp-tpow-candle-idle';
-        
-        const wick = `<line class="cp-tpow-wick" x1="${x.toFixed(2)}" y1="${yHigh.toFixed(2)}" x2="${x.toFixed(2)}" y2="${yLow.toFixed(2)}" stroke="${color}" stroke-width="0.8" opacity="0.6"></line>`;
-        const body = `<rect class="cp-tpow-candle ${opacityClass}" x="${(x - bodyWidth / 2).toFixed(2)}" y="${yBodyTop.toFixed(2)}" width="${bodyWidth.toFixed(2)}" height="${bodyHeight.toFixed(2)}" fill="${color}" opacity="0.8" rx="0.3"></rect>`;
-        
-        return `${wick}${body}`;
-      })
-      .join('');
+    const valueToY = (value) => topPad + (maxValue - value) / range * plotHeight;
 
-    // Grid lines
-    const gridLines = [0.25, 0.5, 0.75]
-      .map((ratio) => {
-        const y = paddingY + (height - paddingY * 2) * ratio;
-        return `<line class="cp-grid-line" x1="${paddingX}" y1="${y.toFixed(2)}" x2="${(width - paddingX).toFixed(2)}" y2="${y.toFixed(2)}"></line>`;
-      })
-      .join('');
+    const candleSvgs = candles.map((candle, idx) => {
+      const x = leftPad + idx * candleStep + candleStep * 0.5;
+      const yHigh = valueToY(candle.high);
+      const yLow = valueToY(candle.low);
+      const yOpen = valueToY(candle.open);
+      const yClose = valueToY(candle.close);
+      const yBodyTop = Math.min(yOpen, yClose);
+      const yBodyBottom = Math.max(yOpen, yClose);
+      const bodyHeight = Math.max(1, yBodyBottom - yBodyTop);
+      const color = candle.hasMining ? '#6ce7b1' : '#ff6b6b';
+      const opacityClass = candle.hasMining ? 'cp-tpow-candle-mining' : 'cp-tpow-candle-idle';
+      const wick = `<line class="cp-tpow-wick" x1="${x.toFixed(2)}" y1="${yHigh.toFixed(2)}" x2="${x.toFixed(2)}" y2="${yLow.toFixed(2)}" stroke="${color}" stroke-width="1"></line>`;
+      const body = `<rect class="cp-tpow-candle ${opacityClass}" x="${(x - bodyWidth / 2).toFixed(2)}" y="${yBodyTop.toFixed(2)}" width="${bodyWidth.toFixed(2)}" height="${bodyHeight.toFixed(2)}" fill="${color}" opacity="0.92" rx="0.4"></rect>`;
+      return `${wick}${body}`;
+    }).join('');
 
-    const title = `Proof of Time (TPoW) mining activity for ${ownerCode} over last 6 hours. Green = mining, Red = idle.`;
-    refs.tpowBars.innerHTML = `<svg class="cp-tpow-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${title}" preserveAspectRatio="xMidYMid meet"><title>${title}</title>${gridLines}${candleSvgs}</svg>`;
+    const gridLevels = [0, 30, 60];
+    const gridLines = gridLevels.map((v) => {
+      const y = valueToY(v);
+      return `<line class="cp-grid-line" x1="${leftPad}" y1="${y.toFixed(2)}" x2="${(leftPad + plotWidth).toFixed(2)}" y2="${y.toFixed(2)}"></line>`;
+    }).join('');
 
-    // Update timeline
+    const rightAxisLabels = gridLevels.map((v) => {
+      const y = valueToY(v);
+      const label = `${v}s`;
+      return `<text class="cp-tpow-axis-text" x="${(chartWidth - 6).toFixed(2)}" y="${(y + 3).toFixed(2)}" text-anchor="end">${label}</text>`;
+    }).join('');
+
+    const title = `Proof of Time (TPoW) for ${ownerCode}. 1-minute candles over 6 hours. Green = mining activity, red = idle.`;
+    refs.tpowBars.innerHTML = `<svg class="cp-tpow-svg" width="${chartWidth}" height="${height}" viewBox="0 0 ${chartWidth} ${height}" role="img" aria-label="${title}"><title>${title}</title>${gridLines}${candleSvgs}${rightAxisLabels}</svg>`;
+
     const first = candles[0];
     const mid = candles[Math.floor(candles.length / 2)];
     const last = candles[candles.length - 1];
-    if (refs.tpowTimeStart) refs.tpowTimeStart.textContent = `${new Date(first.t).getHours()}:00`;
-    if (refs.tpowTimeMid) refs.tpowTimeMid.textContent = `${new Date(mid.t).getHours()}:00`;
-    if (refs.tpowTimeEnd) refs.tpowTimeEnd.textContent = 'now';
+    if (refs.tpowTimeStart) refs.tpowTimeStart.textContent = formatTPoWDateLabel(first.t);
+    if (refs.tpowTimeMid) refs.tpowTimeMid.textContent = formatTPoWDateLabel(mid.t);
+    if (refs.tpowTimeEnd) refs.tpowTimeEnd.textContent = formatTPoWDateLabel(last.t);
   }
 
   function populateTPoWOwners(rooms) {
