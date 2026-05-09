@@ -50,6 +50,15 @@ const AI_OWNER_WALLET = String(process.env.AI_OWNER_WALLET || process.env.PI_APP
 const AI_OWNER_WALLET_SOURCE = process.env.AI_OWNER_WALLET
   ? 'AI_OWNER_WALLET'
   : (process.env.PI_APP_WALLET ? 'PI_APP_WALLET' : 'none');
+const API_JSON_LIMIT = String(process.env.API_JSON_LIMIT || '128kb').trim();
+const API_RATE_LIMIT_WINDOW_MS = Math.max(1000, Number(process.env.API_RATE_LIMIT_WINDOW_MS || 60_000));
+const API_RATE_LIMIT_MAX = Math.max(30, Number(process.env.API_RATE_LIMIT_MAX || 300));
+const ADMIN_RATE_LIMIT_WINDOW_MS = Math.max(1000, Number(process.env.ADMIN_RATE_LIMIT_WINDOW_MS || 60_000));
+const ADMIN_RATE_LIMIT_MAX = Math.max(3, Number(process.env.ADMIN_RATE_LIMIT_MAX || 20));
+const PI_TEST_ADMIN_ALLOWED_IPS = String(process.env.PI_TEST_ADMIN_ALLOWED_IPS || '')
+  .split(',')
+  .map((entry) => entry.trim())
+  .filter(Boolean);
 
 let nftDb = null;
 
@@ -1032,7 +1041,68 @@ function upsertLifetimeUnlock(payment, paymentId, txid) {
 }
 
 app.use(cors({ origin: ALLOWED_ORIGIN === '*' ? true : ALLOWED_ORIGIN }));
-app.use(express.json());
+app.disable('x-powered-by');
+
+function getClientIp(req) {
+  const forwarded = String(req.headers?.['x-forwarded-for'] || '').trim();
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  return String(req.ip || req.socket?.remoteAddress || '').trim();
+}
+
+function createSimpleRateLimiter({ windowMs, max, keyPrefix = 'global' }) {
+  const store = new Map();
+  return (req, res, next) => {
+    const now = Date.now();
+    const ip = getClientIp(req) || 'unknown';
+    const key = `${keyPrefix}:${ip}`;
+    const current = store.get(key);
+
+    if (!current || current.resetAt <= now) {
+      store.set(key, { count: 1, resetAt: now + windowMs });
+      return next();
+    }
+
+    if (current.count >= max) {
+      const retryAfter = Math.max(1, Math.ceil((current.resetAt - now) / 1000));
+      res.setHeader('Retry-After', String(retryAfter));
+      return res.status(429).json({
+        ok: false,
+        error: 'Too many requests. Please retry shortly.'
+      });
+    }
+
+    current.count += 1;
+    store.set(key, current);
+    return next();
+  };
+}
+
+function enforceAdminIpAllowlist(req, res, next) {
+  if (!PI_TEST_ADMIN_ALLOWED_IPS.length) {
+    return next();
+  }
+  const ip = getClientIp(req);
+  if (!PI_TEST_ADMIN_ALLOWED_IPS.includes(ip)) {
+    return res.status(403).json({ ok: false, error: 'Admin endpoint access denied for this IP' });
+  }
+  return next();
+}
+
+const globalRateLimiter = createSimpleRateLimiter({
+  windowMs: API_RATE_LIMIT_WINDOW_MS,
+  max: API_RATE_LIMIT_MAX,
+  keyPrefix: 'global'
+});
+const adminRateLimiter = createSimpleRateLimiter({
+  windowMs: ADMIN_RATE_LIMIT_WINDOW_MS,
+  max: ADMIN_RATE_LIMIT_MAX,
+  keyPrefix: 'admin'
+});
+
+app.use(express.json({ limit: API_JSON_LIMIT }));
+app.use(globalRateLimiter);
 
 const nftMinerSessions = new Map();
 const NFT_MINER_SESSION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -1128,6 +1198,8 @@ function mapAiTrainingRow(row) {
 app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'a-network-pi-backend' });
 });
+
+app.use('/api/pi/admin', adminRateLimiter, enforceAdminIpAllowlist);
 
 // Admin-only: force-persist a lifetime unlock without a live Pi payment.
 // Requires PI_ADMIN_KEY env var to be set. Use only for test/bootstrap purposes.
