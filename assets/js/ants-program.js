@@ -200,34 +200,13 @@
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) return [];
 
-      const cleaned = parsed
+      return parsed
         .map((item) => ({
           t: safeInt(item?.t),
           v: safeInt(item?.v, MIN_BASELINE_MEMBERS),
         }))
         .filter((item) => item.t > 0)
         .slice(-LIVE_HISTORY_POINTS);
-
-      if (!cleaned.length) return [];
-      if (cleaned.length >= LIVE_HISTORY_POINTS) return cleaned;
-
-      // Backfill older points with a smooth trend so higher timeframes (like 1h) do not render as a flat line.
-      const first = cleaned[0];
-      const last = cleaned[cleaned.length - 1];
-      const deficit = LIVE_HISTORY_POINTS - cleaned.length;
-      const slope = (last.v - first.v) / Math.max(1, cleaned.length - 1);
-      const fill = Array.from({ length: deficit }, (_, i) => {
-        const ageIndex = deficit - i;
-        const wave = Math.sin(ageIndex / 6) * 1.8 + Math.cos(ageIndex / 17) * 0.9;
-        const trend = first.v - slope * ageIndex;
-        return {
-          t: first.t - ageIndex * REFRESH_MS,
-          v: Math.max(MIN_BASELINE_MEMBERS, Math.round(trend + wave)),
-        };
-      });
-      const padded = fill.concat(cleaned);
-      writeHistory(padded);
-      return padded;
     } catch (_) {
       return [];
     }
@@ -259,6 +238,16 @@
       + (((totalSessions % 13) - 6) * 0.07);
     const nextValue = Math.max(MIN_BASELINE_MEMBERS, Math.round(members + trendPulse));
     const points = readHistory();
+
+    if (points.length === 0) {
+      const seedValue = Math.max(MIN_BASELINE_MEMBERS, nextValue - Math.max(1, Math.round(Math.max(1, nextValue * 0.01))));
+      const seeded = [
+        { t: now - REFRESH_MS, v: seedValue },
+        { t: now, v: nextValue },
+      ];
+      writeHistory(seeded);
+      return seeded;
+    }
 
     if (points.length > 0) {
       const last = points[points.length - 1];
@@ -928,7 +917,16 @@
   }
 
   function renderBars(history) {
-    const baseSeries = history.length ? history.slice(-LIVE_HISTORY_POINTS) : buildFallbackHistory();
+    if (!Array.isArray(history) || history.length === 0) {
+      if (refs.bars) refs.bars.innerHTML = '';
+      if (refs.axisStart) refs.axisStart.textContent = '-';
+      if (refs.axisMid) refs.axisMid.textContent = '-';
+      if (refs.axisEnd) refs.axisEnd.textContent = '-';
+      state.liveLastRender = null;
+      return;
+    }
+
+    const baseSeries = history.slice(-LIVE_HISTORY_POINTS);
     const requestedBucketSamples = getLiveBucketSamples();
     const maxBucketSamples = Math.max(2, Math.floor(baseSeries.length / LIVE_MAX_VISIBLE_CANDLES));
     const bucketSamples = Math.max(1, Math.min(requestedBucketSamples, maxBucketSamples));
@@ -1474,15 +1472,27 @@
   }
 
   function renderUnavailableState() {
-    const fallback = {
-      metrics: {
-        total_group_participants: MIN_BASELINE_MEMBERS,
-        total_active_miners: 0,
-        total_colony_rooms: 0,
-        total_sessions: 0,
-      },
+    const metrics = {
+      total_group_participants: MIN_BASELINE_MEMBERS,
+      total_active_miners: 0,
+      total_colony_rooms: 0,
+      total_sessions: 0,
     };
-    renderMetrics(fallback, 'fallback');
+
+    refs.members.textContent = '-';
+    refs.activeMiners.textContent = '-';
+    if (refs.activeNote) refs.activeNote.textContent = 'Waiting for first user data';
+    refs.colonyRooms.textContent = '-';
+    refs.totalSessions.textContent = '-';
+    refs.progressFill.style.width = '0%';
+    refs.progressCaption.textContent = 'Progress to 1,000-member colony milestone: 0%';
+    refs.status.textContent = 'Waiting for first user data';
+    if (refs.bars) refs.bars.innerHTML = '';
+    if (refs.axisStart) refs.axisStart.textContent = '-';
+    if (refs.axisMid) refs.axisMid.textContent = '-';
+    if (refs.axisEnd) refs.axisEnd.textContent = '-';
+    state.liveLastRender = null;
+    updateTransparency('waiting', { metrics }, null, null, null);
   }
 
   async function fetchInvestorStats() {
@@ -1544,7 +1554,12 @@
     
     // Initial render
     setActiveLiveTimeframeButton();
-    renderBars(readHistory());
+    const initialHistory = readHistory();
+    if (initialHistory.length) {
+      renderBars(initialHistory);
+    } else {
+      renderUnavailableState();
+    }
     setActiveTPoWTimeframeButton();
     refreshColonyProgress();
     
