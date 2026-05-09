@@ -790,6 +790,81 @@
       background: rgba(34, 231, 184, 0.04);
       padding: 11px;
     }
+
+    .proof-section {
+      margin-top: 16px;
+      border: 1px solid rgba(34, 231, 184, 0.4);
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 84% 22%, rgba(34, 231, 184, 0.12), transparent 40%),
+        linear-gradient(135deg, rgba(8, 24, 36, 0.96), rgba(6, 18, 30, 0.96));
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+      padding: 16px;
+    }
+
+    .proof-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .proof-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(34, 231, 184, 0.45);
+      background: rgba(34, 231, 184, 0.1);
+      color: #bff9e8;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .proof-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .proof-tile {
+      border: 1px solid rgba(88, 197, 255, 0.24);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .proof-label {
+      color: var(--muted);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .proof-value {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .proof-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 760px) {
+      .proof-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -870,6 +945,39 @@
         <a class="btn btn-alt" href="ants-program.html">View ANTS Program</a>
         <a class="btn btn-alt" href="https://play.google.com/store/apps/details?id=com.anetwork.app&pcampaignid=web_share" target="_blank" rel="noopener noreferrer">Install App</a>
       </div>
+    </section>
+
+    <section class="proof-section" aria-label="Public proof NFT showcase">
+      <div class="proof-header">
+        <div>
+          <h3 style="margin:0;font-family:'Orbitron',sans-serif;letter-spacing:0.04em;">Public Proof NFT</h3>
+          <p class="muted" style="margin:4px 0 0;">Always visible on this page as public proof that NFT test flow is successful.</p>
+        </div>
+        <div class="proof-badge">ANT #0001 Reseed</div>
+      </div>
+
+      <div class="proof-grid">
+        <div class="proof-tile">
+          <div class="proof-label">Token ID</div>
+          <div class="proof-value">ANT-0001-RESEED</div>
+        </div>
+        <div class="proof-tile">
+          <div class="proof-label">Status</div>
+          <div class="proof-value">Public Verification Record</div>
+        </div>
+        <div class="proof-tile">
+          <div class="proof-label">Program Milestone</div>
+          <div class="proof-value">NFT Test Success Confirmed</div>
+        </div>
+        <div class="proof-tile">
+          <div class="proof-label">Cashout Requirement</div>
+          <div class="proof-value">1,000 validated ANTS sessions before cashout</div>
+        </div>
+      </div>
+
+      <p class="proof-note">
+        This proof block is intentionally public and persistent for visitors. Miner onboarding now focuses on session completion and ANET cashout readiness.
+      </p>
     </section>
 
     <section class="studio-grid" aria-label="NFT identity studio">
