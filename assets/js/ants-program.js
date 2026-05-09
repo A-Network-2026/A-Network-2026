@@ -53,6 +53,10 @@
     selectedColonyKey: ALL_COLONIES_KEY,
     latestPayload: null,
     latestMode: 'loading',
+    roomDetailsCache: {},
+    roomFetchId: 0,
+    latestActiveMinerMeta: null,
+    latestRoomReward: null,
   };
 
   if (refs.sourceEndpoint) {
@@ -327,46 +331,105 @@
     return topRow;
   }
 
-  function rankRoomRows(metrics) {
-    const usage = Array.isArray(metrics?.group_usage) ? metrics.group_usage : [];
-    return usage.slice().sort((a, b) => {
-      const miningDiff = safeInt(b?.active_chat_ants) - safeInt(a?.active_chat_ants);
-      if (miningDiff !== 0) return miningDiff;
-      const roomDiff = safeInt(b?.room_count) - safeInt(a?.room_count);
-      if (roomDiff !== 0) return roomDiff;
-      return safeInt(b?.message_count) - safeInt(a?.message_count);
+  function toColonySlug(name) {
+    return String(name || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  function parseColonyRoomsFromHtml(html) {
+    const marker = 'Rooms In This Colony';
+    const start = html.indexOf(marker);
+    if (start < 0) return [];
+    const end = html.indexOf('</div></section>', start);
+    const section = end > start ? html.slice(start, end) : html.slice(start);
+
+    const rowRegex = /<a class="list-row"[^>]*href="([^"]+)"[^>]*>\s*<span>([^<]*)<\/span>\s*<span>([^<]*)<\/span>\s*<span>([^<]*)<\/span>\s*<span>([^<]*)<\/span>\s*<\/a>/gi;
+    const rows = [];
+    let match;
+    while ((match = rowRegex.exec(section)) !== null) {
+      const href = match[1] || '';
+      const ownerCode = (match[2] || '').trim();
+      const antsText = (match[3] || '').trim();
+      const statusText = (match[4] || '').trim();
+      const msgsText = (match[5] || '').trim();
+      const ants = safeInt(String(antsText).replace(/[^\d]/g, ''));
+      const msgs30d = safeInt(String(msgsText).replace(/[^\d]/g, ''));
+      const status = statusText.toLowerCase();
+      const minerSignal = status.includes('active') ? 2 : status.includes('warm') ? 1 : 0;
+      rows.push({
+        href,
+        ownerCode,
+        ants,
+        statusText,
+        msgs30d,
+        minerSignal,
+      });
+    }
+    return rows;
+  }
+
+  async function fetchColonyRooms(colonyName) {
+    const slug = toColonySlug(colonyName);
+    if (!slug) return { slug: '', url: '', rows: [] };
+    if (state.roomDetailsCache[slug]) {
+      return state.roomDetailsCache[slug];
+    }
+
+    const url = `${CHAIN_API}/explorer/colonies/${slug}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'text/html' },
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      throw new Error(`colony room request failed: ${response.status}`);
+    }
+
+    const html = await response.text();
+    const entry = { slug, url, rows: parseColonyRoomsFromHtml(html) };
+    state.roomDetailsCache[slug] = entry;
+    return entry;
+  }
+
+  function rankOwnerRooms(rows) {
+    return rows.slice().sort((a, b) => {
+      const minerDiff = safeInt(b.minerSignal) - safeInt(a.minerSignal);
+      if (minerDiff !== 0) return minerDiff;
+      const antsDiff = safeInt(b.ants) - safeInt(a.ants);
+      if (antsDiff !== 0) return antsDiff;
+      return safeInt(b.msgs30d) - safeInt(a.msgs30d);
     });
   }
 
-  function renderRoomCandidates(metrics, selectedRow) {
+  function renderRoomListItems(rows) {
     if (!refs.roomList) return;
-
-    const ranked = rankRoomRows(metrics).slice(0, 6);
-    if (!ranked.length) {
-      refs.roomList.innerHTML = '<div class="cp-room-item"><p class="cp-room-name">No room data yet.</p><p class="cp-room-meta">Waiting for chain metrics.</p></div>';
+    if (!rows.length) {
+      refs.roomList.innerHTML = '<div class="cp-room-item"><p class="cp-room-name">No room-owner rows found.</p><p class="cp-room-meta">Try another colony or wait for explorer sync.</p></div>';
       return;
     }
 
-    const selectedKey = normalizeKey(selectedRow?.room_name || '');
-    refs.roomList.innerHTML = ranked
-      .map((row, idx) => {
-        const roomKey = normalizeKey(row?.room_name || '');
-        const selectedClass = selectedKey && roomKey === selectedKey ? ' is-selected' : '';
-        return `<article class="cp-room-item${selectedClass}"><p class="cp-room-name">#${idx + 1} ${displayLabel(row.room_name)}</p><p class="cp-room-meta">Owner: ${displayLabel(row.top_owner_label, 'N/A')}</p><p class="cp-room-meta">Rooms: ${formatNumber(safeInt(row.room_count, 0))}</p><p class="cp-room-meta">Mining members: ${formatNumber(safeInt(row.active_chat_ants, 0))}</p></article>`;
+    refs.roomList.innerHTML = rows.slice(0, 6)
+      .map((item, idx) => {
+        const selectedClass = idx === 0 ? ' is-selected' : '';
+        return `<article class="cp-room-item${selectedClass}"><p class="cp-room-name">#${idx + 1} ${displayLabel(item.ownerCode, 'Unknown owner')}</p><p class="cp-room-meta">Miner status: ${displayLabel(item.statusText, 'Unknown')}</p><p class="cp-room-meta">Active members: ${formatNumber(safeInt(item.ants, 0))}</p><p class="cp-room-meta">Messages 30d: ${formatNumber(safeInt(item.msgs30d, 0))}</p></article>`;
       })
       .join('');
   }
 
-  function renderRewardTarget(row, topMiningRow, metrics) {
-    const targetRow = row || topMiningRow;
-    renderRoomCandidates(metrics, row);
-
+  function renderRewardFallback(targetRow, topMiningRow, metrics) {
     if (!targetRow) {
       if (refs.selectedRooms) refs.selectedRooms.textContent = '-';
       if (refs.rewardOwner) refs.rewardOwner.textContent = '-';
       if (refs.rewardMembers) refs.rewardMembers.textContent = '-';
-      if (refs.rewardBasis) refs.rewardBasis.textContent = 'active_chat_ants + room_count';
+      if (refs.rewardBasis) refs.rewardBasis.textContent = 'Active miner status + ants + msgs/30d';
       if (refs.whyTop) refs.whyTop.textContent = 'No colony room data yet. Once mining metrics arrive, the owner reward target and reason will appear here.';
+      renderRoomListItems([]);
+      state.latestRoomReward = null;
       return;
     }
 
@@ -381,13 +444,69 @@
     if (refs.rewardOwner) refs.rewardOwner.textContent = ownerCode;
     if (refs.rewardMembers) refs.rewardMembers.textContent = formatNumber(activeMembers);
     if (refs.rewardBasis) refs.rewardBasis.textContent = 'active_chat_ants + room_count';
-
     if (refs.whyTop) {
-      refs.whyTop.textContent = `This colony room is ranked top for rewards because owner ${ownerCode} leads ${roomCount} active room(s), and both the owner and members show strong mining participation (${activeMembers} active mining members, ${share}% of tracked participants). Ranking uses mining activity, not referrals.`;
+      refs.whyTop.textContent = `Current top in ${colonyName} is ${ownerCode} based on mining members (${activeMembers}) and room coverage (${roomCount}). This is mining-based, not referral-based.`;
+      if (topMiningRow && normalizeKey(targetRow.room_name) !== normalizeKey(topMiningRow.room_name)) {
+        refs.whyTop.textContent += ` Global top colony remains ${displayLabel(topMiningRow.room_name)}.`;
+      }
+      refs.whyTop.textContent += ` Participation share: ${share}% of tracked members.`;
     }
 
-    if (row && topMiningRow && normalizeKey(row.room_name) !== normalizeKey(topMiningRow.room_name) && refs.whyTop) {
-      refs.whyTop.textContent += ` Global top mining colony right now is ${displayLabel(topMiningRow.room_name)}.`;
+    renderRoomListItems([]);
+    state.latestRoomReward = {
+      selected_colony: colonyName,
+      reward_owner: ownerCode,
+      room_count: roomCount,
+      member_mining_activity: activeMembers,
+      rationale: 'Fallback from /stats/investor group_usage when room-owner list is unavailable.',
+    };
+  }
+
+  async function renderRewardTarget(row, topMiningRow, metrics) {
+    const targetRow = row || topMiningRow;
+    renderRewardFallback(targetRow, topMiningRow, metrics);
+    if (!targetRow) return;
+
+    const requestId = ++state.roomFetchId;
+    try {
+      const colonyName = displayLabel(targetRow.room_name);
+      const roomEntry = await fetchColonyRooms(colonyName);
+      if (requestId !== state.roomFetchId) return;
+
+      const ranked = rankOwnerRooms(roomEntry.rows);
+      const topRoom = ranked[0];
+      if (!topRoom) {
+        return;
+      }
+
+      if (refs.selectedRooms) refs.selectedRooms.textContent = formatNumber(roomEntry.rows.length);
+      if (refs.rewardOwner) refs.rewardOwner.textContent = displayLabel(topRoom.ownerCode, 'N/A');
+      if (refs.rewardMembers) refs.rewardMembers.textContent = formatNumber(topRoom.ants);
+      if (refs.rewardBasis) refs.rewardBasis.textContent = 'Active miner status + ants + msgs/30d';
+
+      const statusPhrase = displayLabel(topRoom.statusText, 'Unknown status');
+      if (refs.whyTop) {
+        refs.whyTop.textContent = `This room owner is top because mining signals are strongest in ${displayLabel(targetRow.room_name)}: owner ${displayLabel(topRoom.ownerCode, 'N/A')} has ${formatNumber(topRoom.ants)} active members, miner status ${statusPhrase}, and ${formatNumber(topRoom.msgs30d)} messages in 30d. Ranking combines active miners and active members, not referrals.`;
+      }
+
+      renderRoomListItems(ranked);
+
+      state.latestRoomReward = {
+        selected_colony: displayLabel(targetRow.room_name),
+        reward_owner: displayLabel(topRoom.ownerCode, 'N/A'),
+        room_count: roomEntry.rows.length,
+        member_mining_activity: topRoom.ants,
+        miner_status: statusPhrase,
+        msgs_30d: topRoom.msgs30d,
+        source_url: roomEntry.url,
+        rationale: 'Top room ranked by miner status, then active members (ants), then 30d messages. Referral count is not used.',
+      };
+
+      if (state.latestPayload && state.latestActiveMinerMeta) {
+        updateTransparency(state.latestMode, state.latestPayload, row, topMiningRow, state.latestActiveMinerMeta);
+      }
+    } catch (_) {
+      // Keep fallback content if detailed colony room fetch is unavailable.
     }
   }
 
@@ -500,15 +619,7 @@
             ranking_basis: 'active_chat_ants (mining-based)',
           }
         : null,
-      reward_target: row
-        ? {
-            selected_colony: displayLabel(row.room_name),
-            reward_owner: displayLabel(row.top_owner_label, 'N/A'),
-            room_count: safeInt(row.room_count),
-            member_mining_activity: safeInt(row.active_chat_ants),
-            rationale: 'Owner room ranking is based on active_chat_ants and room_count, not referrals.',
-          }
-        : null,
+      reward_target: state.latestRoomReward,
     };
 
     refs.rawPreview.textContent = JSON.stringify(snapshot, null, 2);
@@ -524,6 +635,7 @@
     renderRewardTarget(row, topMiningRow, metrics);
     const members = extractTrackedMembers(metrics, row);
     const activeMinerMeta = resolveActiveMiners(metrics);
+    state.latestActiveMinerMeta = activeMinerMeta;
     const activeMiners = safeInt(activeMinerMeta.value);
     const colonyRooms = extractColonyRooms(metrics, row);
     const totalSessions = extractMiningKpi(metrics, row);
