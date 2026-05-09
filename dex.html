@@ -218,6 +218,7 @@
             <span class="card-title">SWAP</span>
             <div style="display:flex;align-items:center;gap:8px;">
               <span class="pill live">Live quotes</span>
+              <button class="btn btn-outline btn-sm" type="button" onclick="openWalletApp('swap')" style="padding:6px 10px;font-size:11px;">Open Wallet App to Trade</button>
               <button class="settings-btn" title="Settings"
                       onclick="document.getElementById('slippage-settings').classList.toggle('show')" aria-label="Slippage settings">⚙</button>
             </div>
@@ -970,7 +971,10 @@
           <div class="card" id="cashout-card-2">
             <div class="card-header">
               <span class="card-title">STEP 2 — SWAP ANET → STABLECOIN</span>
-              <span class="pill live green" style="font-size:10.5px;">Live on L1</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="pill live green" style="font-size:10.5px;">Live on L1</span>
+                <button class="btn btn-outline btn-sm" type="button" onclick="openWalletApp('cashout')" style="padding:6px 10px;font-size:11px;">Open Wallet App</button>
+              </div>
             </div>
             <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
               <p style="font-size:12.5px;color:var(--muted);margin:0;">
