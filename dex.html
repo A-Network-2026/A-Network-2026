@@ -115,13 +115,13 @@
           <span class="cashout-ready-dot"></span>
           <span>Cashout Ready: 1,000 Sessions</span>
         </a>
-        <button class="wallet-btn" id="evm-wallet-btn" onclick="connectEvmWallet()" aria-label="Connect EVM wallet">
+        <button class="wallet-btn" id="evm-wallet-btn" onclick="openWalletApp('connect')" aria-label="Open wallet app">
           <span class="dot"></span>
-          <span>Connect EVM Wallet</span>
+          <span>Open Wallet App</span>
         </button>
-        <button class="wallet-btn" id="anet-wallet-btn" onclick="openAnetWalletModal()" aria-label="Connect ANET wallet">
+        <button class="wallet-btn" id="anet-wallet-btn" onclick="openWalletApp('connect')" aria-label="Open wallet app">
           <span class="dot"></span>
-          <span>Connect ANET Wallet</span>
+          <span>Open Wallet App</span>
         </button>
       </div>
     </header>
@@ -130,14 +130,31 @@
       Investor View Active: website is market-view focused. Buy, sell, cashout, liquidity, and pool writes run securely in the A Network wallet app.
     </div>
 
+    <section id="cashout-quick-guide" style="margin-top:12px;padding:14px;border:1px solid rgba(88,197,255,0.24);border-radius:12px;background:rgba(9,24,42,0.7);">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+        <h3 style="margin:0;font-size:14px;letter-spacing:0.5px;color:var(--text);">Cashout Guide (Wallet-Authorized)</h3>
+        <button class="btn btn-outline btn-sm" type="button" onclick="setTab('cashout')" style="padding:6px 10px;font-size:11px;">Open Cash Out Steps</button>
+      </div>
+      <ol style="margin:10px 0 0 18px;padding:0;color:var(--muted);font-size:12.5px;line-height:1.55;">
+        <li>Complete <strong>1,000 validated ANTS sessions</strong> to unlock cashout eligibility.</li>
+        <li>Tap <strong>Open Wallet App</strong> and authorize your wallet session there (no seed phrase on web, trusted sessions auto-connect).</li>
+        <li>Inside native DEX flow, ANET can wrap 1:1 into <strong>WANET</strong> for AMM routing, then swap into stable pools such as USDT/USDC.</li>
+        <li>Your stable token settles to your <strong>ANET Layer 1 wallet</strong> first (about 2 seconds).</li>
+        <li>When bridge transfer is enabled, move from ANET L1 to your EVM wallet as Step 3.</li>
+      </ol>
+      <p style="margin:10px 0 0;color:var(--muted-2);font-size:11.5px;">
+        A Network cashout is DEX-first with wallet authorization and no seed phrase entry on web.
+      </p>
+    </section>
+
     <!-- ── Hero ──────────────────────────────── -->
     <div class="dex-hero">
       <div class="dex-hero-copy">
         <h2>A Network Native DEX</h2>
         <p>
-          Swap ANET and wrapped EVM tokens directly on the A Network Layer 1 chain.
-          Connect MetaMask for EVM assets. Bridge support for Ethereum, BNB Chain,
-          Polygon, Base &amp; more launching in Phase 2.
+          Trade ANET natively on A Network Layer 1, with WANET used as the 1:1 wrapped routing asset for the AMM.
+          Investor website actions route through the A Network wallet app for secure authorization.
+          Wrapped bridge assets from Ethereum, BNB Chain, Polygon, Base &amp; more land as additional Phase 2 pairs.
         </p>
       </div>
       <div class="hero-stats">
@@ -297,6 +314,9 @@
             <!-- Swap status -->
             <div class="swap-status" id="swap-status"></div>
 
+            <!-- Swap receipt -->
+            <div class="info-box" id="swap-receipt" style="display:none;font-size:12px;line-height:1.45;"></div>
+
             <!-- Action button -->
             <button class="btn btn-primary btn-full" id="do-swap-btn"
                     onclick="doSwap()" disabled style="padding:14px;font-size:15px;letter-spacing:0.04em;">
@@ -305,7 +325,7 @@
 
             <!-- Wallet required hint -->
             <div class="info-box" id="wallet-hint" style="text-align:center;font-size:12px;">
-              Connect your <strong>ANET wallet</strong> to execute swaps on the native L1 chain.
+              Open Wallet App to authorize swaps on native L1. Swap and cashout unlock at <strong>1,000 verified sessions</strong>.
             </div>
 
           </div><!-- /card-body -->
@@ -958,8 +978,8 @@
                   <div style="font-size:10px;color:var(--muted-2);">ANET available</div>
                 </div>
               </div>
-              <button class="btn btn-primary btn-full" id="co-connect-btn" onclick="openAnetWalletModal()">
-                Connect ANET Wallet
+              <button class="btn btn-primary btn-full" id="co-connect-btn" onclick="openWalletApp('connect')">
+                Open Wallet App
               </button>
               <div class="info-box" style="font-size:12px;">
                 No seed phrase is used on web. Wallet actions require secure app authorization + short-lived session token.
@@ -1326,7 +1346,7 @@
 
   </div><!-- /shell -->
 
-  <script src="assets/js/dex.js"></script>
+  <script src="assets/js/dex.js?v=20260510-03"></script>
 
 </body>
 </html>

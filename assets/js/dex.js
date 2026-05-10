@@ -486,6 +486,10 @@ async function getAccount(address) {
   return apiFetch(`/accounts/${address}`);
 }
 
+async function getPoolBySymbol(symbol) {
+  return apiFetch(`/dex/pools/${encodeURIComponent(symbol)}`);
+}
+
 /* ── EVM Wallet (MetaMask) ──────────────────── */
 async function connectEvmWallet() {
   if (hydrateEvmWalletFromAppConnection()) {
@@ -1091,6 +1095,7 @@ function swapDirection() {
 
 function clearQuote() {
   state.quote = null;
+  hideSwapReceipt();
   const priceInfo = document.getElementById('swap-price-info');
   if (priceInfo) priceInfo.style.display = 'none';
   const swapBtn = document.getElementById('do-swap-btn');
@@ -1153,6 +1158,48 @@ function renderQuote(q, isAnetToToken) {
   }
 }
 
+function hideSwapReceipt() {
+  const receiptEl = document.getElementById('swap-receipt');
+  if (!receiptEl) return;
+  receiptEl.style.display = 'none';
+  receiptEl.innerHTML = '';
+}
+
+function renderSwapReceipt({ result, inputAmountDisplay, outputAmountDisplay, fromSymbol, toSymbol, poolAfter }) {
+  const receiptEl = document.getElementById('swap-receipt');
+  if (!receiptEl) return;
+
+  const fee = Number(result?.fee_paid || 0) / ANTS_PER_ANET;
+  const direction = String(result?.direction || `${fromSymbol}->${toSymbol}`);
+  const pairId = String(result?.pair_id || `${fromSymbol}/${toSymbol}`);
+
+  let poolHtml = '<div style="color:var(--muted-2);">Pool snapshot unavailable.</div>';
+  if (poolAfter) {
+    const anetReserve = Number(poolAfter.anet_reserve_ants || 0) / ANTS_PER_ANET;
+    const tokenReserve = Number(poolAfter.token_reserve_units || 0) / ANTS_PER_ANET;
+    const reserveSymbol = String(poolAfter.token_symbol || toSymbol || '').toUpperCase();
+    poolHtml = `
+      <div class="price-row"><span>ANET reserve</span><span class="val">${fmt(anetReserve, 8)} ANET</span></div>
+      <div class="price-row"><span>${reserveSymbol} reserve</span><span class="val">${fmt(tokenReserve, 8)} ${reserveSymbol}</span></div>
+    `;
+  }
+
+  receiptEl.style.display = 'block';
+  receiptEl.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+      <strong>Trade receipt</strong>
+      <span style="color:var(--muted-2);">${new Date().toLocaleString()}</span>
+    </div>
+    <div class="price-row"><span>Pair</span><span class="val">${pairId}</span></div>
+    <div class="price-row"><span>Direction</span><span class="val">${direction}</span></div>
+    <div class="price-row"><span>You paid</span><span class="val">${fmt(inputAmountDisplay, 8)} ${fromSymbol}</span></div>
+    <div class="price-row"><span>You received</span><span class="val">${fmt(outputAmountDisplay, 8)} ${toSymbol}</span></div>
+    <div class="price-row"><span>Fee paid</span><span class="val">${fmt(fee, 8)} ${fromSymbol}</span></div>
+    <div style="margin:8px 0 6px;color:var(--muted-2);">Post-trade reserves</div>
+    ${poolHtml}
+  `;
+}
+
 async function doSwap() {
   if (INVESTOR_WEB_VIEW_ONLY) {
     toast('Buy/Sell executes in the A Network wallet app.', 'info', 5000);
@@ -1166,6 +1213,7 @@ async function doSwap() {
   if (!state.quote) { toast('Get a quote first', 'error'); return; }
   const amt = parseFloat(state.fromAmount);
   if (isNaN(amt) || amt <= 0) { toast('Invalid amount', 'error'); return; }
+  hideSwapReceipt();
 
   const isAnetToToken = state.fromToken === 'ANET';
   const tokenSym = isAnetToToken ? state.toToken : state.fromToken;
@@ -1186,12 +1234,26 @@ async function doSwap() {
     });
 
     const amtOut = parseInt(result.amount_out || 0) / ANTS_PER_ANET;
+    const outSym = isAnetToToken ? tokenSym : 'ANET';
+
+    let poolAfter = null;
+    try {
+      poolAfter = await getPoolBySymbol(tokenSym);
+    } catch (_) {}
 
     if (statusEl) {
       statusEl.className = 'swap-status show success';
-      const outSym = isAnetToToken ? tokenSym : 'ANET';
       statusEl.textContent = `✓ Swapped ${fmt(amt, 4)} ${state.fromToken} → ${fmt(amtOut, 6)} ${outSym}`;
     }
+
+    renderSwapReceipt({
+      result,
+      inputAmountDisplay: amt,
+      outputAmountDisplay: amtOut,
+      fromSymbol: state.fromToken,
+      toSymbol: state.toToken,
+      poolAfter,
+    });
 
     appendLocalTrade({
       side: isAnetToToken ? 'SELL' : 'BUY',
