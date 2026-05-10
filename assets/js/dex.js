@@ -1225,6 +1225,30 @@ async function copySwapReceiptJson() {
   }
 }
 
+function downloadSwapReceiptJson() {
+  if (!state.lastSwapReceipt) {
+    toast('No receipt available yet.', 'error');
+    return;
+  }
+
+  const json = JSON.stringify(state.lastSwapReceipt, null, 2);
+  const pair = state.lastSwapReceipt.pair_id || 'ANET';
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+  const filename = `receipt-${ts}-${pair}.json`;
+  
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  toast(`Receipt downloaded: ${filename}`, 'success', 2600);
+}
+
 function renderSwapReceipt({ result, inputAmountDisplay, outputAmountDisplay, fromSymbol, toSymbol, poolAfter }) {
   const receiptEl = document.getElementById('swap-receipt');
   if (!receiptEl) return;
@@ -1266,8 +1290,9 @@ function renderSwapReceipt({ result, inputAmountDisplay, outputAmountDisplay, fr
     <div class="price-row"><span>Fee paid</span><span class="val">${fmt(fee, 8)} ${fromSymbol}</span></div>
     <div style="margin:8px 0 6px;color:var(--muted-2);">Post-trade reserves</div>
     ${poolHtml}
-    <div style="margin-top:10px;display:flex;justify-content:flex-end;">
-      <button class="btn btn-ghost btn-sm" type="button" onclick="copySwapReceiptJson()" aria-label="Copy swap receipt JSON">Copy receipt JSON</button>
+    <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-ghost btn-sm" type="button" onclick="copySwapReceiptJson()" aria-label="Copy swap receipt JSON">Copy JSON</button>
+      <button class="btn btn-ghost btn-sm" type="button" onclick="downloadSwapReceiptJson()" aria-label="Download swap receipt JSON">Download JSON</button>
     </div>
   `;
 }
