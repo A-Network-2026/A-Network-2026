@@ -350,6 +350,9 @@ const state = {
   dexChartViewCount: 0,             // viewport count for scroll/pan
   dexChartDrag: null,               // drag state
   dexChartLastRender: null,         // cached render metadata
+
+  // Last executed swap receipt payload for support/audit copy
+  lastSwapReceipt: null,
   
   loading: false,
 };
@@ -1163,11 +1166,77 @@ function hideSwapReceipt() {
   if (!receiptEl) return;
   receiptEl.style.display = 'none';
   receiptEl.innerHTML = '';
+  state.lastSwapReceipt = null;
+}
+
+function buildSwapReceiptPayload({ result, inputAmountDisplay, outputAmountDisplay, fromSymbol, toSymbol, poolAfter }) {
+  const nowIso = new Date().toISOString();
+  const payload = {
+    generated_at: nowIso,
+    api_base: CHAIN_API,
+    pair_id: String(result?.pair_id || `${fromSymbol}/${toSymbol}`),
+    direction: String(result?.direction || `${fromSymbol}->${toSymbol}`),
+    from_symbol: String(fromSymbol || '').toUpperCase(),
+    to_symbol: String(toSymbol || '').toUpperCase(),
+    input_amount_display: Number(inputAmountDisplay || 0),
+    output_amount_display: Number(outputAmountDisplay || 0),
+    amount_in_units: Number(result?.amount_in || 0),
+    amount_out_units: Number(result?.amount_out || 0),
+    fee_paid_units: Number(result?.fee_paid || 0),
+  };
+
+  if (poolAfter) {
+    payload.pool_after = {
+      token_symbol: String(poolAfter.token_symbol || '').toUpperCase(),
+      anet_reserve_ants: String(poolAfter.anet_reserve_ants || '0'),
+      token_reserve_units: String(poolAfter.token_reserve_units || '0'),
+      fee_bps: Number(poolAfter.fee_bps || 0),
+      updated_at: String(poolAfter.updated_at || ''),
+    };
+  }
+
+  return payload;
+}
+
+async function copySwapReceiptJson() {
+  if (!state.lastSwapReceipt) {
+    toast('No receipt available yet.', 'error');
+    return;
+  }
+
+  const text = JSON.stringify(state.lastSwapReceipt, null, 2);
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', 'readonly');
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    toast('Receipt JSON copied to clipboard.', 'success', 2600);
+  } catch (e) {
+    toast(e.message || 'Failed to copy receipt JSON', 'error');
+  }
 }
 
 function renderSwapReceipt({ result, inputAmountDisplay, outputAmountDisplay, fromSymbol, toSymbol, poolAfter }) {
   const receiptEl = document.getElementById('swap-receipt');
   if (!receiptEl) return;
+
+  state.lastSwapReceipt = buildSwapReceiptPayload({
+    result,
+    inputAmountDisplay,
+    outputAmountDisplay,
+    fromSymbol,
+    toSymbol,
+    poolAfter,
+  });
 
   const fee = Number(result?.fee_paid || 0) / ANTS_PER_ANET;
   const direction = String(result?.direction || `${fromSymbol}->${toSymbol}`);
@@ -1197,6 +1266,9 @@ function renderSwapReceipt({ result, inputAmountDisplay, outputAmountDisplay, fr
     <div class="price-row"><span>Fee paid</span><span class="val">${fmt(fee, 8)} ${fromSymbol}</span></div>
     <div style="margin:8px 0 6px;color:var(--muted-2);">Post-trade reserves</div>
     ${poolHtml}
+    <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+      <button class="btn btn-ghost btn-sm" type="button" onclick="copySwapReceiptJson()" aria-label="Copy swap receipt JSON">Copy receipt JSON</button>
+    </div>
   `;
 }
 
