@@ -8,9 +8,9 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v2.2 | Mine -> Cashout/Swap -> NFT Activation · Layer 1 · Web3 · Marketplace</title>
+  <title>A-Network Whitepaper v2.3 | Mine -> 1,000 Sessions -> Swap/Transfer -> NFT Activation · Layer 1 · Web3 · Marketplace</title>
 
-  <meta name="description" content="The official A-Network v2.2 whitepaper. Defines the unified miner lifecycle rule (mine first, then first successful cashout/swap, then NFT activation), ANTS accounting, Layer 1 + Web3 architecture, DEX settlement flow, NFT marketplace and domain-auction policy, security model, and future external integration path." />
+  <meta name="description" content="The official A-Network v2.3 whitepaper. Defines the unified miner lifecycle rule (mine first, complete 1,000 verified sessions, unlock mobile execution for swap/transfer/cashout, then NFT activation), ANTS accounting, Layer 1 + Web3 architecture, DEX settlement flow, security model, and future integration path." />
 
   <meta name="theme-color" content="#07101a" />
 
@@ -570,7 +570,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v2.2 · 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v2.3 · 2026</sub>
 
       </div>
 
@@ -582,7 +582,7 @@
 
     <a class="nav-item" href="#abstract">Abstract</a>
 
-    <a class="nav-item" href="#protocol-v22">v2.2 Protocol Update</a>
+    <a class="nav-item" href="#protocol-v22">v2.3 Protocol Update</a>
 
     <a class="nav-item" href="#introduction">Introduction</a>
 
@@ -716,16 +716,16 @@
 
     <div class="hero">
 
-      <div class="hero-badge">Technical Paper v2.2</div>
+      <div class="hero-badge">Technical Paper v2.3</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 2.2 formalizes one lifecycle rule for all participants: <strong>mine first, complete first successful cashout/swap through authorized DEX flow, then NFT profile is activated</strong>. This update also specifies the ANET NFT marketplace model, .ant domain-auction minimum policy, and integration-ready external rails for future third-party exchange connectivity.</p>
+      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 2.3 formalizes one lifecycle rule for all participants: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>. This update codifies the web read-only policy and production security hardening status.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> &mdash; 2.2</div>
-        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 8, 2026</div>
+        <div class="hero-meta-item"><strong>Version</strong> &mdash; 2.3</div>
+        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 10, 2026</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong> &mdash; Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>Web3 Token</strong> &mdash; 21,000,000 ANET BEP-20 on BNB Chain &middot; DEX-listed</div>
         <div class="hero-meta-item"><strong>Denomination</strong> &mdash; 1 ANET = 100,000,000 ANTS</div>
-        <div class="hero-meta-item"><strong>NFT Activation Rule</strong> &mdash; Mine &rarr; First cashout/swap success &rarr; NFT unlock</div>
+        <div class="hero-meta-item"><strong>Lifecycle Rule</strong> &mdash; Mine &rarr; 1,000 sessions &rarr; Mobile swap/transfer/cashout &rarr; NFT unlock</div>
       </div>
     </div>
 
@@ -810,23 +810,25 @@
 
       <div class="section-label">Section 1A</div>
 
-      <h2>Version 2.2 Protocol Update &mdash; Unified Miner Lifecycle</h2>
+      <h2>Version 2.3 Protocol Update &mdash; Unified Miner Lifecycle Enforcement</h2>
 
 
 
-      <p>Version 2.2 defines a single mandatory lifecycle for all participants and system modules. The objective is policy consistency across mining, DEX settlement, and NFT identity utility. The rule is strict and global: <strong>mine first, complete first successful cashout/swap event, then unlock NFT profile capability</strong>.</p>
+      <p>Version 2.3 defines a single mandatory lifecycle for all participants and system modules. The objective is policy consistency across mining, DEX settlement, transfer access, and NFT identity utility. The rule is strict and global: <strong>mine first, complete 1,000 verified sessions, execute first successful authenticated settlement event, then unlock NFT profile capability</strong>.</p>
 
 
 
       <div class="panel panel-green">
 
-        <h4>Canonical Lifecycle Rule (v2.2)</h4>
+        <h4>Canonical Lifecycle Rule (v2.3)</h4>
 
         <ol>
 
           <li><strong>Miner Entry:</strong> User starts as a miner and accumulates participation through the standard 6-hour Ant Work cycle.</li>
 
-          <li><strong>Settlement Event:</strong> User completes a valid, backend-authorized DEX cashout/swap execution event.</li>
+          <li><strong>Eligibility Unlock:</strong> User reaches the minimum <strong>1,000 verified completed sessions</strong> threshold.</li>
+
+          <li><strong>Execution Event:</strong> User completes a valid, authenticated mobile wallet swap/transfer/cashout settlement event.</li>
 
           <li><strong>NFT Activation:</strong> System activates (or allows activation of) ANET NFT profile identity only after that first successful settlement event is recorded.</li>
 
@@ -854,11 +856,23 @@
 
               <td><strong>MINER_ONLY</strong></td>
 
-              <td>No successful DEX execute/cashout event for user</td>
+              <td>Fewer than 1,000 verified completed sessions</td>
 
-              <td>Mine sessions, check DEX status, request quote/execute under standard unlock policy</td>
+              <td>Mine sessions, monitor progress, view web DEX pools/quotes/receipts</td>
 
-              <td>NFT profile first-time creation, NFT utility layer actions requiring profile</td>
+              <td>Swap execute, transfer, cashout, first-time NFT profile creation</td>
+
+            </tr>
+
+            <tr>
+
+              <td><strong>ELIGIBLE_EXECUTION</strong></td>
+
+              <td>At least 1,000 verified completed sessions, but no successful settlement event yet</td>
+
+              <td>Execute swap/transfer/cashout in authenticated mobile wallet flow</td>
+
+              <td>NFT profile first-time creation</td>
 
             </tr>
 
@@ -888,7 +902,7 @@
 
         <li><strong>Invariant 1:</strong> NFT profile cannot be first-created before first successful settlement event.</li>
 
-        <li><strong>Invariant 2:</strong> DEX quote and execute remain available through existing eligibility and security controls.</li>
+        <li><strong>Invariant 2:</strong> Web DEX remains read-only for market data; settlement execution is mobile-wallet only under eligibility and security controls.</li>
 
         <li><strong>Invariant 3:</strong> First successful DEX execute acts as NFT activation trigger for that ANET profile identity.</li>
 
@@ -900,7 +914,7 @@
 
 
 
-      <h3>NFT Marketplace Governance (v2.2)</h3>
+      <h3>NFT Marketplace Governance (v2.3)</h3>
 
       <p>The integrated marketplace supports fixed listings, auction listings, and domain-auction listings. Domain auctions are treated as a special policy class for identity namespace assets and include explicit constraints.</p>
 
@@ -932,11 +946,13 @@
 
 
 
-      <h3>Implementation Notes for v2.2</h3>
+      <h3>Implementation Notes for v2.3</h3>
 
       <ul>
 
         <li>Backend policy endpoint now exposes explicit NFT activation semantics in addition to no-burn and domain auction parameters.</li>
+
+        <li>Public web DEX interfaces provide view and quote functions; execute functions are gated to authenticated mobile-wallet flows.</li>
 
         <li>DEX execute path records settlement request state and can auto-provision cashout-activated NFT profile identity if absent.</li>
 
@@ -956,7 +972,7 @@
 
           <strong>Single Rule Commitment</strong>
 
-          The v2.2 design intent is operational clarity: every user follows the same onboarding path and no separate privileged NFT entry path exists. In short: <strong>mine, settle first cashout/swap, then NFT</strong>.
+          The v2.3 design intent is operational clarity: every user follows the same onboarding path and no separate privileged entry path exists. In short: <strong>mine, reach 1,000 sessions, settle first mobile execution event, then NFT</strong>.
 
         </div>
 
@@ -3269,7 +3285,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
       <ul>
 
-        <li><strong>JWT Tokens:</strong> All protected API endpoints require Bearer token authentication. Tokens are issued after password or OTP verification and are signed with a 7-day lifetime.</li>
+        <li><strong>JWT Tokens:</strong> All protected API endpoints require Bearer token authentication. Tokens are issued after password or OTP verification, signed with a 7-day lifetime, and enforced with explicit expiration validation.</li>
 
         <li><strong>Session Binding:</strong> Every issued token is bound to <code>session_nonce</code>, <code>device_id</code>, and <code>device_fingerprint</code>. Middleware rejects copied or stale tokens when nonce or device context no longer matches stored session state.</li>
 
@@ -3282,6 +3298,8 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
         <li><strong>One-Time Account Restore:</strong> If an account is in the scheduled-deletion state, the owner can request an email OTP through <code>POST /auth/account-restore/request</code> and confirm it through <code>POST /auth/account-restore/confirm</code>. This recovery path is intentionally single-use.</li>
 
         <li><strong>Rate Limiting:</strong> Global baseline 100 requests per 15 minutes per IP, with additional route-specific throttles for auth/mining actions.</li>
+
+        <li><strong>Protected Session Status:</strong> Mining status endpoints require authentication and user-ownership checks; cross-account status queries are denied.</li>
 
         <li><strong>IP Logging:</strong> Last IP recorded per user for anomaly detection (not persisted in history, only current).</li>
 
@@ -3313,9 +3331,23 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
         <li>PostgreSQL with parameterized queries throughout &mdash; SQL injection surface is zero.</li>
 
-        <li>Admin endpoints are protected by <code>ADMIN_USER_IDS</code> environment variable &mdash; only explicitly listed user IDs can access admin routes.</li>
+        <li>Admin endpoints are controlled by explicit environment flags and administrative key validation; production disables bootstrap/test admin flows by default.</li>
 
         <li>Ban operations are auditable: every ban records the admin who executed it, the timestamp, and the reason. Unban operations clear the record entirely.</li>
+
+      </ul>
+
+      <h3>Execution Surface Policy</h3>
+
+      <p>A-Network separates information access from execution authority. Public web clients are intended for transparency and discovery, while authenticated mobile wallet flows are required for state-changing operations.</p>
+
+      <ul>
+
+        <li><strong>Web (public):</strong> pool visibility, pricing, quote inspection, and receipt export.</li>
+
+        <li><strong>Mobile wallet (authenticated):</strong> swap execution, transfer, and cashout operations after 1,000-session eligibility.</li>
+
+        <li><strong>Policy objective:</strong> enforce miner-first onboarding, preserve anti-abuse controls, and avoid unauthenticated execution paths.</li>
 
       </ul>
 
