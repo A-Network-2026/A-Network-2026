@@ -9,19 +9,81 @@
 'use strict';
 
 /* ── Constants ──────────────────────────────── */
-const CHAIN_API = 'https://explorer.a-network.net';
+const DEFAULT_CHAIN_API = 'https://anet-private-mainnet.onrender.com';
+const CHAIN_API_OVERRIDE_KEY = 'anet:dexApiBaseUrl';
+
+function resolveChainApiBase() {
+  try {
+    const qp = new URLSearchParams(window.location.search).get('api');
+    if (qp && /^https:\/\//i.test(qp)) {
+      const normalized = qp.replace(/\/+$/, '');
+      localStorage.setItem(CHAIN_API_OVERRIDE_KEY, normalized);
+      return normalized;
+    }
+    const stored = localStorage.getItem(CHAIN_API_OVERRIDE_KEY);
+    if (stored && /^https:\/\//i.test(stored)) {
+      return stored.replace(/\/+$/, '');
+    }
+  } catch (_) {}
+  return DEFAULT_CHAIN_API;
+}
+
+const CHAIN_API = resolveChainApiBase();
 const ANTS_PER_ANET = 100_000_000;  // 1 ANET = 10^8 ants
 const INVESTOR_WEB_VIEW_ONLY = true;
-const WALLET_APP_DEEPLINK = 'anet://dex';
-const WALLET_APP_FALLBACK_URL = 'https://play.google.com/store/apps/details?id=net.anetwork.app';
+const WALLET_APP_DEEPLINK = 'anetwork://invite';
+const WALLET_APP_FALLBACK_URL = 'https://play.google.com/store/apps/details?id=com.anetwork.app';
+const APP_WALLET_CONNECTION_KEY = 'anet:walletConnection';
+
+function isEmbeddedWebView() {
+  const ua = String(navigator.userAgent || '').toLowerCase();
+  return ua.includes('; wv') || ua.includes(' wv)') || ua.includes('anetwork');
+}
 
 function openWalletApp(actionLabel = 'trade') {
   const action = String(actionLabel || 'trade').trim().toLowerCase();
+  if (action === 'connect' && hydrateEvmWalletFromAppConnection()) {
+    toast('Wallet already connected in ANTS Browser.', 'success', 2200);
+    return;
+  }
   const deepLink = `${WALLET_APP_DEEPLINK}?action=${encodeURIComponent(action)}`;
   window.location.href = deepLink;
-  window.setTimeout(() => {
-    window.open(WALLET_APP_FALLBACK_URL, '_blank', 'noopener');
-  }, 600);
+  if (!isEmbeddedWebView()) {
+    // Browser fallback is only for external mobile browsers without the app.
+    window.setTimeout(() => {
+      if (!document.hidden) {
+        window.open(WALLET_APP_FALLBACK_URL, '_blank', 'noopener');
+      }
+    }, 1100);
+  }
+}
+
+function hydrateEvmWalletFromAppConnection() {
+  try {
+    const raw = localStorage.getItem(APP_WALLET_CONNECTION_KEY);
+    if (!raw) return false;
+    const payload = JSON.parse(raw);
+    if (!payload || !payload.wallet) return false;
+    state.evmWallet.address = String(payload.wallet).trim();
+    state.evmWallet.chainId = parseInt(payload.chainId || 56, 10) || 56;
+    state.evmWallet.balance = null;
+    updateEvmWalletUI();
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function initAppWalletEventHooks() {
+  window.addEventListener('anet:wallet-connected', (evt) => {
+    const payload = evt?.detail || {};
+    if (!payload.wallet) return;
+    state.evmWallet.address = String(payload.wallet).trim();
+    state.evmWallet.chainId = parseInt(payload.chainId || 56, 10) || 56;
+    state.evmWallet.balance = null;
+    updateEvmWalletUI();
+    toast('Wallet connected from app session.', 'success', 2200);
+  });
 }
 
 function applyInvestorViewMode() {
@@ -33,6 +95,13 @@ function applyInvestorViewMode() {
   const connectBtn = document.getElementById('anet-wallet-btn');
   if (connectBtn) {
     connectBtn.innerHTML = '<span class="dot"></span><span>Open Wallet App</span>';
+  }
+
+  const evmBtn = document.getElementById('evm-wallet-btn');
+  if (evmBtn) {
+    evmBtn.innerHTML = '<span class="dot"></span><span>Open Wallet App</span>';
+    evmBtn.onclick = () => openWalletApp('connect');
+    evmBtn.setAttribute('aria-label', 'Open wallet app');
   }
 
   const coConnectBtn = document.getElementById('co-connect-btn');
@@ -173,6 +242,7 @@ const CHAIN_TOKENS = {
 
 const KNOWN_TOKENS = [
   { symbol: 'ANET',  name: 'A Network Coin',       chain: 'L1',    decimals: 8,  native: true },
+  { symbol: 'WANET', name: 'Wrapped ANET',         chain: 'L1',    decimals: 8 },
   { symbol: 'WBNB',  name: 'Wrapped BNB',          chain: 'BNB',   decimals: 8 },
   { symbol: 'WETH',  name: 'Wrapped Ether',        chain: 'ETH',   decimals: 8 },
   { symbol: 'USDT',  name: 'Tether USD',           chain: 'Multi', decimals: 8 },
@@ -192,7 +262,7 @@ const KNOWN_TOKENS = [
 ];
 
 const TOKEN_COLORS = {
-  ANET: '#58c5ff', WBNB: '#F0B90B', WETH: '#627EEA', USDT: '#26A17B',
+  ANET: '#58c5ff', WANET:'#8be9ff', WBNB: '#F0B90B', WETH: '#627EEA', USDT: '#26A17B',
   USDC: '#2775CA', DAI:  '#F5AC37', BUSD: '#F0B90B', PI:   '#9C4FE6',
   WBTC: '#F7931A', BTCB: '#F7931A', AVAX: '#E84142', MATIC:'#8247E5',
   FTM:  '#1969FF', CRO:  '#002D74', OP:   '#FF0420', ARB:  '#28A0F0',
@@ -217,11 +287,11 @@ const MARKET_VIEW_MODES = {
 };
 const PUBLIC_TEST_POOLS = [
   {
-    token_symbol: 'WBNB',
-    anet_reserve_anet: 125000,
-    token_reserve_units: 3125 * ANTS_PER_ANET,
-    fee_bps: 30,
-    lp_holders: 42,
+    token_symbol: 'WANET',
+    anet_reserve_anet: 25000,
+    token_reserve_units: 25000 * ANTS_PER_ANET,
+    fee_bps: 5,
+    lp_holders: 3,
   },
   {
     token_symbol: 'USDT',
@@ -229,6 +299,13 @@ const PUBLIC_TEST_POOLS = [
     token_reserve_units: 245000 * ANTS_PER_ANET,
     fee_bps: 30,
     lp_holders: 61,
+  },
+  {
+    token_symbol: 'USDC',
+    anet_reserve_anet: 125000,
+    token_reserve_units: 312500 * ANTS_PER_ANET,
+    fee_bps: 30,
+    lp_holders: 42,
   },
   {
     token_symbol: 'WBTC',
@@ -338,7 +415,7 @@ async function apiFetch(path, options = {}) {
   if (!res.ok) {
     const message = data.error || data.message || `Request failed (${res.status})`;
     if (res.status === 401 && /wallet login is required/i.test(message)) {
-      throw new Error('Explorer wallet login is required. Please log in once at explorer.a-network.net/explorer/login, then retry.');
+      throw new Error(`Wallet login is required. Please log in at ${CHAIN_API}/explorer/login, then retry.`);
     }
     throw new Error(message);
   }
@@ -411,8 +488,18 @@ async function getAccount(address) {
 
 /* ── EVM Wallet (MetaMask) ──────────────────── */
 async function connectEvmWallet() {
+  if (hydrateEvmWalletFromAppConnection()) {
+    toast('Wallet connected from app session.', 'success', 2400);
+    return;
+  }
+  if (INVESTOR_WEB_VIEW_ONLY) {
+    toast('Investor web view uses the A Network wallet app for authorization.', 'info', 5000);
+    openWalletApp('connect');
+    return;
+  }
   if (!window.ethereum) {
-    toast('MetaMask not detected. Please install MetaMask.', 'error');
+    toast('No browser wallet detected. Opening Wallet App...', 'info', 2800);
+    openWalletApp('connect');
     return;
   }
   try {
@@ -445,7 +532,8 @@ function updateEvmWalletUI() {
   if (!btn) return;
   const { address, chainId, balance } = state.evmWallet;
   if (!address) {
-    btn.innerHTML = `<span class="dot"></span><span>Connect EVM Wallet</span>`;
+    const emptyLabel = INVESTOR_WEB_VIEW_ONLY ? 'Open Wallet App' : 'Connect EVM Wallet';
+    btn.innerHTML = `<span class="dot"></span><span>${emptyLabel}</span>`;
     btn.className = 'wallet-btn';
   } else {
     const chain = EVM_CHAINS[chainId];
@@ -2392,6 +2480,8 @@ function initEvmEventListeners() {
 /* ── Init ───────────────────────────────────── */
 async function init() {
   applyInvestorViewMode();
+  initAppWalletEventHooks();
+  hydrateEvmWalletFromAppConnection();
 
   // Check if MetaMask already connected
   if (window.ethereum?.selectedAddress) {
