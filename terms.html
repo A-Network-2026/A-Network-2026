@@ -58,6 +58,18 @@
     </section>
 
     <section class="card">
+      <h2>2A. Protocol Execution Policy</h2>
+      <p>A Network enforces production protocol rules across web and app surfaces.</p>
+      <ul>
+        <li>Public market access may be available through standard BSC DEX routes using compatible EVM wallets.</li>
+        <li>In-app settlement actions (including swap, transfer, and cashout) remain policy-gated and require authenticated wallet execution checks.</li>
+        <li>First NFT profile activation is conditioned on at least one successful authenticated settlement event after eligibility conditions are met.</li>
+        <li>Duplicate settlement for the same request identifier may be rejected by idempotency controls.</li>
+        <li>Production execution policy is signed-flow oriented. Users must not submit seed phrase or private key material through public web requests.</li>
+      </ul>
+    </section>
+
+    <section class="card">
       <h2>3. Permissions and Device Access</h2>
       <p>The current release is built to work without broad contacts access or location access.</p>
       <ul>

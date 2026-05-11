@@ -90,6 +90,18 @@
     </section>
 
     <section class="card">
+      <h2>4A. Protocol Execution and Sensitive Key Material</h2>
+      <p>Current production policy separates public market visibility from authenticated settlement execution.</p>
+      <ul>
+        <li>Public web pages may show market data, quotes, and chain visibility.</li>
+        <li>Execute settlement flows are policy-gated and intended for authenticated wallet paths.</li>
+        <li>First NFT profile activation depends on successful authenticated settlement conditions and related eligibility checks.</li>
+        <li>For production safety, users should not transmit seed phrase or private key material through public web requests.</li>
+      </ul>
+      <p>When sandbox or integration pages are used for testing, submitted values may be processed according to test-environment behavior. Users should avoid using production secret material in test surfaces.</p>
+    </section>
+
+    <section class="card">
       <h2>5. Account Recovery and Wallet Continuity</h2>
       <p>The current release includes account-continuity and wallet-security features designed to reduce accidental loss without turning the service into a custodial wallet provider.</p>
       <ul>
