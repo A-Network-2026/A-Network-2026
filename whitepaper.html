@@ -950,6 +950,29 @@
 
       <ul>
 
+      <h3>Automated Cashout Pipeline (Production Addendum)</h3>
+
+      <p>A-Network now operates an automated payout pipeline for cashout-eligible users. The design keeps execution automatic while preserving deterministic safety controls. Eligibility and settlement remain policy-gated, and every payout continues to produce an auditable trail across both networks.</p>
+
+      <div class="panel panel-accent">
+        <h4>Pipeline Guarantees</h4>
+        <ul>
+          <li><strong>Automatic ingestion:</strong> payout candidates can be fetched from an authorized backend feed each worker cycle (no manual queue editing required in production mode).</li>
+          <li><strong>Queue as safety ledger:</strong> each payout moves through <code>pending -&gt; paid/failed/duplicate</code> states, enabling crash recovery and replay-safe retries.</li>
+          <li><strong>Idempotency:</strong> <code>request_id</code> and <code>swap_reference</code> are enforced to prevent double-settlement on retries or restarts.</li>
+          <li><strong>Risk controls:</strong> hourly cap, per-user daily cap, reserve-ratio threshold, and wallet eligibility checks remain mandatory.</li>
+          <li><strong>Dual audit output:</strong> successful payout writes BSC transaction hash and an ANET on-chain <code>AppActivity</code> event (<code>action=payout_sent</code>).</li>
+        </ul>
+      </div>
+
+      <div class="notice info">
+        <div class="notice-icon">Ops</div>
+        <div class="notice-body">
+          <strong>Consistency Rule</strong>
+          Automation does not bypass policy. It removes manual operations while preserving deterministic controls and immutable audit evidence.
+        </div>
+      </div>
+
         <li>Backend policy endpoint now exposes explicit NFT activation semantics in addition to no-burn and domain auction parameters.</li>
 
         <li>Public web DEX interfaces provide view and quote functions; execute functions are gated to authenticated mobile-wallet flows.</li>
@@ -1482,6 +1505,22 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
         <li>Web3 token allocation follows a founder-stewardship model distinct from Layer 1 mining distribution.</li>
       </ul>
 
+      <div class="notice info">
+        <div class="notice-icon">Policy</div>
+        <div class="notice-body">
+          <strong>Mining-Only Native Coin Rule</strong>
+          Buying, holding, or trading the Web3 BEP-20 token on BNB Chain does <strong>not</strong> issue mined Layer 1 ANET. Native Layer 1 ANET remains mining-derived under the 1,000-session policy and protocol checks. The Web3 market rail is for ecosystem liquidity support and external price discovery, not a bypass for mining issuance.
+        </div>
+      </div>
+
+      <div class="notice info">
+        <div class="notice-icon">Security</div>
+        <div class="notice-body">
+          <strong>Signed-Only Execution Transparency</strong>
+          Layer 1 transaction and DEX execution policy now follows a signed-payload model: wallets sign locally, nodes verify signatures and nonces, and seed phrase/private key transmission is not part of production execution flow.
+        </div>
+      </div>
+
       <h3 id="value-formation">Value Formation</h3>
       <div class="panel panel-accent">
         <h4>Layer 1 Value Formation</h4>
@@ -1504,6 +1543,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
         <li><strong>KYC:</strong> KYC is not required at the protocol level. External fiat on/off-ramp services, if used, may impose their own KYC requirements independently of A-Network.</li>
         <li><strong>Web3 token risk:</strong> The BEP-20 ANET token operates under independent market conditions. Price, liquidity, and availability are not controlled by A-Network.</li>
         <li><strong>Layer 1 and Web3 are separate:</strong> Holding or trading the Web3 BEP-20 token does not grant Layer 1 mining rewards, and Layer 1 mining does not guarantee Web3 token value.</li>
+        <li><strong>No buy-to-mine shortcut:</strong> Acquiring Web3 ANET does not unlock or mint native mined ANET; real Layer 1 coin participation remains tied to verified mining lifecycle and eligibility thresholds.</li>
         <li><strong>Fee-based miner rewards:</strong> Eligible miners may receive protocol fee distributions tied to verified network activity and governance rules. These distributions are variable and are not guaranteed returns.</li>
       </ul>
     </section>
