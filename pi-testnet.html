@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A Network Pi DEX Access | Lifetime Unlock</title>
-  <meta name="description" content="Authenticate with Pi, pay a one-time 1 Pi lifetime DEX access fee, then quote and execute Layer 1 swaps.">
+  <title>A Network Pi DEX Sandbox | Integration Surface</title>
+  <meta name="description" content="Sandbox-only Pi integration surface for payment callbacks and DEX flow testing. Production execution remains wallet-gated and policy-checked.">
   <meta name="theme-color" content="#0c1828">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="A Network Pi DEX Access | Lifetime Unlock">
-  <meta property="og:description" content="Authenticate with Pi, unlock lifetime DEX access once, then quote and execute Layer 1 swaps.">
+  <meta property="og:title" content="A Network Pi DEX Sandbox | Integration Surface">
+  <meta property="og:description" content="Sandbox Pi integration for backend callback testing. Production settlement remains wallet-gated under protocol policy.">
   <meta property="og:image" content="https://a-network.net/logo.png">
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -37,11 +37,11 @@
     <section class="hero">
       <div class="hero-copy">
         <div class="eyebrow">Pi Browser Ready</div>
-        <h2>Pi DEX Access Surface</h2>
+        <h2>Pi DEX Sandbox Surface</h2>
         <p>
           This page initializes the Pi SDK in sandbox mode, authenticates the current Pi user,
-          charges a one-time 1 Pi lifetime DEX access fee, and then lets that user quote and
-          execute Layer 1 ANET swaps through your backend.
+          charges a one-time 1 Pi lifetime DEX access fee, and then lets that user test quote and
+          execute integration routes through your backend.
         </p>
         <div class="status-pill" id="sdkStatus">SDK: Initializing...</div>
       </div>
@@ -54,6 +54,11 @@
           <li class="active">Lifetime DEX unlock + swap flow</li>
         </ul>
       </div>
+    </section>
+
+    <section class="panel">
+      <h3>Protocol Notice</h3>
+      <p class="muted">This page is for sandbox integration testing only. Production settlement is signed and wallet-authorized in authenticated app flows. Seed phrase and private key material must never be transported through public web requests in production.</p>
     </section>
 
     <section class="panel">
@@ -109,8 +114,8 @@
     </section>
 
     <section class="panel">
-      <h3>3) Quote And Execute Layer 1 Swap</h3>
-      <p class="muted">After the one-time lifetime unlock is paid, the Pi app can request a quote and execute a Layer 1 ANET swap through your backend and DEX node.</p>
+      <h3>3) Quote And Execute Integration Test</h3>
+      <p class="muted">After the one-time lifetime unlock is paid, this sandbox surface can request quote and execute test routes through your backend. In production, execute paths must remain wallet-authorized and policy-gated.</p>
 
       <form id="dexForm" class="payment-form">
         <label>
@@ -118,8 +123,8 @@
           <input id="traderWallet" type="text" placeholder="ANET..." maxlength="40" required>
         </label>
         <label>
-          Seed Phrase
-          <input id="senderSeed" type="password" placeholder="12-word ANET seed phrase" required>
+          Signing Secret (Sandbox Only)
+          <input id="senderSeed" type="password" placeholder="Sandbox-only test signing value" required>
         </label>
         <label>
           Token Symbol
@@ -150,7 +155,7 @@
 
     <section class="panel">
       <h3>Backend Endpoints Required</h3>
-      <p class="muted">Create these endpoints on your server so Pi can finalize the unlock payment and then bridge DEX quotes and swaps into your Layer 1 node:</p>
+      <p class="muted">Create these endpoints on your server so Pi can finalize the unlock payment and then bridge quote and execute requests into your test node routes:</p>
       <ul class="endpoints">
         <li><strong>POST</strong> /approve</li>
         <li><strong>POST</strong> /complete</li>
@@ -160,7 +165,7 @@
         <li><strong>POST</strong> /api/pi/dex/quote</li>
         <li><strong>POST</strong> /api/pi/dex/execute</li>
       </ul>
-      <p class="muted">Your backend should validate payment IDs server-side with your Pi API key, persist the user's one-time unlock, and only then forward quote and swap requests to your Layer 1 <strong>/dex/swap/quote</strong> and <strong>/dex/swap/execute</strong> routes.</p>
+      <p class="muted">Your backend should validate payment IDs server-side with your Pi API key, persist the user's one-time unlock, and only then forward quote and execute requests to controlled backend routes. Keep production execution signed-only and avoid seed/private key transport over web requests.</p>
     </section>
   </main>
 

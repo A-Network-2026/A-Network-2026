@@ -24,9 +24,12 @@
         <p>
           This page is a lightweight Web5-facing surface over the live A Network Layer 1 testnet. It reflects the current chain directly from the public explorer APIs: latest event-driven settlement blocks, active validator participation, total sessions, and current transfer-window cadence.
         </p>
+        <p>
+          Protocol snapshot: this public Web5 page is read-only for chain visibility. Settlement execution remains wallet-gated in authenticated app flows, and investor market access continues through standard BSC DEX swaps with compatible EVM wallets.
+        </p>
         <div class="hero-actions">
           <a class="btn" href="https://explorer.a-network.net/explorer">Open Explorer</a>
-          <a class="btn btn-ghost" href="#worker-transfer">Worker Transfer</a>
+          <a class="btn btn-ghost" href="anetwork://invite?action=transfer">Open Wallet App</a>
           <a class="btn btn-ghost" href="web4.html">Open Web4 Page</a>
           <a class="btn btn-ghost" href="whitepaper.html">Read Whitepaper</a>
         </div>
@@ -80,9 +83,9 @@
       </div>
       <div class="action-grid">
         <article class="action-card">
-          <h3>Worker Transfer</h3>
-          <p>Jump directly to the live Layer 1 transfer surface and submit ANT-denominated mempool transactions from the public explorer APIs.</p>
-          <a class="btn btn-block" href="#worker-transfer">Open Transfer</a>
+          <h3>Wallet Actions</h3>
+          <p>Send, transfer, swap, buy, and sell now run in the A Network mobile wallet with secure session authorization.</p>
+          <a class="btn btn-block" href="anetwork://invite?action=transfer">Open Wallet App</a>
         </article>
         <article class="action-card">
           <h3>Live Explorer</h3>
@@ -110,8 +113,8 @@
       </div>
       <div class="info-grid">
         <article class="info-card">
-          <h3>View Seed</h3>
-          <p>The app Web5 tab now includes direct access to seed-phrase reveal so users do not need to swipe back to Web4 for wallet backup and migration checks.</p>
+          <h3>Wallet Backup</h3>
+          <p>Wallet backup and recovery controls are handled only inside the authenticated app experience.</p>
         </article>
         <article class="info-card">
           <h3>Change PIN</h3>
@@ -119,43 +122,9 @@
         </article>
         <article class="info-card">
           <h3>Why App-Only</h3>
-          <p>Seed reveal and PIN changes are intentionally tied to the authenticated app experience. The public Web5 page stays read-only plus transfer-capable.</p>
+          <p>PIN changes, transfer, send, and swap are intentionally tied to the authenticated app experience. The public Web5 page stays read-only.</p>
         </article>
       </div>
-    </section>
-
-    <section id="worker-transfer" class="panel">
-      <div class="panel-head">
-        <div>
-          <div class="eyebrow">Worker Transfer</div>
-          <h2>Transfer</h2>
-        </div>
-        <div class="table-note">Submit an ANT-denominated transfer to the mempool for inclusion in the next fast transfer block.</div>
-      </div>
-      <form id="txForm" class="tx-form">
-        <label>
-          <span>From Wallet</span>
-          <input id="txFrom" placeholder="ANET..." required>
-        </label>
-        <label>
-          <span>To Wallet</span>
-          <input id="txTo" placeholder="ANET..." required>
-        </label>
-        <label>
-          <span>Amount (ANTS)</span>
-          <input id="txAmount" type="number" min="1" step="1" placeholder="4882812" required>
-        </label>
-        <label>
-          <span>Fee (ANTS)</span>
-          <input id="txFee" type="number" min="0" step="1" value="0" required>
-        </label>
-        <label class="seed-field">
-          <span>Sender Seed Phrase</span>
-          <input id="txSeed" type="password" placeholder="12-word wallet seed" required>
-        </label>
-        <button type="submit">Queue Transaction</button>
-      </form>
-      <div id="txResult" class="tx-result">Transactions remain in the mempool until the next TPoW transfer block is created. This Web5 page uses the same seed-based sender authorization as the public explorer for current testnet compatibility.</div>
     </section>
 
     <section class="table-shell">
