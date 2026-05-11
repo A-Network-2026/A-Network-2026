@@ -912,6 +912,21 @@
 
       </ul>
 
+      <h3>Protocol Invariants v1 (Canonical Production Set)</h3>
+
+      <p>This canonical set defines non-negotiable production guarantees for settlement, cashout automation, and identity activation. Any implementation, upgrade, or operator action that violates these rules is considered non-compliant with protocol policy.</p>
+
+      <ul>
+        <li><strong>PI-1 (Policy Gate):</strong> No swap/transfer/cashout settlement executes unless eligibility policy checks pass at execution time.</li>
+        <li><strong>PI-2 (Single Activation Trigger):</strong> First-time NFT profile activation occurs only after at least one successful authenticated settlement event.</li>
+        <li><strong>PI-3 (Execution Separation):</strong> Public web interfaces may expose market data and quotes, but authenticated execute paths remain wallet-gated.</li>
+        <li><strong>PI-4 (Idempotent Settlement):</strong> Duplicate payout execution for the same request identifier is forbidden across retries, restarts, and worker cycles.</li>
+        <li><strong>PI-5 (Dual Audit Evidence):</strong> Successful payout must produce both settlement-chain evidence (tx hash) and ANET activity evidence (<code>payout_sent</code> event).</li>
+        <li><strong>PI-6 (Deterministic Queue State):</strong> Payout records transition only through valid states (<code>pending -&gt; paid/failed/duplicate</code>) and remain replay-safe after crashes.</li>
+        <li><strong>PI-7 (Key Isolation):</strong> Production execution uses signed-only flow; seed phrase and private key material are never transmitted through public API requests.</li>
+        <li><strong>PI-8 (Risk Envelope):</strong> Hourly caps, per-user daily limits, reserve-ratio checks, and retry limits are mandatory controls, not optional runtime features.</li>
+      </ul>
+
 
 
       <h3>NFT Marketplace Governance (v2.3)</h3>
