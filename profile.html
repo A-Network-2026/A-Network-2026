@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network | Public NFT Identity</title>
+  <meta name="description" content="Public NFT identity verification for A Network miners.">
+  <meta name="theme-color" content="#07111F">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="A Network">
+  <meta property="og:title" content="A Network Public NFT Identity">
+  <meta property="og:description" content="Verify on-chain NFT identity tied to settlement-backed activity.">
+  <meta property="og:url" content="https://a-network.net/profile.html">
+  <meta property="og:image" content="https://a-network.net/logo.png">
+  <link rel="canonical" href="https://a-network.net/profile.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <style>
+    :root {
+      --bg: #070f1d;
+      --panel: #0e1a30;
+      --line: rgba(120, 173, 255, 0.2);
+      --text: #f1f6ff;
+      --muted: #a1b2cf;
+      --accent: #59c6ff;
+      --accent2: #2be3b2;
+      --danger: #ff7c9f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 15%, rgba(89, 198, 255, 0.15), transparent 26%),
+        radial-gradient(circle at 85% 12%, rgba(43, 227, 178, 0.12), transparent 28%),
+        linear-gradient(180deg, #081427 0%, var(--bg) 100%);
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; }
+    .card {
+      background: rgba(14, 26, 48, 0.9);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      margin-top: 14px;
+      backdrop-filter: blur(8px);
+    }
+    .title {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 38px);
+      letter-spacing: 0.03em;
+      font-weight: 800;
+    }
+    .muted { color: var(--muted); }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    input {
+      flex: 1;
+      min-width: 230px;
+      background: #0a1324;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+    button, .btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      background: #123056;
+      text-decoration: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn.secondary { background: #10243c; }
+    .grid { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pill {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--accent2);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .avatar {
+      width: 92px;
+      height: 92px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,0.2);
+      object-fit: cover;
+      background: #0a1324;
+    }
+    .hidden { display: none !important; }
+    .error { color: var(--danger); font-weight: 700; }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 class="title">Public NFT Identity</h1>
+      <p class="muted">Settlement-backed profile verification for A Network miners.</p>
+      <div class="row">
+        <input id="walletInput" type="text" placeholder="Enter wallet address">
+        <button id="loadBtn" type="button">Load Profile</button>
+      </div>
+      <p id="statusText" class="muted">Use a valid wallet address to view profile.</p>
+      <div class="row" style="margin-top:8px;">
+        <a class="btn secondary" id="openAppBtn" href="#">Open in App</a>
+      </div>
+    </div>
+
+    <div id="errorCard" class="card hidden">
+      <p id="errorText" class="error"></p>
+    </div>
+
+    <div id="profileCard" class="card hidden">
+      <div class="row">
+        <img id="avatar" class="avatar" alt="avatar" src="logo.png">
+        <div>
+          <span id="badge" class="pill">VERIFIED</span>
+          <h2 id="name" style="margin:8px 0 0;"></h2>
+          <p id="poweredBy" class="muted" style="margin:4px 0 0;"></p>
+          <p id="wallet" class="muted" style="margin:8px 0 0;"></p>
+        </div>
+      </div>
+      <div class="grid" style="margin-top:12px;">
+        <div class="card"><strong>Colony Code</strong><div id="colony">-</div></div>
+        <div class="card"><strong>Rank</strong><div id="rank">-</div></div>
+        <div class="card"><strong>Sessions</strong><div id="sessions">-</div></div>
+        <div class="card"><strong>Settlement Events</strong><div id="settlements">-</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'https://rmp-site.onrender.com';
+
+    function normalizeWallet(input) {
+      return String(input || '').trim().replace(/[^a-zA-Z0-9_-]/g, '').toUpperCase();
+    }
+
+    function getWalletFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const fromQuery = params.get('wallet') || params.get('address');
+      if (fromQuery) return normalizeWallet(fromQuery);
+      return '';
+    }
+
+    function setStatus(text) {
+      document.getElementById('statusText').textContent = text;
+    }
+
+    function setError(text) {
+      const card = document.getElementById('errorCard');
+      const error = document.getElementById('errorText');
+      if (!text) {
+        card.classList.add('hidden');
+        error.textContent = '';
+        return;
+      }
+      error.textContent = text;
+      card.classList.remove('hidden');
+    }
+
+    function setOpenAppLink(wallet) {
+      const safe = normalizeWallet(wallet);
+      const link = document.getElementById('openAppBtn');
+      link.href = safe ? `anetwork://profile/${safe}` : 'anetwork://profile';
+    }
+
+    async function loadProfile(wallet) {
+      const normalized = normalizeWallet(wallet);
+      setOpenAppLink(normalized);
+      if (!normalized || normalized.length < 20) {
+        setError('Invalid wallet address.');
+        document.getElementById('profileCard').classList.add('hidden');
+        setStatus('Provide a valid wallet address.');
+        return;
+      }
+
+      setError('');
+      setStatus('Loading profile...');
+
+      try {
+        const res = await fetch(`${API_BASE}/wallet/nft/public/${encodeURIComponent(normalized)}`, {
+          method: 'GET',
+          headers: { 'accept': 'application/json' },
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || data.success !== true) {
+          throw new Error(data.error || `Request failed (${res.status})`);
+        }
+
+        if (data.status === 'locked') {
+          document.getElementById('profileCard').classList.add('hidden');
+          setStatus('Identity locked for this wallet.');
+          setError(data.message || 'Profile is not unlocked yet.');
+          return;
+        }
+
+        const profile = data.profile || {};
+        const stats = data.stats || {};
+
+        document.getElementById('name').textContent = profile.name || 'A-Network Identity';
+        document.getElementById('poweredBy').textContent = profile.poweredBy || 'A Network';
+        document.getElementById('wallet').textContent = normalized;
+        document.getElementById('colony').textContent = data.colonyCode || '-';
+        document.getElementById('rank').textContent = `#${stats.rank || '-'}`;
+        document.getElementById('sessions').textContent = `${stats.completedSessions || 0} / ${stats.requiredSessions || 1000}`;
+        document.getElementById('settlements').textContent = `${stats.settlementCount || 0}`;
+
+        const avatarUrl = (profile.avatarUrl || '').trim();
+        document.getElementById('avatar').src = avatarUrl || 'logo.png';
+
+        document.getElementById('profileCard').classList.remove('hidden');
+        setStatus('Profile loaded.');
+      } catch (err) {
+        document.getElementById('profileCard').classList.add('hidden');
+        setStatus('Failed to load profile.');
+        setError(err && err.message ? err.message : 'Unexpected error');
+      }
+    }
+
+    document.getElementById('loadBtn').addEventListener('click', () => {
+      const wallet = document.getElementById('walletInput').value;
+      loadProfile(wallet);
+      const normalized = normalizeWallet(wallet);
+      if (normalized) {
+        const next = new URL(window.location.href);
+        next.searchParams.set('wallet', normalized);
+        history.replaceState({}, '', next.toString());
+      }
+    });
+
+    const initialWallet = getWalletFromUrl();
+    document.getElementById('walletInput').value = initialWallet;
+    setOpenAppLink(initialWallet);
+    if (initialWallet) {
+      loadProfile(initialWallet);
+    }
+  </script>
+</body>
+</html>

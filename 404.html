@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network | Redirecting</title>
+  <meta name="robots" content="noindex">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #07111f;
+      color: #eaf2ff;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      padding: 16px;
+    }
+    .card {
+      max-width: 560px;
+      width: 100%;
+      border: 1px solid rgba(89, 198, 255, 0.25);
+      border-radius: 14px;
+      background: rgba(13, 24, 43, 0.92);
+      padding: 18px;
+    }
+    a { color: #59c6ff; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 style="margin-top:0;">Redirecting...</h1>
+    <p id="msg">Checking requested URL.</p>
+    <p><a id="fallback" href="/profile.html">Open profile page</a></p>
+  </div>
+
+  <script>
+    (function () {
+      var path = window.location.pathname || '/';
+      var msg = document.getElementById('msg');
+      var fallback = document.getElementById('fallback');
+
+      var parts = path.split('/').filter(Boolean);
+      var wallet = '';
+      if (parts.length >= 2 && parts[0].toLowerCase() === 'profile') {
+        wallet = decodeURIComponent(parts[1] || '').replace(/[^a-zA-Z0-9_-]/g, '').toUpperCase();
+      }
+
+      if (wallet && wallet.length >= 20) {
+        var target = '/profile.html?wallet=' + encodeURIComponent(wallet);
+        msg.textContent = 'Redirecting to public profile...';
+        fallback.href = target;
+        window.location.replace(target);
+        return;
+      }
+
+      msg.textContent = 'Page not found. Use the profile page with a valid wallet address.';
+      fallback.href = '/profile.html';
+    })();
+  </script>
+</body>
+</html>
