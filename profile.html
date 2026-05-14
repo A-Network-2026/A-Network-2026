@@ -112,7 +112,7 @@
       </div>
       <p id="statusText" class="muted">Use a valid wallet address to view profile.</p>
       <div class="row" style="margin-top:8px;">
-        <a class="btn secondary" id="openAppBtn" href="#">Open in App</a>
+        <a class="btn secondary" id="openAppBtn" href="#" rel="noopener">Open in App</a>
       </div>
     </div>
 
@@ -173,6 +173,42 @@
       const safe = normalizeWallet(wallet);
       const link = document.getElementById('openAppBtn');
       link.href = safe ? `anetwork://profile/${safe}` : 'anetwork://profile';
+    }
+
+    function openInApp(wallet) {
+      const safe = normalizeWallet(wallet);
+      if (!safe || safe.length < 20) {
+        setError('Enter a valid wallet first, then tap Open in App.');
+        return;
+      }
+
+      const webFallback = `https://a-network.net/profile.html?wallet=${encodeURIComponent(safe)}`;
+      const schemeUrl = `anetwork://profile/${safe}`;
+      const intentUrl = `intent://profile/${safe}#Intent;scheme=anetwork;package=com.anetwork.app;S.browser_fallback_url=${encodeURIComponent(webFallback)};end`;
+
+      const ua = navigator.userAgent.toLowerCase();
+      const isAndroid = ua.includes('android');
+      const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+
+      // Desktop browsers usually cannot launch custom app schemes for mobile apps.
+      if (!isMobile) {
+        setStatus('Open in App works on Android/iOS with A Network app installed.');
+        setError('Desktop browser detected. Use your phone to open the app link.');
+        return;
+      }
+
+      setStatus('Trying to open A Network app...');
+      setError('');
+
+      if (isAndroid) {
+        window.location.href = intentUrl;
+      } else {
+        window.location.href = schemeUrl;
+      }
+
+      setTimeout(() => {
+        setStatus('If app did not open, install/update A Network and try again.');
+      }, 1200);
     }
 
     async function loadProfile(wallet) {
@@ -238,6 +274,12 @@
         next.searchParams.set('wallet', normalized);
         history.replaceState({}, '', next.toString());
       }
+    });
+
+    document.getElementById('openAppBtn').addEventListener('click', (event) => {
+      event.preventDefault();
+      const wallet = document.getElementById('walletInput').value || getWalletFromUrl();
+      openInApp(wallet);
     });
 
     const initialWallet = getWalletFromUrl();
