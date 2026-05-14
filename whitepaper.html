@@ -642,6 +642,8 @@
 
     <a class="nav-item sub" href="#tpow">Time-Based PoW (TPoW)</a>
 
+    <a class="nav-item sub" href="#phase5-proofs">Phase 5: Decentralized Proofs</a>
+
     <a class="nav-item sub" href="#blocks">Block Structure</a>
 
     <a class="nav-item sub" href="#txfees">Transaction Fees in Ants</a>
@@ -716,12 +718,12 @@
 
     <div class="hero">
 
-      <div class="hero-badge">Technical Paper v2.3</div>
+      <div class="hero-badge">Technical Paper v2.4 (Phase 5)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 2.3 formalizes one lifecycle rule for all participants: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>. This update codifies the web read-only policy and production security hardening status.</p>
+      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 2.4 introduces <strong>Phase 5: Decentralized Mining Proofs</strong>, enabling miners to generate and sign proofs locally, submit directly to the chain, and have validators verify them using public cryptography. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> &mdash; 2.3</div>
-        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 10, 2026</div>
+        <div class="hero-meta-item"><strong>Version</strong> &mdash; 2.4 (Phase 5)</div>
+        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 14, 2026</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong> &mdash; Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>Web3 Token</strong> &mdash; 21,000,000 ANET BEP-20 on BNB Chain &middot; DEX-listed</div>
         <div class="hero-meta-item"><strong>Denomination</strong> &mdash; 1 ANET = 100,000,000 ANTS</div>
@@ -748,6 +750,8 @@
 
 
       <p>A-Network v1.0.6 defines a proof-of-time ledger backed by fixed 6-hour Ant Work sessions and a live ANET Layer 1 private mainnet. Session completion credits <strong>ANTS</strong>, the smallest accounting unit of the Layer 1 economy. Spendable Layer 1 ANET is not issued at session end and becomes claimable only after a participant reaches <strong>1,000 completed sessions</strong>.</p>
+
+      <p><strong>Phase 5 (v1.0.20+)</strong> introduces decentralized mining proofs. Miners can now generate proofs locally using a time-based difficulty challenge (SHA256), sign them with their secp256k1 private key, and submit directly to the chain. Validator nodes verify proofs independently using public cryptography without requiring central server approval. This maintains full backward compatibility: server-approved mining remains available alongside the new decentralized model.</p>
 
 
 
@@ -2877,6 +2881,144 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       </div>
 
 
+
+      <h3 id="phase5-proofs">Phase 5: Decentralized Mining Proofs (v1.0.20+)</h3>
+
+      <p><strong>Phase 5 introduces decentralized mining proof generation</strong>, enabling miners to create cryptographically-signed proofs without relying on centralized server approval. Miners now generate proofs locally using a time-based difficulty challenge, sign them with their secp256k1 private key, and submit them directly to the chain. Any validator can independently verify these proofs using public cryptography.</p>
+
+      <h4>Proof-of-Ownership Model</h4>
+
+      <p>Traditional mining servers act as gatekeepers. Phase 5 replaces this model with cryptographic proof of ownership: a miner proves they control their wallet by signing a proof with their private key. This signature is verifiable by any node without contacting a central authority.</p>
+
+      <div class="table-scroll">
+
+        <table class="wp-table">
+
+          <thead><tr><th>Aspect</th><th>Server-Approved Mining</th><th>Decentralized Proofs (Phase 5)</th></tr></thead>
+
+          <tbody>
+
+            <tr><td><strong>Who Approves</strong></td><td>Central mining server</td><td>Community validators</td></tr>
+
+            <tr><td><strong>Proof Format</strong></td><td>Session completion record</td><td>Signed proof hash with witness nonce</td></tr>
+
+            <tr><td><strong>Verification</strong></td><td>Server logic</td><td>Public secp256k1 cryptography</td></tr>
+
+            <tr><td><strong>Wallet Proof</strong></td><td>Implicit (server trust)</td><td>Explicit signature recovery</td></tr>
+
+            <tr><td><strong>Replay Protection</strong></td><td>Session ID uniqueness</td><td>Persistent nonce tracking (per wallet)</td></tr>
+
+            <tr><td><strong>Availability</strong></td><td>Server dependent</td><td>Distributed across validators</td></tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+      <h4>Proof Generation Algorithm</h4>
+
+      <p>Miners generate proofs by finding a SHA256 hash with a specified number of leading zero bits, without requiring network communication:</p>
+
+      <div class="formula-box">
+
+<span class="comment">// Phase 5 Proof Generation (Pseudocode)</span>
+
+<span class="keyword">function</span> <span class="function">generateProofHash</span>(difficulty, miner, max_iterations) {<br/>
+
+&nbsp;&nbsp;timestamp_ms = <span class="function">now_utc_ms</span>()<br/>
+
+&nbsp;&nbsp;base_payload = format!(<span class="string">"{miner}|{timestamp_ms}|"</span>)<br/>
+
+&nbsp;&nbsp;<span class="keyword">for</span> nonce <span class="keyword">in</span> 0..max_iterations {<br/>
+
+&nbsp;&nbsp;&nbsp;&nbsp;payload = format!(<span class="string">"{base_payload}{nonce}"</span>)<br/>
+
+&nbsp;&nbsp;&nbsp;&nbsp;hash = <span class="function">sha256</span>(payload)<br/>
+
+&nbsp;&nbsp;&nbsp;&nbsp;leading_zeros = <span class="function">count_leading_zero_bits</span>(hash)<br/>
+
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> leading_zeros >= difficulty <span class="keyword">return</span> hash<br/>
+
+&nbsp;&nbsp;}<br/>
+
+&nbsp;&nbsp;<span class="keyword">return</span> null<br/>
+
+}
+
+      </div>
+
+      <h4>Proof Signing and Verification</h4>
+
+      <p>Once a proof hash is generated, the miner signs it with their secp256k1 private key using a canonical signing format. The signature proves wallet ownership without revealing the key. Validators verify the signature and difficulty independently:</p>
+
+      <div class="panel panel-blue">
+
+        <h5>Proof Verification Checklist</h5>
+
+        <ol>
+
+          <li><strong>Signature Recovery:</strong> Recover the signer's wallet address from the ECDSA signature</li>
+
+          <li><strong>Wallet Match:</strong> Recovered wallet must equal the claimed miner wallet</li>
+
+          <li><strong>Difficulty Check:</strong> Proof hash must have ≥ N leading zero bits</li>
+
+          <li><strong>Nonce Uniqueness:</strong> Nonce must not have been used before by this miner (persistent DB check)</li>
+
+          <li><strong>Chain ID Match:</strong> Proof must be for the current blockchain</li>
+
+          <li><strong>Hash Validity:</strong> SHA256 hash must be correctly formatted (hex, lowercase)</li>
+
+        </ol>
+
+      </div>
+
+      <h4>Proof Inclusion in Blocks</h4>
+
+      <p>Accepted proofs are buffered in-memory and automatically included in the next block. Validators keep proofs for up to 5 minutes; older proofs are discarded. Proofs appear in the block's <code>tpow_proofs</code> array alongside transactions.</p>
+
+      <h4>Backward Compatibility</h4>
+
+      <p>Phase 5 is <strong>fully backward compatible</strong>. The server-approved mining endpoint (<code>POST /mining/complete</code>) remains fully functional. Miners choose which model to use: decentralized proofs or server approval. This dual-mode design ensures no disruption to existing mining operations.</p>
+
+      <h4>Security Model</h4>
+
+      <div class="panel panel-green">
+
+        <h5>No Central Authority</h5>
+
+        <p>Miners are sovereign proof generators. They sign their own proofs and submit to any validator node. No central server needed for proof acceptance.</p>
+
+      </div>
+
+      <div class="panel panel-green">
+
+        <h5>Cryptographic Proof of Ownership</h5>
+
+        <p>The secp256k1 signature proves the miner controls the wallet without requiring the server to verify anything. Signature recovery is deterministic public cryptography.</p>
+
+      </div>
+
+      <div class="panel panel-green">
+
+        <h5>Distributed Verification</h5>
+
+        <p>Any validator node can independently verify proofs using the same public verification algorithm. No trust in a single entity required.</p>
+
+      </div>
+
+      <div class="panel panel-green">
+
+        <h5>Replay Protection</h5>
+
+        <p>Each proof includes a nonce (witness counter). The chain persists nonce usage in a database, ensuring the same proof cannot be submitted twice by the same miner, even across node restarts.</p>
+
+      </div>
+
+      <h4>Supply Model Unchanged</h4>
+
+      <p>Phase 5 <strong>does not modify the issuance schedule or supply cap</strong>. The total supply remains <strong>21,000,000 ANET</strong> (hard-coded, immutable). Phase 5 only changes <em>who</em> approves proofs (community validators instead of a server); it does not change <em>how much</em> is issued.</p>
 
       <h3 id="blocks">Block Structure on ANET Layer 1</h3>
 

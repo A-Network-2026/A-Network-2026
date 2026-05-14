@@ -35,9 +35,9 @@
     </div>
 
     <section class="hero">
-      <p class="muted">Last updated: April 12, 2026</p>
+      <p class="muted">Last updated: May 14, 2026</p>
       <h1>Privacy Policy</h1>
-      <p>A Network ("we", "our", or "us") operates the A Network application and related services. This Privacy Policy explains how we collect, use, store, and disclose information when users access current Web2 mining, wallet continuity, account recovery, Web3 visibility, and future Web4-related features.</p>
+      <p>A Network ("we", "our", or "us") operates the A Network application and related services. This Privacy Policy explains how we collect, use, store, and disclose information when users access current Web2 mining, wallet continuity, account recovery, Web3 visibility, Phase 5 decentralized mining proofs, and future Web4-related features.</p>
       <div class="notice">A Network is a long-term ecosystem project. It is not a guaranteed-profit program, not financial advice, and not a get-rich-quick scheme.</div>
     </section>
 
@@ -50,6 +50,7 @@
         <li>Device, IP, and session identifiers used to secure accounts, apply trusted-device logic, detect abuse, and maintain service integrity.</li>
         <li>Mining activity data, including session start/completion, elapsed time checks, heartbeat validation, successful session counters, ANTS balances, and claim-related audit signals.</li>
         <li>Wallet addresses, migration wallet addresses, wallet PIN status, encrypted seed vault metadata, or related wallet identifiers when users access Web3 or migration features.</li>
+        <li>Phase 5 mining proof data, including proof hashes, difficulty levels, nonce counters, and proof submission timestamps when users generate and submit decentralized proofs to the chain.</li>
         <li>Support or contact information when users communicate with us.</li>
       </ul>
     </section>
@@ -61,6 +62,7 @@
         <li>Provide, operate, maintain, and secure the application.</li>
         <li>Authenticate users, verify email ownership with OTP flows, process one-time account-restore requests, and manage trusted-device sessions.</li>
         <li>Operate mining features, ANTS-first reward accounting, referral activation logic, anti-abuse checks, and supply protection controls.</li>
+        <li>Support Phase 5 decentralized proof generation, signing, submission to blockchain validators, and proof verification on the Layer 1 chain.</li>
         <li>Support app features across off-chain Web2 services, on-chain Web3 visibility, migration wallet handling, and future Web4 preparation.</li>
         <li>Improve functionality, performance, user experience, and fraud detection.</li>
         <li>Comply with legal obligations and protect the integrity of the ecosystem.</li>
@@ -99,6 +101,19 @@
         <li>For production safety, users should not transmit seed phrase or private key material through public web requests.</li>
       </ul>
       <p>When sandbox or integration pages are used for testing, submitted values may be processed according to test-environment behavior. Users should avoid using production secret material in test surfaces.</p>
+    </section>
+
+    <section class="card">
+      <h2>4B. Phase 5: Decentralized Proof Generation and Submission</h2>
+      <p>Phase 5 introduces decentralized mining proofs, enabling miners to generate proofs locally and submit them directly to community validators on the Layer 1 blockchain.</p>
+      <ul>
+        <li>Proof generation occurs entirely on the user's device using SHA256 hashing; the mobile app does not transmit partial proofs or intermediate data to the server.</li>
+        <li>Once a proof is generated, the user signs it with their secp256k1 private key (derived from their BIP39 seed phrase) before submission.</li>
+        <li>Signed proofs are submitted to the Layer 1 blockchain validators, not to a central mining server. Validators independently verify the signature and proof difficulty.</li>
+        <li>Accepted proofs are included in blockchain blocks and become part of the permanent, distributed ledger. This means proof data (miner address, proof hash, difficulty, and timestamp) becomes publicly visible on the blockchain.</li>
+        <li>Proof nonce values are tracked persistently in the chain's database to prevent replay attacks. A miner cannot submit the same proof twice.</li>
+        <li>The private key used for proof signing remains under the user's control and is never transmitted to our servers or to validators; only the signature is submitted.</li>
+      </ul>
     </section>
 
     <section class="card">

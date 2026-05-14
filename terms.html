@@ -35,9 +35,9 @@
     </div>
 
     <section class="hero">
-      <p class="muted">Effective date: April 12, 2026</p>
+      <p class="muted">Effective date: May 14, 2026</p>
       <h1>Terms of Service</h1>
-      <p>These Terms of Service govern access to and use of the A Network application, website, and related services. By using A Network, you agree to these Terms.</p>
+      <p>These Terms of Service govern access to and use of the A Network application, website, and related services, including Phase 5 decentralized mining proofs. By using A Network, you agree to these Terms.</p>
       <div class="notice">A Network is a long-term ecosystem initiative. It does not guarantee earnings, returns, token appreciation, or financial outcomes.</div>
     </section>
 
@@ -52,6 +52,7 @@
       <ul>
         <li>Web2 off-chain application features, session-mining systems, ANTS-first accounting, and account-security controls.</li>
         <li>Web3 on-chain views, wallet interactions, migration wallet references, and blockchain-related token information.</li>
+        <li>Phase 5 decentralized mining proofs, enabling miners to generate time-based SHA256 proofs locally and submit them directly to Layer 1 blockchain validators for independent verification.</li>
         <li>Web4 coordination features designed to connect the Web2 and Web3 sides of the ecosystem through migration, habitat logic, and future node-based infrastructure.</li>
       </ul>
       <p>Some functions may be experimental, limited, region-specific, or subject to future updates.</p>
@@ -87,8 +88,22 @@
     <section class="card">
       <h2>5. Mining and Reward Mechanics</h2>
       <p>Mining rewards are governed by backend network rules and may change as the ecosystem evolves. The current model uses fixed-duration 6-hour sessions, ANTS-first accounting, delayed ANET eligibility, and network-session halving milestones to determine reward progression.</p>
+      <p>Phase 5 introduces decentralized proof submission. Miners may choose between server-approved mining (traditional path) or decentralized proofs (self-signed, validator-verified). Both paths are fully supported and backward compatible.</p>
       <p>Referral behavior is limited and may include a one-time activation credit when a referred user completes a first valid session, but it does not create recurring commissions, multi-level earnings, or guaranteed rewards.</p>
       <p>Rewards are not guaranteed earnings, may be reduced near max-supply limits, and may be suspended, paused, or modified for security, abuse prevention, legal compliance, or system integrity.</p>
+    </section>
+
+    <section class="card">
+      <h2>5A. Decentralized Proof Submission Policy</h2>
+      <p>Phase 5 mining proofs are self-signed by the miner and submitted to the Layer 1 blockchain for independent validator verification.</p>
+      <ul>
+        <li>Proof generation is performed entirely on the user's device using secp256k1 private key signing. The proof and signature prove wallet ownership without requiring central server approval.</li>
+        <li>Accepted proofs are included in Layer 1 blockchain blocks. This means proof data (miner address, proof hash, difficulty level, and submission timestamp) becomes permanently recorded on the public blockchain.</li>
+        <li>Proofs cannot be deleted, modified, or made private once submitted and included in a block. Miners should understand that their proof submissions will be permanently visible on the distributed ledger.</li>
+        <li>Proof nonce values are validated to prevent replay attacks. A single nonce cannot be used twice by the same miner, even across different validators or chain nodes.</li>
+        <li>Miners may submit proofs to any validator node running the A Network protocol. Accepted proofs are automatically included in the next block without requiring permission from a central authority.</li>
+        <li>The total supply cap (21,000,000 ANET) is not affected by Phase 5. Decentralized proofs only change WHO verifies proofs; they do not change the issuance schedule or supply limits.</li>
+      </ul>
     </section>
 
     <section class="card">
@@ -99,8 +114,9 @@
         <li>Maintaining access to your verified email and completing OTP verification steps when required.</li>
         <li>Maintaining any wallet PIN, seed phrase, migration wallet details, and recovery information under your control.</li>
         <li>Using the service lawfully and honestly.</li>
-        <li>Securing any wallet, seed phrase, or external account used with Web3 features.</li>
-        <li>Reviewing the project, risks, and mechanics before participating.</li>
+        <li>Securing any wallet, seed phrase, or external account used with Web3 features or Phase 5 proof submission.</li>
+        <li>Understanding that submitted proofs become permanently recorded on the public blockchain and cannot be deleted, modified, or made private.</li>
+        <li>Reviewing the project, risks, and mechanics before participating, including decentralized proof mechanics in Phase 5.</li>
       </ul>
     </section>
 
