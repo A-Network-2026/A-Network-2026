@@ -1,5 +1,14 @@
 ﻿    const EXPLORER_API_BASE = 'https://explorer.a-network.net';
 
+    function escapeHtml(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+    }
+
     function buildApiUrl(path) {
       return new URL(path, `${EXPLORER_API_BASE}/`).toString();
     }
@@ -58,11 +67,11 @@
         for (const block of recentBlocks) {
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td><span class="kicker">Block #${block.block_height}</span></td>
-            <td class="mono">${block.hash}</td>
+            <td><span class="kicker">Block #${escapeHtml(block.block_height)}</span></td>
+            <td class="mono">${escapeHtml(block.hash)}</td>
             <td>${formatCount(block.miners?.length || 0)}</td>
             <td>${formatCount(block.transactions?.length || 0)}</td>
-            <td class="mono">${block.epoch_end}</td>
+            <td class="mono">${escapeHtml(block.epoch_end)}</td>
           `;
           body.appendChild(row);
         }

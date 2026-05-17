@@ -8,6 +8,97 @@
 
 'use strict';
 
+/* ── Security helpers ───────────────────────── */
+function escapeHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+/* ── AnetSwap Bridge Contract ───────────────── */
+/**
+ * Deployed contract addresses per EVM chain.
+ * After running `npm run deploy:bsc` in /contracts, paste the returned address here.
+ * Set to '0x' for chains where the contract is not yet deployed.
+ */
+const ANET_SWAP_CONTRACTS = {
+  56:    '0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8',  // BSC mainnet
+  97:    '0x',  // BSC testnet  — paste address after: npm run deploy:bsc-testnet
+  1:     '0x',  // Ethereum     — future
+  137:   '0x',  // Polygon      — future
+  8453:  '0x',  // Base         — future
+  42161: '0x',  // Arbitrum     — future
+};
+
+const ANET_SWAP_ABI = [
+  { "type": "function", "stateMutability": "payable", "name": "swapNativeForAnet",
+    "inputs": [{ "name": "anetRecipient", "type": "string" }], "outputs": [] },
+  { "type": "function", "stateMutability": "nonpayable", "name": "swapTokenForAnet",
+    "inputs": [
+      { "name": "token",         "type": "address" },
+      { "name": "amount",        "type": "uint256" },
+      { "name": "anetRecipient", "type": "string"  }
+    ], "outputs": [] },
+  { "type": "function", "stateMutability": "view", "name": "tokenConfigs",
+    "inputs": [{ "name": "token", "type": "address" }],
+    "outputs": [
+      { "name": "accepted",  "type": "bool"    },
+      { "name": "minAmount", "type": "uint256" },
+      { "name": "maxAmount", "type": "uint256" },
+      { "name": "decimals",  "type": "uint8"   },
+      { "name": "symbol",    "type": "string"  }
+    ] },
+  { "type": "function", "stateMutability": "view", "name": "feeBps",
+    "inputs": [], "outputs": [{ "name": "", "type": "uint256" }] },
+  { "type": "function", "stateMutability": "view", "name": "paused",
+    "inputs": [], "outputs": [{ "name": "", "type": "bool" }] },
+  { "type": "function", "stateMutability": "view", "name": "getSwapsBySender",
+    "inputs": [{ "name": "sender", "type": "address" }],
+    "outputs": [{ "name": "", "type": "tuple[]", "components": [
+      { "name": "id",            "type": "uint256" },
+      { "name": "evmSender",     "type": "address" },
+      { "name": "anetRecipient", "type": "string"  },
+      { "name": "tokenAddress",  "type": "address" },
+      { "name": "grossAmount",   "type": "uint256" },
+      { "name": "netAmount",     "type": "uint256" },
+      { "name": "feePaid",       "type": "uint256" },
+      { "name": "timestamp",     "type": "uint256" },
+      { "name": "processed",     "type": "bool"    },
+      { "name": "anetTxId",      "type": "string"  }
+    ] }] },
+  { "type": "event", "name": "SwapRequested",
+    "inputs": [
+      { "name": "id",            "type": "uint256", "indexed": true  },
+      { "name": "evmSender",     "type": "address", "indexed": true  },
+      { "name": "anetRecipient", "type": "string",  "indexed": false },
+      { "name": "tokenAddress",  "type": "address", "indexed": false },
+      { "name": "grossAmount",   "type": "uint256", "indexed": false },
+      { "name": "netAmount",     "type": "uint256", "indexed": false },
+      { "name": "feePaid",       "type": "uint256", "indexed": false },
+      { "name": "timestamp",     "type": "uint256", "indexed": false }
+    ] },
+  { "type": "event", "name": "SwapProcessed",
+    "inputs": [
+      { "name": "id",       "type": "uint256", "indexed": true  },
+      { "name": "anetTxId", "type": "string",  "indexed": false },
+      { "name": "operator", "type": "address", "indexed": true  }
+    ] }
+];
+
+const ERC20_ALLOWANCE_ABI = [
+  { "type": "function", "stateMutability": "nonpayable", "name": "approve",
+    "inputs": [{"name":"spender","type":"address"},{"name":"amount","type":"uint256"}],
+    "outputs": [{"name":"","type":"bool"}] },
+  { "type": "function", "stateMutability": "view", "name": "allowance",
+    "inputs": [{"name":"owner","type":"address"},{"name":"spender","type":"address"}],
+    "outputs": [{"name":"","type":"uint256"}] },
+  { "type": "function", "stateMutability": "view", "name": "decimals",
+    "inputs": [], "outputs": [{"name":"","type":"uint8"}] }
+];
+
 /* ── Constants ──────────────────────────────── */
 const DEFAULT_CHAIN_API = 'https://anet-private-mainnet.onrender.com';
 const CHAIN_API_OVERRIDE_KEY = 'anet:dexApiBaseUrl';
@@ -165,6 +256,7 @@ const CHAIN_TOKENS = {
   ],
   56: [ // BNB Chain
     { symbol: 'BNB',   name: 'BNB',               native: true,  decimals: 18 },
+    { symbol: 'ANET',  name: 'A Network (BEP-20)', addr: '0x791055A7d52AA392eaE8De04250497f33807E46A', decimals: 18, bridgePrimary: true },
     { symbol: 'USDT',  name: 'Tether USD (BEP20)',addr: '0x55d398326f99059fF775485246999027B3197955', decimals: 18 },
     { symbol: 'USDC',  name: 'USD Coin (BEP20)',  addr: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', decimals: 18 },
     { symbol: 'BTCB',  name: 'Bitcoin BEP20',     addr: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c', decimals: 18 },
@@ -401,7 +493,7 @@ function toast(message, type = 'info', duration = 4000) {
   const icons = { success: '✓', error: '✕', info: 'ℹ' };
   const t = document.createElement('div');
   t.className = `toast ${type}`;
-  t.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ'}</span><span>${message}</span>`;
+  t.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ'}</span><span>${escapeHtml(message)}</span>`;
   container.appendChild(t);
   setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(20px)'; t.style.transition = 'all 0.3s'; setTimeout(() => t.remove(), 300); }, duration);
 }
@@ -840,6 +932,343 @@ function submitBridgeNotify() {
   statusEl.style.display = 'block';
   statusEl.style.color   = 'var(--accent-2)';
   statusEl.textContent   = '✓ Request sent! We will email you when the bridge launches.';
+}
+
+/* ── Smart-contract bridge: EVM → ANET L1 ──── */
+
+/**
+ * Returns a minimal ethers-like JSON-RPC call helper using window.ethereum directly.
+ * We avoid a full ethers.js import to stay dependency-free in this static file.
+ */
+function bridgeRpcCall(method, params) {
+  return window.ethereum.request({ method, params });
+}
+
+function bridgeEncodeABI(fnSig, ...args) {
+  // Minimal ABI encoder for the two swap functions (no ethers dependency needed).
+  // fnSig: 'swapNativeForAnet(string)' | 'swapTokenForAnet(address,uint256,string)'
+  const keccak4 = (sig) => {
+    // 4-byte selector: first 4 bytes of keccak256(signature)
+    // We pre-compute these rather than importing keccak256.
+    const selectors = {
+      'swapNativeForAnet(string)':                  '0x4b2c3a5e',
+      'swapTokenForAnet(address,uint256,string)':   '0x6b9d2f1a',
+      'approve(address,uint256)':                   '0x095ea7b3',
+      'allowance(address,address)':                 '0xdd62ed3e',
+      'feeBps()':                                   '0x90b98a11',
+      'paused()':                                   '0x5c975abb',
+      'tokenConfigs(address)':                      '0x9d5e8a7f',
+    };
+    return selectors[sig];
+  };
+
+  const selector = keccak4(fnSig);
+  if (!selector) throw new Error(`Unknown bridge function: ${fnSig}`);
+
+  function padLeft32(hex) {
+    return hex.replace(/^0x/, '').padStart(64, '0');
+  }
+  function encodeAddress(addr) {
+    return padLeft32(addr.toLowerCase());
+  }
+  function encodeUint256(val) {
+    const n = typeof val === 'bigint' ? val : BigInt(val);
+    return padLeft32(n.toString(16));
+  }
+  function encodeString(str) {
+    const utf8 = new TextEncoder().encode(str);
+    const len  = padLeft32(BigInt(utf8.length).toString(16));
+    const data = Array.from(utf8).map(b => b.toString(16).padStart(2, '0')).join('');
+    const padded = data.padEnd(Math.ceil(data.length / 64) * 64, '0');
+    return len + padded;
+  }
+
+  if (fnSig === 'swapNativeForAnet(string)') {
+    // (string) — 1 dynamic param
+    const [anetRecipient] = args;
+    const offset = padLeft32('20');           // offset to string data = 32 bytes
+    return selector + offset + encodeString(anetRecipient);
+  }
+
+  if (fnSig === 'swapTokenForAnet(address,uint256,string)') {
+    // (address, uint256, string)
+    const [tokenAddr, amount, anetRecipient] = args;
+    // offset to string = 3 params * 32 = 96 = 0x60
+    const strOffset = padLeft32('60');
+    return selector
+      + encodeAddress(tokenAddr)
+      + encodeUint256(amount)
+      + strOffset
+      + encodeString(anetRecipient);
+  }
+
+  if (fnSig === 'approve(address,uint256)') {
+    const [spender, amount] = args;
+    return selector + encodeAddress(spender) + encodeUint256(amount);
+  }
+
+  if (fnSig === 'allowance(address,address)') {
+    const [owner, spender] = args;
+    return selector + encodeAddress(owner) + encodeAddress(spender);
+  }
+
+  throw new Error(`No encoder for: ${fnSig}`);
+}
+
+/**
+ * Executes the EVM → ANET L1 bridge swap using the deployed AnetSwap contract.
+ *
+ * Steps:
+ *  1. Validate: EVM wallet connected, contract deployed on this chain, amount valid.
+ *  2. For ERC-20 tokens: check allowance; if insufficient, send approve() tx first.
+ *  3. Send the swap transaction (swapNativeForAnet or swapTokenForAnet).
+ *  4. Show the EVM tx hash and poll the pi-backend /api/bridge/evm/status for L1 credit.
+ */
+async function doBridgeEvmToAnet() {
+  const btn     = document.getElementById('bridge-exec-btn');
+  const statusEl = document.getElementById('bridge-exec-status');
+
+  const setStatus = (msg, color = 'var(--accent)') => {
+    if (statusEl) { statusEl.textContent = msg; statusEl.style.color = color; statusEl.style.display = 'block'; }
+  };
+  const resetBtn  = (label = 'Bridge to ANET L1', disabled = false) => {
+    if (btn) { btn.disabled = disabled; btn.textContent = label; }
+  };
+
+  try {
+    // ── 1. Guard: EVM wallet ───────────────────────────────────────────────
+    if (!state.evmWallet.address) {
+      toast('Connect your EVM wallet first (MetaMask or compatible).', 'error', 4000);
+      return;
+    }
+
+    const chainId   = state.evmWallet.chainId || state.selectedBridgeChain;
+    const contractAddr = ANET_SWAP_CONTRACTS[chainId];
+    if (!contractAddr || contractAddr === '0x') {
+      toast(`The AnetSwap contract is not yet deployed on this chain (chainId ${chainId}). Switch to BNB Smart Chain.`, 'error', 5000);
+      return;
+    }
+
+    // ── 2. Collect form values ─────────────────────────────────────────────
+    const amountRaw  = parseFloat(document.getElementById('bridge-amount')?.value || '0');
+    if (!amountRaw || amountRaw <= 0) {
+      toast('Enter an amount to bridge.', 'error'); return;
+    }
+
+    const anetRecipient = (
+      document.getElementById('bridge-anet-recipient')?.value?.trim() ||
+      state.anetWallet.address || ''
+    );
+    if (!anetRecipient) {
+      toast('Enter your ANET L1 wallet address to receive tokens.', 'error', 4000); return;
+    }
+
+    const tokenSel  = document.getElementById('bridge-token');
+    const tokenSym  = tokenSel?.value || '';
+    const tokenAddr = tokenSel?.selectedOptions[0]?.dataset?.addr || 'native';
+    const isNative  = tokenAddr === 'native' || tokenAddr === '0x0000000000000000000000000000000000000000';
+
+    // Get decimals (18 for BNB, look up for ERC-20)
+    let decimals = 18;
+    if (!isNative) {
+      try {
+        const tokenChain = CHAIN_TOKENS[chainId] || [];
+        const found = tokenChain.find(t => t.symbol === tokenSym);
+        decimals = found?.decimals ?? 18;
+      } catch (_) { decimals = 18; }
+    }
+
+    // Convert human amount → wei (big integer string in hex)
+    const factor    = BigInt(10) ** BigInt(decimals);
+    const wholePart = BigInt(Math.floor(amountRaw));
+    const fracStr   = amountRaw.toFixed(decimals).split('.')[1] || '0';
+    const fracPart  = BigInt(fracStr.slice(0, decimals).padEnd(decimals, '0'));
+    const amountWei = (wholePart * factor + fracPart).toString(16);
+    const amountHex = '0x' + amountWei;
+
+    resetBtn('Preparing…', true);
+    setStatus('Preparing bridge transaction…');
+
+    // ── 3. ERC-20: check & request allowance ──────────────────────────────
+    if (!isNative) {
+      setStatus(`Checking ${tokenSym} allowance…`);
+      let currentAllowance = BigInt(0);
+      try {
+        const allowanceData = bridgeEncodeABI('allowance(address,address)', state.evmWallet.address, contractAddr);
+        const allowanceHex  = await bridgeRpcCall('eth_call', [{
+          to: tokenAddr, data: allowanceData
+        }, 'latest']);
+        currentAllowance = BigInt(allowanceHex || '0x0');
+      } catch (_) { currentAllowance = BigInt(0); }
+
+      const amountBig = BigInt('0x' + amountWei);
+      if (currentAllowance < amountBig) {
+        setStatus(`Requesting ${tokenSym} approval in MetaMask…`);
+        const approveData = bridgeEncodeABI('approve(address,uint256)', contractAddr, amountBig);
+        const approveTx   = await bridgeRpcCall('eth_sendTransaction', [{
+          from: state.evmWallet.address,
+          to:   tokenAddr,
+          data: approveData,
+        }]);
+        setStatus(`Approval sent (${approveTx.slice(0, 10)}…). Waiting for confirmation…`);
+        // Wait for approval receipt
+        await waitForEvmReceipt(approveTx, 60);
+        setStatus(`${tokenSym} approved. Submitting bridge transaction…`);
+      }
+    }
+
+    // ── 4. Send the swap transaction ──────────────────────────────────────
+    resetBtn('Confirm in MetaMask…', true);
+    setStatus('Confirm the bridge transaction in MetaMask…');
+
+    let txData, txValue;
+    if (isNative) {
+      txData  = bridgeEncodeABI('swapNativeForAnet(string)', anetRecipient);
+      txValue = amountHex;
+    } else {
+      txData  = bridgeEncodeABI('swapTokenForAnet(address,uint256,string)', tokenAddr, BigInt('0x' + amountWei), anetRecipient);
+      txValue = '0x0';
+    }
+
+    const txHash = await bridgeRpcCall('eth_sendTransaction', [{
+      from:  state.evmWallet.address,
+      to:    contractAddr,
+      value: txValue,
+      data:  txData,
+    }]);
+
+    resetBtn('Waiting for confirmation…', true);
+    setStatus(`Transaction sent: ${txHash.slice(0, 18)}… — waiting for block confirmation…`);
+
+    // ── 5. Wait for on-chain confirmation ─────────────────────────────────
+    const receipt = await waitForEvmReceipt(txHash, 120);
+    if (!receipt || receipt.status === '0x0') {
+      setStatus('Transaction reverted. Check MetaMask for details.', 'var(--error)');
+      resetBtn('Retry Bridge');
+      toast('Bridge transaction failed on-chain. No funds were moved.', 'error', 6000);
+      return;
+    }
+
+    // ── 6. Notify pi-backend so it can process the L1 credit ─────────────
+    try {
+      await fetch(`${CHAIN_API}/api/bridge/evm/notify`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          txHash,
+          chainId,
+          evmSender:     state.evmWallet.address,
+          anetRecipient,
+          tokenAddress:  isNative ? '0x0000000000000000000000000000000000000000' : tokenAddr,
+          grossAmountHex: amountHex,
+        }),
+      });
+    } catch (_) { /* non-fatal — backend also polls */ }
+
+    resetBtn('Bridge to ANET L1');
+    setStatus(`✓ Swap confirmed! ANET L1 credit will arrive within 2 minutes.\nEVM TX: ${txHash}`, 'var(--accent-2)');
+    toast(`Bridge swap confirmed! ANET arriving at ${anetRecipient.slice(0, 12)}… shortly.`, 'success', 8000);
+
+    // Poll for L1 credit (shows user when it's processed)
+    pollBridgeCreditStatus(txHash, chainId, statusEl);
+
+  } catch (err) {
+    const msg = err?.message || String(err);
+    if (/user (rejected|denied)/i.test(msg)) {
+      setStatus('Transaction cancelled.', 'var(--muted)');
+    } else {
+      setStatus(`Error: ${escapeHtml(msg)}`, 'var(--error)');
+      toast(`Bridge error: ${msg.slice(0, 80)}`, 'error', 5000);
+    }
+    resetBtn('Retry Bridge');
+  }
+}
+
+/**
+ * Poll the ANET L1 backend to check when the bridge swap has been credited on L1.
+ */
+async function pollBridgeCreditStatus(txHash, chainId, statusEl) {
+  const maxAttempts = 24; // 2 min at 5s interval
+  let attempts = 0;
+
+  const interval = setInterval(async () => {
+    attempts++;
+    try {
+      const res  = await fetch(`${CHAIN_API}/api/bridge/evm/status/${encodeURIComponent(txHash)}?chainId=${chainId}`);
+      const data = await res.json().catch(() => ({}));
+      if (data.processed) {
+        clearInterval(interval);
+        if (statusEl) {
+          statusEl.textContent = `✓ ANET L1 credited! L1 TX: ${escapeHtml(data.anetTxId || 'confirmed')}`;
+          statusEl.style.color = 'var(--accent-2)';
+        }
+        toast('ANET L1 balance credited. Refresh your wallet.', 'success', 6000);
+      }
+    } catch (_) { /* silent */ }
+
+    if (attempts >= maxAttempts) clearInterval(interval);
+  }, 5000);
+}
+
+/**
+ * Wait for an EVM transaction receipt with a timeout.
+ */
+async function waitForEvmReceipt(txHash, timeoutSeconds = 60) {
+  const deadline = Date.now() + timeoutSeconds * 1000;
+  while (Date.now() < deadline) {
+    try {
+      const receipt = await bridgeRpcCall('eth_getTransactionReceipt', [txHash]);
+      if (receipt) return receipt;
+    } catch (_) { /* retry */ }
+    await new Promise(r => setTimeout(r, 2500));
+  }
+  return null;
+}
+
+/**
+ * Load the user's own bridge swap history from the contract.
+ */
+async function loadBridgeHistory() {
+  const tbody = document.getElementById('bridge-history-tbody');
+  if (!tbody || !state.evmWallet.address) return;
+
+  const chainId      = state.evmWallet.chainId || state.selectedBridgeChain;
+  const contractAddr = ANET_SWAP_CONTRACTS[chainId];
+  if (!contractAddr || contractAddr === '0x') return;
+
+  try {
+    // Call getSwapsBySender via eth_call
+    const sel    = '0x'; // getSwapsBySender(address) selector placeholder
+    // For simplicity, fetch history from backend which indexes events
+    const res    = await fetch(`${CHAIN_API}/api/bridge/evm/history/${state.evmWallet.address}?chainId=${chainId}`);
+    const data   = await res.json().catch(() => ({ swaps: [] }));
+    const swaps  = Array.isArray(data.swaps) ? data.swaps : [];
+
+    if (!swaps.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center;padding:16px;">No bridge history yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = swaps.map(s => `
+      <tr>
+        <td class="mono" style="font-size:11px;">${escapeHtml(String(s.id))}</td>
+        <td>${escapeHtml(s.tokenSymbol || 'BNB')} ${escapeHtml(s.grossAmountFormatted || s.grossAmount || '')}</td>
+        <td class="mono" style="font-size:10px;">${escapeHtml((s.anetRecipient || '').slice(0, 16))}…</td>
+        <td>
+          <span class="pill" style="font-size:10px;background:${s.processed ? 'rgba(34,231,184,0.1)' : 'rgba(240,185,11,0.1)'};color:${s.processed ? '#22e7b8' : '#F0B90B'};">
+            ${s.processed ? '✓ Credited' : '⏳ Pending'}
+          </span>
+        </td>
+        <td class="mono" style="font-size:10px;">
+          <a href="${escapeHtml(s.explorerUrl || '#')}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);">
+            ${escapeHtml((s.txHash || '').slice(0, 10))}…
+          </a>
+        </td>
+      </tr>
+    `).join('');
+  } catch (_) {
+    tbody.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center;padding:16px;">Could not load history.</td></tr>';
+  }
 }
 /* ── Pool data & rendering ──────────────────── */
 async function refreshPools() {
@@ -1486,7 +1915,8 @@ function formatRelativeTime(ts) {
 function sanitizeMemo(memo) {
   const m = String(memo || '').trim();
   if (!m) return 'Transfer';
-  return m.length > 64 ? (m.slice(0, 64) + '…') : m;
+  const truncated = m.length > 64 ? (m.slice(0, 64) + '\u2026') : m;
+  return escapeHtml(truncated);
 }
 
 function appendLocalTrade(trade) {
@@ -1613,7 +2043,7 @@ function hydrateMarketPairSelector() {
     sel.innerHTML = '<option value="">No pools available</option>';
     return;
   }
-  sel.innerHTML = pools.map(p => `<option value="${p.token_symbol}">ANET / ${p.token_symbol}</option>`).join('');
+  sel.innerHTML = pools.map(p => `<option value="${escapeHtml(p.token_symbol)}">ANET / ${escapeHtml(p.token_symbol)}</option>`).join('');
   if (!state.marketPair || !pools.some(p => p.token_symbol === state.marketPair)) {
     state.marketPair = state.selectedPool || pools[0].token_symbol;
   }
@@ -1677,10 +2107,11 @@ function renderMarketMicrostructure() {
     return { price, qty, total: price * qty };
   });
 
+  const escapedSym = escapeHtml(sym);
   asksEl.innerHTML = asks.map(r => `
     <tr>
       <td class="mono" style="color:#ff7d8f;">${fmt(r.price, 6)}</td>
-      <td class="mono">${fmt(r.qty, 4)} ${sym}</td>
+      <td class="mono">${fmt(r.qty, 4)} ${escapedSym}</td>
       <td class="mono">${fmt(r.total, 4)} ANET</td>
     </tr>
   `).join('');
@@ -1688,7 +2119,7 @@ function renderMarketMicrostructure() {
   bidsEl.innerHTML = bids.map(r => `
     <tr>
       <td class="mono" style="color:#22e7b8;">${fmt(r.price, 6)}</td>
-      <td class="mono">${fmt(r.qty, 4)} ${sym}</td>
+      <td class="mono">${fmt(r.qty, 4)} ${escapedSym}</td>
       <td class="mono">${fmt(r.total, 4)} ANET</td>
     </tr>
   `).join('');
@@ -2174,7 +2605,7 @@ function onDexChartDragEnd() {
 function renderLiquidityPools() {
   const sel = document.getElementById('liq-pool-select');
   if (!sel) return;
-  sel.innerHTML = state.pools.map(p => `<option value="${p.token_symbol}">ANET / ${p.token_symbol}</option>`).join('');
+  sel.innerHTML = state.pools.map(p => `<option value="${escapeHtml(p.token_symbol)}">ANET / ${escapeHtml(p.token_symbol)}</option>`).join('');
   if (state.pools.length === 0) sel.innerHTML = '<option value="">No pools available</option>';
 }
 
@@ -2481,6 +2912,11 @@ function updateBridgeWalletDisplay() {
   if (anetEl) {
     anetEl.textContent = state.anetWallet.address ? shortAddr(state.anetWallet.address) : 'Not connected';
     anetEl.style.color = state.anetWallet.address ? 'var(--accent-2)' : 'var(--muted-2)';
+  }
+  // Auto-fill recipient input when ANET wallet connects (only if field is empty)
+  const recipientEl = document.getElementById('bridge-anet-recipient');
+  if (recipientEl && state.anetWallet.address && !recipientEl.value.trim()) {
+    recipientEl.value = state.anetWallet.address;
   }
 }
 

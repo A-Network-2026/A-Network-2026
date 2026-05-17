@@ -1,0 +1,15 @@
+# Environment secrets — never commit
+pi-backend/.env
+pi-backend/.env.*
+contracts/.env
+contracts/.env.*
+
+# Hardhat build artifacts
+contracts/node_modules/
+contracts/cache/
+contracts/artifacts/
+contracts/typechain-types/
+
+# OS
+.DS_Store
+Thumbs.db
