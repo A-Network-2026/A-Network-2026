@@ -4281,22 +4281,30 @@ app.post('/api/bridge/evm/admin/process', async (req, res) => {
 
       // 2. Credit ANET L1 via the chain admin API
       if (ANET_CHAIN_API_BASE_URL) {
-        let grossFormatted = '0';
-        try { grossFormatted = (Number(BigInt(record.grossAmountHex || '0x0')) / 1e18).toFixed(8); } catch (_) { }
+        // Convert wei amount → ANTS (18-decimal → 8-decimal bridge rate: 1 BNB = 1 ANET = 100_000_000 ANTS)
+        // The gross amount is in 18-decimal wei on BSC; ANTS is 8-decimal on L1.
+        // Bridge rate: 1 unit (in token decimals) = 1 ANET = 100_000_000 ANTS (1:1 peg, minus fee already deducted by contract)
+        let amountAnts = 0n;
+        try {
+          const weiValue = BigInt(record.grossAmountHex || '0x0');
+          // Convert 18-decimal wei to 8-decimal ANTS: divide by 1e10
+          amountAnts = weiValue / 10_000_000_000n;
+        } catch (_) { amountAnts = 0n; }
 
-        const creditRes = await fetch(`${ANET_CHAIN_API_BASE_URL}/admin/dex/swap/execute`, {
+        if (amountAnts <= 0n) {
+          results.push({ txHash: record.txHash, ok: false, error: 'Could not compute ANTS amount from grossAmountHex.' });
+          continue;
+        }
+
+        const creditRes = await fetch(`${ANET_CHAIN_API_BASE_URL}/admin/bridge/evm/credit`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Admin-Key': ANET_L1_DEX_ADMIN_KEY,
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            recipient:   record.anetRecipient,
-            amount:      grossFormatted,
-            source:      'evm_bridge',
-            evmTxHash:   record.txHash,
-            evmChainId:  record.chainId,
-            evmSender:   record.evmSender,
+            admin_key:    ANET_L1_DEX_ADMIN_KEY,
+            recipient:    record.anetRecipient,
+            amount_ants:  Number(amountAnts),
+            evm_tx_hash:  record.txHash,
+            evm_chain_id: record.chainId,
           }),
         });
         if (!creditRes.ok) {
@@ -4305,7 +4313,7 @@ app.post('/api/bridge/evm/admin/process', async (req, res) => {
           continue;
         }
         const creditData = await creditRes.json().catch(() => ({}));
-        const anetTxId = creditData?.txId || creditData?.tx_id || `evm:${record.txHash}`;
+        const anetTxId = creditData?.tx_id || `bridge:evm:${record.txHash}`;
 
         record.processed   = true;
         record.anetTxId    = String(anetTxId);
@@ -4360,6 +4368,84 @@ initializeNftDatabase()
       console.log(`Pi backend listening on http://${host}:${port}`);
       console.log(`[NFT] Identity DB ready at ${NFT_DB_PATH}`);
       console.log(`[NFT] Minimum profile creation stake: ${NFT_MIN_PROFILE_ANTS} ANTS`);
+
+      // ── EVM Bridge Auto-Processor ─────────────────────────────────────────
+      // Runs every 60 s. Finds unprocessed bridge requests, verifies them on
+      // BSC, then calls /admin/bridge/evm/credit on the ANET L1 chain.
+      // Requires: ANET_CHAIN_API_BASE_URL, ANET_L1_DEX_ADMIN_KEY, EVM_BRIDGE_CREDITS_ENABLED=true on L1.
+      const BRIDGE_PROCESSOR_INTERVAL_MS = 60_000;
+      async function runEvmBridgeProcessor() {
+        const pending = Object.values(cashoutState.evmBridgeRequests || {})
+          .filter(r => !r.processed);
+        if (!pending.length) return;
+
+        console.log(`[EVM Bridge] Processing ${pending.length} pending bridge request(s)…`);
+        for (const record of pending) {
+          try {
+            const receipt = await evmGetReceipt(record.txHash, record.chainId || 56);
+            if (!receipt || receipt.status !== '0x1') continue; // not yet mined or reverted
+
+            let amountAnts = 0n;
+            try {
+              amountAnts = BigInt(record.grossAmountHex || '0x0') / 10_000_000_000n;
+            } catch (_) { continue; }
+
+            if (amountAnts <= 0n) {
+              console.warn(`[EVM Bridge] Skipping ${record.txHash} — zero ANTS computed.`);
+              continue;
+            }
+
+            if (!ANET_CHAIN_API_BASE_URL || !ANET_L1_DEX_ADMIN_KEY) {
+              // Mark without L1 credit if chain not configured (dev/test mode)
+              record.processed   = true;
+              record.anetTxId    = `manual:${record.txHash}`;
+              record.processedAt = Date.now();
+              persistState();
+              console.log(`[EVM Bridge] ${record.txHash} marked (no L1 API configured).`);
+              continue;
+            }
+
+            const creditRes = await fetch(`${ANET_CHAIN_API_BASE_URL}/admin/bridge/evm/credit`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                admin_key:    ANET_L1_DEX_ADMIN_KEY,
+                recipient:    record.anetRecipient,
+                amount_ants:  Number(amountAnts),
+                evm_tx_hash:  record.txHash,
+                evm_chain_id: record.chainId || 56,
+              }),
+            }).catch(e => ({ ok: false, _err: e.message }));
+
+            if (!creditRes.ok) {
+              const body = typeof creditRes.text === 'function'
+                ? await creditRes.text().catch(() => '?')
+                : (creditRes._err || '?');
+              console.error(`[EVM Bridge] L1 credit failed for ${record.txHash}: ${String(body).slice(0, 120)}`);
+              continue;
+            }
+
+            const data = await creditRes.json().catch(() => ({}));
+            record.processed   = true;
+            record.anetTxId    = data.tx_id || `bridge:evm:${record.txHash}`;
+            record.processedAt = Date.now();
+            persistState();
+            console.log(`[EVM Bridge] ✓ Credited ${Number(amountAnts)} ANTS to ${record.anetRecipient} — L1 tx ${record.anetTxId}`);
+          } catch (err) {
+            console.error(`[EVM Bridge] Error processing ${record.txHash}: ${err.message}`);
+          }
+        }
+      }
+
+      // Run once on startup (after a short delay), then every 60 s.
+      setTimeout(() => {
+        runEvmBridgeProcessor().catch(e => console.error('[EVM Bridge] Processor error:', e.message));
+        setInterval(() => {
+          runEvmBridgeProcessor().catch(e => console.error('[EVM Bridge] Processor error:', e.message));
+        }, BRIDGE_PROCESSOR_INTERVAL_MS);
+      }, 15_000);
+
+      console.log(`[EVM Bridge] Auto-processor started (interval: ${BRIDGE_PROCESSOR_INTERVAL_MS / 1000}s).`);
 
       // ── Production safety checks ──────────────────────────────────────────
       if (!PI_SANDBOX) {
