@@ -60,6 +60,37 @@ const PI_TEST_ADMIN_ALLOWED_IPS = String(process.env.PI_TEST_ADMIN_ALLOWED_IPS |
   .map((entry) => entry.trim())
   .filter(Boolean);
 
+// ── EVM Bridge config ──────────────────────────────────────────────────────
+// Contract addresses per chainId (set these after deploying AnetSwap.sol)
+const EVM_BRIDGE_CONTRACTS = {
+  56:    String(process.env.EVM_BRIDGE_CONTRACT_BSC       || '').trim(),
+  97:    String(process.env.EVM_BRIDGE_CONTRACT_BSC_TEST  || '').trim(),
+  1:     String(process.env.EVM_BRIDGE_CONTRACT_ETH       || '').trim(),
+  137:   String(process.env.EVM_BRIDGE_CONTRACT_POLYGON   || '').trim(),
+  8453:  String(process.env.EVM_BRIDGE_CONTRACT_BASE      || '').trim(),
+};
+// JSON-RPC node URLs per chainId
+const EVM_RPC_URLS = {
+  56:    String(process.env.EVM_RPC_BSC       || 'https://bsc-dataseed1.binance.org').trim(),
+  97:    String(process.env.EVM_RPC_BSC_TEST  || 'https://data-seed-prebsc-1-s1.binance.org:8545').trim(),
+  1:     String(process.env.EVM_RPC_ETH       || 'https://eth.llamarpc.com').trim(),
+  137:   String(process.env.EVM_RPC_POLYGON   || 'https://polygon-rpc.com').trim(),
+  8453:  String(process.env.EVM_RPC_BASE      || 'https://mainnet.base.org').trim(),
+};
+// Block explorer TX URL builders per chainId
+const EVM_EXPLORER_TX = {
+  56:    'https://bscscan.com/tx/',
+  97:    'https://testnet.bscscan.com/tx/',
+  1:     'https://etherscan.io/tx/',
+  137:   'https://polygonscan.com/tx/',
+  8453:  'https://basescan.org/tx/',
+};
+// Native token symbol per chainId (used in history formatting)
+const EVM_NATIVE_SYMBOL = {
+  56: 'BNB', 97: 'tBNB', 1: 'ETH', 137: 'MATIC', 8453: 'ETH',
+};
+const EVM_BRIDGE_ADMIN_KEY = String(process.env.EVM_BRIDGE_ADMIN_KEY || process.env.PI_ADMIN_KEY || '').trim();
+
 let nftDb = null;
 
 if (!PI_API_KEY) {
@@ -73,7 +104,8 @@ function initialState() {
     settlementTransactions: [],
     walletBindings: {},
     btcPaymentRequests: {},
-    btcSettlementTransactions: []
+    btcSettlementTransactions: [],
+    evmBridgeRequests: {}
   };
 }
 
@@ -95,7 +127,8 @@ function loadState() {
       settlementTransactions: Array.isArray(parsed?.settlementTransactions) ? parsed.settlementTransactions : [],
       walletBindings: parsed?.walletBindings && typeof parsed.walletBindings === 'object' ? parsed.walletBindings : {},
       btcPaymentRequests: parsed?.btcPaymentRequests && typeof parsed.btcPaymentRequests === 'object' ? parsed.btcPaymentRequests : {},
-      btcSettlementTransactions: Array.isArray(parsed?.btcSettlementTransactions) ? parsed.btcSettlementTransactions : []
+      btcSettlementTransactions: Array.isArray(parsed?.btcSettlementTransactions) ? parsed.btcSettlementTransactions : [],
+      evmBridgeRequests: parsed?.evmBridgeRequests && typeof parsed.evmBridgeRequests === 'object' ? parsed.evmBridgeRequests : {}
     };
   } catch (error) {
     console.warn(`[WARN] Failed to read DEX state: ${error.message}`);
@@ -1060,6 +1093,18 @@ function upsertLifetimeUnlock(payment, paymentId, txid) {
 app.use(cors({ origin: ALLOWED_ORIGIN === '*' ? true : ALLOWED_ORIGIN }));
 app.disable('x-powered-by');
 
+// Security headers on every response.
+app.use((_req, res, next) => {
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'");
+  next();
+});
+
 function getClientIp(req) {
   const forwarded = String(req.headers?.['x-forwarded-for'] || '').trim();
   if (forwarded) {
@@ -1098,6 +1143,16 @@ function createSimpleRateLimiter({ windowMs, max, keyPrefix = 'global' }) {
 
 function enforceAdminIpAllowlist(req, res, next) {
   if (!PI_TEST_ADMIN_ALLOWED_IPS.length) {
+    if (!PI_SANDBOX) {
+      // Non-sandbox: fail-closed when no allowlist is configured to prevent
+      // unintended admin access from any IP. Set PI_TEST_ADMIN_ALLOWED_IPS
+      // to a comma-separated list of trusted IPs to enable admin access.
+      return res.status(403).json({
+        ok: false,
+        error: 'Admin access requires PI_TEST_ADMIN_ALLOWED_IPS to be configured in this environment'
+      });
+    }
+    // Sandbox mode: allow without IP restriction (admin key still required per endpoint).
     return next();
   }
   const ip = getClientIp(req);
@@ -4083,6 +4138,221 @@ app.post('/api/pi/cashout/request', (_req, res) => {
     error: 'Cashout flow has been replaced by the DEX flow. Use /api/pi/dex/quote and /api/pi/dex/execute instead.'
   });
 });
+
+/* ── EVM Bridge endpoints ──────────────────────────────────────────── */
+
+/**
+ * POST /api/bridge/evm/notify
+ * Called by the frontend immediately after a swap TX is broadcast.
+ * Records the pending bridge request so the admin polling job can process it.
+ *
+ * Body: { txHash, chainId, evmSender, anetRecipient, tokenAddress, grossAmountHex }
+ */
+app.post('/api/bridge/evm/notify', (req, res) => {
+  const { txHash, chainId, evmSender, anetRecipient, tokenAddress, grossAmountHex } = req.body || {};
+
+  if (!txHash || typeof txHash !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(txHash)) {
+    return res.status(400).json({ ok: false, error: 'Invalid txHash.' });
+  }
+  if (!anetRecipient || typeof anetRecipient !== 'string') {
+    return res.status(400).json({ ok: false, error: 'anetRecipient is required.' });
+  }
+  const cid = Number(chainId) || 56;
+  const key = txHash.toLowerCase();
+
+  if (!cashoutState.evmBridgeRequests[key]) {
+    cashoutState.evmBridgeRequests[key] = {
+      txHash: key,
+      chainId: cid,
+      evmSender:     String(evmSender || '').toLowerCase(),
+      anetRecipient: String(anetRecipient).trim(),
+      tokenAddress:  String(tokenAddress || '0x0000000000000000000000000000000000000000').toLowerCase(),
+      grossAmountHex: String(grossAmountHex || '0x0'),
+      processed: false,
+      anetTxId: null,
+      createdAt: Date.now(),
+      processedAt: null,
+    };
+    persistState();
+  }
+
+  return res.json({ ok: true, txHash: key });
+});
+
+/**
+ * GET /api/bridge/evm/status/:txHash
+ * Returns the current processing status of a bridge swap.
+ */
+app.get('/api/bridge/evm/status/:txHash', (req, res) => {
+  const txHash = String(req.params.txHash || '').toLowerCase();
+  if (!/^0x[0-9a-fA-F]{64}$/.test(txHash)) {
+    return res.status(400).json({ ok: false, error: 'Invalid txHash.' });
+  }
+  const record = cashoutState.evmBridgeRequests[txHash];
+  if (!record) {
+    return res.json({ ok: true, found: false, processed: false });
+  }
+  return res.json({
+    ok: true,
+    found: true,
+    processed: record.processed,
+    anetTxId:  record.anetTxId || null,
+    createdAt: record.createdAt,
+    processedAt: record.processedAt || null,
+  });
+});
+
+/**
+ * GET /api/bridge/evm/history/:evmAddress
+ * Returns bridge swap history for a given EVM address.
+ */
+app.get('/api/bridge/evm/history/:evmAddress', (req, res) => {
+  const addr = String(req.params.evmAddress || '').toLowerCase().trim();
+  if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) {
+    return res.status(400).json({ ok: false, error: 'Invalid EVM address.' });
+  }
+  const chainId = Number(req.query.chainId) || 56;
+  const nativeSym = EVM_NATIVE_SYMBOL[chainId] || 'BNB';
+  const explorerBase = EVM_EXPLORER_TX[chainId] || '';
+
+  const swaps = Object.values(cashoutState.evmBridgeRequests)
+    .filter(r => r.evmSender === addr)
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 50)
+    .map(r => {
+      const isNative = r.tokenAddress === '0x0000000000000000000000000000000000000000';
+      const tokenSymbol = isNative ? nativeSym : 'TOKEN';
+      let grossAmountFormatted = '';
+      try {
+        const wei = BigInt(r.grossAmountHex || '0x0');
+        grossAmountFormatted = (Number(wei) / 1e18).toFixed(6);
+      } catch (_) { grossAmountFormatted = '?'; }
+      return {
+        txHash:              r.txHash,
+        chainId:             r.chainId,
+        evmSender:           r.evmSender,
+        anetRecipient:       r.anetRecipient,
+        tokenAddress:        r.tokenAddress,
+        tokenSymbol,
+        grossAmountFormatted,
+        processed:           r.processed,
+        anetTxId:            r.anetTxId || null,
+        createdAt:           r.createdAt,
+        processedAt:         r.processedAt || null,
+        explorerUrl:         explorerBase ? `${explorerBase}${r.txHash}` : '',
+      };
+    });
+
+  return res.json({ ok: true, swaps });
+});
+
+/**
+ * POST /api/bridge/evm/admin/process
+ *
+ * Admin-only endpoint. Reads pending EVM bridge requests, calls the ANET L1
+ * chain to credit wallets, then marks each request as processed.
+ *
+ * This is also called by the background polling job. Requires EVM_BRIDGE_ADMIN_KEY.
+ */
+app.post('/api/bridge/evm/admin/process', async (req, res) => {
+  // Auth check
+  const key = req.headers['x-admin-key'] || req.body?.adminKey || '';
+  if (!EVM_BRIDGE_ADMIN_KEY || key !== EVM_BRIDGE_ADMIN_KEY) {
+    return res.status(403).json({ ok: false, error: 'Forbidden.' });
+  }
+
+  const chainId = Number(req.body?.chainId) || 56;
+  const pending = Object.values(cashoutState.evmBridgeRequests)
+    .filter(r => !r.processed && r.chainId === chainId);
+
+  if (!pending.length) {
+    return res.json({ ok: true, processed: 0, message: 'No pending requests.' });
+  }
+
+  const results = [];
+  for (const record of pending) {
+    try {
+      // 1. Verify the TX is confirmed on-chain
+      const receipt = await evmGetReceipt(record.txHash, chainId);
+      if (!receipt || receipt.status !== '0x1') {
+        results.push({ txHash: record.txHash, ok: false, error: 'TX not confirmed or reverted.' });
+        continue;
+      }
+
+      // 2. Credit ANET L1 via the chain admin API
+      if (ANET_CHAIN_API_BASE_URL) {
+        let grossFormatted = '0';
+        try { grossFormatted = (Number(BigInt(record.grossAmountHex || '0x0')) / 1e18).toFixed(8); } catch (_) { }
+
+        const creditRes = await fetch(`${ANET_CHAIN_API_BASE_URL}/admin/dex/swap/execute`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Key': ANET_L1_DEX_ADMIN_KEY,
+          },
+          body: JSON.stringify({
+            recipient:   record.anetRecipient,
+            amount:      grossFormatted,
+            source:      'evm_bridge',
+            evmTxHash:   record.txHash,
+            evmChainId:  record.chainId,
+            evmSender:   record.evmSender,
+          }),
+        });
+        if (!creditRes.ok) {
+          const errText = await creditRes.text().catch(() => '?');
+          results.push({ txHash: record.txHash, ok: false, error: `L1 credit failed: ${errText.slice(0, 120)}` });
+          continue;
+        }
+        const creditData = await creditRes.json().catch(() => ({}));
+        const anetTxId = creditData?.txId || creditData?.tx_id || `evm:${record.txHash}`;
+
+        record.processed   = true;
+        record.anetTxId    = String(anetTxId);
+        record.processedAt = Date.now();
+        results.push({ txHash: record.txHash, ok: true, anetTxId });
+      } else {
+        // L1 API not configured — mark processed with placeholder
+        record.processed   = true;
+        record.anetTxId    = `manual:${record.txHash}`;
+        record.processedAt = Date.now();
+        results.push({ txHash: record.txHash, ok: true, anetTxId: record.anetTxId, note: 'L1 API not configured — credited manually.' });
+      }
+    } catch (err) {
+      results.push({ txHash: record.txHash, ok: false, error: err.message });
+    }
+  }
+
+  persistState();
+  return res.json({ ok: true, processed: results.filter(r => r.ok).length, results });
+});
+
+/**
+ * Minimal JSON-RPC helper for reading EVM data without a full ethers.js dependency.
+ * Only used by admin endpoints running server-side.
+ */
+async function evmGetReceipt(txHash, chainId) {
+  const rpcUrl = EVM_RPC_URLS[chainId];
+  if (!rpcUrl) throw new Error(`No RPC URL configured for chainId ${chainId}`);
+
+  const response = await fetch(rpcUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id:      1,
+      method:  'eth_getTransactionReceipt',
+      params:  [txHash],
+    }),
+  });
+
+  if (!response.ok) throw new Error(`RPC HTTP ${response.status}`);
+  const data = await response.json();
+  if (data.error) throw new Error(`RPC error: ${data.error.message || JSON.stringify(data.error)}`);
+  return data.result;  // null if pending, object if mined
+}
+
+/* ── End EVM Bridge endpoints ──────────────────────────────────────── */
 
 initializeNftDatabase()
   .then(() => {
