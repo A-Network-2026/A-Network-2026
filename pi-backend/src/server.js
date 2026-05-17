@@ -142,6 +142,23 @@ function safeIsoDate(value) {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+// Constant-time key comparison to prevent timing oracle attacks on admin endpoints.
+function safeKeyEqual(provided, expected) {
+  if (!provided || !expected) return false;
+  try {
+    const a = Buffer.from(String(provided));
+    const b = Buffer.from(String(expected));
+    if (a.length !== b.length) {
+      // Still invoke timingSafeEqual to avoid length-based timing leak, then return false.
+      crypto.timingSafeEqual(Buffer.alloc(a.length, 0), Buffer.alloc(a.length, 1));
+      return false;
+    }
+    return crypto.timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
+
 function ensureNftDbDirectory() {
   fs.mkdirSync(path.dirname(NFT_DB_PATH), { recursive: true });
 }
@@ -1213,7 +1230,7 @@ app.post('/api/pi/admin/force-unlock', (req, res) => {
   }
 
   const providedKey = String(req.body?.admin_key || '').trim();
-  if (providedKey !== PI_ADMIN_KEY) {
+  if (!safeKeyEqual(providedKey, PI_ADMIN_KEY)) {
     return res.status(401).json({ ok: false, error: 'Invalid admin key' });
   }
 
@@ -1247,7 +1264,7 @@ app.post('/api/pi/admin/force-dex-record', async (req, res) => {
   }
 
   const providedKey = String(req.body?.admin_key || '').trim();
-  if (providedKey !== PI_ADMIN_KEY) {
+  if (!safeKeyEqual(providedKey, PI_ADMIN_KEY)) {
     return res.status(401).json({ ok: false, error: 'Invalid admin key' });
   }
 
@@ -2405,7 +2422,7 @@ app.post('/api/nft/collections/create', async (req, res) => {
     return;
   }
   const adminKey = String(req.body?.admin_key || req.headers?.['x-admin-key'] || '').trim();
-  if (!PI_ADMIN_KEY || adminKey !== PI_ADMIN_KEY) {
+  if (!PI_ADMIN_KEY || !safeKeyEqual(adminKey, PI_ADMIN_KEY)) {
     return res.status(403).json({ ok: false, error: 'Admin key required' });
   }
   try {
@@ -3888,7 +3905,7 @@ app.post('/api/btc/admin/force-confirm', (req, res) => {
   }
 
   const providedKey = String(req.body?.admin_key || '').trim();
-  if (providedKey !== PI_ADMIN_KEY) {
+  if (!safeKeyEqual(providedKey, PI_ADMIN_KEY)) {
     return res.status(401).json({ ok: false, error: 'Invalid admin key' });
   }
 
@@ -4073,6 +4090,25 @@ initializeNftDatabase()
       console.log(`Pi backend listening on http://${host}:${port}`);
       console.log(`[NFT] Identity DB ready at ${NFT_DB_PATH}`);
       console.log(`[NFT] Minimum profile creation stake: ${NFT_MIN_PROFILE_ANTS} ANTS`);
+
+      // ── Production safety checks ──────────────────────────────────────────
+      if (!PI_SANDBOX) {
+        if (!PI_ADMIN_KEY) {
+          console.warn('[SECURITY WARNING] PI_ADMIN_KEY is not set. Admin endpoints will return 503. Set PI_ADMIN_KEY in production to enable admin access.');
+        }
+        if (ALLOWED_ORIGIN === '*') {
+          console.warn('[SECURITY WARNING] ALLOWED_ORIGIN is set to "*" (all origins). Set ALLOWED_ORIGIN to your production domain (e.g. https://a-network.net).');
+        }
+        if (PI_ENABLE_TEST_ADMIN) {
+          console.warn('[SECURITY WARNING] PI_ENABLE_TEST_ADMIN=true in a non-sandbox environment. Admin force-unlock endpoints are active.');
+        }
+        if (PI_ALLOW_TEST_ASSET_MINT) {
+          console.warn('[SECURITY WARNING] PI_ALLOW_TEST_ASSET_MINT=true in a non-sandbox environment. Test asset minting is active.');
+        }
+        if ((process.env.PI_ALLOW_INELIGIBLE_FOR_DEX_TEST || 'false').toLowerCase() === 'true') {
+          console.warn('[SECURITY WARNING] PI_ALLOW_INELIGIBLE_FOR_DEX_TEST=true in a non-sandbox environment. DEX cashout requirement is bypassed.');
+        }
+      }
     });
   })
   .catch((error) => {

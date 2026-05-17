@@ -11,11 +11,11 @@ services:
       - key: PI_SANDBOX
         value: "false"
       - key: PI_ENABLE_TEST_ADMIN
-        value: "true"
+        value: "false"
       - key: PI_ALLOW_TEST_ASSET_MINT
-        value: "true"
+        value: "false"
       - key: PI_ALLOW_INELIGIBLE_FOR_DEX_TEST
-        value: "true"
+        value: "false"
       - key: PI_REQUIRED_SESSIONS
         value: "1000"
       - key: PI_ENFORCE_PRIMARY_WALLET_BINDING
