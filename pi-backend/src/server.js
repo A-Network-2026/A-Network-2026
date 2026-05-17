@@ -4281,18 +4281,12 @@ app.post('/api/bridge/evm/admin/process', async (req, res) => {
 
       // 2. Credit ANET L1 via the chain admin API
       if (ANET_CHAIN_API_BASE_URL) {
-        // Convert wei amount → ANTS (18-decimal → 8-decimal bridge rate: 1 BNB = 1 ANET = 100_000_000 ANTS)
-        // The gross amount is in 18-decimal wei on BSC; ANTS is 8-decimal on L1.
-        // Bridge rate: 1 unit (in token decimals) = 1 ANET = 100_000_000 ANTS (1:1 peg, minus fee already deducted by contract)
-        let amountAnts = 0n;
-        try {
-          const weiValue = BigInt(record.grossAmountHex || '0x0');
-          // Convert 18-decimal wei to 8-decimal ANTS: divide by 1e10
-          amountAnts = weiValue / 10_000_000_000n;
-        } catch (_) { amountAnts = 0n; }
+        // Fetch authoritative on-chain tx data — NEVER trust client-supplied grossAmountHex
+        const tx = await evmGetTransaction(record.txHash, chainId).catch(() => null);
+        const amountAnts = computeBridgeAntsFromTx(tx, record);
 
         if (amountAnts <= 0n) {
-          results.push({ txHash: record.txHash, ok: false, error: 'Could not compute ANTS amount from grossAmountHex.' });
+          results.push({ txHash: record.txHash, ok: false, error: 'Could not compute ANTS amount from on-chain tx.' });
           continue;
         }
 
@@ -4382,13 +4376,13 @@ initializeNftDatabase()
         console.log(`[EVM Bridge] Processing ${pending.length} pending bridge request(s)…`);
         for (const record of pending) {
           try {
-            const receipt = await evmGetReceipt(record.txHash, record.chainId || 56);
+            const chainId = record.chainId || 56;
+            const receipt = await evmGetReceipt(record.txHash, chainId);
             if (!receipt || receipt.status !== '0x1') continue; // not yet mined or reverted
 
-            let amountAnts = 0n;
-            try {
-              amountAnts = BigInt(record.grossAmountHex || '0x0') / 10_000_000_000n;
-            } catch (_) { continue; }
+            // Fetch authoritative on-chain tx value — NEVER trust client-supplied grossAmountHex
+            const tx = await evmGetTransaction(record.txHash, chainId);
+            const amountAnts = computeBridgeAntsFromTx(tx, record);
 
             if (amountAnts <= 0n) {
               console.warn(`[EVM Bridge] Skipping ${record.txHash} — zero ANTS computed.`);
