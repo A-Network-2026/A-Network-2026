@@ -1,7 +1,7 @@
 # A-Network Development Roadmap 2026
 
-**Status:** Whitepaper v2.1 (April 29, 2026) | App v1.0.6+ | Live Backend  
-**Updated:** May 7, 2026
+**Status:** Whitepaper v3.0 (May 2026) | App v1.0.20+70 | Live Backend  
+**Updated:** May 17, 2026
 
 ---
 
@@ -14,7 +14,7 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 ## 📋 Phase Breakdown
 
 ### ✅ **Phase 1: Web2 — Mobile Time-Based Mining** 
-**Status:** LIVE (v1.0.6 | Current)**
+**Status:** LIVE (v1.0.20+70 | Current)**
 
 **What it is:**
 - Smartphone-accessible 6-hour session-based mining
@@ -31,9 +31,11 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 - Multi-Language: English, Hindi, Urdu, Chinese, Spanish auto-selected per region
 - Notifications: Local push + server 60-second fallback worker
 - AdMob: Banner/interstitial/rewarded integration (currently disabled, can be enabled post-approval)
+- **EVM Wallet Import:** MetaMask and any EVM-compatible wallet can be imported via 12/24-word seed phrase (BIP39/BIP32 m/44'/60'/0'/0/0 derivation) — users get full ANET address + 0x address, no PIN required
+- Wallet Seed Encryption: Seed phrases stored exclusively in Android Keystore / iOS Secure Enclave (flutter_secure_storage)
 
 **Current Deployment:**
-- Flutter mobile app on Google Play & App Store (ready for submission)
+- Flutter mobile app v1.0.20+70 on Google Play (AAB signed, deployed May 17, 2026)
 - Fastify Node.js backend: https://rmp-site.onrender.com (LIVE)
 - PostgreSQL ledger with 64-bit counter safety
 - Web2 is the source of truth; ledger persists to future phases
@@ -88,9 +90,13 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 - Wallet Continuity: User retains same ANET wallet identity across migration
 - Custom Wallet Support: Users can set migration wallet for Layer 1 (optional)
 - Block Explorer: https://explorer.a-network.net (live for network monitoring)
+- **Native DEX (AMM):** ANET-USDC pool live on Layer 1 (10 ANET / 10,000 USDC seed liquidity, 0.30% fee, AMM pricing)
+- **In-App DEX:** Swap interface built into mobile app — no browser or external wallet needed
+- **EVM Cross-Compatibility:** Imported EVM wallets (MetaMask etc.) can swap directly on ANET Layer 1 DEX
+- **Security Hardening (May 2026):** Constant-time admin key comparison (subtle crate), CORS locked to a-network.net, timing-safe auth in all services
 
 **Timeline:**
-- Private Mainnet: **LIVE NOW** (internal validation)
+- Private Mainnet: **LIVE NOW** (stable, hardened)
 - Public Release: **~8 months** (subject to engineering readiness)
 - Illustrative Price Zone: $0.000001 early Layer 1 discovery (not a guarantee, market-determined)
 
@@ -176,11 +182,14 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| **Mobile App** | ✅ Live (Play Store / App Store ready) | Flutter, fully featured mining + Web3 visibility |
-| **Backend API** | ✅ Live (https://rmp-site.onrender.com) | Fastify + PostgreSQL, all anti-gaming logic |
-| **Layer 1 Chain** | 🔄 Private (development) | Explorer live at https://explorer.a-network.net |
+| **Mobile App** | ✅ Live v1.0.20+70 | Flutter — mining, EVM wallet import, in-app DEX, AI support, NFT identity |
+| **Backend API** | ✅ Live (https://rmp-site.onrender.com) | Fastify + PostgreSQL, timing-safe auth, all anti-gaming logic |
+| **Layer 1 Chain** | ✅ Private Mainnet (stable) | https://anet-private-mainnet.onrender.com — DEX live, constant-time key auth |
+| **Native DEX** | ✅ Live (Layer 1) | ANET-USDC pool seeded, AMM pricing, 0.30% fee, in-app swap UI |
+| **EVM Wallet Import** | ✅ Live (v1.0.20+70) | MetaMask / any EVM wallet via BIP39 mnemonic, works on ANET DEX |
 | **Web3 Token** | ✅ Live (BNB Chain) | 21M supply, visible on DexScreener |
-| **Whitepaper** | ✅ Published (v2.1) | https://a-network.net/whitepaper.html |
+| **Whitepaper** | ✅ Published (v3.0) | https://a-network.net/whitepaper.html |
+| **Block Explorer** | ✅ Live | https://explorer.a-network.net |
 | **AdMob** | ⏳ Ready (test IDs available) | Currently disabled by default (ADS_ENABLED=false) |
 | **Docs** | ✅ Live (privacy/terms/delete) | https://a-network.net |
 
@@ -189,16 +198,21 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 ## 🎯 Near-Term Priorities (May-Aug 2026)
 
 1. **Mobile App Deployment**
-   - ✅ Build production app bundles
-   - ✅ Submit to Google Play Store (1–48 hr review typical)
-   - ✅ Submit to App Store (24–48 hr review typical, requires Mac + Apple Developer account)
+   - ✅ Build production app bundles (v1.0.20+70)
+   - ✅ EVM/MetaMask wallet import live
+   - ✅ In-app DEX swap interface live
+   - ✅ Submit to Google Play Store
    - 📝 Monitor store metrics and user feedback
 
-2. **Layer 1 Private Testnet Hardening**
-   - Genesis state snapshot finalization
-   - Migration ledger validation (Web2 → Web4)
-   - Validator/node setup documentation
-   - Performance benchmarking
+2. **Layer 1 Private Mainnet Hardening** ✅ Complete
+   - ✅ Native DEX seeded and live (ANET-USDC pool)
+   - ✅ Constant-time admin key comparison (subtle crate)
+   - ✅ DEPLOY.md + FREEZE.md in all repos
+   - ✅ CORS locked to a-network.net
+   - ✅ All test flags disabled in production
+   - Migration ledger validation (Web2 → Web4) — in progress
+   - Validator/node setup documentation — in progress
+   - Performance benchmarking — in progress
 
 3. **AdMob Monetization (Optional)**
    - Request AdMob approval for production ad units
