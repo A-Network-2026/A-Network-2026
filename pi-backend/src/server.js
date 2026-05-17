@@ -4283,7 +4283,7 @@ app.post('/api/bridge/evm/admin/process', async (req, res) => {
       if (ANET_CHAIN_API_BASE_URL) {
         // Fetch authoritative on-chain tx data — NEVER trust client-supplied grossAmountHex
         const tx = await evmGetTransaction(record.txHash, chainId).catch(() => null);
-        const amountAnts = computeBridgeAntsFromTx(tx, record);
+        const amountAnts = computeBridgeAntsFromChain(tx, receipt, record);
 
         if (amountAnts <= 0n) {
           results.push({ txHash: record.txHash, ok: false, error: 'Could not compute ANTS amount from on-chain tx.' });
@@ -4354,6 +4354,91 @@ async function evmGetReceipt(txHash, chainId) {
   return data.result;  // null if pending, object if mined
 }
 
+/**
+ * Fetch the full transaction from BSC via eth_getTransactionByHash.
+ * Returns the authoritative on-chain `value` (BNB wei) — never trust the client.
+ */
+async function evmGetTransaction(txHash, chainId) {
+  const rpcUrl = EVM_RPC_URLS[chainId];
+  if (!rpcUrl) throw new Error(`No RPC URL configured for chainId ${chainId}`);
+  const response = await fetch(rpcUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'eth_getTransactionByHash', params: [txHash] }),
+  });
+  if (!response.ok) throw new Error(`RPC HTTP ${response.status}`);
+  const data = await response.json();
+  if (data.error) throw new Error(`RPC error: ${data.error.message || JSON.stringify(data.error)}`);
+  return data.result; // null if not found
+}
+
+/** keccak256("Transfer(address,address,uint256)") */
+const ERC20_TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+/**
+ * Compute the authoritative ANTS credit amount from on-chain data only.
+ *
+ * SECURITY:
+ *   - Native BNB: reads immutable tx.value from chain (eth_getTransactionByHash).
+ *   - BEP-20 token: reads Transfer(user → anetSwapContract, amount) from receipt logs.
+ *     Only falls back to client-supplied grossAmountHex if log-parsing fails (non-standard token).
+ *
+ * Rate: 1 BNB or 1 token-unit (18-dec) = 1 ANET = 100,000,000 ANTS.
+ * Fee:  AnetSwap contract keeps 1% on-chain → we credit 99% as net ANTS.
+ *       net_ants = gross_wei * 99 / (100 * 10_000_000_000)
+ *
+ * @param {object|null} tx      eth_getTransactionByHash result
+ * @param {object|null} receipt eth_getTransactionReceipt result (for token log parsing)
+ * @param {object}      record  Local bridge record { tokenAddress, grossAmountHex, chainId }
+ * @returns {bigint}
+ */
+function computeBridgeAntsFromChain(tx, receipt, record) {
+  let grossHex = null;
+
+  if (tx && tx.value && tx.value !== '0x0' && tx.value !== '0x') {
+    // Native BNB swap: use authoritative on-chain value
+    grossHex = tx.value;
+  } else {
+    // BEP-20 token swap: find Transfer(from, anetSwapContract, amount) in receipt logs
+    const contractAddrRaw = (EVM_BRIDGE_CONTRACTS[record.chainId || 56] || '').toLowerCase().replace(/^0x/, '');
+    const tokenAddr = (record.tokenAddress || '').toLowerCase();
+
+    if (
+      contractAddrRaw &&
+      tokenAddr &&
+      tokenAddr !== '0x0000000000000000000000000000000000000000' &&
+      receipt && Array.isArray(receipt.logs)
+    ) {
+      for (const log of receipt.logs) {
+        if (!log.topics || log.topics.length < 3) continue;
+        if (log.address.toLowerCase() !== tokenAddr) continue;
+        if (log.topics[0] !== ERC20_TRANSFER_TOPIC) continue;
+        // topics[2] = "to" address right-padded to 32 bytes; last 40 hex chars = address
+        const toAddr = log.topics[2].slice(-40).toLowerCase();
+        if (toAddr !== contractAddrRaw) continue;
+        grossHex = log.data; // 32-byte padded uint256 amount
+        break;
+      }
+    }
+
+    if (!grossHex) {
+      // Fallback: client-supplied (no on-chain verification — less secure)
+      console.warn(`[EVM Bridge] Token amount not verified from logs for ${record.txHash} — falling back to client grossAmountHex.`);
+      grossHex = record.grossAmountHex || '0x0';
+    }
+  }
+
+  try {
+    const grossWei = BigInt(grossHex);
+    if (grossWei === 0n) return 0n;
+    // 99% net after 1% contract fee; convert 18-decimal wei to 8-decimal ANTS
+    const netAnts = (grossWei * 99n) / (100n * 10_000_000_000n);
+    return netAnts > 0n ? netAnts : 0n;
+  } catch (_) {
+    return 0n;
+  }
+}
+
 /* ── End EVM Bridge endpoints ──────────────────────────────────────── */
 
 initializeNftDatabase()
@@ -4382,7 +4467,7 @@ initializeNftDatabase()
 
             // Fetch authoritative on-chain tx value — NEVER trust client-supplied grossAmountHex
             const tx = await evmGetTransaction(record.txHash, chainId);
-            const amountAnts = computeBridgeAntsFromTx(tx, record);
+            const amountAnts = computeBridgeAntsFromChain(tx, receipt, record);
 
             if (amountAnts <= 0n) {
               console.warn(`[EVM Bridge] Skipping ${record.txHash} — zero ANTS computed.`);
