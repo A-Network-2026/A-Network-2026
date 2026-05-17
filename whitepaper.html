@@ -8,9 +8,9 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v2.3 | Mine -> 1,000 Sessions -> Swap/Transfer -> NFT Activation · Layer 1 · Web3 · Marketplace</title>
+  <title>A-Network Whitepaper v3.0 | Mine -> 1,000 Sessions -> Swap/Transfer -> NFT Activation · In-App EVM Bridge · Layer 1 · Web3</title>
 
-  <meta name="description" content="The official A-Network v2.3 whitepaper. Defines the unified miner lifecycle rule (mine first, complete 1,000 verified sessions, unlock mobile execution for swap/transfer/cashout, then NFT activation), ANTS accounting, Layer 1 + Web3 architecture, DEX settlement flow, security model, and future integration path." />
+  <meta name="description" content="The official A-Network v3.0 whitepaper. Defines the unified miner lifecycle rule, ANTS accounting, Layer 1 + Web3 architecture, in-app EVM bridge (AnetSwap BSC contract), DEX settlement flow, security model, and full roadmap." />
 
   <meta name="theme-color" content="#07101a" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
@@ -573,7 +573,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v2.3 · 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v3.0 · 2026</sub>
 
       </div>
 
@@ -586,6 +586,7 @@
     <a class="nav-item" href="#abstract">Abstract</a>
 
     <a class="nav-item" href="#protocol-v22">v2.3 Protocol Update</a>
+    <a class="nav-item" href="#evm-bridge">v3.0 EVM Bridge</a>
 
     <a class="nav-item" href="#introduction">Introduction</a>
 
@@ -723,9 +724,9 @@
 
       <div class="hero-badge">Technical Paper v2.4 (Phase 5)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 2.4 introduces <strong>Phase 5: Decentralized Mining Proofs</strong>, enabling miners to generate and sign proofs locally, submit directly to the chain, and have validators verify them using public cryptography. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
+      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 3.0 introduces the <strong>In-App EVM Bridge</strong> — users can swap BNB, USDT, or USDC directly to ANET inside the mobile wallet with no MetaMask or external app required. The bridge is powered by the <strong>AnetSwap</strong> contract deployed on BSC mainnet (<code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>) and every swap is recorded on the ANET Layer 1 explorer. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> &mdash; 2.4 (Phase 5)</div>
+        <div class="hero-meta-item"><strong>Version</strong> &mdash; 3.0 (EVM Bridge · May 2026)</div>
         <div class="hero-meta-item"><strong>Published</strong> &mdash; May 14, 2026</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong> &mdash; Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>Web3 Token</strong> &mdash; 21,000,000 ANET BEP-20 on BNB Chain &middot; DEX-listed</div>
@@ -2802,6 +2803,70 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
           Your seed phrase grants full access to your wallet. A-Network staff will never ask for your seed phrase or private keys. Store the phrase offline in at least two physical locations.
 
         </div>
+
+      </div>
+
+
+
+      <h3 id="evm-bridge">v3.0 &mdash; In-App EVM Bridge (AnetSwap)</h3>
+
+      <p>Version 3.0 (May 2026, app v1.0.21+71) introduces a fully self-contained EVM bridge inside the mobile wallet. Users can swap BNB, USDT, or USDC directly into ANET on BSC mainnet without leaving the app and without installing MetaMask or any external wallet.</p>
+
+      <div class="panel panel-accent">
+
+        <h4>AnetSwap Contract &mdash; BSC Mainnet</h4>
+
+        <div class="table-scroll">
+
+        <table class="wp-table">
+
+          <tbody>
+
+            <tr><td><strong>Contract Address</strong></td><td><code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code></td></tr>
+
+            <tr><td><strong>Network</strong></td><td>BNB Smart Chain (BSC) &mdash; Chain ID: 56</td></tr>
+
+            <tr><td><strong>Bridge Fee</strong></td><td>1% (100 bps, collected on-chain)</td></tr>
+
+            <tr><td><strong>Whitelisted Tokens</strong></td><td>BNB (native), ANET, USDT, USDC, WBNB, BUSD</td></tr>
+
+            <tr><td><strong>Entry Functions</strong></td><td><code>swapNativeForAnet(string)</code> payable &nbsp;|&nbsp; <code>swapTokenForAnet(address,uint256,string)</code></td></tr>
+
+          </tbody>
+
+        </table>
+
+        </div>
+
+      </div>
+
+      <div class="panel">
+
+        <h4>Bridge Flow (v1.0.21+71)</h4>
+
+        <ul>
+
+          <li><strong>Select token:</strong> BNB, USDT, or USDC inside the DEX &rarr; EVM Bridge tab</li>
+
+          <li><strong>Enter amount:</strong> App shows live BSC balance and estimated ANET received after 1% fee</li>
+
+          <li><strong>Confirm:</strong> PIN session gate &mdash; transaction signed locally with BIP44 m/44&prime;/60&prime;/0&prime;/0/0 derived key, never transmitted</li>
+
+          <li><strong>Broadcast:</strong> Signed TX sent to BSC via <code>bsc-dataseed1.binance.org</code></li>
+
+          <li><strong>Backend notify:</strong> App posts <code>txHash</code> to pi-backend bridge endpoint, which credits ANET on Layer 1</li>
+
+          <li><strong>Polling:</strong> App polls every 6&nbsp;s until Layer 1 credit is confirmed; swap recorded in local history</li>
+
+          <li><strong>Explorer:</strong> Every bridge swap visible at <a href="https://explorer.a-network.net">explorer.a-network.net</a></li>
+
+        </ul>
+
+      </div>
+
+      <div class="panel" style="border-left: 3px solid var(--accent-2); background: rgba(34,231,184,.06);">
+
+        <strong>No MetaMask required.</strong> The entire bridge runs natively inside the A-Network wallet app. Private keys are derived in-app from the user&rsquo;s seed phrase (BIP39/BIP32) and are never transmitted to any server.
 
       </div>
 

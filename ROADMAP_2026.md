@@ -1,6 +1,6 @@
 # A-Network Development Roadmap 2026
 
-**Status:** Whitepaper v3.0 (May 2026) | App v1.0.20+70 | Live Backend  
+**Status:** Whitepaper v3.0 (May 2026) | App v1.0.21+71 | Live Backend  
 **Updated:** May 17, 2026
 
 ---
@@ -61,6 +61,10 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 - Contract: `0x791055A7d52AA392eaE8De04250497f33807E46A` on BSC (Chain ID: 56)
 - Market: Listed on DEX (PancakeSwap), visible on DexScreener
 - Purpose: Ecosystem utility, access planning, external liquidity
+- **In-App EVM Bridge (v3.0):** Users can swap BNB/USDT/USDC → ANET directly inside the wallet — no MetaMask or external app required
+  - Bridge contract: `0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8` (AnetSwap, BSC mainnet)
+  - 1% bridge fee, whitelisted: BNB, USDT, USDC, WBNB, BUSD
+  - Every bridge swap recorded on ANET Layer 1 explorer
 - **Important:** Web3 BEP-20 ANET ≠ Layer 1 mining ANET
   - Holding Web3 token ≠ mining rewards
   - Trading Web3 token ≠ Layer 1 mining rights
@@ -68,6 +72,8 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 
 **Current Status:**
 - ✅ Contract deployed and verified
+- ✅ AnetSwap bridge contract live: `0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8`
+- ✅ In-app EVM bridge live (v1.0.21+71) — DEX tab → EVM Bridge
 - ✅ Wallet integration in app (Web3 tab shows balances, transactions)
 - ✅ Public visibility at https://a-network.net (contract link, market data)
 
@@ -182,10 +188,11 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| **Mobile App** | ✅ Live v1.0.20+70 | Flutter — mining, EVM wallet import, in-app DEX, AI support, NFT identity |
+| **Mobile App** | ✅ Live v1.0.21+71 | Flutter — mining, EVM wallet import, in-app DEX + EVM bridge, AI support, NFT identity |
 | **Backend API** | ✅ Live (https://rmp-site.onrender.com) | Fastify + PostgreSQL, timing-safe auth, all anti-gaming logic |
 | **Layer 1 Chain** | ✅ Private Mainnet (stable) | https://anet-private-mainnet.onrender.com — DEX live, constant-time key auth |
 | **Native DEX** | ✅ Live (Layer 1) | ANET-USDC pool seeded, AMM pricing, 0.30% fee, in-app swap UI |
+| **EVM Bridge** | ✅ Live (BSC Mainnet) | AnetSwap `0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8` — in-app BNB/USDT/USDC → ANET |
 | **EVM Wallet Import** | ✅ Live (v1.0.20+70) | MetaMask / any EVM wallet via BIP39 mnemonic, works on ANET DEX |
 | **Web3 Token** | ✅ Live (BNB Chain) | 21M supply, visible on DexScreener |
 | **Whitepaper** | ✅ Published (v3.0) | https://a-network.net/whitepaper.html |
@@ -198,9 +205,10 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 ## 🎯 Near-Term Priorities (May-Aug 2026)
 
 1. **Mobile App Deployment**
-   - ✅ Build production app bundles (v1.0.20+70)
+   - ✅ Build production app bundles (v1.0.21+71)
    - ✅ EVM/MetaMask wallet import live
-   - ✅ In-app DEX swap interface live
+   - ✅ In-app DEX swap interface live (ANET L1 AMM)
+   - ✅ In-app EVM Bridge live (AnetSwap BSC — BNB/USDT/USDC → ANET, no MetaMask)
    - ✅ Submit to Google Play Store
    - 📝 Monitor store metrics and user feedback
 
