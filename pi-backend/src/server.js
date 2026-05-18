@@ -4454,8 +4454,9 @@ app.post('/api/evm/activity', async (req, res) => {
   try {
     const { txHash, activityType, tokenSymbol, amount, anetAddress, evmAddress, chainId } = req.body || {};
 
-    if (!txHash || typeof txHash !== 'string' || txHash.length < 10) {
-      return res.status(400).json({ ok: false, error: 'txHash is required' });
+    // Strict format validation: EVM tx hash must be 0x + 64 lowercase hex chars
+    if (!txHash || typeof txHash !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(txHash)) {
+      return res.status(400).json({ ok: false, error: 'txHash must be a valid EVM transaction hash (0x + 64 hex chars)' });
     }
     const validTypes = ['send', 'swap', 'receive'];
     const normalizedType = (activityType || '').toLowerCase().trim();
@@ -4464,10 +4465,27 @@ app.post('/api/evm/activity', async (req, res) => {
     }
 
     const txHashLower = txHash.toLowerCase();
+    const effectiveChainId = Number(chainId) || 56;
 
     // In-memory dedup: avoid spamming L1 for the same tx hash
     if (_evmActivityProcessedHashes.has(txHashLower)) {
       return res.json({ ok: true, new_block_triggered: false, cached: true });
+    }
+
+    // Verify the BSC transaction receipt before creating an L1 block event.
+    // A reverted tx (status 0x0) is rejected outright.
+    // A pending tx (null receipt) or RPC timeout is allowed optimistically.
+    try {
+      const receipt = await Promise.race([
+        evmGetReceipt(txHashLower, effectiveChainId),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 12000)),
+      ]);
+      if (receipt && receipt.status === '0x0') {
+        return res.status(400).json({ ok: false, error: 'BSC transaction was reverted — cannot create block event' });
+      }
+    } catch (receiptErr) {
+      // Pending tx or RPC unreachable → proceed optimistically
+      console.warn(`[EVM Activity] Receipt check skipped for ${txHashLower.slice(0, 18)}…: ${receiptErr.message}`);
     }
 
     // If L1 chain is not configured just acknowledge silently
@@ -4487,7 +4505,7 @@ app.post('/api/evm/activity', async (req, res) => {
         amount_str:    amount != null ? String(amount) : null,
         evm_address:   evmAddress || null,
         anet_address:  anetAddress || null,
-        evm_chain_id:  chainId || 56,
+        evm_chain_id:  effectiveChainId,
       }),
     }).catch(e => ({ ok: false, _err: e.message }));
 
