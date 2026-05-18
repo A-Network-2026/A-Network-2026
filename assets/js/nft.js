@@ -177,7 +177,7 @@
       return "";
     }
     if (isStaticWebsiteBase(clean) || clean === window.location.origin) {
-      return "https://rmp-backend-vfq7.onrender.com";
+      return "https://rmp-site.onrender.com";
     }
     return clean;
   }
@@ -198,7 +198,7 @@
     }
 
     if (window.location.hostname === "a-network.net" || window.location.hostname === "www.a-network.net") {
-      return "https://rmp-backend-vfq7.onrender.com";
+      return "https://rmp-site.onrender.com";
     }
 
     return "";
