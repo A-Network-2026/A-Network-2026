@@ -100,7 +100,7 @@ const ERC20_ALLOWANCE_ABI = [
 ];
 
 /* ── Constants ──────────────────────────────── */
-const DEFAULT_CHAIN_API = 'https://anet-private-mainnet.onrender.com';
+const DEFAULT_CHAIN_API = 'https://explorer.a-network.net';
 const CHAIN_API_OVERRIDE_KEY = 'anet:dexApiBaseUrl';
 
 function resolveChainApiBase() {
