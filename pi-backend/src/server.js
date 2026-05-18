@@ -4441,6 +4441,82 @@ function computeBridgeAntsFromChain(tx, receipt, record) {
 
 /* ── End EVM Bridge endpoints ──────────────────────────────────────── */
 
+/* ── EVM Wallet Activity — block events on ANET L1 ──────────────────
+ * POST /api/evm/activity
+ * Called by the mobile app after a successful EVM Send or Swap.
+ * Forwards the activity to the ANET L1 chain so it can create a
+ * corresponding block event (same as native DEX swaps do).
+ * Requires: ANET_CHAIN_API_BASE_URL + ANET_L1_DEX_ADMIN_KEY on the server.
+ * ─────────────────────────────────────────────────────────────────── */
+const _evmActivityProcessedHashes = new Set(); // in-memory dedup within session
+
+app.post('/api/evm/activity', async (req, res) => {
+  try {
+    const { txHash, activityType, tokenSymbol, amount, anetAddress, evmAddress, chainId } = req.body || {};
+
+    if (!txHash || typeof txHash !== 'string' || txHash.length < 10) {
+      return res.status(400).json({ ok: false, error: 'txHash is required' });
+    }
+    const validTypes = ['send', 'swap', 'receive'];
+    const normalizedType = (activityType || '').toLowerCase().trim();
+    if (!validTypes.includes(normalizedType)) {
+      return res.status(400).json({ ok: false, error: 'activityType must be send, swap, or receive' });
+    }
+
+    const txHashLower = txHash.toLowerCase();
+
+    // In-memory dedup: avoid spamming L1 for the same tx hash
+    if (_evmActivityProcessedHashes.has(txHashLower)) {
+      return res.json({ ok: true, new_block_triggered: false, cached: true });
+    }
+
+    // If L1 chain is not configured just acknowledge silently
+    if (!ANET_CHAIN_API_BASE_URL || !ANET_L1_DEX_ADMIN_KEY) {
+      _evmActivityProcessedHashes.add(txHashLower);
+      return res.json({ ok: true, new_block_triggered: false, reason: 'L1 not configured' });
+    }
+
+    const chainRes = await fetch(`${ANET_CHAIN_API_BASE_URL}/admin/evm/activity`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        admin_key:     ANET_L1_DEX_ADMIN_KEY,
+        evm_tx_hash:   txHashLower,
+        activity_type: normalizedType,
+        token_symbol:  tokenSymbol || null,
+        amount_str:    amount != null ? String(amount) : null,
+        evm_address:   evmAddress || null,
+        anet_address:  anetAddress || null,
+        evm_chain_id:  chainId || 56,
+      }),
+    }).catch(e => ({ ok: false, _err: e.message }));
+
+    if (!chainRes.ok) {
+      const body = typeof chainRes.text === 'function'
+        ? await chainRes.text().catch(() => '?')
+        : (chainRes._err || '?');
+      console.error(`[EVM Activity] L1 event failed for ${txHashLower}: ${String(body).slice(0, 120)}`);
+      return res.status(502).json({ ok: false, error: 'L1 chain call failed' });
+    }
+
+    const data = await chainRes.json().catch(() => ({}));
+    _evmActivityProcessedHashes.add(txHashLower);
+    // Limit set size to 5000 entries to prevent unbounded memory growth
+    if (_evmActivityProcessedHashes.size > 5000) {
+      const first = _evmActivityProcessedHashes.values().next().value;
+      _evmActivityProcessedHashes.delete(first);
+    }
+
+    console.log(`[EVM Activity] ✓ ${normalizedType} block event on L1 — BSC tx ${txHashLower.slice(0, 18)}…`);
+    return res.json({ ok: true, new_block_triggered: data.new_block_triggered ?? true, block_event: data.block_event });
+  } catch (err) {
+    console.error('[EVM Activity] Error:', err.message);
+    return res.status(500).json({ ok: false, error: 'Internal error' });
+  }
+});
+
+/* ── End EVM Wallet Activity ─────────────────────────────────────── */
+
 initializeNftDatabase()
   .then(() => {
     app.listen(port, host, () => {
