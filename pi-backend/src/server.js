@@ -61,14 +61,14 @@ const PI_TEST_ADMIN_ALLOWED_IPS = String(process.env.PI_TEST_ADMIN_ALLOWED_IPS |
   .filter(Boolean);
 
 // ── EVM Bridge config ──────────────────────────────────────────────────────
-// Contract addresses per chainId (set these after deploying AnetSwap.sol)
-const EVM_BRIDGE_CONTRACTS = {
-  56:    String(process.env.EVM_BRIDGE_CONTRACT_BSC       || '').trim(),
-  97:    String(process.env.EVM_BRIDGE_CONTRACT_BSC_TEST  || '').trim(),
-  1:     String(process.env.EVM_BRIDGE_CONTRACT_ETH       || '').trim(),
-  137:   String(process.env.EVM_BRIDGE_CONTRACT_POLYGON   || '').trim(),
-  8453:  String(process.env.EVM_BRIDGE_CONTRACT_BASE      || '').trim(),
-};
+// The bsc-relayer service is the authoritative writer for EVM → L1 swaps.
+// pi-backend only needs read-side config: RPC URLs (for /api/evm/activity's
+// receipt check) and explorer/symbol tables (for the legacy /history route).
+//
+// Removed in the bridge-migration commit (no longer read anywhere):
+//   EVM_BRIDGE_CONTRACTS (env: EVM_BRIDGE_CONTRACT_BSC, …)
+//   EVM_BRIDGE_ADMIN_KEY (env: EVM_BRIDGE_ADMIN_KEY)
+
 // JSON-RPC node URLs per chainId
 const EVM_RPC_URLS = {
   56:    String(process.env.EVM_RPC_BSC       || 'https://bsc-dataseed1.binance.org').trim(),
@@ -89,7 +89,6 @@ const EVM_EXPLORER_TX = {
 const EVM_NATIVE_SYMBOL = {
   56: 'BNB', 97: 'tBNB', 1: 'ETH', 137: 'MATIC', 8453: 'ETH',
 };
-const EVM_BRIDGE_ADMIN_KEY = String(process.env.EVM_BRIDGE_ADMIN_KEY || process.env.PI_ADMIN_KEY || '').trim();
 
 let nftDb = null;
 
@@ -4139,72 +4138,103 @@ app.post('/api/pi/cashout/request', (_req, res) => {
   });
 });
 
-/* ── EVM Bridge endpoints ──────────────────────────────────────────── */
-
-/**
- * POST /api/bridge/evm/notify
- * Called by the frontend immediately after a swap TX is broadcast.
- * Records the pending bridge request so the admin polling job can process it.
+/* ── EVM Bridge endpoints ──────────────────────────────────────────────
  *
- * Body: { txHash, chainId, evmSender, anetRecipient, tokenAddress, grossAmountHex }
- */
-app.post('/api/bridge/evm/notify', (req, res) => {
-  const { txHash, chainId, evmSender, anetRecipient, tokenAddress, grossAmountHex } = req.body || {};
-
-  if (!txHash || typeof txHash !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(txHash)) {
-    return res.status(400).json({ ok: false, error: 'Invalid txHash.' });
-  }
-  if (!anetRecipient || typeof anetRecipient !== 'string') {
-    return res.status(400).json({ ok: false, error: 'anetRecipient is required.' });
-  }
-  const cid = Number(chainId) || 56;
-  const key = txHash.toLowerCase();
-
-  if (!cashoutState.evmBridgeRequests[key]) {
-    cashoutState.evmBridgeRequests[key] = {
-      txHash: key,
-      chainId: cid,
-      evmSender:     String(evmSender || '').toLowerCase(),
-      anetRecipient: String(anetRecipient).trim(),
-      tokenAddress:  String(tokenAddress || '0x0000000000000000000000000000000000000000').toLowerCase(),
-      grossAmountHex: String(grossAmountHex || '0x0'),
-      processed: false,
-      anetTxId: null,
-      createdAt: Date.now(),
-      processedAt: null,
-    };
-    persistState();
-  }
-
-  return res.json({ ok: true, txHash: key });
-});
+ * The bsc-relayer service is the authoritative writer for EVM → L1 swaps.
+ * It watches BSC for AnetSwap deposits and calls
+ *   POST {ANET_CHAIN_API_BASE_URL}/admin/bridge/evm/credit
+ * to credit ANTS on L1. pi-backend MUST NOT also write here — running both
+ * pipelines causes double-credits and confusing logs.
+ *
+ * What this service still exposes:
+ *   - GET /api/bridge/evm/status/:txHash   (proxies to L1 public lookup)
+ *   - GET /api/bridge/evm/history/:evmAddress
+ *       (returns legacy records still in the local state file; new swaps are
+ *        not written here anymore, so this list will only show pre-migration
+ *        history)
+ *
+ * Deleted in this commit:
+ *   - POST /api/bridge/evm/notify
+ *   - POST /api/bridge/evm/admin/process
+ *   - background auto-processor (setInterval that called L1 /admin/bridge/evm/credit)
+ *   - helpers evmGetTransaction(), computeBridgeAntsFromChain()
+ *
+ * Removable env vars (no longer read by this file):
+ *   EVM_BRIDGE_ADMIN_KEY, EVM_BRIDGE_CONTRACT_BSC, EVM_RPC_BSC, ANET_BEP20_ADDRESS_BSC
+ * ───────────────────────────────────────────────────────────────────────── */
 
 /**
  * GET /api/bridge/evm/status/:txHash
- * Returns the current processing status of a bridge swap.
+ * Returns whether the L1 chain has credited this BSC tx hash.
+ * Proxies to L1's public lookup endpoint so the mobile app can stop polling.
  */
-app.get('/api/bridge/evm/status/:txHash', (req, res) => {
+app.get('/api/bridge/evm/status/:txHash', async (req, res) => {
   const txHash = String(req.params.txHash || '').toLowerCase();
   if (!/^0x[0-9a-fA-F]{64}$/.test(txHash)) {
     return res.status(400).json({ ok: false, error: 'Invalid txHash.' });
   }
-  const record = cashoutState.evmBridgeRequests[txHash];
-  if (!record) {
-    return res.json({ ok: true, found: false, processed: false });
+
+  // Legacy local record (pre-migration). If we have one and it's marked
+  // processed, trust it.
+  const localRecord = cashoutState.evmBridgeRequests?.[txHash] || null;
+  if (localRecord && localRecord.processed) {
+    return res.json({
+      ok: true,
+      found: true,
+      processed: true,
+      anetTxId: localRecord.anetTxId || `bridge:evm:${txHash}`,
+      createdAt: localRecord.createdAt || null,
+      processedAt: localRecord.processedAt || null,
+      source: 'local',
+    });
   }
-  return res.json({
-    ok: true,
-    found: true,
-    processed: record.processed,
-    anetTxId:  record.anetTxId || null,
-    createdAt: record.createdAt,
-    processedAt: record.processedAt || null,
-  });
+
+  // Ask L1 directly. New swaps (post-migration) are minted by the bsc-relayer,
+  // so L1 is the source of truth.
+  if (ANET_CHAIN_API_BASE_URL) {
+    try {
+      const resp = await fetch(
+        `${ANET_CHAIN_API_BASE_URL}/bridge/evm/credit/${txHash}`,
+        { method: 'GET', headers: { 'Accept': 'application/json' } }
+      );
+      if (resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        const processed = Boolean(data?.processed);
+        return res.json({
+          ok: true,
+          found: processed || Boolean(localRecord),
+          processed,
+          anetTxId: processed ? (data?.tx_id || `bridge:evm:${txHash}`) : null,
+          createdAt: localRecord?.createdAt || null,
+          processedAt: null,
+          source: 'l1',
+        });
+      }
+    } catch (err) {
+      console.warn(`[EVM Bridge] L1 status lookup failed for ${txHash.slice(0, 18)}…: ${err.message}`);
+    }
+  }
+
+  // L1 unreachable or not configured — fall back to whatever local state we have.
+  if (localRecord) {
+    return res.json({
+      ok: true,
+      found: true,
+      processed: Boolean(localRecord.processed),
+      anetTxId: localRecord.anetTxId || null,
+      createdAt: localRecord.createdAt || null,
+      processedAt: localRecord.processedAt || null,
+      source: 'local',
+    });
+  }
+  return res.json({ ok: true, found: false, processed: false, source: 'unknown' });
 });
 
 /**
  * GET /api/bridge/evm/history/:evmAddress
- * Returns bridge swap history for a given EVM address.
+ * Returns bridge swap history for a given EVM address from the local state file.
+ * NOTE: only legacy pre-migration records appear here. The bsc-relayer is the
+ * authoritative writer for new swaps and does not populate this list.
  */
 app.get('/api/bridge/evm/history/:evmAddress', (req, res) => {
   const addr = String(req.params.evmAddress || '').toLowerCase().trim();
@@ -4215,7 +4245,7 @@ app.get('/api/bridge/evm/history/:evmAddress', (req, res) => {
   const nativeSym = EVM_NATIVE_SYMBOL[chainId] || 'BNB';
   const explorerBase = EVM_EXPLORER_TX[chainId] || '';
 
-  const swaps = Object.values(cashoutState.evmBridgeRequests)
+  const swaps = Object.values(cashoutState.evmBridgeRequests || {})
     .filter(r => r.evmSender === addr)
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, 50)
@@ -4247,91 +4277,8 @@ app.get('/api/bridge/evm/history/:evmAddress', (req, res) => {
 });
 
 /**
- * POST /api/bridge/evm/admin/process
- *
- * Admin-only endpoint. Reads pending EVM bridge requests, calls the ANET L1
- * chain to credit wallets, then marks each request as processed.
- *
- * This is also called by the background polling job. Requires EVM_BRIDGE_ADMIN_KEY.
- */
-app.post('/api/bridge/evm/admin/process', async (req, res) => {
-  // Auth check
-  const key = req.headers['x-admin-key'] || req.body?.adminKey || '';
-  if (!EVM_BRIDGE_ADMIN_KEY || key !== EVM_BRIDGE_ADMIN_KEY) {
-    return res.status(403).json({ ok: false, error: 'Forbidden.' });
-  }
-
-  const chainId = Number(req.body?.chainId) || 56;
-  const pending = Object.values(cashoutState.evmBridgeRequests)
-    .filter(r => !r.processed && r.chainId === chainId);
-
-  if (!pending.length) {
-    return res.json({ ok: true, processed: 0, message: 'No pending requests.' });
-  }
-
-  const results = [];
-  for (const record of pending) {
-    try {
-      // 1. Verify the TX is confirmed on-chain
-      const receipt = await evmGetReceipt(record.txHash, chainId);
-      if (!receipt || receipt.status !== '0x1') {
-        results.push({ txHash: record.txHash, ok: false, error: 'TX not confirmed or reverted.' });
-        continue;
-      }
-
-      // 2. Credit ANET L1 via the chain admin API
-      if (ANET_CHAIN_API_BASE_URL) {
-        // Fetch authoritative on-chain tx data — NEVER trust client-supplied grossAmountHex
-        const tx = await evmGetTransaction(record.txHash, chainId).catch(() => null);
-        const amountAnts = computeBridgeAntsFromChain(tx, receipt, record);
-
-        if (amountAnts <= 0n) {
-          results.push({ txHash: record.txHash, ok: false, error: 'Could not compute ANTS amount from on-chain tx.' });
-          continue;
-        }
-
-        const creditRes = await fetch(`${ANET_CHAIN_API_BASE_URL}/admin/bridge/evm/credit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            admin_key:    ANET_L1_DEX_ADMIN_KEY,
-            recipient:    record.anetRecipient,
-            amount_ants:  Number(amountAnts),
-            evm_tx_hash:  record.txHash,
-            evm_chain_id: record.chainId,
-          }),
-        });
-        if (!creditRes.ok) {
-          const errText = await creditRes.text().catch(() => '?');
-          results.push({ txHash: record.txHash, ok: false, error: `L1 credit failed: ${errText.slice(0, 120)}` });
-          continue;
-        }
-        const creditData = await creditRes.json().catch(() => ({}));
-        const anetTxId = creditData?.tx_id || `bridge:evm:${record.txHash}`;
-
-        record.processed   = true;
-        record.anetTxId    = String(anetTxId);
-        record.processedAt = Date.now();
-        results.push({ txHash: record.txHash, ok: true, anetTxId });
-      } else {
-        // L1 API not configured — mark processed with placeholder
-        record.processed   = true;
-        record.anetTxId    = `manual:${record.txHash}`;
-        record.processedAt = Date.now();
-        results.push({ txHash: record.txHash, ok: true, anetTxId: record.anetTxId, note: 'L1 API not configured — credited manually.' });
-      }
-    } catch (err) {
-      results.push({ txHash: record.txHash, ok: false, error: err.message });
-    }
-  }
-
-  persistState();
-  return res.json({ ok: true, processed: results.filter(r => r.ok).length, results });
-});
-
-/**
- * Minimal JSON-RPC helper for reading EVM data without a full ethers.js dependency.
- * Only used by admin endpoints running server-side.
+ * Minimal JSON-RPC helper for reading EVM receipts (kept for /api/evm/activity
+ * which uses it to reject reverted txs before recording a block event on L1).
  */
 async function evmGetReceipt(txHash, chainId) {
   const rpcUrl = EVM_RPC_URLS[chainId];
@@ -4352,91 +4299,6 @@ async function evmGetReceipt(txHash, chainId) {
   const data = await response.json();
   if (data.error) throw new Error(`RPC error: ${data.error.message || JSON.stringify(data.error)}`);
   return data.result;  // null if pending, object if mined
-}
-
-/**
- * Fetch the full transaction from BSC via eth_getTransactionByHash.
- * Returns the authoritative on-chain `value` (BNB wei) — never trust the client.
- */
-async function evmGetTransaction(txHash, chainId) {
-  const rpcUrl = EVM_RPC_URLS[chainId];
-  if (!rpcUrl) throw new Error(`No RPC URL configured for chainId ${chainId}`);
-  const response = await fetch(rpcUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'eth_getTransactionByHash', params: [txHash] }),
-  });
-  if (!response.ok) throw new Error(`RPC HTTP ${response.status}`);
-  const data = await response.json();
-  if (data.error) throw new Error(`RPC error: ${data.error.message || JSON.stringify(data.error)}`);
-  return data.result; // null if not found
-}
-
-/** keccak256("Transfer(address,address,uint256)") */
-const ERC20_TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
-
-/**
- * Compute the authoritative ANTS credit amount from on-chain data only.
- *
- * SECURITY:
- *   - Native BNB: reads immutable tx.value from chain (eth_getTransactionByHash).
- *   - BEP-20 token: reads Transfer(user → anetSwapContract, amount) from receipt logs.
- *     Only falls back to client-supplied grossAmountHex if log-parsing fails (non-standard token).
- *
- * Rate: 1 BNB or 1 token-unit (18-dec) = 1 ANET = 100,000,000 ANTS.
- * Fee:  AnetSwap contract keeps 1% on-chain → we credit 99% as net ANTS.
- *       net_ants = gross_wei * 99 / (100 * 10_000_000_000)
- *
- * @param {object|null} tx      eth_getTransactionByHash result
- * @param {object|null} receipt eth_getTransactionReceipt result (for token log parsing)
- * @param {object}      record  Local bridge record { tokenAddress, grossAmountHex, chainId }
- * @returns {bigint}
- */
-function computeBridgeAntsFromChain(tx, receipt, record) {
-  let grossHex = null;
-
-  if (tx && tx.value && tx.value !== '0x0' && tx.value !== '0x') {
-    // Native BNB swap: use authoritative on-chain value
-    grossHex = tx.value;
-  } else {
-    // BEP-20 token swap: find Transfer(from, anetSwapContract, amount) in receipt logs
-    const contractAddrRaw = (EVM_BRIDGE_CONTRACTS[record.chainId || 56] || '').toLowerCase().replace(/^0x/, '');
-    const tokenAddr = (record.tokenAddress || '').toLowerCase();
-
-    if (
-      contractAddrRaw &&
-      tokenAddr &&
-      tokenAddr !== '0x0000000000000000000000000000000000000000' &&
-      receipt && Array.isArray(receipt.logs)
-    ) {
-      for (const log of receipt.logs) {
-        if (!log.topics || log.topics.length < 3) continue;
-        if (log.address.toLowerCase() !== tokenAddr) continue;
-        if (log.topics[0] !== ERC20_TRANSFER_TOPIC) continue;
-        // topics[2] = "to" address right-padded to 32 bytes; last 40 hex chars = address
-        const toAddr = log.topics[2].slice(-40).toLowerCase();
-        if (toAddr !== contractAddrRaw) continue;
-        grossHex = log.data; // 32-byte padded uint256 amount
-        break;
-      }
-    }
-
-    if (!grossHex) {
-      // Fallback: client-supplied (no on-chain verification — less secure)
-      console.warn(`[EVM Bridge] Token amount not verified from logs for ${record.txHash} — falling back to client grossAmountHex.`);
-      grossHex = record.grossAmountHex || '0x0';
-    }
-  }
-
-  try {
-    const grossWei = BigInt(grossHex);
-    if (grossWei === 0n) return 0n;
-    // 99% net after 1% contract fee; convert 18-decimal wei to 8-decimal ANTS
-    const netAnts = (grossWei * 99n) / (100n * 10_000_000_000n);
-    return netAnts > 0n ? netAnts : 0n;
-  } catch (_) {
-    return 0n;
-  }
 }
 
 /* ── End EVM Bridge endpoints ──────────────────────────────────────── */
@@ -4542,83 +4404,9 @@ initializeNftDatabase()
       console.log(`[NFT] Identity DB ready at ${NFT_DB_PATH}`);
       console.log(`[NFT] Minimum profile creation stake: ${NFT_MIN_PROFILE_ANTS} ANTS`);
 
-      // ── EVM Bridge Auto-Processor ─────────────────────────────────────────
-      // Runs every 60 s. Finds unprocessed bridge requests, verifies them on
-      // BSC, then calls /admin/bridge/evm/credit on the ANET L1 chain.
-      // Requires: ANET_CHAIN_API_BASE_URL, ANET_L1_DEX_ADMIN_KEY, EVM_BRIDGE_CREDITS_ENABLED=true on L1.
-      const BRIDGE_PROCESSOR_INTERVAL_MS = 60_000;
-      async function runEvmBridgeProcessor() {
-        const pending = Object.values(cashoutState.evmBridgeRequests || {})
-          .filter(r => !r.processed);
-        if (!pending.length) return;
-
-        console.log(`[EVM Bridge] Processing ${pending.length} pending bridge request(s)…`);
-        for (const record of pending) {
-          try {
-            const chainId = record.chainId || 56;
-            const receipt = await evmGetReceipt(record.txHash, chainId);
-            if (!receipt || receipt.status !== '0x1') continue; // not yet mined or reverted
-
-            // Fetch authoritative on-chain tx value — NEVER trust client-supplied grossAmountHex
-            const tx = await evmGetTransaction(record.txHash, chainId);
-            const amountAnts = computeBridgeAntsFromChain(tx, receipt, record);
-
-            if (amountAnts <= 0n) {
-              console.warn(`[EVM Bridge] Skipping ${record.txHash} — zero ANTS computed.`);
-              continue;
-            }
-
-            if (!ANET_CHAIN_API_BASE_URL || !ANET_L1_DEX_ADMIN_KEY) {
-              // Mark without L1 credit if chain not configured (dev/test mode)
-              record.processed   = true;
-              record.anetTxId    = `manual:${record.txHash}`;
-              record.processedAt = Date.now();
-              persistState();
-              console.log(`[EVM Bridge] ${record.txHash} marked (no L1 API configured).`);
-              continue;
-            }
-
-            const creditRes = await fetch(`${ANET_CHAIN_API_BASE_URL}/admin/bridge/evm/credit`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                admin_key:    ANET_L1_DEX_ADMIN_KEY,
-                recipient:    record.anetRecipient,
-                amount_ants:  Number(amountAnts),
-                evm_tx_hash:  record.txHash,
-                evm_chain_id: record.chainId || 56,
-              }),
-            }).catch(e => ({ ok: false, _err: e.message }));
-
-            if (!creditRes.ok) {
-              const body = typeof creditRes.text === 'function'
-                ? await creditRes.text().catch(() => '?')
-                : (creditRes._err || '?');
-              console.error(`[EVM Bridge] L1 credit failed for ${record.txHash}: ${String(body).slice(0, 120)}`);
-              continue;
-            }
-
-            const data = await creditRes.json().catch(() => ({}));
-            record.processed   = true;
-            record.anetTxId    = data.tx_id || `bridge:evm:${record.txHash}`;
-            record.processedAt = Date.now();
-            persistState();
-            console.log(`[EVM Bridge] ✓ Credited ${Number(amountAnts)} ANTS to ${record.anetRecipient} — L1 tx ${record.anetTxId}`);
-          } catch (err) {
-            console.error(`[EVM Bridge] Error processing ${record.txHash}: ${err.message}`);
-          }
-        }
-      }
-
-      // Run once on startup (after a short delay), then every 60 s.
-      setTimeout(() => {
-        runEvmBridgeProcessor().catch(e => console.error('[EVM Bridge] Processor error:', e.message));
-        setInterval(() => {
-          runEvmBridgeProcessor().catch(e => console.error('[EVM Bridge] Processor error:', e.message));
-        }, BRIDGE_PROCESSOR_INTERVAL_MS);
-      }, 15_000);
-
-      console.log(`[EVM Bridge] Auto-processor started (interval: ${BRIDGE_PROCESSOR_INTERVAL_MS / 1000}s).`);
+      // EVM bridge auto-processor removed: the bsc-relayer service is now the
+      // sole writer for EVM → L1 credit calls. See the comment block above
+      // the /api/bridge/evm/* routes for migration details.
 
       // ── Production safety checks ──────────────────────────────────────────
       if (!PI_SANDBOX) {
