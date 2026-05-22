@@ -8,9 +8,9 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v3.0 | Mine -> 1,000 Sessions -> Swap/Transfer -> NFT Activation · In-App EVM Bridge · Layer 1 · Web3</title>
+  <title>A-Network Whitepaper v3.1 | Mine -> 1,000 Sessions -> Swap/Transfer -> NFT Activation · Bidirectional EVM Bridge · Layer 1 · Web3</title>
 
-  <meta name="description" content="The official A-Network v3.0 whitepaper. Defines the unified miner lifecycle rule, ANTS accounting, Layer 1 + Web3 architecture, in-app EVM bridge (AnetSwap BSC contract), DEX settlement flow, security model, and full roadmap." />
+  <meta name="description" content="The official A-Network v3.1 whitepaper. Defines the unified miner lifecycle rule, ANTS accounting, Layer 1 + Web3 architecture, bidirectional in-app EVM bridge (AnetSwap BSC contract + L1 burn endpoint), DEX settlement flow, security model, and full roadmap." />
 
   <meta name="theme-color" content="#07101a" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
@@ -588,6 +588,8 @@
     <a class="nav-item" href="#protocol-v22">v2.3 Protocol Update</a>
     <a class="nav-item" href="#evm-bridge">v3.0 EVM Bridge</a>
 
+    <a class="nav-item" href="#l1-burn-bridge">v3.1 L1 &rarr; BSC Burn Bridge</a>
+
     <a class="nav-item" href="#introduction">Introduction</a>
 
     <a class="nav-item" href="#vision">The Vision</a>
@@ -722,12 +724,12 @@
 
     <div class="hero">
 
-      <div class="hero-badge">Technical Paper v2.4 (Phase 5)</div>
+      <div class="hero-badge">Technical Paper v3.1 (Bidirectional Bridge)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 3.0 introduces the <strong>In-App EVM Bridge</strong> — users can swap BNB, USDT, or USDC directly to ANET inside the mobile wallet with no MetaMask or external app required. The bridge is powered by the <strong>AnetSwap</strong> contract deployed on BSC mainnet (<code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>) and every swap is recorded on the ANET Layer 1 explorer. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
+      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 3.1 extends the in-app EVM bridge to a <strong>bidirectional model</strong>: users can swap BNB, USDT, or USDC into ANET via the <strong>AnetSwap</strong> contract on BSC mainnet (<code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>), and conversely burn Layer&nbsp;1 ANET through the new <code>POST&nbsp;/bridge/burn</code> endpoint on the ANET L1 node to receive wANET (BEP-20) on BSC from a dedicated escrow wallet. Both directions are recorded on the ANET Layer 1 explorer. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> &mdash; 3.0 (EVM Bridge · May 2026)</div>
-        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 14, 2026</div>
+        <div class="hero-meta-item"><strong>Version</strong> &mdash; 3.1 (Bidirectional Bridge · May 2026)</div>
+        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 22, 2026</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong> &mdash; Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>Web3 Token</strong> &mdash; 21,000,000 ANET BEP-20 on BNB Chain &middot; DEX-listed</div>
         <div class="hero-meta-item"><strong>Denomination</strong> &mdash; 1 ANET = 100,000,000 ANTS</div>
@@ -755,7 +757,7 @@
 
       <p>A-Network v1.0.6 defines a proof-of-time ledger backed by fixed 6-hour Ant Work sessions and a live ANET Layer 1 private mainnet. Session completion credits <strong>ANTS</strong>, the smallest accounting unit of the Layer 1 economy. Spendable Layer 1 ANET is not issued at session end and becomes claimable only after a participant reaches <strong>1,000 completed sessions</strong>.</p>
 
-      <p><strong>Phase 5 (v1.0.20+)</strong> introduces decentralized mining proofs. Miners can now generate proofs locally using a time-based difficulty challenge (SHA256), sign them with their secp256k1 private key, and submit directly to the chain. Validator nodes verify proofs independently using public cryptography without requiring central server approval. This maintains full backward compatibility: server-approved mining remains available alongside the new decentralized model.</p>
+      <p>Today, mining accrual is performed exclusively through an authenticated server-side attendance check-in (<code>POST&nbsp;/mining/start</code>). The mobile app does <strong>not</strong> perform any on-device proof-of-work, hashing, or background compute &mdash; it simply opens a 6-hour attendance window and the backend updates the ledger. <strong>Phase 5 (decentralized signed SHA-256 proofs)</strong> remains on the research roadmap (see Section 11 &mdash; Phase 5 Roadmap) and is <em>not</em> active on the production network in v1.0.61 (123). When it ships, it will run alongside server-approved mining, not replace it.</p>
 
 
 
@@ -2870,6 +2872,48 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       </div>
 
+
+
+      <h3 id="l1-burn-bridge">v3.1 &mdash; L1 &rarr; BSC Return Bridge (Burn Endpoint)</h3>
+
+      <p>Version 3.1 (May 2026) closes the bridge loop. The ANET Layer 1 node now exposes <code>POST&nbsp;/bridge/burn</code>, allowing a user to burn native Layer&nbsp;1 ANET in exchange for an equivalent amount of wANET (BEP-20) released from a dedicated escrow wallet on BSC mainnet. Each burn is authorized by a signed action authorization (ECDSA over the user&rsquo;s L1 wallet key), recorded immutably on the L1 chain, and exposed through <code>GET&nbsp;/bridge/burns</code> for off-chain relayer consumption. A separate BSC relayer service (<code>anet-bsc-relayer</code>) polls the burn feed, verifies the L1 record, and submits the corresponding wANET transfer from escrow to the user&rsquo;s declared BSC address.</p>
+
+      <div class="panel panel-accent">
+
+        <h4>L1 Burn Bridge &mdash; Production Parameters</h4>
+
+        <div class="table-scroll">
+
+        <table class="wp-table">
+
+          <tbody>
+
+            <tr><td><strong>L1 Endpoint</strong></td><td><code>POST /bridge/burn</code> &nbsp;|&nbsp; <code>GET /bridge/burns</code> (admin-key gated)</td></tr>
+
+            <tr><td><strong>Escrow Wallet (BSC)</strong></td><td><code>0x27766A070e6F55BD832A10aB9c5931FfA2037029</code></td></tr>
+
+            <tr><td><strong>Escrow Asset</strong></td><td>wANET BEP-20 (<code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>) &middot; gas in BNB</td></tr>
+
+            <tr><td><strong>Relayer Service</strong></td><td><code>anet-bsc-relayer</code> &mdash; polls L1, signs BSC transfer, reports completion back to L1</td></tr>
+
+            <tr><td><strong>Activation Gate</strong></td><td>Server-side feature flag <code>ANET_BRIDGE_BURN_ENABLED</code> (default off). When disabled the endpoint returns a deterministic 404 with a typed error code.</td></tr>
+
+            <tr><td><strong>Replay Protection</strong></td><td>Unique per-user nonce + L1 burn-record uniqueness check before relayer release</td></tr>
+
+          </tbody>
+
+        </table>
+
+        </div>
+
+      </div>
+
+      <div class="panel" style="border-left: 3px solid var(--accent-2); background: rgba(34,231,184,.06);">
+
+        <strong>Operational note.</strong> The L1 burn endpoint ships in the deployed code today but is gated behind the <code>ANET_BRIDGE_BURN_ENABLED</code> flag and remains disabled until the escrow wallet is funded to a level sufficient to cover expected release volume. Until then, users continue to use the BSC&nbsp;&rarr;&nbsp;L1 direction (AnetSwap) only.
+
+      </div>
+
     </section>
 
 
@@ -2950,9 +2994,15 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
 
 
-      <h3 id="phase5-proofs">Phase 5: Decentralized Mining Proofs (v1.0.20+)</h3>
+      <h3 id="phase5-proofs">Phase 5 (Roadmap): Decentralized Mining Proofs &mdash; Research Spec</h3>
 
-      <p><strong>Phase 5 introduces decentralized mining proof generation</strong>, enabling miners to create cryptographically-signed proofs without relying on centralized server approval. Miners now generate proofs locally using a time-based difficulty challenge, sign them with their secp256k1 private key, and submit them directly to the chain. Any validator can independently verify these proofs using public cryptography.</p>
+      <div class="panel" style="border-left: 3px solid #f5a623; background: rgba(245,166,35,.06);">
+
+        <strong>Status: Roadmap / Research &mdash; NOT active in production.</strong> The decentralized signed-proof model described below is the design target for a future protocol upgrade. As of v1.0.61 (123) the production mining flow is exclusively the authenticated server-side attendance check-in (<code>POST&nbsp;/mining/start</code>). The mobile application performs no on-device hashing, proof-of-work, background compute, or cryptocurrency mining. This section is preserved as a forward-looking specification for community review.
+
+      </div>
+
+      <p><strong>When activated</strong>, Phase 5 will enable miners to create cryptographically-signed proofs without relying on centralized server approval. Miners would generate proofs locally using a time-based difficulty challenge, sign them with their secp256k1 private key, and submit them directly to the chain. Any validator could then independently verify these proofs using public cryptography.</p>
 
       <h4>Proof-of-Ownership Model</h4>
 
@@ -3871,7 +3921,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <div class="wp-footer">
 
-      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> &middot; Official Whitepaper v2.2 &middot; May 8, 2026</p>
+      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> &middot; Official Whitepaper v3.1 &middot; May 22, 2026</p>
 
       <p>Website: <a href="https://a-network.net">a-network.net</a> &middot; Contract: <a href="https://bscscan.com/address/0x791055A7d52AA392eaE8De04250497f33807E46A">0x791055A7...E46A</a> &middot; App: <a href="https://play.google.com/store/apps/details?id=com.anetwork.app">Google Play</a></p>
 
