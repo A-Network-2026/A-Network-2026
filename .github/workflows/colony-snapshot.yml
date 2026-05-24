@@ -1,0 +1,47 @@
+name: Colony Monthly Snapshot
+
+# Runs once a day at 00:30 UTC (30 min after the page's monthly reset window)
+# and can also be triggered manually for testing.
+on:
+  schedule:
+    - cron: '30 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: colony-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run snapshot script
+        env:
+          ANET_STATS_ENDPOINT: https://explorer.a-network.net/stats/investor
+        run: node scripts/colony-snapshot.js
+
+      - name: Commit & push if changed
+        run: |
+          set -e
+          if [ -z "$(git status --porcelain data/)" ]; then
+            echo "No snapshot changes — nothing to commit."
+            exit 0
+          fi
+          git config user.name  "anet-snapshot-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/
+          git commit -m "data: colony snapshot $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push origin HEAD:main

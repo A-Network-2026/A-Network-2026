@@ -35,6 +35,7 @@
       <nav>
         <a href="index.html">Home</a>
         <a href="#colony-progress">Colony Progress</a>
+        <a href="#monthly-snapshot">Monthly Snapshot</a>
         <a href="#language">Language</a>
         <a href="#roles">Ant Roles</a>
         <a href="#layers">4 Layers</a>
@@ -246,6 +247,111 @@
       </div>
     </section>
 
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         MONTHLY COLONY SNAPSHOT · resets on 1st of every month
+         Per-owner / referral-code line graph (last 30 daily points)
+         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <style>
+      #monthly-snapshot .cm-head{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;justify-content:space-between;margin-bottom:12px}
+      #monthly-snapshot .cm-period{font-family:'Orbitron',sans-serif;letter-spacing:.12em;font-size:1.05rem;color:var(--accent-2)}
+      #monthly-snapshot .cm-reset{font-size:.82rem;color:#a8b3c2}
+      #monthly-snapshot .cm-reset strong{color:var(--accent-3)}
+      #monthly-snapshot .cm-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 16px}
+      #monthly-snapshot .cm-controls select,#monthly-snapshot .cm-controls input{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:#e8eef6;border-radius:8px;padding:8px 12px;font-size:.9rem;min-width:160px}
+      #monthly-snapshot .cm-controls button{background:rgba(108,231,177,.10);border:1px solid rgba(108,231,177,.35);color:var(--accent);border-radius:8px;padding:8px 14px;font-size:.85rem;cursor:pointer;transition:all .15s}
+      #monthly-snapshot .cm-controls button:hover{background:rgba(108,231,177,.18)}
+      #monthly-snapshot .cm-controls button.is-active{background:var(--accent);color:#06111d;font-weight:700}
+      #monthly-snapshot .cm-chart-wrap{position:relative;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;margin-bottom:18px}
+      #monthly-snapshot .cm-chart-wrap svg{display:block;width:100%;height:auto}
+      #monthly-snapshot .cm-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:12px;font-size:.82rem;color:#cbd5e1}
+      #monthly-snapshot .cm-legend .cm-swatch{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:middle}
+      #monthly-snapshot .cm-empty{color:#8895a8;font-style:italic;text-align:center;padding:36px 8px}
+      #monthly-snapshot .cm-board{width:100%;border-collapse:collapse;font-size:.88rem}
+      #monthly-snapshot .cm-board th,#monthly-snapshot .cm-board td{text-align:left;padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
+      #monthly-snapshot .cm-board th{font-family:'Orbitron',sans-serif;letter-spacing:.08em;font-size:.72rem;color:#9aa5b8;text-transform:uppercase}
+      #monthly-snapshot .cm-board tr.cm-rank-1 td{color:#ffd86b}
+      #monthly-snapshot .cm-board tr.cm-rank-2 td{color:#d6dbe2}
+      #monthly-snapshot .cm-board tr.cm-rank-3 td{color:#e0a974}
+      #monthly-snapshot .cm-board td.cm-num{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+      #monthly-snapshot .cm-board-wrap{overflow-x:auto;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.06);border-radius:10px}
+      #monthly-snapshot .cm-tooltip{position:absolute;pointer-events:none;background:#0b1726;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 11px;font-size:.78rem;color:#e8eef6;box-shadow:0 6px 24px rgba(0,0,0,.4);transform:translate(-50%,-110%);white-space:nowrap;opacity:0;transition:opacity .12s}
+      #monthly-snapshot .cm-tooltip.is-on{opacity:1}
+      #monthly-snapshot .cm-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
+      #monthly-snapshot .cm-meta div{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px}
+      #monthly-snapshot .cm-meta div small{display:block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#8895a8;margin-bottom:4px}
+      #monthly-snapshot .cm-meta div strong{font-family:'Space Grotesk',sans-serif;font-size:1.15rem;color:#e8eef6}
+    </style>
+    <section class="section" id="monthly-snapshot">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2>Monthly Active Colony Snapshot</h2>
+            <p class="section-copy">Per-month, per-owner mining activity. Canonical daily snapshots are written by a GitHub Action at ~00:30 UTC and committed to <code>data/colony-monthly-YYYY-MM.json</code>, so every visitor sees the same chart. The current month resets automatically on the 1st at 00:00 UTC; the previous month becomes a read-only archive. Source: public chain stats endpoint.</p>
+          </div>
+          <div class="progress-chip-wrap">
+            <span class="progress-chip" id="cm-status">Loading...</span>
+          </div>
+        </div>
+
+        <div class="cm-head">
+          <div class="cm-period" id="cm-period-label">—</div>
+          <div class="cm-reset">Next reset in <strong id="cm-reset-countdown">—</strong> (UTC)</div>
+        </div>
+
+        <div class="cm-meta">
+          <div><small>Tracked Owners</small><strong id="cm-owner-count">—</strong></div>
+          <div><small>Tracked Colonies</small><strong id="cm-colony-count">—</strong></div>
+          <div><small>Snapshots This Month</small><strong id="cm-sample-count">—</strong></div>
+          <div><small>Peak Mining (Top Owner)</small><strong id="cm-peak-mining">—</strong></div>
+        </div>
+
+        <div class="cm-controls">
+          <label for="cm-view-select" style="font-size:.82rem;color:#9aa5b8">View:</label>
+          <select id="cm-view-select" aria-label="Choose snapshot period">
+            <option value="current">Current Month (live)</option>
+          </select>
+          <label for="cm-metric-select" style="font-size:.82rem;color:#9aa5b8;margin-left:8px">Metric:</label>
+          <select id="cm-metric-select" aria-label="Choose metric">
+            <option value="mining">Active Mining (active_chat_ants)</option>
+            <option value="members">Tracked Members</option>
+            <option value="rooms">Room Count</option>
+          </select>
+          <label for="cm-topn-select" style="font-size:.82rem;color:#9aa5b8;margin-left:8px">Show top:</label>
+          <select id="cm-topn-select" aria-label="How many owners to plot">
+            <option value="5">5 owners</option>
+            <option value="10" selected>10 owners</option>
+            <option value="20">20 owners</option>
+          </select>
+          <button type="button" id="cm-refresh-btn">Refresh Now</button>
+        </div>
+
+        <div class="cm-chart-wrap" id="cm-chart-wrap" aria-label="Monthly per-owner line graph">
+          <svg id="cm-chart" viewBox="0 0 800 360" preserveAspectRatio="none" role="img" aria-label="Daily mining strength per colony owner for the current month"></svg>
+          <div class="cm-tooltip" id="cm-tooltip" role="tooltip"></div>
+          <div class="cm-legend" id="cm-legend"></div>
+          <div class="cm-empty" id="cm-empty" hidden>No snapshots yet for this month. Data accumulates as the page is visited each day.</div>
+        </div>
+
+        <div class="cm-board-wrap">
+          <table class="cm-board" aria-label="Monthly owner leaderboard">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Owner / Referral Code</th>
+                <th>Top Colony</th>
+                <th class="cm-num">Peak Mining</th>
+                <th class="cm-num">Avg Mining</th>
+                <th class="cm-num">Days Active</th>
+              </tr>
+            </thead>
+            <tbody id="cm-board-body">
+              <tr><td colspan="6" class="cm-empty">Waiting for first snapshot…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <section class="section" id="language">
       <div class="section-card">
         <div class="section-head">
@@ -338,6 +444,7 @@
   </div>
   <script src="assets/js/site-ai.js" defer></script>
   <script src="assets/js/ants-program.js?v=20260509-23" defer></script>
+  <script src="assets/js/colony-monthly.js?v=20260524-2" defer></script>
 </body>
 </html>
 

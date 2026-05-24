@@ -85,7 +85,7 @@ Use this page in Pi Browser sandbox mode first, then switch to production mode w
 > Loading mobile mining interface v1.0.6... [COMPLETE]
 > Connecting Fastify backend and PostgreSQL ledger... [ACTIVE]
 > Syncing Web3 utility-token visibility layer... [RUNNING]
-> Layer 1 private mainnet... [LIVE - explorer.a-network.net]
+> Layer 1 Mainnet... [LIVE - explorer.a-network.net]
 > Mission: build a long-term mining ecosystem with real product surfaces.
 </pre>
 
@@ -122,7 +122,7 @@ The current product includes a Flutter app, a Node.js/Fastify backend, a Postgre
   <img src="https://img.shields.io/badge/Mobile_App-v1.0.21+71_LIVE-1f9d55?style=for-the-badge" alt="Mobile App v1.0.21+71 Live" />
   <img src="https://img.shields.io/badge/Fastify_API-ACTIVE-2563eb?style=for-the-badge" alt="Fastify API Active" />
   <img src="https://img.shields.io/badge/EVM_Bridge-AnetSwap_LIVE-f59e0b?style=for-the-badge" alt="EVM Bridge AnetSwap Live" />
-  <img src="https://img.shields.io/badge/Layer1_Chain-PRIVATE_MAINNET_LIVE-7c3aed?style=for-the-badge" alt="Layer1 Private Mainnet Live" />
+  <img src="https://img.shields.io/badge/Layer1_Chain-MAINNET_LIVE-7c3aed?style=for-the-badge" alt="Layer1 Mainnet Live" />
 </p>
 
 <div align="center">
@@ -201,7 +201,7 @@ The codebase currently implements:
 - Seed phrase vault with encrypted-at-rest storage and PIN + OTP reveal flow
 - In-app legal links for Privacy Policy, Terms of Service, and Account Deletion
 - Public docs: website, privacy, terms, whitepaper (v2.2)
-- Layer 1 private mainnet running (see [ROADMAP_2026.md](ROADMAP_2026.md))
+- Layer 1 Mainnet running (see [ROADMAP_2026.md](ROADMAP_2026.md))
 
 The codebase does not currently implement:
 
@@ -452,7 +452,7 @@ Web4 is currently presented as the coordination layer between off-chain utility 
 
 - The current codebase already implements the ANTS-first session ledger and the `1,000`-session eligibility threshold
 - The BNB Chain utility token is already visible through the current wallet and website surfaces
-- **Layer 1 private mainnet is now running** — block explorer live at https://explorer.a-network.net
+- **Layer 1 Mainnet is now running** — block explorer live at https://explorer.a-network.net
 - The Layer 1 public release target is approximately `8 months`, subject to technical readiness, security review, and market conditions
 - Web2 ledger migration to Layer 1 uses **last-miner-first sync order** — most recently active miners are synchronized first to minimize downtime
 - Any early Layer 1 starting price discussion should be treated as a non-guaranteed planning reference only; market price discovery will depend on open participation and liquidity at launch
@@ -695,7 +695,7 @@ Avoid claiming:
 | [ROADMAP_2026.md](ROADMAP_2026.md) | Full 5-phase ecosystem roadmap (Web2 → Web3 → Web4 → Smart Contracts → ANET Core) |
 | [COMMUNITY_ARTICLE_ANET_WBNB.md](COMMUNITY_ARTICLE_ANET_WBNB.md) | Transparency article: ANET/WBNB vs Layer 1 coin, dual economy explanation |
 | [whitepaper.html](https://a-network.net/whitepaper.html) | Official Whitepaper v2.1 — full technical specification |
-| [explorer.a-network.net](https://explorer.a-network.net) | Layer 1 block explorer (private mainnet live) |
+| [explorer.a-network.net](https://explorer.a-network.net) | Layer 1 block explorer (Mainnet live) |
 
 ## Summary
 
@@ -709,7 +709,7 @@ A-Network currently ships as a real application stack with:
 - Multi-language support (English, Hindi, Urdu, Chinese, Spanish)
 - Ant Code Colony referral system (single-level, zero issuance multiplier)
 - Admin dashboard with cheater detection and manual ban system
-- Layer 1 private mainnet running (explorer: https://explorer.a-network.net)
+- Layer 1 Mainnet running (explorer: https://explorer.a-network.net)
 - Public legal pages and policy-safe product positioning for app store submission
 - App v1.0.6 ready for Google Play and App Store submission
 

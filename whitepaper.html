@@ -774,7 +774,7 @@
 
 
 
-      <p>A-Network v1.0.6 defines a proof-of-time ledger backed by fixed 6-hour Ant Work sessions and a live ANET Layer 1 private mainnet. Session completion credits <strong>ANTS</strong>, the smallest accounting unit of the Layer 1 economy. Spendable Layer 1 ANET is not issued at session end and becomes claimable only after a participant reaches <strong>1,000 completed sessions</strong>.</p>
+      <p>A-Network v1.0.6 defines a proof-of-time ledger backed by fixed 6-hour Ant Work sessions and a live ANET Layer 1 Mainnet. Session completion credits <strong>ANTS</strong>, the smallest accounting unit of the Layer 1 economy. Spendable Layer 1 ANET is not issued at session end and becomes claimable only after a participant reaches <strong>1,000 completed sessions</strong>.</p>
 
       <p>Today, mining accrual is performed exclusively through an authenticated server-side attendance check-in (<code>POST&nbsp;/mining/start</code>). The mobile app does <strong>not</strong> perform any on-device proof-of-work, hashing, or background compute &mdash; it simply opens a 6-hour attendance window and the backend updates the ledger. <strong>Phase 5 (decentralized signed SHA-256 proofs)</strong> remains on the research roadmap (see Section 11 &mdash; Phase 5 Roadmap) and is <em>not</em> active on the production network in v1.0.61 (123). When it ships, it will run alongside server-approved mining, not replace it.</p>
 
@@ -1356,7 +1356,7 @@
 
             <tr><td><strong>Web3 Network</strong></td><td>BNB Chain (Web3)</td><td>Contract: 0x791055A7d52AA392eaE8De04250497f33807E46A</td></tr>
 
-            <tr><td><strong>Web4 Network</strong></td><td>ANET Layer 1</td><td>live private mainnet now; broader release targeted in roughly 8 months, subject to readiness</td></tr>
+            <tr><td><strong>Web4 Network</strong></td><td>ANET Layer 1</td><td>live Mainnet now; broader release targeted in roughly 8 months, subject to readiness</td></tr>
 
             <tr><td><strong>Initial Market Reference</strong></td><td>~$0.000001</td><td>Illustrative early Layer 1 planning reference only, not a guaranteed launch price</td></tr>
 
@@ -2959,11 +2959,11 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
 
 
-      <p>A-Network now operates a <strong>live ANET Layer 1 private mainnet</strong> that extends the ANTS-first Web2 ledger into an on-chain settlement environment. The private-mainnet chain bootstraps genesis from the Web2 ledger, synchronizes activated balances into Layer 1 state, and opens wallet-to-wallet settlement windows on a 2-second cadence. A block is produced only when chain work exists, such as a queued transfer or newly synchronized ANTS supply from Web2. The broader production-grade Web4 activation remains a future milestone subject to engineering readiness and security review.</p>
+      <p>A-Network now operates a <strong>live ANET Layer 1 Mainnet</strong> that extends the ANTS-first Web2 ledger into an on-chain settlement environment. The Mainnet chain bootstraps genesis from the Web2 ledger, synchronizes activated balances into Layer 1 state, and opens wallet-to-wallet settlement windows on a 2-second cadence. A block is produced only when chain work exists, such as a queued transfer or newly synchronized ANTS supply from Web2. The broader production-grade Web4 activation remains a future milestone subject to engineering readiness and security review.</p>
 
 
 
-      <p>This should not be understood as a token swap. It is a <strong>ledger synchronization and chain-genesis model</strong>. On the live private mainnet, wallet state, completed-session history, and activated ANTS balances from the Web2 database are imported into the Layer 1 genesis snapshot and may continue receiving periodic delta settlements while the chain is running. The first <strong>1,000 completed sessions</strong> remain the threshold before spendable Layer 1 ANET conversion begins.</p>
+      <p>This should not be understood as a token swap. It is a <strong>ledger synchronization and chain-genesis model</strong>. On the live Mainnet, wallet state, completed-session history, and activated ANTS balances from the Web2 database are imported into the Layer 1 genesis snapshot and may continue receiving periodic delta settlements while the chain is running. The first <strong>1,000 completed sessions</strong> remain the threshold before spendable Layer 1 ANET conversion begins.</p>
 
 
 
@@ -2975,7 +2975,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       <p>Traditional Proof-of-Work systems rely on computational expenditure and therefore tend to favor specialized hardware operators. A-Network attempts a different entry rule.</p>
 
-      <p>Its <strong>Time-Based Proof-of-Work (TPoW)</strong> replaces computational expenditure with committed time. In the Web2 phase, the work unit is a verified 6-hour session. In the Live Layer 1 Private Mainnet, settlement windows are decoupled from that off-chain work interval and reopen every 2 seconds, while blocks are emitted only when transfers or synchronized ANTS supply exist. Validator eligibility continues to derive from real Web2 session activity.</p>
+      <p>Its <strong>Time-Based Proof-of-Work (TPoW)</strong> replaces computational expenditure with committed time. In the Web2 phase, the work unit is a verified 6-hour session. In the Live Layer 1 Mainnet, settlement windows are decoupled from that off-chain work interval and reopen every 2 seconds, while blocks are emitted only when transfers or synchronized ANTS supply exist. Validator eligibility continues to derive from real Web2 session activity.</p>
 
 
 
@@ -2999,7 +2999,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
             <tr><td><strong>Sybil resistance</strong></td><td>Hash rate cost</td><td>Email verification + time cost</td></tr>
 
-            <tr><td><strong>Block time</strong></td><td>~10 minutes</td><td>2-second settlement windows on live private mainnet; blocks are created only when transfers or new synchronized supply exist, while 6-hour Web2 mining sessions remain separate</td></tr>
+            <tr><td><strong>Block time</strong></td><td>~10 minutes</td><td>2-second settlement windows on live Mainnet; blocks are created only when transfers or new synchronized supply exist, while 6-hour Web2 mining sessions remain separate</td></tr>
 
             <tr><td><strong>Reward model</strong></td><td>Block reward + fees</td><td>Web2 session issuance off-chain; Layer 1 transfer blocks are fee-ready and settlement-focused</td></tr>
 
@@ -3161,7 +3161,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       <h3 id="blocks">Block Structure on ANET Layer 1</h3>
 
-      <p>On the live ANET Layer 1 private mainnet, each block represents a settlement event rather than a 6-hour mining window. Validator eligibility is still derived from completed Web2 mining participation, while wallet-to-wallet transfers settle inside short 2-second windows. If no transfer and no newly synchronized Web2 supply arrives in a window, no block is emitted. The block contains:</p>
+      <p>On the live ANET Layer 1 Mainnet, each block represents a settlement event rather than a 6-hour mining window. Validator eligibility is still derived from completed Web2 mining participation, while wallet-to-wallet transfers settle inside short 2-second windows. If no transfer and no newly synchronized Web2 supply arrives in a window, no block is emitted. The block contains:</p>
 
 
 
@@ -3201,7 +3201,7 @@ Block {
 
       <h3 id="txfees">Transaction Fees &mdash; Paid in Ants</h3>
 
-      <p>After the max supply of 21,000,000 ANET is reached, no new ANET is created. The long-term network transitions from a <em>block-reward model</em> to a <em>fee-only model</em>. The live private mainnet already exercises the settlement side of this design by opening 2-second transfer windows, emitting event-driven settlement blocks, tracking validator sets, and accounting for transaction fees in Ants.</p>
+      <p>After the max supply of 21,000,000 ANET is reached, no new ANET is created. The long-term network transitions from a <em>block-reward model</em> to a <em>fee-only model</em>. The live Mainnet already exercises the settlement side of this design by opening 2-second transfer windows, emitting event-driven settlement blocks, tracking validator sets, and accounting for transaction fees in Ants.</p>
 
 
 
@@ -3297,7 +3297,7 @@ Block {
 
           <li><strong>Genesis Block Construction:</strong> The ANET Layer 1 genesis block is constructed from the signed snapshot. Each user's approved migration mapping, ANTS-derived state, and claimed ANET settlement become part of the initial state tree.</li>
 
-          <li><strong>Live Private Mainnet Proof:</strong> The current ANET Layer 1 private mainnet already demonstrates this model through genesis activation plus periodic Web2 delta synchronization into the running chain.</li>
+          <li><strong>Live Mainnet Proof:</strong> The current ANET Layer 1 Mainnet already demonstrates this model through genesis activation plus periodic Web2 delta synchronization into the running chain.</li>
 
           <li><strong>Chain Launch:</strong> The genesis block is sealed, hashed, and broadcast to the validator set synchronized from eligible miners who meet current node thresholds.</li>
 
@@ -3752,12 +3752,12 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
         <div class="rm-item">
           <div class="rm-dot done"></div>
           <div class="rm-phase">Phase 1 &mdash; Foundation (Completed)</div>
-          <div class="rm-title">Layer 1 Private Mainnet &amp; Mining Launch</div>
+          <div class="rm-title">Layer 1 Mainnet &amp; Mining Launch</div>
           <div class="rm-desc">
-            Launch of the Layer 1 private mainnet, time-based Ant Work mining engine, ANTS-first ledger accounting, email OTP verification, leaderboard, colony tracking, push notifications, anti-fraud backend, admin dashboard, ban system, audit logging, wallet recovery, account continuity, and production backend hardening. iOS and Android apps deployed. Backend live on cloud infrastructure with PostgreSQL ledger.
+            Launch of the Layer 1 Mainnet, time-based Ant Work mining engine, ANTS-first ledger accounting, email OTP verification, leaderboard, colony tracking, push notifications, anti-fraud backend, admin dashboard, ban system, audit logging, wallet recovery, account continuity, and production backend hardening. iOS and Android apps deployed. Backend live on cloud infrastructure with PostgreSQL ledger.
           </div>
           <div class="rm-tags">
-            <span class="rm-tag">L1 Private Mainnet &#10003;</span>
+            <span class="rm-tag">L1 Mainnet &#10003;</span>
             <span class="rm-tag">Android &amp; iOS Apps &#10003;</span>
             <span class="rm-tag">Ant Work Engine &#10003;</span>
             <span class="rm-tag">ANTS Ledger &#10003;</span>

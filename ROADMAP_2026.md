@@ -80,7 +80,7 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 ---
 
 ### 🚀 **Phase 3: Web4 — Layer 1 Settlement Chain** 
-**Status:** IN DEVELOPMENT (Private Mainnet Live | Public Release ~8 months)**
+**Status:** IN DEVELOPMENT (Mainnet Live | Public Release ~8 months)**
 
 **What it is:**
 - Private Layer 1 blockchain running now for development
@@ -102,7 +102,7 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 - **Security Hardening (May 2026):** Constant-time admin key comparison (subtle crate), CORS locked to a-network.net, timing-safe auth in all services
 
 **Timeline:**
-- Private Mainnet: **LIVE NOW** (stable, hardened)
+- Mainnet: **LIVE NOW** (stable, hardened)
 - Public Release: **~8 months** (subject to engineering readiness)
 - Illustrative Price Zone: $0.000001 early Layer 1 discovery (not a guarantee, market-determined)
 
@@ -190,7 +190,7 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 |-----------|--------|-------|
 | **Mobile App** | ✅ Live v1.0.21+71 | Flutter — mining, EVM wallet import, in-app DEX + EVM bridge, AI support, NFT identity |
 | **Backend API** | ✅ Live (https://rmp-site.onrender.com) | Fastify + PostgreSQL, timing-safe auth, all anti-gaming logic |
-| **Layer 1 Chain** | ✅ Private Mainnet (stable) | https://anet-private-mainnet.onrender.com — DEX live, constant-time key auth |
+| **Layer 1 Chain** | ✅ Mainnet (stable) | https://anet-private-mainnet.onrender.com — DEX live, constant-time key auth |
 | **Native DEX** | ✅ Live (Layer 1) | ANET-USDC pool seeded, AMM pricing, 0.30% fee, in-app swap UI |
 | **EVM Bridge** | ✅ Live (BSC Mainnet) | AnetSwap `0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8` — in-app BNB/USDT/USDC → ANET |
 | **EVM Wallet Import** | ✅ Live (v1.0.20+70) | MetaMask / any EVM wallet via BIP39 mnemonic, works on ANET DEX |
@@ -212,7 +212,7 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
    - ✅ Submit to Google Play Store
    - 📝 Monitor store metrics and user feedback
 
-2. **Layer 1 Private Mainnet Hardening** ✅ Complete
+2. **Layer 1 Mainnet Hardening** ✅ Complete
    - ✅ Native DEX seeded and live (ANET-USDC pool)
    - ✅ Constant-time admin key comparison (subtle crate)
    - ✅ DEPLOY.md + FREEZE.md in all repos
