@@ -80,7 +80,7 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 ---
 
 ### 🚀 **Phase 3: Web4 — Layer 1 Settlement Chain** 
-**Status:** IN DEVELOPMENT (Mainnet Live | Public Release ~8 months)**
+**Status:** IN DEVELOPMENT (ANTS Mainnet Live | Public Release ~8 months)**
 
 **What it is:**
 - Private Layer 1 blockchain running now for development
@@ -102,7 +102,7 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 - **Security Hardening (May 2026):** Constant-time admin key comparison (subtle crate), CORS locked to a-network.net, timing-safe auth in all services
 
 **Timeline:**
-- Mainnet: **LIVE NOW** (stable, hardened)
+- ANTS Mainnet: **LIVE NOW** (stable, hardened)
 - Public Release: **~8 months** (subject to engineering readiness)
 - Illustrative Price Zone: $0.000001 early Layer 1 discovery (not a guarantee, market-determined)
 
@@ -212,7 +212,7 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
    - ✅ Submit to Google Play Store
    - 📝 Monitor store metrics and user feedback
 
-2. **Layer 1 Mainnet Hardening** ✅ Complete
+2. **ANTS Mainnet Hardening** ✅ Complete
    - ✅ Native DEX seeded and live (ANET-USDC pool)
    - ✅ Constant-time admin key comparison (subtle crate)
    - ✅ DEPLOY.md + FREEZE.md in all repos
@@ -244,7 +244,7 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 | **Jun–Jul 2026** | Monitor Web2 adoption, session volume growth | Phase 1 ✅ |
 | **Aug 2026** | Post-launch Stage 0 transition (after 500K sessions) | Phase 1 → Phase 3 prep |
 | **Sep 2026** | Layer 1 public testnet launch (optional staging) | Phase 3 🔄 |
-| **Oct 2026** | Layer 1 public mainnet launch (estimated) | Phase 3 ✅ |
+| **Oct 2026** | ANTS public mainnet launch (estimated) | Phase 3 ✅ |
 | **Nov–Dec 2026** | Migrate Web2 ledger to Layer 1, enable settlement | Phase 3 ✅ → Phase 4 prep |
 | **Q4 2026 / Q1 2027** | Smart contract layer development & audit | Phase 4 🔄 |
 | **Q2 2027** | Smart contract public launch (post-audit) | Phase 4 ✅ |

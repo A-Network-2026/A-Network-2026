@@ -2718,7 +2718,7 @@ app.get('/api/public/verification', async (req, res) => {
     ok: true,
     network: {
       anet: {
-        label: 'A Network Mainnet',
+        label: 'A Network ANTS Mainnet',
         chainId: chainId || 'anet-private-mainnet-1',
         explorerBaseUrl: ANET_CHAIN_API_BASE_URL || null,
         latestBlockHeight: chainLatestHeight
@@ -3039,7 +3039,7 @@ function enforceWalletBinding(uid, username, walletAddress) {
   const primaryWallet = normalizeWalletAddress(existing.primaryWallet);
   if (primaryWallet !== normalizedWallet) {
     return {
-      error: `This Pi user is bound to wallet ${primaryWallet}. Use the primary wallet for Mainnet swap/bridge requests.`,
+      error: `This Pi user is bound to wallet ${primaryWallet}. Use the primary wallet for ANTS Mainnet swap/bridge requests.`,
       status: 403,
       binding: getPublicWalletBinding(normalizedUid)
     };
@@ -3152,7 +3152,7 @@ async function requireUnlockAndEligibility(uid, username, walletAddress) {
 
   if (!eligibility.eligible) {
     return {
-      error: `You need to complete at least ${eligibility.requiredSessions} sessions before using swap/bridge on Mainnet`,
+      error: `You need to complete at least ${eligibility.requiredSessions} sessions before using swap/bridge on ANTS Mainnet`,
       status: 403,
       unlock: unlockResult.unlock,
       eligibility,
