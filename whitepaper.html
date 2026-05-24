@@ -8,9 +8,9 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v3.1 | Mine -> 1,000 Sessions -> Swap/Transfer -> NFT Activation · Bidirectional EVM Bridge · Layer 1 · Web3</title>
+  <title>A-Network Whitepaper v3.2 | Fully Decentralized BEP-20 (Ownership Renounced) · Mine -> 1,000 Sessions -> Swap/Transfer -> NFT Activation · Bidirectional EVM Bridge · Layer 1 · Web3</title>
 
-  <meta name="description" content="The official A-Network v3.1 whitepaper. Defines the unified miner lifecycle rule, ANTS accounting, Layer 1 + Web3 architecture, bidirectional in-app EVM bridge (AnetSwap BSC contract + L1 burn endpoint), DEX settlement flow, security model, and full roadmap." />
+  <meta name="description" content="The official A-Network v3.2 whitepaper. Documents the permanent renounce of the ANET BEP-20 ownership on May 24, 2026 (owner = 0x0), the unified miner lifecycle rule, ANTS accounting, Layer 1 + Web3 architecture, bidirectional in-app EVM bridge (AnetSwap BSC contract + L1 burn endpoint), DEX settlement flow, security model, and full roadmap." />
 
   <meta name="theme-color" content="#07101a" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
@@ -724,14 +724,33 @@
 
     <div class="hero">
 
-      <div class="hero-badge">Technical Paper v3.1 (Bidirectional Bridge)</div>
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           DECENTRALIZATION MILESTONE BANNER — May 24, 2026
+           ANET BEP-20 ownership permanently renounced (owner = 0x0)
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+      <div style="border:2px solid #f0b90b;background:linear-gradient(135deg,rgba(240,185,11,0.10),rgba(240,185,11,0.02));border-radius:12px;padding:18px 22px;margin-bottom:22px;">
+        <div style="font-size:0.78rem;letter-spacing:0.14em;font-weight:700;color:#f0b90b;text-transform:uppercase;margin-bottom:8px;">🛑 Decentralization Milestone &middot; May 24, 2026</div>
+        <div style="font-size:1.05rem;line-height:1.55;color:#e8e8e8;">
+          The ANET BEP-20 contract on BNB Chain has had its ownership <strong>permanently renounced</strong>. The <code>owner</code> slot is now <code>0x0000000000000000000000000000000000000000</code> and cannot be changed. The functions <code>mint()</code>, <code>pause()</code>, <code>unpause()</code>, and <code>setBlacklist()</code> are <strong>permanently disabled</strong>. Maximum supply is locked at <strong>21,000,000 ANET</strong> forever. The contract now obeys only its code, equally for every holder.
+        </div>
+        <div style="font-size:0.92rem;line-height:1.6;color:#cfcfcf;margin-top:10px;">
+          <strong>Contract:</strong> <code>0x791055A7d52AA392eaE8De04250497f33807E46A</code><br/>
+          <strong>Verify:</strong> <a href="https://bscscan.com/token/0x791055A7d52AA392eaE8De04250497f33807E46A#readContract" target="_blank" rel="noopener" style="color:#f0b90b;">BscScan &rarr; Read Contract &rarr; <code>owner()</code></a> &rarr; returns <code>0x0000…0000</code>.<br/>
+          <strong>Co-founder stewardship (50% / 50%):</strong> <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener" style="color:#f0b90b;">@Joel_Dupalco</a> &middot; <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener" style="color:#f0b90b;">@Digitalgold1979</a>. Stewards hold tokens as ordinary holders with <strong>no</strong> on-chain administrative privileges.
+        </div>
+        <div style="font-size:0.85rem;line-height:1.55;color:#a8a8a8;margin-top:10px;font-style:italic;">
+          Scope note: this milestone decentralizes the BNB Chain (Layer 2) token contract. The A-Network Layer 1 chain, bridge relayer, and cash-out escrow remain operator-run today and are scheduled for phased decentralization on the v3.x roadmap.
+        </div>
+      </div>
+
+      <div class="hero-badge">Technical Paper v3.2 (Fully Decentralized BEP-20)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 3.1 extends the in-app EVM bridge to a <strong>bidirectional model</strong>: users can swap BNB, USDT, or USDC into ANET via the <strong>AnetSwap</strong> contract on BSC mainnet (<code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>), and conversely burn Layer&nbsp;1 ANET through the new <code>POST&nbsp;/bridge/burn</code> endpoint on the ANET L1 node to receive wANET (BEP-20) on BSC from a dedicated escrow wallet. Both directions are recorded on the ANET Layer 1 explorer. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
+      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 3.2 records a permanent milestone: on <strong>May 24, 2026</strong> the ANET BEP-20 contract on BNB Chain (<code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>) had its ownership <strong>permanently renounced</strong> (<code>owner = 0x0000…0000</code>). The functions <code>mint()</code>, <code>pause()</code>, <code>unpause()</code>, and <code>setBlacklist()</code> are now permanently disabled, locking maximum supply at <strong>21,000,000 ANET</strong> forever. Version 3.1's bidirectional bridge remains intact: users can swap BNB, USDT, or USDC into ANET via the <strong>AnetSwap</strong> contract on BSC mainnet (<code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>), and conversely burn Layer&nbsp;1 ANET through the <code>POST&nbsp;/bridge/burn</code> endpoint on the ANET L1 node to receive wANET (BEP-20) on BSC from a dedicated escrow wallet. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> &mdash; 3.1 (Bidirectional Bridge · May 2026)</div>
-        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 22, 2026</div>
+        <div class="hero-meta-item"><strong>Version</strong> &mdash; 3.2 (Fully Decentralized BEP-20 · May 2026)</div>
+        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 24, 2026</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong> &mdash; Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
-        <div class="hero-meta-item"><strong>Web3 Token</strong> &mdash; 21,000,000 ANET BEP-20 on BNB Chain &middot; DEX-listed</div>
+        <div class="hero-meta-item"><strong>Web3 Token</strong> &mdash; 21,000,000 ANET BEP-20 on BNB Chain &middot; DEX-listed &middot; <strong>Ownership Renounced (owner = 0x0)</strong></div>
         <div class="hero-meta-item"><strong>Denomination</strong> &mdash; 1 ANET = 100,000,000 ANTS</div>
         <div class="hero-meta-item"><strong>Lifecycle Rule</strong> &mdash; Mine &rarr; 1,000 sessions &rarr; Mobile swap/transfer/cashout &rarr; NFT unlock</div>
       </div>
@@ -769,7 +788,7 @@
 
 
 
-      <p>The BNB Chain utility token is documented as a <strong>50% owner / 50% founder</strong> stewardship pool for ecosystem utility, distribution planning, and Layer 1 access rails. By contrast, the Layer 1 mining coin has <strong>no owner allocation</strong> and <strong>no founder allocation</strong>: participants enter through work, not insider minting.</p>
+      <p>The BNB Chain utility token is documented as a <strong>50% / 50% founder stewardship</strong> pool, held between two named co-founders &mdash; <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener">@Joel_Dupalco</a> (Coach Joel) and <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener">@Digitalgold1979</a> &mdash; for ecosystem utility, distribution planning, AMA rewards, liquidity provisioning, and Layer 1 access rails. As of <strong>May 24, 2026</strong>, the BEP-20 contract itself has <strong>no on-chain owner</strong>: the deployer wallet permanently renounced ownership, so the founders hold tokens as ordinary holders with <em>no</em> administrative privileges over the contract. By contrast, the Layer 1 mining coin has <strong>no owner allocation</strong> and <strong>no founder allocation</strong>: participants enter through work, not insider minting.</p>
 
 
 
@@ -1294,7 +1313,7 @@
 
 
 
-      <p>A-Network separates its asset design into two linked but distinct layers. The first is the <strong>Web3 ANET utility token</strong> on BNB Chain, fixed at <strong>21,000,000 ANET</strong> and documented as a <strong>50% founder / 50% owner</strong> stewardship pool. The second is the <strong>Layer 1 mining economy</strong>, where users accrue ANTS through verified participation and become eligible to convert into spendable Layer 1 ANET only after the <strong>1,000-session threshold</strong>.</p>
+      <p>A-Network separates its asset design into two linked but distinct layers. The first is the <strong>Web3 ANET utility token</strong> on BNB Chain, fixed at <strong>21,000,000 ANET</strong> and held as a <strong>50% / 50% co-founder stewardship</strong> pool between <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener">@Joel_Dupalco</a> and <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener">@Digitalgold1979</a>. The BEP-20 contract itself is <strong>ownerless</strong> as of May 24, 2026 (<code>owner = 0x0</code>); the stewards hold tokens but cannot mint, pause, or blacklist. The second is the <strong>Layer 1 mining economy</strong>, where users accrue ANTS through verified participation and become eligible to convert into spendable Layer 1 ANET only after the <strong>1,000-session threshold</strong>.</p>
 
 
 
@@ -1316,7 +1335,8 @@
 
             <tr><td><strong>Web3 Utility Supply</strong></td><td>21,000,000 ANET</td><td>Fixed utility-token supply</td></tr>
 
-            <tr><td><strong>Web3 Stewardship</strong></td><td>50% founder / 50% owner</td><td>Documented ecosystem distribution and access planning split</td></tr>
+            <tr><td><strong>Web3 Stewardship</strong></td><td>50% / 50% co-founder</td><td>Held by <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener">@Joel_Dupalco</a> and <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener">@Digitalgold1979</a> for ecosystem distribution, AMA rewards, and liquidity. No on-chain admin rights.</td></tr>
+            <tr><td><strong>Web3 Contract Owner</strong></td><td><code>0x0000…0000</code></td><td>Permanently renounced on May 24, 2026. <code>mint()</code>, <code>pause()</code>, <code>unpause()</code>, <code>setBlacklist()</code> disabled forever.</td></tr>
 
             <tr><td><strong>Layer 1 Asset</strong></td><td>ANET / ANTS mining economy</td><td>Separate from the Web3 utility token</td></tr>
 
@@ -2744,7 +2764,8 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
             <tr><td><strong>Total Supply</strong></td><td>21,000,000 ANET</td></tr>
 
-            <tr><td><strong>Documented Stewardship</strong></td><td>50% founder / 50% owner for ecosystem distribution</td></tr>
+            <tr><td><strong>Documented Stewardship</strong></td><td>50% / 50% co-founder &mdash; <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener">@Joel_Dupalco</a> and <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener">@Digitalgold1979</a> for ecosystem distribution</td></tr>
+            <tr><td><strong>Contract Owner</strong></td><td><code>0x0000…0000</code> &mdash; permanently renounced May 24, 2026</td></tr>
 
           </tbody>
 
