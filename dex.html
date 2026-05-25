@@ -141,7 +141,7 @@
       <ol style="margin:10px 0 0 18px;padding:0;color:var(--muted);font-size:12.5px;line-height:1.55;">
         <li>Complete <strong>1,000 validated ANTS sessions</strong> to unlock cashout eligibility.</li>
         <li>Tap <strong>Open Wallet App</strong> and authorize your wallet session there (no seed phrase on web, trusted sessions auto-connect).</li>
-        <li>Inside native DEX flow, ANET can wrap 1:1 into <strong>WANET</strong> for AMM routing, then swap into stable pools such as USDT/USDC.</li>
+        <li>Inside native DEX flow, ANET can wrap 1:1 into <strong>wANET</strong> (BEP-20 on BNB Chain &mdash; the same way Bitcoin wraps into WBTC) for AMM routing, then swap into stable pools such as USDT/USDC.</li>
         <li>Your stable token settles to your <strong>ANET Layer 1 wallet</strong> first (about 2 seconds).</li>
         <li>When bridge transfer is enabled, move from ANET L1 to your EVM wallet as Step 3.</li>
       </ol>
@@ -170,10 +170,15 @@
       <div class="dex-hero-copy">
         <h2>A Network Native DEX</h2>
         <p>
-          Trade ANET natively on A Network Layer 1, with WANET used as the 1:1 wrapped routing asset for the AMM.
+          Trade ANET natively on A Network Layer 1, with <strong>wANET</strong> used as the 1:1 wrapped routing asset for the AMM (the same Bitcoin-style model as BTC&nbsp;↔&nbsp;WBTC).
           Investor website actions route through the A Network wallet app for secure authorization.
           Wrapped bridge assets from Ethereum, BNB Chain, Polygon, Base &amp; more land as additional Phase 2 pairs.
         </p>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="pill" style="background:rgba(255,176,32,0.14);border:1px solid rgba(255,176,32,0.45);color:#ffcf6a;">ANET = native L1 coin (like BTC)</span>
+          <span class="pill" style="background:rgba(57,217,138,0.12);border:1px solid rgba(57,217,138,0.4);color:#9af7ca;">ANTS = smallest unit (like sats) · 1 ANET = 100,000,000 ANTS</span>
+          <span class="pill" style="background:rgba(88,197,255,0.12);border:1px solid rgba(88,197,255,0.4);color:#7fd8ff;">wANET = 1:1 wrapped BEP-20 (like WBTC)</span>
+        </div>
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
@@ -828,6 +833,16 @@
           chains below — lock ANET on the L1, receive wANET on any EVM chain, or bridge any
           stablecoin (USDC · USDT · DAI) directly into the ANET L1 DEX pools.
         </p>
+
+        <!-- Honest status: what is live TODAY vs roadmap -->
+        <div style="margin-top:14px;padding:12px 14px;border-left:3px solid #f7931a;background:rgba(247,147,26,0.06);border-radius:6px;max-width:760px;">
+          <div style="font-size:12px;font-weight:700;color:#f7931a;letter-spacing:0.05em;margin-bottom:6px;">CURRENT STATUS — MAY 2026</div>
+          <div style="font-size:12.5px;color:var(--muted);line-height:1.6;">
+            <strong style="color:var(--text);">Live today:</strong> wANET on <strong>BNB Chain</strong> only (BEP-20, ownership renounced).
+            <strong style="color:var(--text);">Planned:</strong> Ethereum → Base / Arbitrum (L2) → Solana → TRON, in that order, each gated on a third-party security audit of the <code>AnetBridgeVault</code> contract.
+            Global rule: <strong style="color:var(--text);">total wANET across all chains ≤ ANET locked on L1 ≤ 21,000,000</strong>. New chains only mint wANET when an equal amount is burned on an existing chain or freshly locked on L1.
+          </div>
+        </div>
       </div>
 
       <!-- ANET on every chain explainer cards -->

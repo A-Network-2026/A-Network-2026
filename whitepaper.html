@@ -1376,6 +1376,47 @@
 
       <p>In Bitcoin, the smallest indivisible unit is called a <em>Satoshi</em> (or <em>Sat</em>), where 1 BTC = 100,000,000 Satoshis. A-Network adopts the identical precision model but with its own cultural identity.</p>
 
+      <div class="panel" style="border:1px solid rgba(255,176,32,0.45); background:rgba(60,40,0,0.25); padding:16px 18px; border-radius:12px; margin:14px 0 18px;">
+        <h4 style="margin:0 0 10px; color:#ffcf6a;">Canonical Asset Model &mdash; Bitcoin-Aligned</h4>
+        <p style="margin:0 0 10px; color:var(--text); font-size:13.5px; line-height:1.55;">A-Network follows the exact same three-tier naming model as Bitcoin. There is one coin, one atomic unit, and one wrapped representation for external markets. These names are <strong>permanent and canonical</strong>.</p>
+        <div class="table-scroll">
+          <table class="wp-table" style="margin:0;">
+            <thead>
+              <tr><th>Role</th><th>A-Network</th><th>Bitcoin equivalent</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Native Layer 1 coin</strong></td><td><strong>ANET</strong></td><td>BTC</td><td>Fixed supply of 21,000,000. Mined via verified Ant Work sessions. The economic identity of the network.</td></tr>
+              <tr><td><strong>Smallest indivisible unit</strong></td><td><strong>ANTS</strong> (Ant)</td><td>Satoshi (sat)</td><td>1 ANET = 100,000,000 ANTS. All ledger accounting, mining rewards, and L1 gas are denominated in ANTS.</td></tr>
+              <tr><td><strong>Wrapped representation</strong></td><td><strong>wANET</strong></td><td>WBTC / BTCB</td><td>1:1 wrapped BEP-20 on BNB Chain, used for external liquidity, DEX routing, and cross-chain trading. Not the native coin.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin:12px 0 0; color:var(--muted); font-size:12.5px; line-height:1.55;">The total network supply is fixed at <strong>21,000,000 ANET</strong> forever &mdash; expressed as <strong>2,100,000,000,000,000 ANTS</strong> at the atomic level. wANET exists only as a 1:1 wrapped representation against the same fixed cap; it does not create additional supply.</p>
+      </div>
+
+      <div class="panel" style="border-left:4px solid #f7931a; margin-top:18px;">
+        <h4 style="margin-top:0;">wANET Multi-Chain Roadmap</h4>
+        <p style="margin:0 0 12px; color:var(--text);">wANET launches first on <strong>BNB Chain</strong> for the lowest fees, fastest finality, and broadest retail liquidity (PancakeSwap, BSC DEXs). Additional chains are on the roadmap and will only be deployed when each can be secured by the same <strong>AnetBridgeVault + multisig</strong> pattern. The Bitcoin-aligned invariant applies globally:</p>
+        <div class="formula-box" style="margin:0 0 12px;">
+<span class="comment">// Global supply invariant across all chains</span>
+<span class="keyword">wANET</span><sub>BNB</sub> + <span class="keyword">wANET</span><sub>ETH</sub> + <span class="keyword">wANET</span><sub>other</sub> &le; <span class="value">ANET</span><sub>locked on L1</sub> &le; <span class="value">21,000,000</span>
+        </div>
+        <div class="table-wrap" style="margin:0;">
+          <table class="data-table">
+            <thead>
+              <tr><th>Phase</th><th>Chain</th><th>Status</th><th>Rationale</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Phase 1</strong></td><td>BNB Chain (BEP-20)</td><td><strong>Live</strong> &mdash; <code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>, ownership renounced May 24, 2026</td><td>Lowest fees, fast finality, largest retail user base, mature EVM tooling.</td></tr>
+              <tr><td><strong>Phase 2</strong></td><td>Ethereum (ERC-20)</td><td>Planned &mdash; after AnetBridgeVault deployment and third-party security audit</td><td>Institutional liquidity, CEX listings, deepest stablecoin markets.</td></tr>
+              <tr><td><strong>Phase 3</strong></td><td>Base / Arbitrum (L2)</td><td>Planned &mdash; after Ethereum</td><td>Cheap ETH-aligned liquidity for retail.</td></tr>
+              <tr><td><strong>Phase 4</strong></td><td>Solana</td><td>Under evaluation</td><td>Non-EVM; requires different bridge architecture (Wormhole / LayerZero pattern).</td></tr>
+              <tr><td><strong>Phase 5</strong></td><td>TRON / others</td><td>Under evaluation</td><td>Regional retail and USDT-dominant markets.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin:12px 0 0; color:var(--muted); font-size:12.5px; line-height:1.55;">No new wANET can be issued on a new chain unless an equivalent amount is first burned on an existing chain (or newly locked on L1). Each chain receives a dedicated vault contract; the 21,000,000 cap is enforced globally, not per-chain. Multi-chain deployment will proceed only at a pace that preserves auditability and the bridge security model &mdash; not for marketing.</p>
+      </div>
 
 
       <div class="panel panel-amber">
