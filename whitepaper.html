@@ -743,6 +743,86 @@
         </div>
       </div>
 
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           DECENTRALIZATION STATUS TRACKER — Public scorecard
+           Honest accounting of which components are trustless vs operator-run
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+      <div style="border:2px solid #4a90e2;background:linear-gradient(135deg,rgba(74,144,226,0.08),rgba(74,144,226,0.02));border-radius:12px;padding:18px 22px;margin-bottom:22px;">
+        <div style="font-size:0.78rem;letter-spacing:0.14em;font-weight:700;color:#7fb8ff;text-transform:uppercase;margin-bottom:8px;">📊 Decentralization Status Tracker &middot; Updated May 25, 2026</div>
+        <div style="font-size:0.98rem;line-height:1.55;color:#e8e8e8;margin-bottom:14px;">
+          A-Network is on a <strong>phased decentralization roadmap</strong>. This scorecard documents exactly which components are currently trustless versus operator-run. We publish it so the community can hold the project accountable, in line with the Bitcoin principle: <em>"don't trust &mdash; verify."</em>
+        </div>
+        <div class="table-wrap" style="margin:0;">
+          <table class="data-table" style="font-size:13px;">
+            <thead>
+              <tr><th>#</th><th>Milestone</th><th>Status</th><th>What it means</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td><strong>ANET BEP-20 ownership renounced</strong></td>
+                <td><span style="color:#22e7b8;font-weight:700;">✅ DONE</span><br/><span style="font-size:11.5px;color:#a8a8a8;">May 24, 2026</span></td>
+                <td>Token contract on BNB Chain is immutable. Nobody &mdash; including founders &mdash; can mint, pause, or blacklist. <a href="https://bscscan.com/token/0x791055A7d52AA392eaE8De04250497f33807E46A#readContract" target="_blank" rel="noopener" style="color:#7fb8ff;">Verify on BscScan</a>.</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><strong>Bridge escrow &rarr; Gnosis Safe multisig (3-of-5)</strong></td>
+                <td><span style="color:#ffbc5c;font-weight:700;">🔄 IN PROGRESS</span></td>
+                <td>The 21M wANET escrow wallet (currently a hot EOA) migrates to a 3-of-5 multisig. Eliminates single-key risk.</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><strong>Deploy AnetBridgeVault with M-of-N signatures</strong></td>
+                <td><span style="color:#ffbc5c;font-weight:700;">🔄 IN PROGRESS</span><br/><span style="font-size:11.5px;color:#a8a8a8;">Contract written &amp; internally audited</span></td>
+                <td>Smart-contract bridge replaces the custodial relayer. On-chain caps, on-chain burn-ID dedup, EIP-712 multi-signer release. <a href="contracts/src/AnetBridgeVault.sol" style="color:#7fb8ff;">Source</a> &middot; <a href="contracts/AUDIT_BRIDGE_2026-05-24.md" style="color:#7fb8ff;">Internal audit</a>.</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><strong>48-hour timelock on vault admin actions</strong></td>
+                <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
+                <td>Any admin proposal (pause, recover, reconfigure) becomes visible on-chain 48h before it can execute, so the community can react.</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><strong>AnetSwap ownership &rarr; multisig + renounce</strong></td>
+                <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
+                <td>Removes the operator's ability to drain swap-collected BNB/USDT/USDC at will. <code>withdrawNative</code> / <code>withdrawToken</code> become timelock-gated, then renounced.</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td><strong>Third-party security audit</strong></td>
+                <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
+                <td>External audit (CertiK, Hacken, OpenZeppelin or equivalent) of AnetBridgeVault and AnetSwap. Report published publicly.</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td><strong>L1 multi-validator set (3+ independent operators)</strong></td>
+                <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
+                <td>The A-Network Layer 1 chain transitions from operator-run to a Byzantine-fault-tolerant validator set. The chain itself becomes decentralized.</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td><strong>Open-source bridge relayer &amp; L1 node</strong></td>
+                <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
+                <td>Source code for the relayer process and L1 validator binary published under an OSI license so anyone can run a node and audit behaviour.</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td><strong>Renounce vault admin role</strong></td>
+                <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
+                <td>After 6+ months of clean bridge operation under multisig, the admin role on AnetBridgeVault is renounced. Bridge becomes fully Model-2 (smart-contract, trustless).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="font-size:0.85rem;line-height:1.6;color:#a8a8a8;margin-top:12px;">
+          <strong style="color:#cfcfcf;">Current honest classification:</strong> the <strong>ANET BEP-20 token contract is fully decentralized</strong>. The <strong>bridge, L1 chain, and off-chain operations remain custodial / operator-run today</strong> and migrate to trustless components on the milestones above. A-Network does not claim to be "fully decentralized" until milestones 1&ndash;9 are complete and externally verified.
+        </div>
+        <div style="font-size:0.85rem;line-height:1.55;color:#a8a8a8;margin-top:8px;font-style:italic;">
+          Global supply invariant (enforced across every phase): <code>&Sigma; wANET<sub>all chains</sub> &le; ANET<sub>locked on L1</sub> &le; 21,000,000</code>.
+        </div>
+      </div>
+
       <div class="hero-badge">Technical Paper v3.2 (Fully Decentralized BEP-20)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
       <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 3.2 records a permanent milestone: on <strong>May 24, 2026</strong> the ANET BEP-20 contract on BNB Chain (<code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>) had its ownership <strong>permanently renounced</strong> (<code>owner = 0x0000…0000</code>). The functions <code>mint()</code>, <code>pause()</code>, <code>unpause()</code>, and <code>setBlacklist()</code> are now permanently disabled, locking maximum supply at <strong>21,000,000 ANET</strong> forever. Version 3.1's bidirectional bridge remains intact: users can swap BNB, USDT, or USDC into ANET via the <strong>AnetSwap</strong> contract on BSC mainnet (<code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>), and conversely burn Layer&nbsp;1 ANET through the <code>POST&nbsp;/bridge/burn</code> endpoint on the ANET L1 node to receive wANET (BEP-20) on BSC from a dedicated escrow wallet. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
