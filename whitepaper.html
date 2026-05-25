@@ -675,7 +675,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v3.0 · 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v3.3 · 2026</sub>
 
       </div>
 
@@ -691,6 +691,8 @@
     <a class="nav-item" href="#evm-bridge">v3.0 EVM Bridge</a>
 
     <a class="nav-item" href="#l1-burn-bridge">v3.1 L1 &rarr; BSC Burn Bridge</a>
+
+    <a class="nav-item" href="#bridge-vault">v3.3 AnetBridgeVault (2-of-3 EIP-712)</a>
 
     <a class="nav-item" href="#introduction">Introduction</a>
 
@@ -841,7 +843,7 @@
           <strong>Co-founder stewardship (50% / 50%):</strong> <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener" style="color:#f0b90b;">@Joel_Dupalco</a> &middot; <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener" style="color:#f0b90b;">@Digitalgold1979</a>. Stewards hold tokens as ordinary holders with <strong>no</strong> on-chain administrative privileges.
         </div>
         <div style="font-size:0.85rem;line-height:1.55;color:#a8a8a8;margin-top:10px;font-style:italic;">
-          Scope note: this milestone decentralizes the BNB Chain (Layer 2) token contract. The A-Network Layer 1 chain, bridge relayer, and cash-out escrow remain operator-run today and are scheduled for phased decentralization on the v3.x roadmap.
+          Scope note: this milestone decentralizes the BNB Chain (Layer 2) token contract. As of <strong>May 25, 2026</strong> the bridge itself has also been decentralized &mdash; releases now require a 2-of-3 EIP-712 signature threshold from independent self-hosted signers against the <strong>AnetBridgeVault</strong> contract (<code>0x31438362a7667ce5559500023D025c7c14168B49</code>). The A-Network Layer 1 chain and cash-out escrow remain operator-run today and are scheduled for phased decentralization on the v3.x roadmap.
         </div>
       </div>
 
@@ -868,15 +870,15 @@
               </tr>
               <tr>
                 <td>2</td>
-                <td><strong>Bridge escrow &rarr; Gnosis Safe multisig (3-of-5)</strong></td>
-                <td><span style="color:#ffbc5c;font-weight:700;">🔄 IN PROGRESS</span></td>
-                <td>The 21M wANET escrow wallet (currently a hot EOA) migrates to a 3-of-5 multisig. Eliminates single-key risk.</td>
+                <td><strong>Bridge escrow &rarr; on-chain multi-signer vault</strong></td>
+                <td><span style="color:#22e7b8;font-weight:700;">✅ DONE</span><br/><span style="font-size:11.5px;color:#a8a8a8;">May 25, 2026</span></td>
+                <td>The wANET escrow was migrated from a hot EOA to <strong>AnetBridgeVault</strong> &mdash; a custom one-way-sink contract that is stricter than a Gnosis Safe: admin cannot rescue the vault asset, all releases require an EIP-712 signature threshold, and the bridge submitter wallet has zero signing authority. <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color:#7fb8ff;">View on BscScan</a>.</td>
               </tr>
               <tr>
                 <td>3</td>
-                <td><strong>Deploy AnetBridgeVault with M-of-N signatures</strong></td>
-                <td><span style="color:#ffbc5c;font-weight:700;">🔄 IN PROGRESS</span><br/><span style="font-size:11.5px;color:#a8a8a8;">Contract written &amp; internally audited</span></td>
-                <td>Smart-contract bridge replaces the custodial relayer. On-chain caps, on-chain burn-ID dedup, EIP-712 multi-signer release. <a href="contracts/src/AnetBridgeVault.sol" style="color:#7fb8ff;">Source</a> &middot; <a href="contracts/AUDIT_BRIDGE_2026-05-24.md" style="color:#7fb8ff;">Internal audit</a>.</td>
+                <td><strong>Deploy AnetBridgeVault with 2-of-3 EIP-712 signatures</strong></td>
+                <td><span style="color:#22e7b8;font-weight:700;">✅ DONE</span><br/><span style="font-size:11.5px;color:#a8a8a8;">May 25, 2026 &middot; deploy tx 0x82da7f2a&hellip;62c7e</span></td>
+                <td>Smart-contract bridge replaces the custodial relayer. On-chain caps (10k / 50k / 250k ANET per tx / per-recipient-24h / global-24h), on-chain burn-ID dedup, EIP-712 2-of-3 multi-signer release. Signatures are collected on L1 via <code>POST&nbsp;/bridge/burns/:id/sigs</code> from three independent self-hosted signer daemons; the relayer holds no signing keys and can only submit gas. <a href="contracts/src/AnetBridgeVault.sol" style="color:#7fb8ff;">Source</a> &middot; <a href="contracts/AUDIT_BRIDGE_2026-05-24.md" style="color:#7fb8ff;">Internal audit</a>.</td>
               </tr>
               <tr>
                 <td>4</td>
@@ -918,7 +920,7 @@
           </table>
         </div>
         <div style="font-size:0.85rem;line-height:1.6;color:#a8a8a8;margin-top:12px;">
-          <strong style="color:#cfcfcf;">Current honest classification:</strong> the <strong>ANET BEP-20 token contract is fully decentralized</strong>. The <strong>bridge, L1 chain, and off-chain operations remain custodial / operator-run today</strong> and migrate to trustless components on the milestones above. A-Network does not claim to be "fully decentralized" until milestones 1&ndash;9 are complete and externally verified.
+          <strong style="color:#cfcfcf;">Current honest classification:</strong> the <strong>ANET BEP-20 token contract is fully decentralized</strong>, and as of May 25, 2026 the <strong>bridge release path is also trustless</strong> &mdash; wANET can only leave AnetBridgeVault via a 2-of-3 EIP-712 signature threshold from independent self-hosted signers, with on-chain caps and burn-ID dedup. The <strong>L1 chain, cash-out escrow, and off-chain operations remain operator-run today</strong> and migrate to trustless components on the milestones above. A-Network does not claim to be "fully decentralized" until milestones 1&ndash;9 are complete and externally verified.
         </div>
         <div style="font-size:0.85rem;line-height:1.55;color:#a8a8a8;margin-top:8px;font-style:italic;">
           Global supply invariant (enforced across every phase): <code>&Sigma; wANET<sub>all chains</sub> &le; ANET<sub>locked on L1</sub> &le; 21,000,000</code>.
@@ -3120,7 +3122,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       <h3 id="l1-burn-bridge">v3.1 &mdash; L1 &rarr; BSC Return Bridge (Burn Endpoint)</h3>
 
-      <p>Version 3.1 (May 2026) closes the bridge loop. The ANET Layer 1 node now exposes <code>POST&nbsp;/bridge/burn</code>, allowing a user to burn native Layer&nbsp;1 ANET in exchange for an equivalent amount of wANET (BEP-20) released from a dedicated escrow wallet on BSC mainnet. Each burn is authorized by a signed action authorization (ECDSA over the user&rsquo;s L1 wallet key), recorded immutably on the L1 chain, and exposed through <code>GET&nbsp;/bridge/burns</code> for off-chain relayer consumption. A separate BSC relayer service (<code>anet-bsc-relayer</code>) polls the burn feed, verifies the L1 record, and submits the corresponding wANET transfer from escrow to the user&rsquo;s declared BSC address.</p>
+      <p>Version 3.1 (May 2026) closed the bridge loop. The ANET Layer 1 node exposes <code>POST&nbsp;/bridge/burn</code>, allowing a user to burn native Layer&nbsp;1 ANET in exchange for an equivalent amount of wANET (BEP-20) on BSC mainnet. Each burn is authorized by a signed action authorization (ECDSA over the user&rsquo;s L1 wallet key), recorded immutably on the L1 chain, and exposed through <code>GET&nbsp;/bridge/burns</code> for off-chain consumption. <strong>Version 3.3 (May 25, 2026)</strong> hardens the release side: wANET is no longer disbursed by a trusted relayer key but instead by the on-chain <strong>AnetBridgeVault</strong> contract (<code>0x31438362a7667ce5559500023D025c7c14168B49</code>), which requires a 2-of-3 EIP-712 signature threshold from independent self-hosted signers before any release. The relayer process retains only the gas-paying submitter role and has no signing authority; see &sect; v3.3 below.</p>
 
       <div class="panel panel-accent">
 
@@ -3134,7 +3136,9 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
             <tr><td><strong>L1 Endpoint</strong></td><td><code>POST /bridge/burn</code> &nbsp;|&nbsp; <code>GET /bridge/burns</code> (admin-key gated)</td></tr>
 
-            <tr><td><strong>Escrow Wallet (BSC)</strong></td><td><code>0x27766A070e6F55BD832A10aB9c5931FfA2037029</code></td></tr>
+            <tr><td><strong>Bridge Vault (BSC)</strong></td><td><code>0x31438362a7667ce5559500023D025c7c14168B49</code> &mdash; <strong>AnetBridgeVault</strong> smart contract, deployed May 25, 2026. <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color:#7fb8ff;">BscScan</a>.</td></tr>
+
+            <tr><td><strong>Legacy Escrow (BSC)</strong></td><td><code>0x27766A070e6F55BD832A10aB9c5931FfA2037029</code> &mdash; original hot-EOA escrow. Being drained to the vault; retained here for historical traceability only.</td></tr>
 
             <tr><td><strong>Escrow Asset</strong></td><td>wANET BEP-20 (<code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>) &middot; gas in BNB</td></tr>
 
@@ -3155,6 +3159,54 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <div class="panel" style="border-left: 3px solid var(--accent-2); background: rgba(34,231,184,.06);">
 
         <strong>Operational note.</strong> The L1 burn endpoint ships in the deployed code today but is gated behind the <code>ANET_BRIDGE_BURN_ENABLED</code> flag and remains disabled until the escrow wallet is funded to a level sufficient to cover expected release volume. Until then, users continue to use the BSC&nbsp;&rarr;&nbsp;L1 direction (AnetSwap) only.
+
+      </div>
+
+      <h3 id="bridge-vault">v3.3 &mdash; AnetBridgeVault (2-of-3 EIP-712 Smart-Contract Bridge)</h3>
+
+      <p>Version 3.3 (May&nbsp;25, 2026) removes the bridge from the trusted-relayer model and pins it to an on-chain smart contract with an independent multi-signer policy. The previously hot-EOA wANET escrow has been replaced by <strong>AnetBridgeVault</strong>, a one-way-sink contract whose release function requires a 2-of-3 EIP-712 signature threshold from three independent, self-hosted signers. The bridge submitter wallet pays gas only and holds no signing authority; it cannot release a single wANET on its own. Even the vault admin cannot remove wANET from the contract: an explicit <code>rescue</code> guard reverts on the vault asset, making wANET strictly one-way-in for non-burn paths.</p>
+
+      <div class="panel panel-accent">
+
+        <h4>v3.3 AnetBridgeVault &mdash; Production Parameters</h4>
+
+        <div class="table-scroll">
+
+        <table class="wp-table">
+
+          <tbody>
+
+            <tr><td><strong>Vault Contract</strong></td><td><code>0x31438362a7667ce5559500023D025c7c14168B49</code> &middot; deployed BSC mainnet, May&nbsp;25, 2026 &middot; <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color:#7fb8ff;">BscScan</a></td></tr>
+
+            <tr><td><strong>Vault Asset</strong></td><td>wANET BEP-20 (<code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>) &mdash; ownership permanently renounced (v3.2 milestone)</td></tr>
+
+            <tr><td><strong>Signer Set (2-of-3)</strong></td><td><code>0xa5d1968E&hellip;88CE7</code>, <code>0xCBe8d5EA&hellip;dD71FE</code>, <code>0xdC744663&hellip;CAb748</code> &mdash; each key held on an independent device by an independent operator. No two keys may co-reside on the same host.</td></tr>
+
+            <tr><td><strong>Release Authorization</strong></td><td>EIP-712 typed-data digest over <code>Release(uint256 burnId, string l1Sender, address recipient, uint256 amount, uint256 deadline)</code>. Domain separator (chainId 56) verified on-chain at <code>0x511e5b0a&hellip;a4fc6</code>.</td></tr>
+
+            <tr><td><strong>Signature Aggregation</strong></td><td>The L1 node exposes <code>POST&nbsp;/bridge/burns/:id/sigs</code> for ecrecover-verified signature collection and <code>GET&nbsp;/bridge/burns/:id/sigs</code> for the relayer to fetch aggregated signatures. L1 holds zero signing power &mdash; it is a verification bulletin board only.</td></tr>
+
+            <tr><td><strong>On-Chain Caps</strong></td><td><strong>10,000</strong> ANET per release tx &middot; <strong>50,000</strong> ANET per recipient per rolling 24h &middot; <strong>250,000</strong> ANET global per rolling 24h. Enforced by the contract; cannot be bypassed by any off-chain actor.</td></tr>
+
+            <tr><td><strong>Burn-ID Dedup</strong></td><td>The vault tracks consumed burn IDs on-chain. A second release of the same burn ID reverts deterministically.</td></tr>
+
+            <tr><td><strong>Canonical Deadline</strong></td><td>Each burn carries a canonical <code>release_deadline</code> (default 86,400&nbsp;s) set on L1 at burn time. Expired signatures are unusable on-chain.</td></tr>
+
+            <tr><td><strong>Admin Powers (Strictly Bounded)</strong></td><td>Admin (<code>0x54A65c28&hellip;0CC74</code>) can schedule cap changes (48h timelock), schedule signer-set rotations (48h timelock), and pause via the dedicated pauser (<code>0x8030e2D8&hellip;F7BD5</code>). Admin <strong>cannot</strong>: mint wANET, release wANET, bypass signers, or rescue the vault asset.</td></tr>
+
+            <tr><td><strong>Self-Hosted Signer Client</strong></td><td><code>anet-vault-signer</code> &mdash; standalone open-source daemon (Node.js, ethers v6). Each signer independently re-derives the EIP-712 digest from L1 data and refuses to sign on any mismatch (vault address, chain id, signer-set membership, deadline, amount cap). Signers do not trust L1's digest.</td></tr>
+
+          </tbody>
+
+        </table>
+
+        </div>
+
+      </div>
+
+      <div class="panel" style="border-left: 3px solid var(--accent-2); background: rgba(34,231,184,.06);">
+
+        <strong>Bitcoin-principle alignment.</strong> The bridge release path now obeys only its code and a public signer policy: <em>don't trust &mdash; verify</em>. Any holder can independently confirm the vault contract source, the signer set, the on-chain caps, and the EIP-712 domain separator on BscScan without relying on any A-Network operator.
 
       </div>
 
