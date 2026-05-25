@@ -991,7 +991,16 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .lp-units { font-size: 13px; color: var(--accent-2); }
 
 /* ── Markets table ──────────────────────────── */
-.markets-table-wrap { overflow-x: auto; }
+.markets-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 700px) {
+  .markets-table-wrap {
+    box-shadow: inset -12px 0 10px -10px rgba(88,197,255,0.25);
+  }
+  table.markets-table { font-size: 12.5px; }
+}
 table.markets-table {
   width: 100%;
   border-collapse: collapse;

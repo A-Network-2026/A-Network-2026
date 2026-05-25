@@ -273,7 +273,8 @@
       #monthly-snapshot .cm-board tr.cm-rank-2 td{color:#d6dbe2}
       #monthly-snapshot .cm-board tr.cm-rank-3 td{color:#e0a974}
       #monthly-snapshot .cm-board td.cm-num{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
-      #monthly-snapshot .cm-board-wrap{overflow-x:auto;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.06);border-radius:10px}
+      #monthly-snapshot .cm-board-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.06);border-radius:10px}
+      @media (max-width:700px){#monthly-snapshot .cm-board-wrap{box-shadow:inset -12px 0 10px -10px rgba(88,197,255,.25)}}
       #monthly-snapshot .cm-tooltip{position:absolute;pointer-events:none;background:#0b1726;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 11px;font-size:.78rem;color:#e8eef6;box-shadow:0 6px 24px rgba(0,0,0,.4);transform:translate(-50%,-110%);white-space:nowrap;opacity:0;transition:opacity .12s}
       #monthly-snapshot .cm-tooltip.is-on{opacity:1}
       #monthly-snapshot .cm-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
