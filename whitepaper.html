@@ -8,9 +8,9 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v3.2 | Fully Decentralized BEP-20 (Ownership Renounced) · Mine -> 1,000 Sessions -> Swap/Transfer -> NFT Activation · Bidirectional EVM Bridge · Layer 1 · Web3</title>
+  <title>A-Network Whitepaper v3.4 | Fully Decentralized BEP-20 (Ownership Renounced) · AnetBridgeVault 2-of-3 EIP-712 · Founder Treasury Custody Migrated · Mine -> 1,000 Sessions -> Swap/Transfer -> NFT Activation · Bidirectional EVM Bridge · Layer 1 · Web3</title>
 
-  <meta name="description" content="The official A-Network v3.2 whitepaper. Documents the permanent renounce of the ANET BEP-20 ownership on May 24, 2026 (owner = 0x0), the unified miner lifecycle rule, ANTS accounting, Layer 1 + Web3 architecture, bidirectional in-app EVM bridge (AnetSwap BSC contract + L1 burn endpoint), DEX settlement flow, security model, and full roadmap." />
+  <meta name="description" content="The official A-Network v3.4 whitepaper. Documents the permanent renounce of the ANET BEP-20 ownership on May 24, 2026 (owner = 0x0), the AnetBridgeVault 2-of-3 EIP-712 smart-contract bridge deployed May 25, 2026, the founder treasury custody migration (10.5M wANET moved into the vault on May 25, 2026), the unified miner lifecycle rule, ANTS accounting, Layer 1 + Web3 architecture, bidirectional in-app EVM bridge (AnetSwap BSC contract + L1 burn endpoint), DEX settlement flow, security model, and full roadmap." />
 
   <meta name="theme-color" content="#07101a" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
@@ -675,7 +675,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v3.3 · 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v3.4 · 2026</sub>
 
       </div>
 
@@ -882,36 +882,42 @@
               </tr>
               <tr>
                 <td>4</td>
+                <td><strong>Founder treasury custody &rarr; vault (50% deposited)</strong></td>
+                <td><span style="color:#22e7b8;font-weight:700;">✅ DONE</span><br/><span style="font-size:11.5px;color:#a8a8a8;">May 25, 2026</span></td>
+                <td>The <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener" style="color:#7fb8ff;">@Joel_Dupalco</a> 50% founder allocation &mdash; <strong>10,499,798.020348 wANET</strong> &mdash; was moved from a hot EOA (<code>0xB65B30&hellip;6184F</code>) into <strong>AnetBridgeVault</strong>. wANET held by the founder is now custodied by the 2-of-3 EIP-712 multisig: no single signer (including the founder himself) can release the funds. Vault total post-deposit: <strong>~10.5M wANET</strong>. The <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener" style="color:#7fb8ff;">@Digitalgold1979</a> mirror 50% deposit is the next milestone. <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color:#7fb8ff;">Verify vault balance on BscScan</a>.</td>
+              </tr>
+              <tr>
+                <td>5</td>
                 <td><strong>48-hour timelock on vault admin actions</strong></td>
                 <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
                 <td>Any admin proposal (pause, recover, reconfigure) becomes visible on-chain 48h before it can execute, so the community can react.</td>
               </tr>
               <tr>
-                <td>5</td>
+                <td>6</td>
                 <td><strong>AnetSwap ownership &rarr; multisig + renounce</strong></td>
                 <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
                 <td>Removes the operator's ability to drain swap-collected BNB/USDT/USDC at will. <code>withdrawNative</code> / <code>withdrawToken</code> become timelock-gated, then renounced.</td>
               </tr>
               <tr>
-                <td>6</td>
+                <td>7</td>
                 <td><strong>Third-party security audit</strong></td>
                 <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
                 <td>External audit (CertiK, Hacken, OpenZeppelin or equivalent) of AnetBridgeVault and AnetSwap. Report published publicly.</td>
               </tr>
               <tr>
-                <td>7</td>
+                <td>8</td>
                 <td><strong>L1 multi-validator set (3+ independent operators)</strong></td>
                 <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
                 <td>The A-Network Layer 1 chain transitions from operator-run to a Byzantine-fault-tolerant validator set. The chain itself becomes decentralized.</td>
               </tr>
               <tr>
-                <td>8</td>
+                <td>9</td>
                 <td><strong>Open-source bridge relayer &amp; L1 node</strong></td>
                 <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
                 <td>Source code for the relayer process and L1 validator binary published under an OSI license so anyone can run a node and audit behaviour.</td>
               </tr>
               <tr>
-                <td>9</td>
+                <td>10</td>
                 <td><strong>Renounce vault admin role</strong></td>
                 <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
                 <td>After 6+ months of clean bridge operation under multisig, the admin role on AnetBridgeVault is renounced. Bridge becomes fully Model-2 (smart-contract, trustless).</td>
@@ -3158,7 +3164,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       <div class="panel" style="border-left: 3px solid var(--accent-2); background: rgba(34,231,184,.06);">
 
-        <strong>Operational note.</strong> The L1 burn endpoint ships in the deployed code today but is gated behind the <code>ANET_BRIDGE_BURN_ENABLED</code> flag and remains disabled until the escrow wallet is funded to a level sufficient to cover expected release volume. Until then, users continue to use the BSC&nbsp;&rarr;&nbsp;L1 direction (AnetSwap) only.
+        <strong>Operational note (updated May&nbsp;25, 2026).</strong> The founder side of the bridge vault is now funded: <strong>10,499,798.020348 wANET</strong> &mdash; the entire <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener" style="color:#f0b90b;">@Joel_Dupalco</a> 50% founder allocation &mdash; was transferred from <code>0xB65B30&hellip;6184F</code> into <strong>AnetBridgeVault</strong> (<code>0x31438362&hellip;14168B49</code>) and is now custodied under the 2-of-3 EIP-712 multi-signer policy. The vault total (post-deposit) is <strong>~10,499,898.02 wANET</strong>, independently verifiable via <code>vaultBalance()</code> on BscScan. The mirror deposit from <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener" style="color:#f0b90b;">@Digitalgold1979</a> (the other 50%) is the next planned step; the L1 burn endpoint remains gated behind the <code>ANET_BRIDGE_BURN_ENABLED</code> flag pending the mirror deposit and final operational readiness. Until then, users continue to use the BSC&nbsp;&rarr;&nbsp;L1 direction (AnetSwap) only. <a href="https://bscscan.com/address/0xB65B30C96b8A36Ed7cC8ad74B3324585D126184F" target="_blank" rel="noopener" style="color:#7fb8ff;">Founder address activity</a> &middot; <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color:#7fb8ff;">Vault activity</a>.
 
       </div>
 
@@ -3180,7 +3186,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
             <tr><td><strong>Vault Asset</strong></td><td>wANET BEP-20 (<code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>) &mdash; ownership permanently renounced (v3.2 milestone)</td></tr>
 
-            <tr><td><strong>Signer Set (2-of-3)</strong></td><td><code>0xa5d1968E&hellip;88CE7</code>, <code>0xCBe8d5EA&hellip;dD71FE</code>, <code>0xdC744663&hellip;CAb748</code> &mdash; each key held on an independent device by an independent operator. No two keys may co-reside on the same host.</td></tr>
+            <tr><td><strong>Signer Set (2-of-3)</strong></td><td><code>0xa5d1968E&hellip;88CE7</code> (Termux daemon on mobile device), <code>0xCBe8d5EA&hellip;dD71FE</code> (macOS laptop), <code>0xdC744663&hellip;CAb748</code> (Fly.io worker, Singapore region) &mdash; three independent hosts spanning OS family, geography, and hosting provider; no two keys co-reside on the same machine. <strong>Operator independence is on the v3.5 roadmap:</strong> at least one signer slot will rotate from a founder-operated host to a co-founder-operated host via the on-chain 48h-timelocked signer rotation flow, restoring full bitcoin-principle operator independence (no single human controls the threshold).</td></tr>
 
             <tr><td><strong>Release Authorization</strong></td><td>EIP-712 typed-data digest over <code>Release(uint256 burnId, string l1Sender, address recipient, uint256 amount, uint256 deadline)</code>. Domain separator (chainId 56) verified on-chain at <code>0x511e5b0a&hellip;a4fc6</code>.</td></tr>
 
