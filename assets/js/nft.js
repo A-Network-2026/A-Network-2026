@@ -90,13 +90,37 @@
     domainCreateBtn: document.getElementById("domain-create-btn"),
     domainLoadBtn: document.getElementById("domain-load-btn"),
     domainStatus: document.getElementById("domain-status"),
-    domainList: document.getElementById("domain-list")
+    domainList: document.getElementById("domain-list"),
+
+    // Token Factory (PoS — closed-loop ANTS)
+    factoryUid: document.getElementById("factory-uid"),
+    factoryStakeAmount: document.getElementById("factory-stake-amount"),
+    factoryStakeBtn: document.getElementById("factory-stake-btn"),
+    factoryUnstakeBtn: document.getElementById("factory-unstake-btn"),
+    factoryCheckEligibilityBtn: document.getElementById("factory-check-eligibility-btn"),
+    factoryStakeStatus: document.getElementById("factory-stake-status"),
+    factoryTokenName: document.getElementById("factory-token-name"),
+    factoryTokenSymbol: document.getElementById("factory-token-symbol"),
+    factoryTokenSupply: document.getElementById("factory-token-supply"),
+    factoryTokenDecimals: document.getElementById("factory-token-decimals"),
+    factoryTokenDescription: document.getElementById("factory-token-description"),
+    factoryTokenLogo: document.getElementById("factory-token-logo"),
+    factoryTokenMintable: document.getElementById("factory-token-mintable"),
+    factoryDeployBtn: document.getElementById("factory-deploy-btn"),
+    factoryLoadTokensBtn: document.getElementById("factory-load-tokens-btn"),
+    factoryDeployStatus: document.getElementById("factory-deploy-status"),
+    factoryTokensList: document.getElementById("factory-tokens-list")
   };
 
   const state = {
     apiBase: resolveInitialApiBase(),
     minAnts: 1000,
     minDomainAuctionBidAnts: 10000,
+    minFactoryStakeAnts: 1000,
+    factoryDeployFeeAnts: 500,
+    factoryStakeCooldownDays: 7,
+    factoryEligible: false,
+    factoryStakedAnts: 0,
     myAssets: [],
     marketListings: [],
     apiReady: false,
@@ -142,6 +166,13 @@
     els.collectionsRefreshBtn?.addEventListener("click", onLoadCollections);
     els.domainCreateBtn?.addEventListener("click", onCreateColonyDomain);
     els.domainLoadBtn?.addEventListener("click", onLoadColonyDomains);
+
+    // Token Factory wiring
+    els.factoryStakeBtn?.addEventListener("click", onFactoryStake);
+    els.factoryUnstakeBtn?.addEventListener("click", onFactoryUnstake);
+    els.factoryCheckEligibilityBtn?.addEventListener("click", onFactoryRefreshEligibility);
+    els.factoryDeployBtn?.addEventListener("click", onFactoryDeployToken);
+    els.factoryLoadTokensBtn?.addEventListener("click", onFactoryLoadMyTokens);
   }
 
   async function bootstrap() {
@@ -1544,5 +1575,233 @@
         els.marketList?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Token Factory — PoS closed-loop ANTS economy
+  //
+  // Architecture (mirrors EVM token factories but ANTS-denominated):
+  //   1. Eligibility gate: caller must have ≥1,000 ANTS staked in the factory
+  //      pool. Backend records (uid, staked_ants, last_stake_ts, last_deploy_ts).
+  //   2. Deploy: spends 500 ANTS as the deploy fee (sink). Creates a new
+  //      token record (factory_token) with name, symbol, supply, decimals,
+  //      mintable flag, owner_uid, logo_uri, description.
+  //   3. Cooldown: 7 days after each deploy before unstake is allowed
+  //      (deters spam + lets governance flag malicious tokens).
+  //   4. Slashing (future): governance vote can burn the stake if the
+  //      deployed token is fraudulent (impersonation, scam, malware payload).
+  //
+  // Closed-loop guarantee: factory tokens are tradable on the ANET
+  // marketplace and transferable wallet-to-wallet inside the ecosystem,
+  // but the factory contract has NO bridge-out path. ANTS stays ANTS.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  async function onFactoryRefreshEligibility() {
+    if (!state.apiReady) {
+      setStatus(els.factoryStakeStatus, "bad", "Connect NFT API first.");
+      return;
+    }
+    if (!ensureMinerLoggedIn(els.factoryStakeStatus)) return;
+    const uid = normalizeUid(els.factoryUid?.value || state.minerUid);
+    if (!uid) {
+      setStatus(els.factoryStakeStatus, "bad", "ANET Profile ID is required.");
+      return;
+    }
+    try {
+      const result = await apiFetch(`/api/nft/factory/stake-status?uid=${encodeURIComponent(uid)}`);
+      const staked = Number(result.stakedAnts || 0);
+      const eligible = Boolean(result.eligible);
+      const cooldownUntil = result.cooldownUntil || null;
+      state.factoryStakedAnts = staked;
+      state.factoryEligible = eligible;
+      const cdMsg = cooldownUntil
+        ? ` Cooldown until ${new Date(cooldownUntil).toLocaleString()}.`
+        : "";
+      if (eligible) {
+        setStatus(els.factoryStakeStatus, "good", `Eligible. Staked: ${staked.toLocaleString()} ANTS.${cdMsg}`);
+      } else {
+        setStatus(els.factoryStakeStatus, "info", `Not yet eligible. Staked: ${staked.toLocaleString()} ANTS. Need ≥${state.minFactoryStakeAnts.toLocaleString()}.${cdMsg}`);
+      }
+      if (els.factoryDeployBtn) {
+        els.factoryDeployBtn.disabled = !eligible;
+        els.factoryDeployBtn.textContent = eligible ? "Deploy Token" : "Deploy Token (stake required)";
+      }
+    } catch (error) {
+      setStatus(els.factoryStakeStatus, "bad", error.message || "Could not fetch stake status.");
+    }
+  }
+
+  async function onFactoryStake() {
+    if (!state.apiReady) {
+      setStatus(els.factoryStakeStatus, "bad", "Connect NFT API first.");
+      return;
+    }
+    if (!ensureMinerLoggedIn(els.factoryStakeStatus)) return;
+    const uid = normalizeUid(els.factoryUid?.value || state.minerUid);
+    const amount = Math.floor(Number(els.factoryStakeAmount?.value || 0));
+    if (!uid) {
+      setStatus(els.factoryStakeStatus, "bad", "ANET Profile ID is required.");
+      return;
+    }
+    if (!Number.isFinite(amount) || amount < state.minFactoryStakeAnts) {
+      setStatus(els.factoryStakeStatus, "bad", `Minimum stake is ${state.minFactoryStakeAnts.toLocaleString()} ANTS.`);
+      return;
+    }
+    setStatus(els.factoryStakeStatus, "info", "Submitting stake…");
+    try {
+      const result = await apiFetch("/api/nft/factory/stake", {
+        method: "POST",
+        body: { uid, amountAnts: amount }
+      });
+      const staked = Number(result.stakedAnts || amount);
+      setStatus(els.factoryStakeStatus, "good", `Staked. Total: ${staked.toLocaleString()} ANTS.`);
+      await onFactoryRefreshEligibility();
+    } catch (error) {
+      setStatus(els.factoryStakeStatus, "bad", error.message || "Stake failed.");
+    }
+  }
+
+  async function onFactoryUnstake() {
+    if (!state.apiReady) {
+      setStatus(els.factoryStakeStatus, "bad", "Connect NFT API first.");
+      return;
+    }
+    if (!ensureMinerLoggedIn(els.factoryStakeStatus)) return;
+    const uid = normalizeUid(els.factoryUid?.value || state.minerUid);
+    if (!uid) {
+      setStatus(els.factoryStakeStatus, "bad", "ANET Profile ID is required.");
+      return;
+    }
+    if (!window.confirm(`Unstake your factory ANTS for ${uid}? Eligibility will end immediately. If you are still within the 7-day post-deploy cooldown, this will be rejected by the backend.`)) {
+      return;
+    }
+    setStatus(els.factoryStakeStatus, "info", "Submitting unstake…");
+    try {
+      const result = await apiFetch("/api/nft/factory/unstake", {
+        method: "POST",
+        body: { uid }
+      });
+      const returned = Number(result.returnedAnts || 0);
+      setStatus(els.factoryStakeStatus, "good", `Unstaked ${returned.toLocaleString()} ANTS.`);
+      await onFactoryRefreshEligibility();
+    } catch (error) {
+      setStatus(els.factoryStakeStatus, "bad", error.message || "Unstake failed.");
+    }
+  }
+
+  function getFactoryTokenPayload() {
+    const uid = normalizeUid(els.factoryUid?.value || state.minerUid);
+    const name = String(els.factoryTokenName?.value || "").trim();
+    const symbol = String(els.factoryTokenSymbol?.value || "").trim().toUpperCase();
+    const supply = Math.floor(Number(els.factoryTokenSupply?.value || 0));
+    const decimals = Math.floor(Number(els.factoryTokenDecimals?.value || 9));
+    const description = String(els.factoryTokenDescription?.value || "").trim();
+    const logoUri = String(els.factoryTokenLogo?.value || "").trim();
+    const mintable = String(els.factoryTokenMintable?.value || "false") === "true";
+    return { uid, name, symbol, supply, decimals, description, logoUri, mintable };
+  }
+
+  async function onFactoryDeployToken() {
+    if (!state.apiReady) {
+      setStatus(els.factoryDeployStatus, "bad", "Connect NFT API first.");
+      return;
+    }
+    if (!ensureMinerLoggedIn(els.factoryDeployStatus)) return;
+    const payload = getFactoryTokenPayload();
+    if (!payload.uid) {
+      setStatus(els.factoryDeployStatus, "bad", "ANET Profile ID is required.");
+      return;
+    }
+    if (!payload.name) {
+      setStatus(els.factoryDeployStatus, "bad", "Token name is required.");
+      return;
+    }
+    if (!/^[A-Z0-9]{3,6}$/.test(payload.symbol)) {
+      setStatus(els.factoryDeployStatus, "bad", "Symbol must be 3–6 uppercase letters/digits.");
+      return;
+    }
+    if (!Number.isFinite(payload.supply) || payload.supply <= 0) {
+      setStatus(els.factoryDeployStatus, "bad", "Supply must be a positive integer.");
+      return;
+    }
+    if (payload.decimals < 0 || payload.decimals > 18) {
+      setStatus(els.factoryDeployStatus, "bad", "Decimals must be between 0 and 18.");
+      return;
+    }
+    if (!window.confirm(`Deploy ${payload.symbol} (${payload.name})? Fee: ${state.factoryDeployFeeAnts} ANTS. Your stake of ≥${state.minFactoryStakeAnts.toLocaleString()} ANTS will be locked for the 7-day cooldown after deploy.`)) {
+      return;
+    }
+    setStatus(els.factoryDeployStatus, "info", "Deploying token…");
+    try {
+      const result = await apiFetch("/api/nft/factory/deploy", {
+        method: "POST",
+        body: payload
+      });
+      const tokenId = result.tokenId || result.id || "(pending)";
+      setStatus(els.factoryDeployStatus, "good", `Deployed ${payload.symbol}. Token id: ${tokenId}.`);
+      if (els.factoryTokenName) els.factoryTokenName.value = "";
+      if (els.factoryTokenSymbol) els.factoryTokenSymbol.value = "";
+      if (els.factoryTokenSupply) els.factoryTokenSupply.value = "";
+      if (els.factoryTokenDescription) els.factoryTokenDescription.value = "";
+      if (els.factoryTokenLogo) els.factoryTokenLogo.value = "";
+      await onFactoryLoadMyTokens();
+      await onFactoryRefreshEligibility();
+    } catch (error) {
+      setStatus(els.factoryDeployStatus, "bad", error.message || "Deploy failed.");
+    }
+  }
+
+  async function onFactoryLoadMyTokens() {
+    if (!state.apiReady) {
+      setStatus(els.factoryDeployStatus, "bad", "Connect NFT API first.");
+      return;
+    }
+    const uid = normalizeUid(els.factoryUid?.value || state.minerUid);
+    if (!uid) {
+      setStatus(els.factoryDeployStatus, "bad", "ANET Profile ID is required.");
+      return;
+    }
+    try {
+      const result = await apiFetch(`/api/nft/factory/tokens?uid=${encodeURIComponent(uid)}&limit=50`);
+      renderFactoryTokens(result.tokens || []);
+    } catch (error) {
+      if (els.factoryTokensList) {
+        els.factoryTokensList.innerHTML = `<div class="status bad">${escapeHtml(error.message || "Could not load factory tokens.")}</div>`;
+      }
+    }
+  }
+
+  function renderFactoryTokens(tokens) {
+    if (!els.factoryTokensList) return;
+    if (!tokens.length) {
+      els.factoryTokensList.innerHTML = '<div class="status info">No factory tokens deployed yet under this profile.</div>';
+      return;
+    }
+    els.factoryTokensList.innerHTML = tokens.map((t) => {
+      const name = String(t.name || "Untitled");
+      const symbol = String(t.symbol || "???");
+      const supply = Number(t.supply || 0).toLocaleString();
+      const decimals = Number(t.decimals || 0);
+      const desc = String(t.description || "").trim();
+      const logo = String(t.logoUri || "").trim();
+      const mintable = t.mintable ? "mintable" : "fixed-supply";
+      const deployedAt = t.deployedAt ? new Date(t.deployedAt).toLocaleString() : "—";
+      const tokenId = String(t.id || t.tokenId || "").trim();
+      const logoHtml = logo
+        ? `<img src="${escapeHtmlAttr(logo)}" alt="${escapeHtmlAttr(symbol)} logo" style="width:42px;height:42px;border-radius:8px;object-fit:cover;" loading="lazy">`
+        : `<div style="width:42px;height:42px;border-radius:8px;background:rgba(34,231,184,0.12);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;">${escapeHtml(symbol.slice(0,3))}</div>`;
+      return `
+        <div class="domain-item" data-token-id="${escapeHtmlAttr(tokenId)}" style="display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:8px;">
+          ${logoHtml}
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap;">
+              <strong>${escapeHtml(name)} <span class="accent">($${escapeHtml(symbol)})</span></strong>
+              <span class="muted" style="font-size:0.75rem;">${escapeHtml(mintable)} · ${decimals}d · ${escapeHtml(deployedAt)}</span>
+            </div>
+            <div class="muted" style="font-size:0.82rem;margin-top:4px;">Supply: ${supply}</div>
+            ${desc ? `<p style="margin:6px 0 0;font-size:0.85rem;">${escapeHtml(desc)}</p>` : ""}
+          </div>
+        </div>`;
+    }).join("");
   }
 })();

@@ -1368,6 +1368,95 @@
       </article>
 
       <article class="studio-card" style="grid-column: 1 / -1;">
+        <h3>Token Factory — PoS Closed Loop <span class="accent" style="font-size:0.7em;">(ANTS-gas)</span></h3>
+        <p class="muted">
+          Same logic as every EVM token factory (deploy your own ERC-20-like asset, set name + symbol + supply, list on the marketplace),
+          <strong>except gas + the deploy fee are paid in ANTS</strong>, not BNB/ETH. The ecosystem stays a closed loop:
+          ANTS in → ANTS out. ANET is the L1 ticker; ANTS is the in-ecosystem unit of account.
+        </p>
+        <p class="muted" style="margin-top:6px;">
+          <strong>Eligibility (PoS gate):</strong> stake at least
+          <code style="background:rgba(34,231,184,0.10);padding:2px 6px;border-radius:6px;">1,000 ANTS</code>
+          to unlock the factory. Stake is locked for a 7-day cooldown after each deploy, slashed if the deployed token is governance-flagged as malicious.
+        </p>
+
+        <div class="factory-stake-panel" style="background:rgba(34,231,184,0.06);border:1px solid rgba(34,231,184,0.18);border-radius:12px;padding:14px;margin:14px 0;">
+          <div class="row">
+            <div class="field">
+              <label for="factory-uid">Your ANET Profile ID</label>
+              <input id="factory-uid" class="input" type="text" placeholder="your ANET profile id">
+            </div>
+            <div class="field">
+              <label for="factory-stake-amount">Stake Amount (ANTS, min 1,000)</label>
+              <input id="factory-stake-amount" class="input" type="number" min="1000" step="1" placeholder="1000">
+            </div>
+          </div>
+          <div class="asset-actions">
+            <button class="btn btn-main" id="factory-stake-btn" type="button">Stake ANTS</button>
+            <button class="btn btn-alt" id="factory-unstake-btn" type="button">Unstake (after cooldown)</button>
+            <button class="btn btn-alt" id="factory-check-eligibility-btn" type="button">Refresh Eligibility</button>
+          </div>
+          <div id="factory-stake-status" class="status info">Stake at least 1,000 ANTS to unlock the factory.</div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="factory-token-name">Token Name</label>
+            <input id="factory-token-name" class="input" type="text" placeholder="My Colony Token">
+          </div>
+          <div class="field">
+            <label for="factory-token-symbol">Symbol (3–6 chars)</label>
+            <input id="factory-token-symbol" class="input" type="text" maxlength="6" placeholder="MCT">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="factory-token-supply">Initial Supply</label>
+            <input id="factory-token-supply" class="input" type="number" min="1" step="1" placeholder="1000000">
+          </div>
+          <div class="field">
+            <label for="factory-token-decimals">Decimals</label>
+            <input id="factory-token-decimals" class="input" type="number" min="0" max="18" step="1" value="9">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="factory-token-description">Token Description / Use Case</label>
+          <textarea id="factory-token-description" class="textarea" placeholder="What is this token for? (game currency, colony governance, points, …)"></textarea>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="factory-token-logo">Logo URI</label>
+            <input id="factory-token-logo" class="input" type="text" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="factory-token-mintable">Mintable After Deploy?</label>
+            <select id="factory-token-mintable" class="input">
+              <option value="false" selected>No — fixed supply (recommended)</option>
+              <option value="true">Yes — owner can mint more</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="muted" style="font-size:0.78rem;margin:4px 0 12px;">
+          Deploy fee: <strong>500 ANTS</strong> (burned to the protocol sink — same role BNB gas plays on BSC, but recycled back as miner rewards).
+          The deployed token lives in the closed loop: tradable on the ANET marketplace, payable to other A-Network wallets, never bridged out automatically.
+        </p>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="factory-deploy-btn" type="button" disabled>Deploy Token (stake required)</button>
+          <button class="btn btn-alt" id="factory-load-tokens-btn" type="button">Load My Tokens</button>
+        </div>
+        <div id="factory-deploy-status" class="status info">Stake first, then deploy your token.</div>
+
+        <div id="factory-tokens-list" class="domain-list" style="margin-top:14px;">
+          <div class="status info">No factory tokens loaded yet.</div>
+        </div>
+      </article>
+
+      <article class="studio-card" style="grid-column: 1 / -1;">
         <h3>Ant Colony Feed</h3>
         <p class="muted">Recent NFT activity from users across the ecosystem.</p>
         <div class="asset-actions">
@@ -1427,7 +1516,7 @@
     </div>
   </div>
 
-  <script src="assets/js/nft.js?v=20260509-6"></script>
+  <script src="assets/js/nft.js?v=20260528-1"></script>
   <script src="assets/js/site-ai.js" defer></script>
 </body>
 </html>
