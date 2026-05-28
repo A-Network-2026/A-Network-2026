@@ -113,12 +113,21 @@ contract AnetBridgeVault is ReentrancyGuard {
     /// @notice Cumulative wANET ever released by this vault.
     uint256 public totalReleased;
 
-    // 24h rolling-window accounting using fixed 1-day buckets keyed by
-    // (block.timestamp / 1 days). Cheap and adversary-safe enough for caps;
-    // does not require iterating history.
-    struct WindowBucket { uint64 day; uint192 amount; }
-    WindowBucket private _globalBucket;
-    mapping(address => WindowBucket) private _recipientBucket;
+    // True 24h sliding-window accounting via 24 hourly buckets in a circular
+    // buffer. We previously bucketed by (timestamp / 1 days), which let an
+    // attacker who controls a compromised signer quorum drain the daily cap
+    // at 23:59:59 UTC and again at 00:00:01 UTC — 2× the intended cap in
+    // ~2 seconds. Hourly slots prevent that: the rolling sum always reflects
+    // the last 24 hours regardless of when the window is observed.
+    //
+    // Each slot stores the absolute unix-hour it was last written to. Slots
+    // older than (currentHour - 23) are stale and excluded from the sum.
+    // Per release this costs 24 SLOADs (cheap, warm slots after first use)
+    // and 1 SSTORE — acceptable for a settlement contract.
+    uint256 private constant _WINDOW_HOURS = 24;
+    struct HourSlot { uint64 hour; uint192 amount; }
+    HourSlot[24] private _globalSlots;
+    mapping(address => HourSlot[24]) private _recipientSlots;
 
     // ── Timelock ──────────────────────────────────────────────────────────────
 
@@ -229,9 +238,9 @@ contract AnetBridgeVault is ReentrancyGuard {
         require(!burnIdConsumed[burnId],            "Vault: burnId used");
         require(amount <= maxPerTx,                 "Vault: > per-tx cap");
 
-        // Caps (rolling 24h windows, day-bucketed).
-        _accrueAndCheck(_globalBucket, amount, maxGlobal24h);
-        _accrueAndCheck(_recipientBucket[recipient], amount, maxPerRecipient24h);
+        // Caps (true rolling 24h windows, 1-hour slot resolution).
+        _accrueAndCheck(_globalSlots, amount, maxGlobal24h);
+        _accrueAndCheck(_recipientSlots[recipient], amount, maxPerRecipient24h);
 
         // Verify signatures.
         bytes32 structHash = keccak256(
@@ -297,20 +306,40 @@ contract AnetBridgeVault is ReentrancyGuard {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Cap accounting (rolling 24h, fixed-day bucket).
+    // Cap accounting (true rolling 24h, 24× 1-hour circular slots).
     // ─────────────────────────────────────────────────────────────────────────
 
-    function _accrueAndCheck(WindowBucket storage b, uint256 amount, uint256 cap) internal {
-        uint64 today = uint64(block.timestamp / 1 days);
-        uint256 running;
-        if (b.day != today) {
-            b.day = today;
-            running = amount;
-        } else {
-            running = uint256(b.amount) + amount;
+    function _windowSum(HourSlot[24] storage slots, uint64 currentHour)
+        internal
+        view
+        returns (uint256 sum)
+    {
+        // Earliest hour still counted is currentHour - 23 (inclusive).
+        // Slots whose recorded hour is older are stale.
+        uint64 cutoff = currentHour >= 23 ? currentHour - 23 : 0;
+        for (uint256 i = 0; i < _WINDOW_HOURS; i++) {
+            HourSlot storage s = slots[i];
+            if (s.hour >= cutoff && s.hour <= currentHour) {
+                sum += uint256(s.amount);
+            }
         }
+    }
+
+    function _accrueAndCheck(HourSlot[24] storage slots, uint256 amount, uint256 cap) internal {
+        uint64 currentHour = uint64(block.timestamp / 1 hours);
+        uint256 running = _windowSum(slots, currentHour) + amount;
         require(running <= cap, "Vault: > 24h cap");
-        b.amount = uint192(running); // safe: caps fit well under 2^192
+
+        uint256 idx = currentHour % _WINDOW_HOURS;
+        HourSlot storage slot = slots[idx];
+        if (slot.hour == currentHour) {
+            // Same hour — accumulate. Cap already bounds it under 2^192.
+            slot.amount = uint192(uint256(slot.amount) + amount);
+        } else {
+            // Slot belongs to an older hour (or unused). Overwrite.
+            slot.hour = currentHour;
+            slot.amount = uint192(amount);
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -496,12 +525,10 @@ contract AnetBridgeVault is ReentrancyGuard {
     }
 
     function released24hGlobal() external view returns (uint256) {
-        WindowBucket memory b = _globalBucket;
-        return (b.day == uint64(block.timestamp / 1 days)) ? uint256(b.amount) : 0;
+        return _windowSum(_globalSlots, uint64(block.timestamp / 1 hours));
     }
 
     function released24hRecipient(address r) external view returns (uint256) {
-        WindowBucket memory b = _recipientBucket[r];
-        return (b.day == uint64(block.timestamp / 1 days)) ? uint256(b.amount) : 0;
+        return _windowSum(_recipientSlots[r], uint64(block.timestamp / 1 hours));
     }
 }
