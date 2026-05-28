@@ -2,24 +2,39 @@
 (function () {
   "use strict";
 
-  const API_BASES = ["https://api.a-network.net", "https://rmp-site.onrender.com"];
+  // ── Data sources ────────────────────────────────────────────────────
+  // Mainnet explorer reads the anet-chain JSON RPC DIRECTLY at
+  // explorer.a-network.net. This is the actual chain node, so there is
+  // no proxy hop and the data is real and live.
+  // NFT explorer reads the pi-backend NFT routes when reachable.
+  const CHAIN_NODE = "https://explorer.a-network.net";
+  const NFT_API_BASES = ["https://api.a-network.net", "https://rmp-site.onrender.com", "https://pi-backend.onrender.com"];
   const API_TIMEOUT_MS = 6000;
 
-  async function fetchWithFallback(path) {
+  async function fetchJson(url, timeoutMs = API_TIMEOUT_MS) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), timeoutMs);
+    try {
+      const r = await fetch(url, {
+        cache: "no-store",
+        signal: ctl.signal,
+        headers: { "accept": "application/json" }
+      });
+      clearTimeout(t);
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const j = await r.json();
+      if (j && j.error) throw new Error(j.error);
+      return j;
+    } catch (e) { clearTimeout(t); throw e; }
+  }
+
+  async function fetchNftWithFallback(path) {
     let lastErr = null;
-    for (const base of API_BASES) {
-      const ctl = new AbortController();
-      const t = setTimeout(() => ctl.abort(), API_TIMEOUT_MS);
-      try {
-        const r = await fetch(base + path, { cache: "no-store", signal: ctl.signal });
-        clearTimeout(t);
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        const j = await r.json();
-        if (j && j.error) throw new Error(j.error);
-        return j;
-      } catch (e) { clearTimeout(t); lastErr = e; }
+    for (const base of NFT_API_BASES) {
+      try { return await fetchJson(base + path); }
+      catch (e) { lastErr = e; }
     }
-    throw lastErr || new Error("api unavailable");
+    throw lastErr || new Error("nft api unavailable");
   }
 
   function $(sel) { return document.querySelector(sel); }
@@ -89,21 +104,152 @@
       `<path d="${path} L ${w},${h} L 0,${h} Z" fill="rgba(106,231,177,0.10)" stroke="none"/>`;
   }
 
+  /* ── Derive chain stats from a Block[] window ─────── */
+  function deriveChainStats(blocks) {
+    const stats = {
+      price: { value: null, change24h: null },
+      gasGwei: 0.001,
+      transactions24h: 0,
+      tps: null,
+      latestBlock: { height: 0, timeSec: 0.5 },
+      marketCapAnts: null,
+      circulatingAnts: null,
+      votingPowerAnet: null,
+      txChart14d: Array(14).fill(0)
+    };
+    if (!Array.isArray(blocks) || !blocks.length) return stats;
+
+    const dayMs = 24 * 60 * 60 * 1000;
+    const nowMs = Date.now();
+    const startMs = nowMs - 14 * dayMs;
+
+    let txs24h = 0;
+    let activatedAnts = 0;
+    for (const b of blocks) {
+      const ts = b && b.epoch_end ? Date.parse(b.epoch_end) : NaN;
+      const txCount = Array.isArray(b.transactions) ? b.transactions.length : 0;
+      if (Number.isFinite(ts)) {
+        if (nowMs - ts <= dayMs) txs24h += txCount;
+        if (ts >= startMs) {
+          const idx = Math.min(13, Math.max(0, Math.floor((ts - startMs) / dayMs)));
+          stats.txChart14d[idx] += txCount;
+        }
+      }
+      if (Number(b.activated_supply_ants) > activatedAnts) activatedAnts = Number(b.activated_supply_ants);
+    }
+    stats.transactions24h = txs24h;
+    if (activatedAnts > 0) {
+      stats.marketCapAnts = activatedAnts;
+      stats.circulatingAnts = activatedAnts;
+    }
+
+    const latest = blocks[blocks.length - 1];
+    stats.latestBlock.height = Number(latest.block_height || 0);
+
+    if (blocks.length >= 2) {
+      const tail = blocks.slice(-16);
+      const gaps = [];
+      let tailTxs = 0;
+      for (let i = 0; i < tail.length; i++) {
+        tailTxs += Array.isArray(tail[i].transactions) ? tail[i].transactions.length : 0;
+        if (i === 0) continue;
+        const a = Date.parse(tail[i - 1].epoch_end || tail[i - 1].epoch_start);
+        const c = Date.parse(tail[i].epoch_end || tail[i].epoch_start);
+        if (Number.isFinite(a) && Number.isFinite(c) && c > a) gaps.push((c - a) / 1000);
+      }
+      if (gaps.length) {
+        const avgGap = gaps.reduce((s, g) => s + g, 0) / gaps.length;
+        stats.latestBlock.timeSec = Number(avgGap.toFixed(2));
+        if (avgGap > 0 && tail.length > 0) {
+          const spanSec = avgGap * tail.length;
+          stats.tps = Number((tailTxs / Math.max(spanSec, 1)).toFixed(2));
+        }
+      }
+    }
+
+    // Voting power proxy: count of distinct validators across the window.
+    const validators = new Set();
+    for (const b of blocks) {
+      if (Array.isArray(b.miners)) for (const m of b.miners) validators.add(String(m));
+    }
+    if (validators.size > 0) stats.votingPowerAnet = validators.size;
+
+    return stats;
+  }
+
+  /* ── Map raw Block[] -> Latest Blocks rows ────────── */
+  function mapBlocks(blocks, limit) {
+    if (!Array.isArray(blocks)) return [];
+    const reversed = blocks.slice().reverse();
+    const out = [];
+    for (const b of reversed) {
+      out.push({
+        height: Number(b.block_height || 0),
+        timestamp: b.epoch_end ? Math.floor(Date.parse(b.epoch_end) / 1000) : 0,
+        validator: Array.isArray(b.miners) && b.miners.length ? String(b.miners[0]) : "",
+        txCount: Array.isArray(b.transactions) ? b.transactions.length : 0,
+        reward: b.total_fees_ants != null ? Number(b.total_fees_ants) : null,
+        event: typeof b.block_event === "string" ? b.block_event : null
+      });
+      if (out.length >= limit) break;
+    }
+    return out;
+  }
+
+  /* ── Flatten Block[] -> Latest Transactions rows ──── */
+  function mapTransactions(blocks, limit) {
+    if (!Array.isArray(blocks)) return [];
+    const reversed = blocks.slice().reverse();
+    const out = [];
+    for (const b of reversed) {
+      const ts = b.epoch_end ? Math.floor(Date.parse(b.epoch_end) / 1000) : 0;
+      const txs = Array.isArray(b.transactions) ? b.transactions : [];
+      for (let i = txs.length - 1; i >= 0; i--) {
+        const t = txs[i] || {};
+        out.push({
+          hash: String(t.hash || t.id || (`blk${b.block_height || 0}-${i}`)),
+          timestamp: ts,
+          from: String(t.from || t.sender || t.source || ""),
+          to: String(t.to || t.recipient || t.destination || ""),
+          valueAnts: t.amount_ants != null ? Number(t.amount_ants)
+                    : (t.value_ants != null ? Number(t.value_ants)
+                    : (t.amount != null ? Number(t.amount) : null))
+        });
+        if (out.length >= limit) break;
+      }
+      // Synthesize a row from block_event so the user sees real activity
+      // even on blocks whose transactions[] is empty (the chain folds many
+      // events into block_event today).
+      if (txs.length === 0 && typeof b.block_event === "string" && b.block_event.length > 0) {
+        out.push({
+          hash: `blk${b.block_height || 0}`,
+          timestamp: ts,
+          from: "block event",
+          to: b.block_event,
+          valueAnts: null,
+          isEvent: true
+        });
+      }
+      if (out.length >= limit) break;
+    }
+    return out.slice(0, limit);
+  }
+
   /* ── Mainnet renderer (scan.html) ──────────────────── */
   async function renderMainnet() {
     if (!document.body.classList.contains("page-scan")) return;
     let stats = demoStats();
-    let blocks = [];
-    let txs = [];
-    // Parallel fetch — the three endpoints don't depend on each other.
-    const [statsRes, blocksRes, txsRes] = await Promise.allSettled([
-      fetchWithFallback("/api/chain/stats"),
-      fetchWithFallback("/api/chain/latest-blocks?limit=6"),
-      fetchWithFallback("/api/chain/latest-transactions?limit=6")
-    ]);
-    if (statsRes.status === "fulfilled" && statsRes.value) stats = Object.assign(stats, statsRes.value);
-    if (blocksRes.status === "fulfilled" && Array.isArray(blocksRes.value)) blocks = blocksRes.value;
-    if (txsRes.status === "fulfilled" && Array.isArray(txsRes.value)) txs = txsRes.value;
+    let blocksRaw = [];
+    try {
+      // ONE call to the chain node covers all three tiles. The chain returns
+      // the latest window of blocks oldest-first.
+      blocksRaw = await fetchJson(CHAIN_NODE + "/blocks?limit=64");
+      if (!Array.isArray(blocksRaw)) blocksRaw = [];
+    } catch (_) { blocksRaw = []; }
+
+    if (blocksRaw.length) stats = Object.assign(stats, deriveChainStats(blocksRaw));
+    const blocks = mapBlocks(blocksRaw, 6);
+    const txs = mapTransactions(blocksRaw, 6);
 
     const priceEl = $("#anetPrice");
     if (priceEl) priceEl.innerHTML = stats.price && stats.price.value != null
@@ -133,7 +279,7 @@
       ? fmt(stats.latestBlock.height) + ` <span class="sub">(${stats.latestBlock.timeSec || 0.5}s)</span>`
       : "—");
     setText("#statVoting", stats.votingPowerAnet != null
-      ? fmt(stats.votingPowerAnet) + ' <span class="sub">ANET</span>'
+      ? fmt(stats.votingPowerAnet) + ' <span class="sub">validators</span>'
       : "—");
 
     drawChart($("#txChart"), stats.txChart14d);
@@ -145,12 +291,12 @@
           <div class="row">
             <div class="ico-sm">▣</div>
             <div class="meta">
-              <div class="top"><a class="num" href="#/block/${b.height}">${fmt(b.height)}</a><span class="ago">${timeAgo(b.timestamp)}</span></div>
-              <div class="bot">Validated By <a href="#/validator/${encodeURIComponent(b.validator || "")}">${b.validator || "—"}</a> · ${b.txCount || 0} txns</div>
+              <div class="top"><a class="num" href="${CHAIN_NODE}/explorer/blocks/${b.height}" target="_blank" rel="noopener">${fmt(b.height)}</a><span class="ago">${timeAgo(b.timestamp)}</span></div>
+              <div class="bot">Validated By <span title="${b.validator || ''}">${shortHash(b.validator, 10, 6) || "—"}</span> · ${b.txCount || 0} txns${b.event ? ` · <span style="color:var(--accent-3)">${b.event}</span>` : ""}</div>
             </div>
-            <span class="val-pill">${b.reward != null ? fmt(b.reward) + " ANTS" : "—"}</span>
+            <span class="val-pill">${b.reward != null ? fmt(b.reward) + " ANTS" : "0 ANTS"}</span>
           </div>`).join("")
-        : emptyRows("No live blocks yet. Validators booting.", 6);
+        : emptyRows("Chain reachable but no blocks yet. Validators booting.", 6);
     }
 
     const txsEl = $("#latestTxs");
@@ -158,14 +304,16 @@
       txsEl.innerHTML = txs.length
         ? txs.map((t) => `
           <div class="row">
-            <div class="ico-sm">≡</div>
+            <div class="ico-sm">${t.isEvent ? "★" : "≡"}</div>
             <div class="meta">
-              <div class="top"><a class="num" href="#/tx/${t.hash}">${shortHash(t.hash)}</a><span class="ago">${timeAgo(t.timestamp)}</span></div>
-              <div class="bot">From <a href="#/addr/${t.from}">${shortHash(t.from)}</a> · To <a href="#/addr/${t.to}">${shortHash(t.to)}</a></div>
+              <div class="top"><span class="num">${shortHash(t.hash)}</span><span class="ago">${timeAgo(t.timestamp)}</span></div>
+              <div class="bot">${t.isEvent
+                ? `<span style="color:var(--accent-3)">${t.to}</span>`
+                : `From <span title="${t.from || ''}">${shortHash(t.from)}</span> · To <span title="${t.to || ''}">${shortHash(t.to)}</span>`}</div>
             </div>
-            <span class="val-pill">${t.valueAnts != null ? fmt(t.valueAnts) + " ANTS" : "—"}</span>
+            <span class="val-pill">${t.valueAnts != null ? fmt(t.valueAnts) + " ANTS" : (t.isEvent ? "event" : "0 ANTS")}</span>
           </div>`).join("")
-        : emptyRows("No live transactions yet.", 6);
+        : emptyRows("No transactions in the recent block window.", 6);
     }
   }
 
@@ -184,9 +332,9 @@
     let mints = [];
     let sales = [];
     const [statsRes, mintsRes, salesRes] = await Promise.allSettled([
-      fetchWithFallback("/api/nft/stats"),
-      fetchWithFallback("/api/nft/latest-mints?limit=6"),
-      fetchWithFallback("/api/nft/latest-sales?limit=6")
+      fetchNftWithFallback("/api/nft/stats"),
+      fetchNftWithFallback("/api/nft/latest-mints?limit=6"),
+      fetchNftWithFallback("/api/nft/latest-sales?limit=6")
     ]);
     if (statsRes.status === "fulfilled" && statsRes.value) stats = Object.assign(stats, statsRes.value);
     if (mintsRes.status === "fulfilled" && Array.isArray(mintsRes.value)) mints = mintsRes.value;
