@@ -351,6 +351,71 @@
     paintWallets(me);
     paintDevices(me);
     paintActivity(me);
+    bindDashboardActions(session);
+  }
+
+  /* ── dashboard action wiring (link / revoke) ─── */
+  function bindDashboardActions(session) {
+    const linkBtn = document.getElementById("dashLinkEvmBtn");
+    if (linkBtn && !linkBtn.dataset.bound) {
+      linkBtn.dataset.bound = "1";
+      linkBtn.addEventListener("click", () => linkAnotherEvmWallet(session));
+    }
+    document.querySelectorAll("#dashDevices [data-revoke]").forEach((btn) => {
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", async () => {
+        const id = decodeURIComponent(btn.dataset.revoke || "");
+        if (!id) return;
+        if (!confirm("Revoke this device? It will no longer be able to mine or sign for your profile.")) return;
+        btn.disabled = true;
+        try {
+          await apiFetch("/auth/portal/devices/" + encodeURIComponent(id) + "/revoke", {
+            method: "POST",
+            headers: { authorization: "Bearer " + session.token }
+          });
+          renderDashboard();
+        } catch (err) {
+          alert("Revoke failed: " + ((err && err.message) || "unknown error"));
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  async function linkAnotherEvmWallet(session) {
+    if (!window.ethereum) { alert("Install MetaMask to link an EVM wallet."); return; }
+    try {
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      const address = String((accounts && accounts[0]) || "").toLowerCase();
+      if (!address) return;
+      const nonce = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      const issuedAt = new Date().toISOString();
+      const message = [
+        SIWE_DOMAIN + " wants you to link this Ethereum account to your A Network Profile:",
+        address,
+        "",
+        "Linking a wallet only signs a message — no transaction, no gas.",
+        "",
+        "URI: https://" + SIWE_DOMAIN + "/portal.html",
+        "Version: 1",
+        "Chain ID: 56",
+        "Nonce: " + nonce,
+        "Issued At: " + issuedAt
+      ].join("\n");
+      const signature = await window.ethereum.request({
+        method: "personal_sign",
+        params: [message, address]
+      });
+      await apiFetch("/auth/portal/wallets/link", {
+        method: "POST",
+        headers: { authorization: "Bearer " + session.token },
+        body: { address, message, signature }
+      });
+      renderDashboard();
+    } catch (err) {
+      alert("Link failed: " + ((err && err.message) || "unknown error"));
+    }
   }
 
   function stubMeFromSession(session, err) {
