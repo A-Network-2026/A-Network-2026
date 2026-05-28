@@ -55,35 +55,51 @@ When reporting, please include:
 - **Public credit** on the Decentralization Status Tracker and in
   the patch commit message, unless you request anonymity.
 
-## Bounty
+## Recognition program (in lieu of bounty)
 
-A-Network operates a public bug bounty paid in **wANET** from the
-founder allocation held in `AnetBridgeVault`. Payouts are routed
-through the standard 2-of-3 EIP-712 signature path — never via a
-side channel.
+A-Network does **not** currently offer monetary rewards — not in
+fiat and not in wANET. The founder allocation is reserved for the
+project's published economic functions (validator grants, treasury,
+liquidity). Issuing it as security bounties would dilute the supply
+commitment we've made publicly.
 
-| Severity | Reward | Examples |
-|---|---|---|
-| **Critical** | 100,000 wANET | Direct fund loss, signature forge, vault drain, mint-equivalent bug, 24h global-cap evasion that moves real funds. |
-| **High**     |  25,000 wANET | Fund-at-risk without direct loss (significant liveness or correctness bug), timelock bypass under non-trivial conditions, role-split escalation. |
-| **Medium**   |   5,000 wANET | Correctness issue without fund risk, observable state corruption, off-by-one in a cap. |
-| **Low**      |   1,000 wANET | Spec drift, undocumented behaviour, UX or RPC issue that could mislead a user. |
+What we offer instead is **public recognition** for external
+findings. We will:
 
-Rules:
+- Credit you by name or chosen handle in the patch commit message.
+- Credit you in the relevant `whitepaper.html` changelog section.
+- Add your finding to the public `SECURITY_FINDINGS.md` log (one
+  row per disclosure, severity, fix commit, your attribution).
+- For a Critical or High finding, name you in a pinned acknowledgement
+  on the project X account.
+- Provide a signed letter of acknowledgement on project letterhead
+  if you need it for a portfolio, conference CV, or employment.
 
-- One reward per root cause. We pay the highest applicable severity.
-- First disclosure wins. Duplicates do not stack.
-- The finding must be against a frozen commit on `main` (we publish
-  the current bounty target commit in `contracts/AUDIT_PACKAGE.md`).
-- You must follow the safe-harbor rules below. Funds moved beyond
-  PoC will be deducted from the reward and may void it entirely.
-- We will not negotiate a payment that requires you to keep a
-  vulnerability undisclosed.
+### Severity is still classified
 
-This is the project's primary external-review program. A-Network
-does not currently have the cash budget for a paid third-party audit
-firm; if that changes, a paid audit will be added on top of (not as
-a substitute for) this bounty.
+| Severity | Examples |
+|---|---|
+| **Critical** | Direct fund loss, signature forge, vault drain, mint-equivalent bug, 24h global-cap evasion that moves real funds. |
+| **High**     | Fund-at-risk without direct loss, timelock bypass under non-trivial conditions, role-split escalation. |
+| **Medium**   | Correctness issue without fund risk, observable state corruption, off-by-one in a cap. |
+| **Low**      | Spec drift, undocumented behaviour, UX or RPC issue that could mislead a user. |
+
+### Rules
+
+- First disclosure wins. Duplicates do not get separate credit.
+- The finding must be against a frozen commit on `main` (current
+  target commit is published in `contracts/AUDIT_PACKAGE.md`).
+- Follow the safe-harbor rules below. Funds moved beyond PoC
+  forfeit the recognition entry.
+- We will not negotiate any arrangement that requires you to keep
+  a vulnerability undisclosed.
+
+This is the honest stance. We are a zero-budget project with no
+liquid treasury. A paid bounty would be a lie, so we don't offer
+one. What we can offer is durable public credit, which for many
+researchers is worth more than a one-off payment from a small project.
+If you want money, the audit firms in `contracts/AUDIT_PACKAGE.md`
+§6.1 are reachable; we cannot afford them ourselves.
 
 ## Safe harbor
 

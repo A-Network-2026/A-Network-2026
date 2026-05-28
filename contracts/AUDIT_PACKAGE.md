@@ -184,23 +184,25 @@ prior validation**. We have not engaged a third party until now.
 ## 6. External review program
 
 A-Network does **not** currently have cash budget for a paid third-
-party audit (typical scope at 1,170 LOC: USD 15k–60k). The primary
-external-review program is therefore a **public bug bounty paid in
-wANET** from the founder allocation held in `AnetBridgeVault`,
-routed through the standard 2-of-3 EIP-712 signature path:
+party audit (typical scope at 1,170 LOC: USD 15k–60k), and we do
+**not** issue wANET as bounty payment — the founder allocation is
+reserved for the project's published economic functions and we will
+not dilute that commitment.
 
-| Severity | Reward (wANET) |
-|---|---:|
-| Critical | 100,000 |
-| High     |  25,000 |
-| Medium   |   5,000 |
-| Low      |   1,000 |
+What we offer external researchers is **durable public recognition**:
+credit in the fix commit, credit in the whitepaper changelog, an
+entry in `SECURITY_FINDINGS.md`, a pinned project-account acknowledgement
+for Critical / High findings, and a signed letter for your portfolio
+if you need one. Full terms and severity table: `SECURITY.md` at the
+repo root.
 
-Full rules and disclosure channel: `SECURITY.md` at the repo root.
-
-The bounty target is **this audit package at the frozen commit**.
+The review target is **this audit package at the frozen commit**.
 Findings against later commits are welcome but evaluated against the
 then-current `main`.
+
+This is the honest stance. If you need monetary compensation, the
+audit firms below are reachable directly; A-Network cannot fund
+them at this stage.
 
 ### 6.1 If a paid audit becomes affordable
 
@@ -222,16 +224,17 @@ not a replacement for it.
 
 ## 7. Deliverables expected from researchers
 
-For a bounty submission:
+For a recognition-program submission:
 
 1. Clear description + file/line or contract address.
 2. Reproduction recipe — Hardhat test, cast call sequence, or
    step-by-step against a local fork.
-3. Severity argument mapped to the §6 table.
+3. Severity argument mapped to the `SECURITY.md` table.
 4. Suggested mitigation (optional but appreciated).
+5. Your preferred attribution (real name, handle, or anonymous).
 
 When at least one external researcher publishes a finding against
-the frozen commit (paid bounty or zero-finding clean review),
+the frozen commit (or completes a documented zero-finding review),
 scorecard milestone #7 flips from IN PROGRESS to ✅ DONE with the
 researcher's chosen attribution.
 
