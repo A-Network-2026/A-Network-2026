@@ -698,6 +698,8 @@
 
     <a class="nav-item" href="#security">Security Model</a>
 
+    <a class="nav-item" href="#wallet-architecture">Wallet Architecture</a>
+
     <a class="nav-item" href="#roadmap">Roadmap</a>
 
     <a class="nav-item" href="#official-links">Official Links</a>
@@ -3664,13 +3666,139 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
 
 
+    <!-- ────────────────────────────────────────
+
+         Section  WA  WALLET ARCHITECTURE
+         (Cryptographic ownership, device binding,
+         seed phrase vs EVM private key)
+
+    ──────────────────────────────────────── -->
+
+    <section class="wp-section" id="wallet-architecture">
+      <div class="section-label">&sect; WA</div>
+      <h2>Wallet Architecture &mdash; Cryptographic Ownership, Device Binding, and EVM Compatibility</h2>
+
+      <p>
+        A common point of confusion in crypto systems is the relationship between accounts, devices, seed phrases, and private keys. A&#8209;Network&rsquo;s wallet stack is designed around a <strong>device&#8209;bound security model</strong> during the active Web2 &rarr; Web4 transition while still honouring the same cryptographic ownership principles introduced by Bitcoin and adopted by modern EVM systems.
+      </p>
+
+      <p>This section clarifies, in order:</p>
+
+      <ul>
+        <li>Layer&nbsp;1 wallet identity</li>
+        <li>EVM wallet integration</li>
+        <li>Device&#8209;generated keys</li>
+        <li>Seed phrases</li>
+        <li>MetaMask behaviour</li>
+        <li>Account ownership logic</li>
+      </ul>
+
+      <h3>Multiple Accounts and Private Keys on a Single Device</h3>
+
+      <p>
+        In the current architecture, wallet behaviour is device&#8209;bound during the active Web2 and EVM integration phase. If one device is used with multiple A&#8209;Network accounts, that device may continue to use the same locally generated EVM wallet environment unless a new wallet environment is explicitly created for another account.
+      </p>
+
+      <p>This means:</p>
+
+      <ul>
+        <li>The first account initialised on the device is typically associated with the device&rsquo;s active EVM wallet environment.</li>
+        <li>Switching between accounts inside the app does <strong>not</strong> automatically generate a brand new EVM private key.</li>
+        <li>MetaMask and EVM systems operate on <strong>private keys</strong>, not on the A&#8209;Network Layer&nbsp;1 seed phrase.</li>
+      </ul>
+
+      <p>The A&#8209;Network seed phrase is intended specifically for:</p>
+
+      <ul>
+        <li>Layer&nbsp;1 wallet identity</li>
+        <li>Future Web4 migration</li>
+        <li>Wallet recovery</li>
+        <li>ANET ecosystem continuity</li>
+      </ul>
+
+      <p>MetaMask and other EVM&#8209;compatible wallets rely directly on:</p>
+
+      <ul>
+        <li>Private keys</li>
+        <li>Imported wallet credentials</li>
+        <li>EVM account derivation</li>
+      </ul>
+
+      <p>
+        If a user wants a fully separate EVM private key for another account, the recommended approach is to log in to that account on a <strong>separate device</strong> first, allow that device to initialise its own wallet environment, and let it generate a unique wallet/private&#8209;key instance for that account. Similarly, if a phone already has an existing registered account and an initialised wallet, newly logged&#8209;in accounts on that same device may still inherit or use the previously initialised wallet environment unless manually separated. This is the wallet&#8209;continuity and device&#8209;binding security model in action.
+      </p>
+
+      <h3>Relationship to Bitcoin Core Principles</h3>
+
+      <p>
+        A&#8209;Network follows the same cryptographic philosophy popularised by Bitcoin: <em>ownership is ultimately controlled by the private key</em>. Bitcoin itself does not care about usernames, e&#8209;mails, or devices. What matters is who controls the private key, who can sign transactions, and who owns the cryptographic credentials.
+      </p>
+
+      <div class="table-wrap">
+        <table class="wp-table">
+          <thead>
+            <tr>
+              <th>System</th>
+              <th>Ownership Basis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Bitcoin Core</td><td>Private key</td></tr>
+            <tr><td>Ethereum / MetaMask</td><td>Private key</td></tr>
+            <tr><td>A&#8209;Network Layer&nbsp;1</td><td>Seed phrase + wallet identity</td></tr>
+            <tr><td>A&#8209;Network EVM Integration</td><td>Private key</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        The user interface can present multiple accounts, but blockchain ownership still ultimately depends on cryptographic key control.
+      </p>
+
+      <h3>Why A&#8209;Network Uses Device Binding</h3>
+
+      <p>
+        This whitepaper repeatedly emphasises anti&#8209;farming, anti&#8209;Sybil systems, device binding, fraud prevention, unique wallet identity, migration continuity, and security enforcement. The supporting controls include device&nbsp;ID verification, wallet identity binding, session integrity, OTP security, anti&#8209;duplicate protection, fraud cluster detection, and wallet continuity controls. Device&#8209;level wallet behaviour exists because the goal is not merely convenience but:
+      </p>
+
+      <ul>
+        <li>preventing automated farming</li>
+        <li>reducing fake accounts</li>
+        <li>protecting wallet continuity</li>
+        <li>preserving Layer&nbsp;1 migration integrity</li>
+      </ul>
+
+      <h3>Bitcoin Philosophy vs Traditional Web2 Accounts</h3>
+
+      <p>
+        Traditional applications think in terms of usernames, passwords, and accounts. Bitcoin introduced a different philosophy: <em>&ldquo;Not your keys, not your coins.&rdquo;</em> A&#8209;Network adopts the same direction and progressively moves toward self&#8209;sovereign ownership, cryptographic identity, decentralised wallet control, Layer&nbsp;1 settlement, EVM interoperability, and DID&#8209;based identity systems. The whitepaper explicitly discusses self&#8209;sovereign identity, decentralised identifiers (DID), EVM wallet ownership, Layer&nbsp;1 wallet migration, wallet continuity, and non&#8209;custodial principles.
+      </p>
+
+      <h3>Important Clarification</h3>
+
+      <p>
+        The colloquial statement <em>&ldquo;only the first account owns the private key&rdquo;</em> is not technically fully correct. A more accurate framing is: <strong>the device may continue using the first initialised wallet environment unless a separate wallet/private key is generated for another account.</strong> In blockchain systems private keys are independent cryptographic credentials, accounts themselves do not &ldquo;own&rdquo; the key, and the wallet environment controls the active signing authority.
+      </p>
+
+      <h3>Technical Summary</h3>
+
+      <p>
+        The current wallet architecture combines Bitcoin&#8209;style cryptographic ownership, EVM compatibility, Layer&nbsp;1 migration preparation, device&#8209;level anti&#8209;abuse protection, and wallet continuity systems. The design prioritises security, anti&#8209;farming, migration integrity, and self&#8209;sovereign ownership while maintaining compatibility with modern EVM standards such as MetaMask and BNB Chain integration.
+      </p>
+
+    </section>
 
 
-    <!-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+    <div class="divider"></div>
+
+
+
+    <!-- ────────────────────────────────────────
 
          Section  14 ROADMAP
 
-    â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    ──────────────────────────────────────── -->
 
     <section class="wp-section" id="roadmap">
       <div class="section-label">&sect; 14</div>
