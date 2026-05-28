@@ -941,18 +941,88 @@
         </div>
       </div>
 
-      <div class="hero-badge">Technical Paper v3.5 (AnetSwap Hardening · Safe-Multisig Compatible)</div>
+      <div class="hero-badge">Technical Paper v3.6 (AnetSwap Governance Hardening · Timelock + Role Split)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 3.5 lands the AnetSwap hardening pass (Safe-multisig–compatible fee/withdraw path via <code>.call{value:}</code>, paginated indexer view, withdrawal &amp; fee-forward events) following the internal &ldquo;Satoshi &amp; Engineer Thanks&rdquo; audit on <strong>May 28, 2026</strong>. It carries forward Version 3.2&apos;s permanent milestone: on <strong>May 24, 2026</strong> the ANET BEP-20 contract on BNB Chain (<code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>) had its ownership <strong>permanently renounced</strong> (<code>owner = 0x0000…0000</code>). The functions <code>mint()</code>, <code>pause()</code>, <code>unpause()</code>, and <code>setBlacklist()</code> are now permanently disabled, locking maximum supply at <strong>21,000,000 ANET</strong> forever. Version 3.1's bidirectional bridge remains intact: users can swap BNB, USDT, or USDC into ANET via the <strong>AnetSwap</strong> contract on BSC mainnet (<code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>), and conversely burn Layer&nbsp;1 ANET through the <code>POST&nbsp;/bridge/burn</code> endpoint on the ANET L1 node to receive wANET (BEP-20) on BSC from a dedicated escrow wallet. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
+      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 3.6 lands the AnetSwap governance hardening pass &mdash; the entry-side contract now mirrors the AnetBridgeVault administrative model: a 48-hour timelock with a 14-day execution-grace window on all parameter changes, a three-role split (<code>admin</code> / <code>pauser</code> / <code>operator</code>) so a compromised pauser cannot unpause and a compromised operator cannot move funds, and a 2-step <code>transferAdmin</code>/<code>acceptAdmin</code> handover. This closes the last single-key surface on the BNB Chain side. Version 3.5 (May 28, 2026) landed the AnetSwap correctness pass (Safe-multisig–compatible fee/withdraw path via <code>.call{value:}</code>, paginated indexer view, withdrawal &amp; fee-forward events) following the internal &ldquo;Satoshi &amp; Engineer Thanks&rdquo; audit. It carries forward Version 3.2&apos;s permanent milestone: on <strong>May 24, 2026</strong> the ANET BEP-20 contract on BNB Chain (<code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>) had its ownership <strong>permanently renounced</strong> (<code>owner = 0x0000…0000</code>). The functions <code>mint()</code>, <code>pause()</code>, <code>unpause()</code>, and <code>setBlacklist()</code> are now permanently disabled, locking maximum supply at <strong>21,000,000 ANET</strong> forever. Version 3.1's bidirectional bridge remains intact: users can swap BNB, USDT, or USDC into ANET via the <strong>AnetSwap</strong> contract on BSC mainnet (<code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>), and conversely burn Layer&nbsp;1 ANET through the <code>POST&nbsp;/bridge/burn</code> endpoint on the ANET L1 node to receive wANET (BEP-20) on BSC from a dedicated escrow wallet. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> &mdash; 3.5 (AnetSwap Hardening · May 2026)</div>
-        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 28, 2026 (v3.5) · Renounce milestone May 24, 2026 (v3.2)</div>
+        <div class="hero-meta-item"><strong>Version</strong> &mdash; 3.6 (AnetSwap Governance Hardening · May 2026)</div>
+        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 28, 2026 (v3.6) · Correctness pass May 28, 2026 (v3.5) · Renounce milestone May 24, 2026 (v3.2)</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong> &mdash; Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>Web3 Token</strong> &mdash; 21,000,000 ANET BEP-20 on BNB Chain &middot; DEX-listed &middot; <strong>Ownership Renounced (owner = 0x0)</strong></div>
         <div class="hero-meta-item"><strong>Denomination</strong> &mdash; 1 ANET = 100,000,000 ANTS</div>
         <div class="hero-meta-item"><strong>Lifecycle Rule</strong> &mdash; Mine &rarr; 1,000 sessions &rarr; Mobile swap/transfer/cashout &rarr; NFT unlock</div>
       </div>
     </div>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         v3.6 CHANGELOG — AnetSwap Governance Hardening (May 28, 2026)
+         Timelock + 3-role split + 2-step admin transfer
+         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section class="wp-section" id="v36-changelog">
+      <div class="section-label">v3.6 Changelog · May 28, 2026</div>
+      <h2>Version 3.6 &mdash; AnetSwap Governance Hardening</h2>
+      <p>Version 3.6 lands the second half of the AnetSwap audit pass: the contract&apos;s administrative surface is now restructured to match <strong>AnetBridgeVault</strong>, retiring the single-<code>owner()</code> model in favor of a three-role split with a 48-hour timelock on every parameter change. This is the on-chain prerequisite for scorecard milestone&nbsp;#6 (AnetSwap multisig + timelock).</p>
+
+      <h3>Governance model (new)</h3>
+      <div class="table-wrap">
+        <table class="data-table" style="font-size:13px;">
+          <thead>
+            <tr><th>Role</th><th>Recommended holder</th><th>What it can do</th><th>What it cannot do</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong><code>admin</code></strong></td>
+              <td>Gnosis Safe multisig (2-of-N)</td>
+              <td>Schedule + execute every parameter change after a 48h delay (fee bps, fee recipient, token configs, pauser rotation, operator rotation, unpause). Withdraw collected fees (admin-only, not timelocked — auth is the Safe quorum). Transfer admin via 2-step <code>transferAdmin</code> + <code>acceptAdmin</code>.</td>
+              <td>Cannot bypass the 48-hour timelock, cannot mark a swap processed, cannot mint or move user assets that have not yet entered the contract.</td>
+            </tr>
+            <tr>
+              <td><strong><code>pauser</code></strong></td>
+              <td>Dedicated hardware-wallet hot key</td>
+              <td>Pause the contract <em>instantly</em> in an emergency.</td>
+              <td><strong>Cannot unpause.</strong> Cannot change params, cannot move funds, cannot rotate any role. A compromised pauser can only DoS the contract until <code>admin</code> reopens via the 48h-timelocked <code>executeUnpause</code>.</td>
+            </tr>
+            <tr>
+              <td><strong><code>operator</code></strong></td>
+              <td>Backend hot wallet (pi-backend)</td>
+              <td>Call <code>markProcessed</code> / <code>batchMarkProcessed</code> to record L1 credit on processed swaps. No timelock (operational).</td>
+              <td>Cannot move funds, cannot change params, cannot pause, cannot affect any swap that has not been credited on L1.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Timelock semantics</h3>
+      <ul>
+        <li><strong><code>TIMELOCK_DELAY = 48 hours</code></strong> — admin must wait this long after <code>schedule…()</code> before <code>execute…()</code> succeeds.</li>
+        <li><strong><code>EXECUTION_GRACE = 14 days</code></strong> — a scheduled change becomes <em>permanently expired</em> 14 days after its ETA. This prevents a stolen admin key from cashing in on a stale, community-tolerated schedule months later. Same primitive as the vault.</li>
+        <li><strong>Bait-and-switch resistance</strong> — <code>execute…()</code> takes the same arguments as <code>schedule…()</code> and re-hashes them with <code>keccak256(abi.encode(…))</code>; any mismatch reverts. Admin cannot announce a benign value and execute a malicious one.</li>
+        <li><strong>Cancellable</strong> — admin can drop any pending change via <code>cancelChange(id)</code> at any point before execution.</li>
+      </ul>
+
+      <h3>API summary</h3>
+      <ul>
+        <li><strong>Timelocked param changes</strong> (schedule→wait 48h→execute): <code>FeeBps</code>, <code>FeeRecipient</code>, <code>ConfigureToken</code>, <code>Unpause</code>, <code>Pauser</code>, <code>Operator</code>.</li>
+        <li><strong>Instant (no timelock)</strong>: <code>pause</code> (pauser or admin), <code>markProcessed</code> / <code>batchMarkProcessed</code> (operator or admin), <code>withdrawNative</code> / <code>withdrawToken</code> (admin-only, destination hard-wired to <code>admin</code>).</li>
+        <li><strong>2-step admin handover</strong>: <code>transferAdmin(newAdmin)</code> proposes, <code>acceptAdmin()</code> finalises from the new address. <code>transferAdmin(0)</code> cancels.</li>
+        <li><strong>Compatibility shim</strong>: <code>owner()</code> still returns <code>admin</code> so existing tooling (Etherscan &ldquo;Read&rdquo;, off-chain indexers, the v3.5 ABI) keeps working.</li>
+        <li><strong>New events</strong>: <code>AdminTransferProposed</code>, <code>AdminTransferred</code>, <code>PauserUpdated</code>, <code>OperatorUpdated</code>, <code>ChangeScheduled</code>, <code>ChangeExecuted</code>, <code>ChangeCancelled</code>.</li>
+      </ul>
+
+      <h3>Deployment &amp; migration</h3>
+      <ul>
+        <li>New constructor signature: <code>AnetSwap(admin, pauser, operator, feeRecipient)</code>. Deploy script (<code>scripts/deploy.js</code>) reads <code>ANET_BRIDGE_ADMIN</code>, <code>ANET_BRIDGE_PAUSER</code>, <code>ANET_BRIDGE_OPERATOR</code>, falling back to <code>ANET_BRIDGE_OWNER</code> then to the deployer EOA. Each fallback emits a warning.</li>
+        <li>Token whitelist script (<code>scripts/setup-tokens.js</code>) now runs in two phases: <code>TOKEN_SETUP_PHASE=schedule</code> stages every token change and writes a state file; <code>TOKEN_SETUP_PHASE=execute</code> replays them after the 48-hour delay.</li>
+        <li>The currently-deployed BSC contract <code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code> is the v3.5 build. Migration to the v3.6 governance contract is on the roadmap and requires a fresh deploy + bridge-state migration. Until that ships, scorecard milestone&nbsp;#6 remains <em>Planned</em>.</li>
+      </ul>
+
+      <h3>Testing</h3>
+      <p>37 new Hardhat tests cover the role split (pauser cannot unpause, operator cannot move funds, stranger cannot do anything), 48h timelock on every parameter, bait-and-switch resistance, the 14-day grace window, cancellation, and the 2-step admin handover. Combined with the 33 existing <code>AnetBridgeVault</code> tests, the contracts repository now passes <strong>70/70</strong> green.</p>
+
+      <p style="font-size:0.9rem;color:#a8a8a8;font-style:italic;margin-top:14px;">
+        Fee-on-transfer token accounting and entry-side rolling-24h caps remain on the backlog (carried over from v3.5) and will land in v3.7.
+      </p>
+    </section>
 
     <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
          v3.5 CHANGELOG — AnetSwap Hardening (May 28, 2026)

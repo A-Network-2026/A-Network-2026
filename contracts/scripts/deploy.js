@@ -8,7 +8,11 @@
  * Required env vars (in pi-backend/.env or environment):
  *   DEPLOYER_PRIVATE_KEY     - Private key of the deployer wallet (has gas funds)
  *   ANET_FEE_RECIPIENT       - EVM address that collects bridge fees
- *   ANET_BRIDGE_OWNER        - EVM address that will own the contract (defaults to deployer)
+ *   ANET_BRIDGE_ADMIN        - EVM address that will be the admin (Safe multisig). Defaults to deployer.
+ *   ANET_BRIDGE_PAUSER       - EVM address with instant-pause authority (separate hot key). Defaults to deployer.
+ *   ANET_BRIDGE_OPERATOR     - EVM address allowed to call markProcessed (backend wallet). Defaults to deployer.
+ *
+ *   Legacy: ANET_BRIDGE_OWNER is honored as a fallback for ANET_BRIDGE_ADMIN.
  *
  * After deploying:
  *   1. Copy the deployed address into dex.js ANET_SWAP_CONTRACTS[chainId].
@@ -29,19 +33,32 @@ async function main() {
   console.log(`Balance      : ${hre.ethers.formatEther(await hre.ethers.provider.getBalance(deployer.address))} native`);
 
   const feeRecipient   = process.env.ANET_FEE_RECIPIENT || deployer.address;
-  const contractOwner  = process.env.ANET_BRIDGE_OWNER  || deployer.address;
+  const contractAdmin  = process.env.ANET_BRIDGE_ADMIN || process.env.ANET_BRIDGE_OWNER || deployer.address;
+  const contractPauser = process.env.ANET_BRIDGE_PAUSER   || deployer.address;
+  const contractOperator = process.env.ANET_BRIDGE_OPERATOR || deployer.address;
 
   if (feeRecipient === deployer.address) {
     console.warn("⚠  ANET_FEE_RECIPIENT not set — fees will go to deployer address.");
   }
+  if (contractAdmin === deployer.address) {
+    console.warn("⚠  ANET_BRIDGE_ADMIN not set — admin will be deployer EOA. Transfer to a Safe before going live.");
+  }
+  if (contractPauser === deployer.address) {
+    console.warn("⚠  ANET_BRIDGE_PAUSER not set — pauser collapses to deployer. Rotate before going live.");
+  }
+  if (contractOperator === deployer.address) {
+    console.warn("⚠  ANET_BRIDGE_OPERATOR not set — operator collapses to deployer. Set to backend wallet before going live.");
+  }
 
   console.log(`Fee recipient: ${feeRecipient}`);
-  console.log(`Contract owner (post-transfer): ${contractOwner}`);
+  console.log(`Admin        : ${contractAdmin}`);
+  console.log(`Pauser       : ${contractPauser}`);
+  console.log(`Operator     : ${contractOperator}`);
   console.log(`────────────────────────────────────────────────────────\n`);
 
   // Deploy
   const AnetSwap = await hre.ethers.getContractFactory("AnetSwap");
-  const contract = await AnetSwap.deploy(contractOwner, feeRecipient);
+  const contract = await AnetSwap.deploy(contractAdmin, contractPauser, contractOperator, feeRecipient);
   await contract.waitForDeployment();
 
   const address = await contract.getAddress();
@@ -54,7 +71,7 @@ async function main() {
     try {
       await hre.run("verify:verify", {
         address,
-        constructorArguments: [contractOwner, feeRecipient],
+        constructorArguments: [contractAdmin, contractPauser, contractOperator, feeRecipient],
       });
       console.log("✓ Contract verified.");
     } catch (e) {

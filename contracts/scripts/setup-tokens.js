@@ -84,27 +84,64 @@ async function main() {
     return;
   }
 
-  // Minimal ABI needed
+  // v3.6 governance: configureToken is timelocked. Schedule now, execute after 48h.
+  // TOKEN_SETUP_PHASE=schedule (default) calls scheduleConfigureToken and records ids.
+  // TOKEN_SETUP_PHASE=execute reads the recorded ids and calls executeConfigureToken.
+  const phase = (process.env.TOKEN_SETUP_PHASE || "schedule").toLowerCase();
+  if (phase !== "schedule" && phase !== "execute") {
+    throw new Error(`TOKEN_SETUP_PHASE must be 'schedule' or 'execute', got: ${phase}`);
+  }
+
+  const fs   = require("fs");
+  const path = require("path");
+  const stateFile = path.join(__dirname, `.token-setup-${chainId}.json`);
+
   const ABI = [
-    "function configureToken(address token, bool accepted, uint256 minAmount, uint256 maxAmount, uint8 decimals, string calldata symbol) external",
+    "function scheduleConfigureToken(address token, bool accepted, uint256 minAmount, uint256 maxAmount, uint8 decimals, string calldata symbol) external returns (bytes32 id)",
+    "function executeConfigureToken(address token, bool accepted, uint256 minAmount, uint256 maxAmount, uint8 decimals, string calldata symbol, bytes32 id) external",
+    "event ChangeScheduled(bytes32 indexed id, bytes32 indexed paramKey, uint64 eta)",
   ];
   const contract = new hre.ethers.Contract(contractAddress, ABI, deployer);
 
-  for (const token of tokens) {
-    console.log(`\nConfiguring ${token.symbol} (${token.address})...`);
-    const tx = await contract.configureToken(
-      token.address,
-      true,
-      token.minAmount,
-      token.maxAmount,
-      token.decimals,
-      token.symbol
-    );
-    await tx.wait();
-    console.log(`  ✓ ${token.symbol} whitelisted. Tx: ${tx.hash}`);
+  if (phase === "schedule") {
+    const records = [];
+    for (const token of tokens) {
+      console.log(`\nScheduling ${token.symbol} (${token.address})...`);
+      const tx = await contract.scheduleConfigureToken(
+        token.address, true, token.minAmount, token.maxAmount, token.decimals, token.symbol
+      );
+      const receipt = await tx.wait();
+      const iface   = new hre.ethers.Interface(ABI);
+      let id;
+      for (const log of receipt.logs) {
+        try {
+          const parsed = iface.parseLog(log);
+          if (parsed && parsed.name === "ChangeScheduled") { id = parsed.args.id; break; }
+        } catch (_) { /* not our event */ }
+      }
+      if (!id) throw new Error("ChangeScheduled event not found in receipt");
+      console.log(`  ✓ scheduled ${token.symbol}. id=${id} tx=${tx.hash}`);
+      records.push({ id, ...token });
+    }
+    fs.writeFileSync(stateFile, JSON.stringify(records, null, 2));
+    console.log(`\nRecorded ${records.length} scheduled changes to ${stateFile}.`);
+    console.log(`Wait 48 hours, then re-run with TOKEN_SETUP_PHASE=execute.`);
+  } else {
+    if (!fs.existsSync(stateFile)) {
+      throw new Error(`No schedule state at ${stateFile}. Run with TOKEN_SETUP_PHASE=schedule first.`);
+    }
+    const records = JSON.parse(fs.readFileSync(stateFile, "utf8"));
+    for (const r of records) {
+      console.log(`\nExecuting ${r.symbol} (${r.address})...`);
+      const tx = await contract.executeConfigureToken(
+        r.address, true, r.minAmount, r.maxAmount, r.decimals, r.symbol, r.id
+      );
+      await tx.wait();
+      console.log(`  ✓ executed ${r.symbol}. tx=${tx.hash}`);
+    }
+    fs.unlinkSync(stateFile);
+    console.log(`\nAll changes executed. State file removed.`);
   }
-
-  console.log(`\n✓ Token setup complete.\n`);
 }
 
 main().catch((err) => {
