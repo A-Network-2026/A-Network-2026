@@ -4445,24 +4445,74 @@ app.get('/api/chain/stats', async (_req, res) => {
     const cached = scanCacheGet('chain:stats');
     if (cached) return res.json(cached);
 
-    const upstream = await chainNodeFetch('/explorer/stats');
-    const txChart = await chainNodeFetch('/explorer/tx-history?days=14');
+    // anet-chain exposes /stats/investor (JSON) + /blocks?limit=N (JSON Block[]).
+    // We synthesize the explorer tiles from these two real endpoints.
+    const [inv, recentBlocks] = await Promise.all([
+      chainNodeFetch('/stats/investor'),
+      chainNodeFetch('/blocks?limit=64')
+    ]);
+
+    const blocks = Array.isArray(recentBlocks) ? recentBlocks : [];
+    const latest = blocks.length ? blocks[blocks.length - 1] : null;
+
+    // 24h tx count: sum of block.transactions.length for blocks whose
+    // epoch_end falls within the last 24h.
+    const dayMs = 24 * 60 * 60 * 1000;
+    const nowMs = Date.now();
+    let txs24h = 0;
+    for (const b of blocks) {
+      const ts = b && b.epoch_end ? Date.parse(b.epoch_end) : NaN;
+      if (!Number.isFinite(ts)) continue;
+      if (nowMs - ts <= dayMs) txs24h += Array.isArray(b.transactions) ? b.transactions.length : 0;
+    }
+
+    // TPS: average over the last 16 blocks (or whatever we have).
+    let tps = null;
+    if (blocks.length >= 2) {
+      const tail = blocks.slice(-16);
+      const first = Date.parse(tail[0].epoch_start || tail[0].epoch_end);
+      const last = Date.parse(tail[tail.length - 1].epoch_end || tail[tail.length - 1].epoch_start);
+      const txs = tail.reduce((n, b) => n + (Array.isArray(b.transactions) ? b.transactions.length : 0), 0);
+      const spanSec = Math.max(1, (last - first) / 1000);
+      tps = Number((txs / spanSec).toFixed(2));
+    }
+
+    // 14-day tx history (one bucket per day, oldest -> newest).
+    const buckets = Array(14).fill(0);
+    const startMs = nowMs - 14 * dayMs;
+    for (const b of blocks) {
+      const ts = b && b.epoch_end ? Date.parse(b.epoch_end) : NaN;
+      if (!Number.isFinite(ts) || ts < startMs) continue;
+      const idx = Math.min(13, Math.max(0, Math.floor((ts - startMs) / dayMs)));
+      buckets[idx] += Array.isArray(b.transactions) ? b.transactions.length : 0;
+    }
+
+    // Block time: average gap over the tail.
+    let blockTimeSec = 0.5;
+    if (blocks.length >= 2) {
+      const tail = blocks.slice(-16);
+      const gaps = [];
+      for (let i = 1; i < tail.length; i++) {
+        const a = Date.parse(tail[i - 1].epoch_end || tail[i - 1].epoch_start);
+        const c = Date.parse(tail[i].epoch_end || tail[i].epoch_start);
+        if (Number.isFinite(a) && Number.isFinite(c)) gaps.push((c - a) / 1000);
+      }
+      if (gaps.length) blockTimeSec = Number((gaps.reduce((s, g) => s + g, 0) / gaps.length).toFixed(2));
+    }
+
     const payload = {
-      price: {
-        value: upstream && upstream.priceUsd != null ? Number(upstream.priceUsd) : null,
-        change24h: upstream && upstream.priceChange24h != null ? Number(upstream.priceChange24h) : null
-      },
-      gasGwei: upstream && upstream.gasGwei != null ? Number(upstream.gasGwei) : 0.001,
-      transactions24h: upstream && upstream.transactions24h != null ? Number(upstream.transactions24h) : null,
-      tps: upstream && upstream.tps != null ? Number(upstream.tps) : null,
+      price: { value: null, change24h: null }, // ANET price: backend has no on-chain oracle yet.
+      gasGwei: 0.001, // closed-loop ANTS economy: gas is effectively flat.
+      transactions24h: txs24h,
+      tps,
       latestBlock: {
-        height: upstream && upstream.latestBlockHeight != null ? Number(upstream.latestBlockHeight) : 0,
-        timeSec: upstream && upstream.blockTimeSec != null ? Number(upstream.blockTimeSec) : 0.5
+        height: latest ? Number(latest.block_height || 0) : Number((inv && inv.latest_block_height) || 0),
+        timeSec: blockTimeSec
       },
-      marketCapAnts: upstream && upstream.marketCapAnts != null ? Number(upstream.marketCapAnts) : null,
-      circulatingAnts: upstream && upstream.circulatingAnts != null ? Number(upstream.circulatingAnts) : null,
-      votingPowerAnet: upstream && upstream.votingPowerAnet != null ? Number(upstream.votingPowerAnet) : null,
-      txChart14d: Array.isArray(txChart && txChart.points) ? txChart.points.map(Number) : Array(14).fill(0),
+      marketCapAnts: inv && inv.activated_supply_ants != null ? Number(inv.activated_supply_ants) : null,
+      circulatingAnts: inv && inv.activated_supply_ants != null ? Number(inv.activated_supply_ants) : null,
+      votingPowerAnet: inv && inv.activated_supply_anet != null ? Number(inv.activated_supply_anet) : null,
+      txChart14d: buckets,
       updatedAt: new Date().toISOString()
     };
     return res.json(scanCachePut('chain:stats', payload));
@@ -4490,14 +4540,17 @@ app.get('/api/chain/latest-blocks', async (req, res) => {
     const cached = scanCacheGet(key);
     if (cached) return res.json(cached);
 
-    const upstream = await chainNodeFetch('/explorer/blocks?limit=' + limit);
-    const list = Array.isArray(upstream && upstream.blocks) ? upstream.blocks : [];
-    const payload = list.map((b) => ({
-      height: Number(b.height || 0),
-      timestamp: Number(b.timestamp || 0),
-      validator: String(b.proposer || b.validator || ''),
-      txCount: Number(b.txCount || 0),
-      reward: b.reward != null ? Number(b.reward) : null
+    const upstream = await chainNodeFetch('/blocks?limit=' + limit);
+    const list = Array.isArray(upstream) ? upstream : [];
+    // anet-chain returns oldest-first within the latest_blocks window; reverse
+    // for newest-first display.
+    const reversed = list.slice().reverse();
+    const payload = reversed.map((b) => ({
+      height: Number(b.block_height || 0),
+      timestamp: b.epoch_end ? Math.floor(Date.parse(b.epoch_end) / 1000) : 0,
+      validator: Array.isArray(b.miners) && b.miners.length ? String(b.miners[0]) : '',
+      txCount: Array.isArray(b.transactions) ? b.transactions.length : 0,
+      reward: b.total_fees_ants != null ? Number(b.total_fees_ants) : null
     }));
     return res.json(scanCachePut(key, payload));
   } catch (_) {
@@ -4513,16 +4566,30 @@ app.get('/api/chain/latest-transactions', async (req, res) => {
     const cached = scanCacheGet(key);
     if (cached) return res.json(cached);
 
-    const upstream = await chainNodeFetch('/explorer/transactions?limit=' + limit);
-    const list = Array.isArray(upstream && upstream.transactions) ? upstream.transactions : [];
-    const payload = list.map((t) => ({
-      hash: String(t.hash || ''),
-      timestamp: Number(t.timestamp || 0),
-      from: String(t.from || ''),
-      to: String(t.to || ''),
-      valueAnts: t.valueAnts != null ? Number(t.valueAnts) : null
-    }));
-    return res.json(scanCachePut(key, payload));
+    // anet-chain has no /transactions GET — flatten the txs out of the most
+    // recent blocks. We pull a wider window so even quiet blocks still yield N.
+    const upstream = await chainNodeFetch('/blocks?limit=32');
+    const blocks = Array.isArray(upstream) ? upstream.slice().reverse() : [];
+    const out = [];
+    for (const b of blocks) {
+      const ts = b.epoch_end ? Math.floor(Date.parse(b.epoch_end) / 1000) : 0;
+      const txs = Array.isArray(b.transactions) ? b.transactions : [];
+      for (let i = txs.length - 1; i >= 0; i--) {
+        const t = txs[i] || {};
+        out.push({
+          hash: String(t.hash || t.id || (`blk${b.block_height || 0}-${i}`)),
+          timestamp: ts,
+          from: String(t.from || t.sender || t.source || ''),
+          to: String(t.to || t.recipient || t.destination || ''),
+          valueAnts: t.amount_ants != null ? Number(t.amount_ants)
+                    : (t.value_ants != null ? Number(t.value_ants)
+                    : (t.amount != null ? Number(t.amount) : null))
+        });
+        if (out.length >= limit) break;
+      }
+      if (out.length >= limit) break;
+    }
+    return res.json(scanCachePut(key, out));
   } catch (_) {
     return res.json([]);
   }

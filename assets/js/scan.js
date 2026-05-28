@@ -3,17 +3,21 @@
   "use strict";
 
   const API_BASES = ["https://api.a-network.net", "https://rmp-site.onrender.com"];
+  const API_TIMEOUT_MS = 6000;
 
   async function fetchWithFallback(path) {
     let lastErr = null;
     for (const base of API_BASES) {
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), API_TIMEOUT_MS);
       try {
-        const r = await fetch(base + path, { cache: "no-store" });
+        const r = await fetch(base + path, { cache: "no-store", signal: ctl.signal });
+        clearTimeout(t);
         if (!r.ok) throw new Error("HTTP " + r.status);
         const j = await r.json();
         if (j && j.error) throw new Error(j.error);
         return j;
-      } catch (e) { lastErr = e; }
+      } catch (e) { clearTimeout(t); lastErr = e; }
     }
     throw lastErr || new Error("api unavailable");
   }
@@ -91,18 +95,15 @@
     let stats = demoStats();
     let blocks = [];
     let txs = [];
-    try {
-      const live = await fetchWithFallback("/api/chain/stats");
-      if (live) stats = Object.assign(stats, live);
-    } catch (_) { /* fallback */ }
-    try {
-      const lb = await fetchWithFallback("/api/chain/latest-blocks?limit=6");
-      if (Array.isArray(lb)) blocks = lb;
-    } catch (_) { /* fallback */ }
-    try {
-      const lt = await fetchWithFallback("/api/chain/latest-transactions?limit=6");
-      if (Array.isArray(lt)) txs = lt;
-    } catch (_) { /* fallback */ }
+    // Parallel fetch — the three endpoints don't depend on each other.
+    const [statsRes, blocksRes, txsRes] = await Promise.allSettled([
+      fetchWithFallback("/api/chain/stats"),
+      fetchWithFallback("/api/chain/latest-blocks?limit=6"),
+      fetchWithFallback("/api/chain/latest-transactions?limit=6")
+    ]);
+    if (statsRes.status === "fulfilled" && statsRes.value) stats = Object.assign(stats, statsRes.value);
+    if (blocksRes.status === "fulfilled" && Array.isArray(blocksRes.value)) blocks = blocksRes.value;
+    if (txsRes.status === "fulfilled" && Array.isArray(txsRes.value)) txs = txsRes.value;
 
     const priceEl = $("#anetPrice");
     if (priceEl) priceEl.innerHTML = stats.price && stats.price.value != null
@@ -182,18 +183,14 @@
     };
     let mints = [];
     let sales = [];
-    try {
-      const live = await fetchWithFallback("/api/nft/stats");
-      if (live) stats = Object.assign(stats, live);
-    } catch (_) {}
-    try {
-      const lm = await fetchWithFallback("/api/nft/latest-mints?limit=6");
-      if (Array.isArray(lm)) mints = lm;
-    } catch (_) {}
-    try {
-      const ls = await fetchWithFallback("/api/nft/latest-sales?limit=6");
-      if (Array.isArray(ls)) sales = ls;
-    } catch (_) {}
+    const [statsRes, mintsRes, salesRes] = await Promise.allSettled([
+      fetchWithFallback("/api/nft/stats"),
+      fetchWithFallback("/api/nft/latest-mints?limit=6"),
+      fetchWithFallback("/api/nft/latest-sales?limit=6")
+    ]);
+    if (statsRes.status === "fulfilled" && statsRes.value) stats = Object.assign(stats, statsRes.value);
+    if (mintsRes.status === "fulfilled" && Array.isArray(mintsRes.value)) mints = mintsRes.value;
+    if (salesRes.status === "fulfilled" && Array.isArray(salesRes.value)) sales = salesRes.value;
 
     const setText = (sel, val) => { const el = $(sel); if (el) el.innerHTML = val; };
     setText("#nftStatFloor", stats.floorAnts != null ? fmt(stats.floorAnts) + ' <span class="sub">ANTS</span>' : "—");
@@ -270,5 +267,7 @@
     bindSearch();
     renderMainnet();
     renderNftScan();
+    // Auto-refresh every 15s so the explorer feels live without burning CPU.
+    setInterval(() => { renderMainnet(); renderNftScan(); }, 15000);
   });
 })();
