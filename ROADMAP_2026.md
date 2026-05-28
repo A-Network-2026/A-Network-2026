@@ -367,8 +367,7 @@ Until the open validator set is live, infrastructure is run by **publicly named*
 | Role | Operator | Public Handle | Scope |
 |------|----------|---------------|-------|
 | Co-founder / L1 protocol | Joel Dupalco (Coach Joel) | [@Joel_Dupalco](https://x.com/Joel_Dupalco) | Layer 1 chain, backend, bridge signer #1, 50% BEP-20 steward |
-| Co-founder / treasury | Digital_Gold | [@Digitalgold1979](https://x.com/Digitalgold1979) | Bridge signer #2, 50% BEP-20 steward |
-| Operations / mobile release | Khurram Zahid | iOS Apple Developer (Team ID `L792KSQ9VC`) | iOS + Android release signing, App Store / Play Store delivery |
+| Co-founder / treasury + mobile release | Khurram Zahid (Digital Gold) | [@Digitalgold1979](https://x.com/Digitalgold1979) | Bridge signer #2, 50% BEP-20 steward, iOS + Android release signing (Apple Team ID `L792KSQ9VC`), App Store / Play Store delivery |
 
 As validators come online (Phase 3, in progress) the operator set rotates from named individuals to a permissionless validator registry, and the multisig threshold expands beyond 2-of-3.
 
