@@ -1467,6 +1467,19 @@
         'Nova Grid', 'Pulse Yard', 'Cobalt Wing', 'Orion Field', 'Helix Gate', 'Signal Nest'
       ];
 
+      // Maps short country codes returned by the backend to a friendly
+      // display name so the legend reads naturally ("Singapore" not "SG").
+      const countryCodeToName = {
+        SG: 'Singapore', NP: 'Nepal', ET: 'Ethiopia', BJ: 'Benin',
+        CI: 'Ivory Coast', BF: 'Burkina Faso', MY: 'Malaysia', KW: 'Kuwait',
+        RW: 'Rwanda', TG: 'Togo', UAE: 'UAE', USA: 'USA'
+      };
+      function prettyCountryName(raw) {
+        const name = String(raw || '').trim();
+        if (!name) return 'Global';
+        return countryCodeToName[name] || name;
+      }
+
       let networkStats = null;
       let countryStats = null;
       let statsFetchError = null;
@@ -1529,16 +1542,45 @@
       const liveCountries = Array.isArray(countryStats?.countries) ? countryStats.countries : [];
       const topCountries = liveCountries.slice(0, zones.length);
       const totalCountryUsers = topCountries.reduce((sum, item) => sum + Number(item?.users || 0), 0);
+      // Prefer real backend signals in this order:
+      //   1. usersOnline           — miners currently online right now ("live")
+      //   2. totalActiveMiners     — active in the current rolling window
+      //   3. totalRealMiners       — cumulative real miner accounts
+      //   4. fallback synthetic    — only if the backend is unreachable
       const fallbackTotalMiners = Math.round(25000 + seededRandom(99) * 10000);
-      const totalActiveMiners = Number(networkStats?.totalActiveMiners || networkStats?.total_active_miners || 0) || fallbackTotalMiners;
+      const usersOnlineLive = Number(
+        networkStats?.usersOnline ?? networkStats?.users_online ?? 0,
+      );
+      const totalActiveLive = Number(
+        networkStats?.totalActiveMiners ?? networkStats?.total_active_miners ?? 0,
+      );
+      const totalRealLive = Number(
+        networkStats?.totalRealMiners ?? networkStats?.total_real_miners ?? 0,
+      );
+      const totalUsersLive = Number(
+        networkStats?.totalUsers ?? networkStats?.total_users ?? 0,
+      );
+      const totalActiveMiners =
+        usersOnlineLive > 0 ? usersOnlineLive
+        : totalActiveLive > 0 ? totalActiveLive
+        : totalRealLive > 0 ? totalRealLive
+        : fallbackTotalMiners;
+      const headlineLabel =
+        usersOnlineLive > 0 ? 'Miners online right now'
+        : totalActiveLive > 0 ? 'Active miners (rolling window)'
+        : totalRealLive > 0 ? 'Total real miners'
+        : 'Estimated active miner units';
 
       const zoneMeta = zones.map((zoneName, idx) => {
         const country = topCountries[idx];
         if (country && totalCountryUsers > 0) {
           const users = Number(country.users || 0);
+          const friendly = prettyCountryName(country.country);
           return {
-            zoneName,
-            country: country.country || 'Unknown',
+            // Use the real country name as the visible zone label so the
+            // map and legend show backend truth, not synthetic codenames.
+            zoneName: friendly,
+            country: friendly,
             users,
             share: users / totalCountryUsers,
             fromLive: true,
@@ -1649,17 +1691,48 @@
       };
 
       let total = 0;
-      const topZones = [...bubblesData]
+      // Aggregate bubble values by zone so the legend lists each zone once
+      // with the combined active-miner count (the previous code listed the
+      // top 12 individual bubbles which produced duplicated zone names).
+      const zoneTotals = new Map();
+      const zoneFirstId = new Map();
+      bubblesData.forEach((item) => {
+        const value = Number(item.value || 0);
+        total += value;
+        zoneTotals.set(item.zoneName, (zoneTotals.get(item.zoneName) || 0) + value);
+        if (!zoneFirstId.has(item.zoneName)) {
+          zoneFirstId.set(item.zoneName, item.id);
+        }
+      });
+
+      const aggregatedZones = Array.from(zoneTotals.entries())
+        .map(([zoneName, value]) => ({
+          zoneName,
+          value,
+          id: zoneFirstId.get(zoneName),
+        }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 12);
 
-      const legendHtml = topZones.map((item) => {
-        const value = Number(item.value || 0);
-        total += value;
-        return `<li data-zoneid="${item.id}"><button type="button"><span>${item.zoneName}</span><span>${value.toLocaleString()}</span></button></li>`;
+      const legendHtml = aggregatedZones.map((item) => {
+        return `<li data-zoneid="${item.id}"><button type="button"><span>${escapeHtml(item.zoneName)}</span><span>${item.value.toLocaleString()}</span></button></li>`;
       }).join('');
 
       totalEl.textContent = totalActiveMiners.toLocaleString();
+      // Rename the headline so it reflects which backend signal we used.
+      const headlineHeading = totalEl.parentElement && totalEl.parentElement.querySelector('h3');
+      if (headlineHeading) headlineHeading.textContent = headlineLabel;
+      // Surface additional real numbers under the headline so the page is
+      // honest about what's a live signal vs a fallback.
+      const headlineSub = totalEl.parentElement && totalEl.parentElement.querySelector('.tiny');
+      if (headlineSub) {
+        const parts = [];
+        if (totalRealLive > 0) parts.push(`${totalRealLive.toLocaleString()} total real miners`);
+        if (totalUsersLive > 0) parts.push(`${totalUsersLive.toLocaleString()} verified users`);
+        headlineSub.textContent = parts.length
+          ? `Live from /stats/network — ${parts.join(' · ')}.`
+          : 'Live from backend stats: active miners and verified user distribution snapshots.';
+      }
       legend.innerHTML = legendHtml;
 
       const legendItems = Array.from(legend.querySelectorAll('li'));
