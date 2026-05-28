@@ -902,9 +902,9 @@
               </tr>
               <tr>
                 <td>7</td>
-                <td><strong>Third-party security audit</strong></td>
-                <td><span style="color:#ffb84a;font-weight:700;">🟡 IN PROGRESS</span><br/><span style="font-size:11.5px;color:#a8a8a8;">Audit package ready May 28, 2026</span></td>
-                <td>Public audit RFQ package published at <a href="contracts/AUDIT_PACKAGE.md" style="color:#7fb8ff;">contracts/AUDIT_PACKAGE.md</a> &mdash; scope (1,170 LOC across AnetBridgeVault.sol + AnetSwap.sol v3.6), frozen commit SHA, source hashes, reproducible build, full threat model, and a shortlist of OpenZeppelin / Trail of Bits / Hacken / CertiK. <strong>Pending:</strong> firm selection, engagement signing, and public report. Milestone flips to ✅ DONE when the public PDF lands.</td>
+                <td><strong>Public peer-review &amp; bug bounty</strong></td>
+                <td><span style="color:#ffb84a;font-weight:700;">🟡 IN PROGRESS</span><br/><span style="font-size:11.5px;color:#a8a8a8;">Bounty + audit package open May 28, 2026</span></td>
+                <td>A-Network does not currently have the cash budget for a CertiK/OpenZeppelin/Trail-of-Bits engagement (a typical contract audit at this scope is USD 15&ndash;60k). Instead we publish the <a href="contracts/AUDIT_PACKAGE.md" style="color:#7fb8ff;">full audit package</a> (1,170 LOC, frozen commit SHA, source hashes, reproducible build, full threat model) and open a <strong>public bug bounty paid in wANET from the founder allocation</strong> already custodied in <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color:#7fb8ff;">AnetBridgeVault</a>: Critical = 100,000 wANET, High = 25,000 wANET, Medium = 5,000 wANET, Low = 1,000 wANET. Bounty payouts go through the standard 2-of-3 EIP-712 signature path, not a side channel. Disclosure via <a href="SECURITY.md" style="color:#7fb8ff;">SECURITY.md</a>. If a paid third-party audit becomes affordable later, it will be added on top &mdash; not as a substitute &mdash; and this row will be split. Milestone flips to ✅ DONE when at least one external researcher publishes a finding (paid or zero-finding clean) against the frozen commit.</td>
               </tr>
               <tr>
                 <td>8</td>

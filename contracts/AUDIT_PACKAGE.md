@@ -181,35 +181,59 @@ prior validation**. We have not engaged a third party until now.
 
 ---
 
-## 6. Auditor shortlist
+## 6. External review program
 
-Approached in priority order (legitimacy per dollar):
+A-Network does **not** currently have cash budget for a paid third-
+party audit (typical scope at 1,170 LOC: USD 15k–60k). The primary
+external-review program is therefore a **public bug bounty paid in
+wANET** from the founder allocation held in `AnetBridgeVault`,
+routed through the standard 2-of-3 EIP-712 signature path:
+
+| Severity | Reward (wANET) |
+|---|---:|
+| Critical | 100,000 |
+| High     |  25,000 |
+| Medium   |   5,000 |
+| Low      |   1,000 |
+
+Full rules and disclosure channel: `SECURITY.md` at the repo root.
+
+The bounty target is **this audit package at the frozen commit**.
+Findings against later commits are welcome but evaluated against the
+then-current `main`.
+
+### 6.1 If a paid audit becomes affordable
+
+Should funding materialise, the following firms have been pre-
+scoped for an RFQ in priority order. This is reference material for
+that future engagement — not a current commitment:
 
 | Firm | Strengths | Approx scope | Notes |
 |---|---|---|---|
-| **OpenZeppelin** | Solidity bench is the deepest in the industry; standard reference for token/escrow audits. | 1–2 weeks for 1,170 LOC. | Most expensive of the four. Best signal value for token-market trust. |
-| **Trail of Bits** | Adversarial mindset; strong on EIP-712 and signature edge cases — directly relevant to the vault. | 1.5–2.5 weeks. | Manticore + Echidna fuzz harness usually included. |
-| **Hacken** | Mid-tier price, strong CertiK-alternative reputation for BSC ecosystem. | 1–2 weeks. | Reasonable choice if budget is the constraint. |
-| **CertiK** | Highest brand recognition in BSC retail. Public skynet score. | 1–2 weeks. | Quality has been uneven historically; treat the public score as marketing, not as the audit itself. |
+| **OpenZeppelin** | Deepest Solidity bench. | 1–2 weeks for 1,170 LOC. | Highest signal value, highest cost. |
+| **Trail of Bits** | Adversarial mindset; strong EIP-712 + signature work. | 1.5–2.5 weeks. | Manticore + Echidna usually included. |
+| **Hacken** | Mid-tier price, solid BSC reputation. | 1–2 weeks. | Reasonable if budget is the constraint. |
+| **CertiK** | Highest retail brand recognition. | 1–2 weeks. | Uneven historical quality; treat the score as marketing. |
 
-**Recommended approach:** request fixed-fee quotes from all four with
-this document as the RFQ. Pick the shortest engagement that yields a
-public report. Re-engage 60–90 days post-deploy for a delta-audit on
-v3.7 (fee-on-transfer + entry-side rolling cap).
+A paid audit, if it happens, would be **additive** to the bounty,
+not a replacement for it.
 
 ---
 
-## 7. Deliverables expected from auditor
+## 7. Deliverables expected from researchers
 
-1. Public report PDF with severity-rated findings.
-2. Reproduction recipes for any High/Critical (PoC test or call trace).
-3. Mitigation review of our fixes against findings, included in the
-   final report.
-4. Permission to publish the report at `whitepaper.html#audit` and
-   link it from the Decentralization Status Tracker.
+For a bounty submission:
 
-When the public report lands, scorecard milestone #7 flips from
-PLANNED to ✅ DONE.
+1. Clear description + file/line or contract address.
+2. Reproduction recipe — Hardhat test, cast call sequence, or
+   step-by-step against a local fork.
+3. Severity argument mapped to the §6 table.
+4. Suggested mitigation (optional but appreciated).
+
+When at least one external researcher publishes a finding against
+the frozen commit (paid bounty or zero-finding clean review),
+scorecard milestone #7 flips from IN PROGRESS to ✅ DONE with the
+researcher's chosen attribution.
 
 ---
 

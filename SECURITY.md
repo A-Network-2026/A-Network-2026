@@ -57,11 +57,33 @@ When reporting, please include:
 
 ## Bounty
 
-A-Network does not currently run a formal bounty program. For
-critical findings, we will negotiate an ad-hoc reward in wANET from
-the founder allocation, paid through `AnetBridgeVault` on the
-standard 2-of-3 signature path. We will not negotiate any payment
-that requires you to keep a vulnerability undisclosed.
+A-Network operates a public bug bounty paid in **wANET** from the
+founder allocation held in `AnetBridgeVault`. Payouts are routed
+through the standard 2-of-3 EIP-712 signature path — never via a
+side channel.
+
+| Severity | Reward | Examples |
+|---|---|---|
+| **Critical** | 100,000 wANET | Direct fund loss, signature forge, vault drain, mint-equivalent bug, 24h global-cap evasion that moves real funds. |
+| **High**     |  25,000 wANET | Fund-at-risk without direct loss (significant liveness or correctness bug), timelock bypass under non-trivial conditions, role-split escalation. |
+| **Medium**   |   5,000 wANET | Correctness issue without fund risk, observable state corruption, off-by-one in a cap. |
+| **Low**      |   1,000 wANET | Spec drift, undocumented behaviour, UX or RPC issue that could mislead a user. |
+
+Rules:
+
+- One reward per root cause. We pay the highest applicable severity.
+- First disclosure wins. Duplicates do not stack.
+- The finding must be against a frozen commit on `main` (we publish
+  the current bounty target commit in `contracts/AUDIT_PACKAGE.md`).
+- You must follow the safe-harbor rules below. Funds moved beyond
+  PoC will be deducted from the reward and may void it entirely.
+- We will not negotiate a payment that requires you to keep a
+  vulnerability undisclosed.
+
+This is the project's primary external-review program. A-Network
+does not currently have the cash budget for a paid third-party audit
+firm; if that changes, a paid audit will be added on top of (not as
+a substitute for) this bounty.
 
 ## Safe harbor
 
