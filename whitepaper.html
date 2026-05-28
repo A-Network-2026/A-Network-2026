@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v3.4 | Fully Decentralized BEP-20 (Ownership Renounced) · AnetBridgeVault 2-of-3 EIP-712 · Founder Treasury Custody Migrated · Mine -> 1,000 Sessions -> Swap/Transfer -> NFT Activation · Bidirectional EVM Bridge · Layer 1 · Web3</title>
+  <title>A-Network Whitepaper v3.5 | Live Layer 1 Mainnet · Hybrid TPoW + PoS · Fully Decentralized BEP-20 (Ownership Renounced) · AnetBridgeVault 2-of-3 EIP-712 · Founder Treasury Custody Migrated · Mine -> 1,000 Sessions -> Swap/Transfer -> NFT Activation · Bidirectional EVM Bridge · Layer 1 · Web3</title>
 
   <meta name="description" content="The official A-Network v3.4 whitepaper. Documents the permanent renounce of the ANET BEP-20 ownership on May 24, 2026 (owner = 0x0), the AnetBridgeVault 2-of-3 EIP-712 smart-contract bridge deployed May 25, 2026, the founder treasury custody migration (10.5M wANET moved into the vault on May 25, 2026), the unified miner lifecycle rule, ANTS accounting, Layer 1 + Web3 architecture, bidirectional in-app EVM bridge (AnetSwap BSC contract + L1 burn endpoint), DEX settlement flow, security model, and full roadmap." />
 
@@ -3389,6 +3389,27 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <p>Traditional Proof-of-Work systems rely on computational expenditure and therefore tend to favor specialized hardware operators. A-Network attempts a different entry rule.</p>
 
       <p>Its <strong>Time-Based Proof-of-Work (TPoW)</strong> replaces computational expenditure with committed time. In the Web2 phase, the work unit is a verified 6-hour session. In the Live ANTS Mainnet, settlement windows are decoupled from that off-chain work interval and reopen every 2 seconds, while blocks are emitted only when transfers or synchronized ANTS supply exist. Validator eligibility continues to derive from real Web2 session activity.</p>
+
+      <div class="panel" style="border-left:3px solid #22e7b8;background:rgba(34,231,184,.06);">
+        <h4 style="margin-top:0;">Hybrid TPoW + PoS &mdash; the Live Mainnet model</h4>
+        <p>Following the Bitcoin precedent, A-Network does <strong>not</strong> run a separate testnet. The Layer 1 reachable at <a href="https://explorer.a-network.net" target="_blank" rel="noopener">explorer.a-network.net</a> is the production <strong>Mainnet</strong>. Consensus pairs two independent signals:</p>
+        <ul>
+          <li><strong>TPoW (entry)</strong> &mdash; eligibility is earned through verified 6-hour mining sessions on commodity smartphones. ASIC-resistant and capital-resistant by construction.</li>
+          <li><strong>PoS (finality)</strong> &mdash; once a participant crosses the 1,000-session genesis threshold, accumulated ANTS &rarr; ANET stake can be bonded to operate a validator and sign settlement blocks. Slashing applies to equivocation and downtime.</li>
+        </ul>
+        <p style="margin-bottom:0;">Every block must reference both a TPoW participation root and a PoS signature set. Neither side can fork the chain alone. Layer 1 has <strong>no founder allocation and no premine</strong>; every ANET on L1 originates from a mined ANTS session. This is the structural path to full decentralization: capital cannot buy in without time, and time cannot ship blocks without stake.</p>
+      </div>
+
+      <div class="panel" style="border-left:3px solid #7fb8ff;background:rgba(127,184,255,.06);">
+        <h4 style="margin-top:0;">Accountable Operators (Pre-Validator-Set)</h4>
+        <p>Until the open validator registry is live (Phase 3, in progress), infrastructure is run by <strong>publicly named</strong> operators. There are no anonymous core multisig holders. The first step in &ldquo;don&rsquo;t trust, verify&rdquo; is knowing who to hold accountable.</p>
+        <ul>
+          <li><strong>Joel Dupalco</strong> (Coach Joel) &mdash; co-founder, L1 protocol, bridge signer #1, 50% BEP-20 steward &middot; <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener">@Joel_Dupalco</a></li>
+          <li><strong>Digital_Gold</strong> &mdash; co-founder, bridge signer #2, 50% BEP-20 steward &middot; <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener">@Digitalgold1979</a></li>
+          <li><strong>Khurram Zahid</strong> &mdash; operations &amp; mobile release, iOS + Android signing (Apple Team ID <code>L792KSQ9VC</code>), Play Store / TestFlight delivery</li>
+        </ul>
+        <p style="margin-bottom:0;">As validators come online the operator set rotates from named individuals to a permissionless validator registry, and the multisig threshold expands beyond 2-of-3.</p>
+      </div>
 
 
 

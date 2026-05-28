@@ -188,14 +188,15 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| **Mobile App** | ✅ Live v1.0.21+71 | Flutter — mining, EVM wallet import, in-app DEX + EVM bridge, AI support, NFT identity |
-| **Backend API** | ✅ Live (https://rmp-site.onrender.com) | Fastify + PostgreSQL, timing-safe auth, all anti-gaming logic |
-| **Layer 1 Chain** | ✅ Mainnet (stable) | https://anet-private-mainnet.onrender.com — DEX live, constant-time key auth |
+| **Mobile App** | ✅ Live v1.0.68+131 | Flutter — mining, EVM wallet import, in-app DEX + EVM bridge, AI support, NFT identity, server-side legacy→secp wallet migration |
+| **Backend API** | ✅ Live (https://api.a-network.net) | Fastify + PostgreSQL, timing-safe auth, all anti-gaming logic, EVM key derivation + action signer |
+| **Layer 1 Chain** | ✅ **Mainnet (LIVE)** | https://explorer.a-network.net — DEX live, hybrid TPoW + PoS consensus, 2-second settlement windows |
 | **Native DEX** | ✅ Live (Layer 1) | ANET-USDC pool seeded, AMM pricing, 0.30% fee, in-app swap UI |
 | **EVM Bridge** | ✅ Live (BSC Mainnet) | AnetSwap `0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8` — in-app BNB/USDT/USDC → ANET |
+| **Bridge Vault** | ✅ Live (BSC Mainnet) | AnetBridgeVault `0x31438362a7667ce5559500023D025c7c14168B49` — 2-of-3 EIP-712 multisig, ~10.5M wANET custodied |
 | **EVM Wallet Import** | ✅ Live (v1.0.20+70) | MetaMask / any EVM wallet via BIP39 mnemonic, works on ANET DEX |
-| **Web3 Token** | ✅ Live (BNB Chain) | 21M supply, visible on DexScreener |
-| **Whitepaper** | ✅ Published (v3.0) | https://a-network.net/whitepaper.html |
+| **Web3 Token** | ✅ Live (BNB Chain) | 21M supply, owner renounced, visible on DexScreener |
+| **Whitepaper** | ✅ Published (v3.5) | https://a-network.net/whitepaper.html |
 | **Block Explorer** | ✅ Live | https://explorer.a-network.net |
 | **AdMob** | ⏳ Ready (test IDs available) | Currently disabled by default (ADS_ENABLED=false) |
 | **Docs** | ✅ Live (privacy/terms/delete) | https://a-network.net |
@@ -243,9 +244,10 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 | **May 2026** | App live on stores | Phase 1 ✅ |
 | **Jun–Jul 2026** | Monitor Web2 adoption, session volume growth | Phase 1 ✅ |
 | **Aug 2026** | Post-launch Stage 0 transition (after 500K sessions) | Phase 1 → Phase 3 prep |
-| **Sep 2026** | Layer 1 public testnet launch (optional staging) | Phase 3 🔄 |
-| **Oct 2026** | ANTS public mainnet launch (estimated) | Phase 3 ✅ |
-| **Nov–Dec 2026** | Migrate Web2 ledger to Layer 1, enable settlement | Phase 3 ✅ → Phase 4 prep |
+| **May 2026** | ✅ **Layer 1 Mainnet went LIVE** — no testnet stage (Bitcoin model) | Phase 3 ✅ |
+| **Jun–Aug 2026** | Independent validator onboarding (hybrid TPoW + PoS) | Phase 3 🔄 In Progress |
+| **Sep–Oct 2026** | Open public validator set, publish consensus rules | Phase 3 🔄 In Progress |
+| **Nov–Dec 2026** | Migrate Web2 ledger to Layer 1, enable full settlement | Phase 3 ✅ → Phase 4 prep |
 | **Q4 2026 / Q1 2027** | Smart contract layer development & audit | Phase 4 🔄 |
 | **Q2 2027** | Smart contract public launch (post-audit) | Phase 4 ✅ |
 | **Q2–Q4 2027** | ANET Core / Web5 design & implementation | Phase 5 🔄 |
@@ -343,15 +345,46 @@ Launch locales: **English, Hindi, Urdu, Chinese, Spanish**
 
 ---
 
+## ⚡ Consensus Model — Hybrid TPoW + PoS
+
+A-Network rejects the testnet → mainnet two-stage model. Following the Bitcoin precedent, **there is one chain and it is live**. The L1 you can query at https://explorer.a-network.net is the production Mainnet.
+
+The consensus design is a **hybrid of Time-Based Proof-of-Work (TPoW) and Proof-of-Stake (PoS)**:
+
+- **TPoW (entry)** — work is committed time, not hashpower. Eligibility is earned through verified 6-hour mining sessions on commodity smartphones. ASIC-resistant and capital-resistant by construction.
+- **PoS (finality)** — once a participant crosses the 1,000-session genesis threshold, accumulated ANTS → ANET stake can be bonded to operate a validator and sign settlement blocks. Slashing applies to equivocation and downtime.
+- **Hybrid pairing** — every block must reference both a TPoW participation root (who showed up) and a PoS signature set (who staked). Neither side can fork alone.
+- **No founder allocation, no premine** on Layer 1. All ANET on the L1 originates from mined ANTS.
+
+This is the path to *full* decentralization: capital cannot buy in without time, and time cannot ship blocks without stake.
+
+---
+
+## 👥 Accountable Operators (Pre-Decentralized Validator Set)
+
+Until the open validator set is live, infrastructure is run by **publicly named** operators. This is deliberate: the Bitcoin principle is "don't trust, verify" — and the first step in *verify* is knowing who to hold accountable. There are no anonymous core multisig holders.
+
+| Role | Operator | Public Handle | Scope |
+|------|----------|---------------|-------|
+| Co-founder / L1 protocol | Joel Dupalco (Coach Joel) | [@Joel_Dupalco](https://x.com/Joel_Dupalco) | Layer 1 chain, backend, bridge signer #1, 50% BEP-20 steward |
+| Co-founder / treasury | Digital_Gold | [@Digitalgold1979](https://x.com/Digitalgold1979) | Bridge signer #2, 50% BEP-20 steward |
+| Operations / mobile release | Khurram Zahid | iOS Apple Developer (Team ID `L792KSQ9VC`) | iOS + Android release signing, App Store / Play Store delivery |
+
+As validators come online (Phase 3, in progress) the operator set rotates from named individuals to a permissionless validator registry, and the multisig threshold expands beyond 2-of-3.
+
+---
+
 ## 📅 Version History
 
 | Version | Date | Status | Notes |
 |---------|------|--------|-------|
 | v1.0.6 | Current | LIVE | Launch tranche preserved, post-launch halving schedule, 64-bit counter hardening, multi-language support |
+| v1.0.68+131 | May 28, 2026 | LIVE | Server-side legacy→secp wallet migration, hybrid TPoW+PoS consensus model documented, Mainnet terminology unified across docs |
+| v3.5 (WP) | May 28, 2026 | Published | Hybrid TPoW + PoS, AnetBridgeVault 2-of-3 EIP-712, founder treasury custody migrated |
 | v2.1 (WP) | Apr 29, 2026 | Published | Dual economy, Phase 4 smart contract vision, ANET Core direction documented |
 | v2.0 (WP) | 2025 | Archived | Earlier dual-economy specification |
 
 ---
 
-**Last Updated:** May 7, 2026  
+**Last Updated:** May 28, 2026  
 **Next Review:** August 2026 (post-app-launch metrics)

@@ -263,7 +263,7 @@ Website / Docs:
 
 ```text
 A Network/
-├── anet-private-mainnet/     # Layer 1 private chain (Rust)
+├── anet-chain/               # Layer 1 Mainnet node (Rust) — live at explorer.a-network.net
 ├── backend/
 │   ├── db.js
 │   ├── database_schema.sql
