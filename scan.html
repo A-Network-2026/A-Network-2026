@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AnetScan NFT | A Network NFT Explorer</title>
-  <meta name="description" content="The A Network NFT explorer. Public Proof NFTs, ANET Profile identities, Token Factory deploys, marketplace listings — all on the native A Network Layer 1.">
+  <title>AnetScan | A Network Mainnet Explorer</title>
+  <meta name="description" content="The A Network mainnet explorer. View live ANET price, gas, transactions, latest blocks, validators and on-chain activity in the closed-loop ANTS economy.">
   <meta name="theme-color" content="#041019">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.a-network.net https://rmp-site.onrender.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta name="referrer" content="no-referrer">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="A Network">
-  <meta property="og:title" content="AnetScan NFT | A Network NFT Explorer">
-  <meta property="og:description" content="Explore Public Proof NFTs and Profile identities on A Network. Mints, sales, holders, collections — closed-loop ANTS economy.">
-  <meta property="og:url" content="https://a-network.net/nft.html">
+  <meta property="og:title" content="AnetScan | A Network Mainnet Explorer">
+  <meta property="og:description" content="Explore the A Network mainnet: ANET price, gas, blocks, transactions, validators, NFTs, and tokens.">
+  <meta property="og:url" content="https://a-network.net/scan.html">
   <meta property="og:image" content="https://a-network.net/logo.png">
-  <link rel="canonical" href="https://a-network.net/nft.html">
+  <link rel="canonical" href="https://a-network.net/scan.html">
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
@@ -24,7 +24,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/scan.css?v=20260528-1">
 </head>
-<body class="page-nft-scan">
+<body class="page-scan">
 
   <!-- ── Top utility bar ───────────────────────────── -->
   <div class="topbar">
@@ -32,8 +32,8 @@
       <span class="ticker">ANET Price: <span id="anetPrice"><strong>—</strong></span></span>
       <span class="ticker">Gas: <span id="anetGas"><strong>—</strong></span></span>
       <span class="spacer"></span>
-      <span class="ticker"><a href="scan.html">Mainnet</a></span>
-      <span class="ticker"><a href="nft-marketplace.html">Marketplace &amp; Factory</a></span>
+      <span class="ticker"><a href="dex.html">DEX</a></span>
+      <span class="ticker"><a href="nft.html">NFTs</a></span>
       <span class="ticker"><a href="index.html#economies">Economies</a></span>
     </div>
   </div>
@@ -44,20 +44,20 @@
       <a class="brand" href="index.html">
         <img src="logo.png" alt="A Network">
         <div>
-          <div class="brand-title">AnetScan NFT</div>
+          <div class="brand-title">AnetScan</div>
           <div class="brand-sub">A NETWORK ORIGINAL</div>
         </div>
       </a>
       <nav class="scan-nav">
-        <a href="scan.html">Home</a>
+        <a href="scan.html" class="active">Home</a>
         <a href="scan.html#blockchain">Blockchain</a>
         <a href="scan.html#validators">Validators</a>
         <a href="scan.html#tokens">Tokens</a>
-        <a href="nft.html" class="active">NFTs</a>
-        <a href="nft-marketplace.html">Marketplace</a>
+        <a href="nft.html">NFTs</a>
         <a href="whitepaper.html">Resources</a>
         <a href="ants-program.html">Developers</a>
-        <a class="signin" href="nft-marketplace.html">Sign In</a>
+        <a href="index.html">More</a>
+        <a class="signin" href="index.html#decentralization">Sign In</a>
       </nav>
     </div>
   </header>
@@ -65,22 +65,23 @@
   <!-- ── Hero with search ──────────────────────────── -->
   <section class="hero">
     <div class="shell">
-      <h2>A Network <span class="accent">NFT</span> Explorer</h2>
-      <p class="tag">Public Proof NFTs are the real decentralized identity on A Network — minted on first cashout / first swap, used to gate the Token Factory, the marketplace, and every PoS action. Browse mints, sales, collections, and holders in the closed-loop ANTS economy.</p>
+      <h2>A Network <span class="accent">Mainnet</span> Explorer</h2>
+      <p class="tag">Search the closed-loop ANTS economy: addresses, transaction hashes, blocks, tokens, NFTs, validators and ANET Profile identities — all on the native A Network Layer&nbsp;1.</p>
       <form id="scanSearch" class="search-row" autocomplete="off">
         <select id="scanFilter" aria-label="Search filter">
           <option value="all">All Filters</option>
-          <option value="nft">NFT Token ID</option>
-          <option value="collection">Collection</option>
-          <option value="address">Holder Address</option>
-          <option value="profile">ANET Profile ID</option>
-          <option value="token">Factory Token</option>
+          <option value="address">Address</option>
+          <option value="tx">Txn Hash</option>
+          <option value="block">Block</option>
+          <option value="token">Token</option>
+          <option value="nft">NFT</option>
+          <option value="validator">Validator</option>
         </select>
-        <input id="scanQuery" type="search" placeholder="Search by NFT ID / Collection / Holder / ANET Profile ID" />
+        <input id="scanQuery" type="search" placeholder="Search by Address / Txn Hash / Block / Token / NFT / ANET Profile ID" />
         <button type="submit" aria-label="Search">⌕</button>
       </form>
       <p class="sponsored">
-        Public Proof NFTs are non-transferable identity tokens. <a href="WHY_NFT_NOT_KYC.md">Why NFT, not KYC</a> · <a href="nft-marketplace.html">Open Marketplace &amp; Token Factory</a>
+        Closed loop economy: ANTS in → ANTS out · <a href="whitepaper.html">Read the whitepaper</a> · <a href="ROADMAP_2026.md">Roadmap 2026</a>
       </p>
     </div>
   </section>
@@ -90,57 +91,57 @@
     <section class="stats-panel">
       <div class="col">
         <div class="stat-row">
-          <div class="ico">◈</div>
+          <div class="ico">A</div>
           <div>
-            <p class="lbl">Floor Price</p>
-            <div class="val" id="nftStatFloor">—</div>
+            <p class="lbl">ANET Price</p>
+            <div class="val" id="statPrice">—</div>
           </div>
         </div>
         <div class="stat-row">
-          <div class="ico">⇄</div>
+          <div class="ico">◎</div>
           <div>
-            <p class="lbl">Volume (24h)</p>
-            <div class="val" id="nftStatVolume">—</div>
+            <p class="lbl">Market Cap (ANTS)</p>
+            <div class="val" id="statMcap">—</div>
           </div>
         </div>
       </div>
       <div class="col">
         <div class="stat-row">
-          <div class="ico">▤</div>
+          <div class="ico">≡</div>
           <div>
-            <p class="lbl">Collections</p>
-            <div class="val" id="nftStatCollections">—</div>
+            <p class="lbl">Transactions</p>
+            <div class="val" id="statTxs">—</div>
           </div>
         </div>
         <div class="stat-row">
-          <div class="ico">∑</div>
+          <div class="ico">⛽</div>
           <div>
-            <p class="lbl">Total NFTs</p>
-            <div class="val" id="nftStatSupply">—</div>
+            <p class="lbl">Med Gas Price</p>
+            <div class="val" id="statGas">—</div>
           </div>
         </div>
         <div class="stat-row">
-          <div class="ico">⊞</div>
+          <div class="ico">▣</div>
           <div>
-            <p class="lbl">Active Listings</p>
-            <div class="val" id="nftStatListings">—</div>
+            <p class="lbl">Latest Block</p>
+            <div class="val" id="statBlock">—</div>
           </div>
         </div>
         <div class="stat-row">
-          <div class="ico">⌬</div>
+          <div class="ico">⚖</div>
           <div>
-            <p class="lbl">Holders</p>
-            <div class="val" id="nftStatHolders">—</div>
+            <p class="lbl">Voting Power</p>
+            <div class="val" id="statVoting">—</div>
           </div>
         </div>
       </div>
       <div class="col chart-col">
-        <p class="lbl">A Network NFT mints · 14 days</p>
-        <svg id="nftChart" class="chart" viewBox="0 0 320 110" preserveAspectRatio="none" aria-label="NFT mints, last 14 days"></svg>
+        <p class="lbl">A Network transaction history · 14 days</p>
+        <svg id="txChart" class="chart" viewBox="0 0 320 110" preserveAspectRatio="none" aria-label="Transactions, last 14 days"></svg>
         <div class="chart-axis">
-          <span>14d ago</span>
-          <span>7d</span>
-          <span>today</span>
+          <span id="chartStart">14d ago</span>
+          <span id="chartMid">7d</span>
+          <span id="chartEnd">today</span>
         </div>
       </div>
     </section>
@@ -149,19 +150,19 @@
     <section class="twin">
       <div class="card">
         <div class="card-head">
-          <h3>Latest Mints</h3>
+          <h3>Latest Blocks</h3>
           <button class="customize" type="button">⚙ Customize</button>
         </div>
-        <div id="latestMints"></div>
-        <div class="card-foot"><a href="nft-marketplace.html">View all mints →</a></div>
+        <div id="latestBlocks"></div>
+        <div class="card-foot"><a href="scan.html#blockchain">View all blocks →</a></div>
       </div>
       <div class="card">
         <div class="card-head">
-          <h3>Latest Sales</h3>
+          <h3>Latest Transactions</h3>
           <button class="customize" type="button">⚙ Customize</button>
         </div>
-        <div id="latestSales"></div>
-        <div class="card-foot"><a href="nft-marketplace.html">View all sales →</a></div>
+        <div id="latestTxs"></div>
+        <div class="card-foot"><a href="scan.html#blockchain">View all transactions →</a></div>
       </div>
     </section>
   </div>
@@ -169,13 +170,13 @@
   <!-- ── Footer ──────────────────────────────────── -->
   <footer class="scan-foot">
     <div class="shell">
-      <span>© 2026 A Network · NFT identity layer, ANTS closed-loop economy.</span>
+      <span>© 2026 A Network · Native Layer 1, ANTS closed-loop economy.</span>
       <span class="spacer" style="flex:1;"></span>
       <a href="privacy.html">Privacy</a>
       <a href="terms.html">Terms</a>
       <a href="whitepaper.html">Whitepaper</a>
-      <a href="scan.html">Mainnet</a>
-      <a href="nft-marketplace.html">Marketplace</a>
+      <a href="nft.html">NFTs</a>
+      <a href="dex.html">DEX</a>
     </div>
   </footer>
 

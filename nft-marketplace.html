@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network NFT | Closed-Loop Utility Layer</title>
+  <meta name="description" content="A Network NFT utility layer for no-burn tokenomics, ecosystem contribution tracking, and future closed-loop economic access.">
+  <meta name="theme-color" content="#07101a">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta name="referrer" content="no-referrer">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="A Network">
+  <meta property="og:title" content="A Network NFT | Closed-Loop Utility Layer">
+  <meta property="og:description" content="No-burn ecosystem model where swap contribution can be recorded as NFT identity and utility for future closed-loop access.">
+  <meta property="og:url" content="https://a-network.net/nft.html">
+  <meta property="og:image" content="https://a-network.net/logo.png">
+  <link rel="canonical" href="https://a-network.net/nft.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050b12;
+      --bg-2: #091725;
+      --panel: rgba(10, 24, 39, 0.86);
+      --line: rgba(88, 197, 255, 0.18);
+      --line-strong: rgba(88, 197, 255, 0.35);
+      --text: #eff6ff;
+      --muted: #9eb2c9;
+      --accent: #58c5ff;
+      --accent-2: #22e7b8;
+      --warn: #ffbc5c;
+      --danger: #ff6b8a;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 12%, rgba(34, 231, 184, 0.08), transparent 30%),
+        radial-gradient(circle at 78% 22%, rgba(88, 197, 255, 0.16), transparent 28%),
+        linear-gradient(180deg, #07101a 0%, var(--bg) 100%);
+      line-height: 1.55;
+    }
+
+    .shell {
+      width: min(1120px, calc(100% - 30px));
+      margin: 0 auto;
+      padding-bottom: 48px;
+    }
+
+    header {
+      margin-top: 18px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: rgba(4, 10, 18, 0.72);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand img {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      border: 1px solid var(--line-strong);
+      object-fit: cover;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: "Orbitron", sans-serif;
+      font-size: 1.05rem;
+      letter-spacing: 0.08em;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    nav a.active {
+      color: var(--accent-2);
+    }
+
+    .hero {
+      margin-top: 22px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--accent-2);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      line-height: 1.08;
+    }
+
+    h2 .accent { color: var(--accent); }
+
+    .lead {
+      color: var(--muted);
+      max-width: 900px;
+      margin: 0;
+    }
+
+    .grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .policy {
+      margin-top: 18px;
+      border: 1px solid var(--line-strong);
+      border-radius: 14px;
+      background: rgba(88, 197, 255, 0.08);
+      padding: 14px;
+    }
+
+    .policy strong {
+      color: var(--accent-2);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .cta-row {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .studio-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .studio-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 14px;
+    }
+
+    .studio-card h3 {
+      margin: 0 0 10px;
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.98rem;
+      letter-spacing: 0.04em;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin: 0;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .row-1 {
+      display: block;
+      margin-top: 10px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .input,
+    .textarea,
+    .select {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: rgba(3, 10, 17, 0.9);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 10px 11px;
+      outline: none;
+    }
+
+    .textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .input:focus,
+    .textarea:focus,
+    .select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(88, 197, 255, 0.2);
+    }
+
+    .btn {
+      cursor: pointer;
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border-color: rgba(255, 107, 138, 0.55);
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 9px 11px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      font-size: 0.86rem;
+      line-height: 1.4;
+    }
+
+    .status.info {
+      color: #dceeff;
+      background: rgba(88, 197, 255, 0.12);
+      border-color: rgba(88, 197, 255, 0.32);
+    }
+
+    .status.good {
+      color: #dbffef;
+      background: rgba(34, 231, 184, 0.12);
+      border-color: rgba(34, 231, 184, 0.32);
+    }
+
+    .status.bad {
+      color: #ffdbe4;
+      background: rgba(255, 107, 138, 0.12);
+      border-color: rgba(255, 107, 138, 0.32);
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .kpi {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px;
+    }
+
+    .kpi .value {
+      font-family: "Orbitron", sans-serif;
+      font-size: 1.1rem;
+      line-height: 1;
+      margin-bottom: 5px;
+      color: var(--accent-2);
+    }
+
+    .kpi .label {
+      font-size: 0.74rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }
+
+    .analytics-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    .analytics-mini-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .analytics-mini-kpi {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(88, 197, 255, 0.08);
+      padding: 8px;
+    }
+
+    .analytics-mini-kpi .value {
+      font-family: "Orbitron", sans-serif;
+      color: var(--accent-2);
+      font-size: 1rem;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .analytics-mini-kpi .label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }
+
+    .analytics-bars {
+      margin-top: 10px;
+      height: 74px;
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 6px;
+      align-items: end;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      background: rgba(3, 10, 17, 0.82);
+    }
+
+    .analytics-bar {
+      border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(180deg, var(--accent-2) 0%, var(--accent) 100%);
+      min-height: 8px;
+    }
+
+    .analytics-top-list {
+      margin-top: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .asset-list,
+    .feed-list {
+      margin-top: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .asset-item,
+    .feed-item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 11px;
+      overflow: hidden;
+    }
+
+    .feed-image-container {
+      width: 100%;
+      height: 200px;
+      margin: 0 -11px 11px -11px;
+      overflow: hidden;
+      border-radius: 12px 12px 0 0;
+      background: #f0f0f0;
+    }
+
+    .feed-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      cursor: zoom-in;
+    }
+
+    .market-image-container {
+      width: 100%;
+      height: 250px;
+      margin: 0 -11px 11px -11px;
+      overflow: hidden;
+      border-radius: 12px 12px 0 0;
+      background: #f0f0f0;
+    }
+
+    .market-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      cursor: zoom-in;
+    }
+
+    .nft-image-viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(1, 8, 14, 0.88);
+      backdrop-filter: blur(5px);
+    }
+
+    .nft-image-viewer.open {
+      display: flex;
+    }
+
+    .nft-image-viewer-inner {
+      width: min(1100px, 100%);
+      max-height: 92vh;
+      border: 1px solid var(--line-strong);
+      border-radius: 14px;
+      background: #050b12;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .nft-image-viewer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(88, 197, 255, 0.06);
+    }
+
+    .nft-image-viewer-title {
+      margin: 0;
+      font-size: 0.92rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nft-image-viewer-close {
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      padding: 6px 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .nft-image-viewer-body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      min-height: 240px;
+      max-height: calc(92vh - 52px);
+      overflow: auto;
+      background: #02070c;
+    }
+
+    .nft-image-viewer-body img {
+      max-width: 100%;
+      max-height: calc(92vh - 80px);
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .asset-head,
+    .feed-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      border: 1px solid var(--line-strong);
+      color: var(--accent);
+      white-space: nowrap;
+      background: rgba(88, 197, 255, 0.08);
+    }
+
+    .mono {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.8rem;
+      color: #9bc8e8;
+    }
+
+    .asset-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .preview {
+      margin-top: 12px;
+      border: 1px dashed var(--line-strong);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(10, 24, 39, 0.55);
+    }
+
+    .preview-title {
+      margin: 0 0 5px;
+      font-size: 0.9rem;
+      color: var(--accent-2);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: 1px solid transparent;
+    }
+
+    .btn-main {
+      background: linear-gradient(120deg, var(--accent), #31a9ff);
+      color: #04213a;
+    }
+
+    .btn-alt {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--line-strong);
+    }
+
+    footer {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .foot-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .foot-links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.86rem;
+    }
+
+    @media (max-width: 920px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .studio-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .kpis {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      nav {
+        justify-content: flex-start;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .kpis {
+        grid-template-columns: 1fr;
+      }
+
+      .analytics-mini-kpis {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* --- Genesis + Colony Domain additions --- */
+    .badge-domain {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid rgba(34, 231, 184, 0.55);
+      color: var(--accent-2);
+      background: rgba(34, 231, 184, 0.10);
+      white-space: nowrap;
+    }
+
+    .badge-genesis {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid rgba(255, 188, 92, 0.6);
+      color: var(--warn);
+      background: rgba(255, 188, 92, 0.10);
+      white-space: nowrap;
+    }
+
+    .badge-tier {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid var(--line-strong);
+      color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      white-space: nowrap;
+    }
+
+    .colony-preview-card {
+      margin-top: 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(5, 14, 24, 0.88);
+    }
+
+    .colony-preview-banner {
+      width: 100%;
+      height: 90px;
+      object-fit: cover;
+      display: block;
+      background: rgba(34, 231, 184, 0.08);
+    }
+
+    .colony-preview-body {
+      padding: 10px 12px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .colony-preview-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 2px solid var(--line-strong);
+      object-fit: cover;
+      flex-shrink: 0;
+      background: rgba(88, 197, 255, 0.10);
+    }
+
+    .colony-preview-info strong {
+      font-size: 0.95rem;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .colony-preview-info p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .collections-grid {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .collection-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .collection-card .supply-bar-track {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+
+    .collection-card .supply-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-2), var(--accent));
+      transition: width 0.5s ease;
+    }
+
+    .domain-list {
+      margin-top: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .domain-item {
+      border: 1px solid rgba(34, 231, 184, 0.25);
+      border-radius: 12px;
+      background: rgba(34, 231, 184, 0.04);
+      padding: 11px;
+    }
+
+    .proof-section {
+      margin-top: 16px;
+      border: 1px solid rgba(34, 231, 184, 0.4);
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 84% 22%, rgba(34, 231, 184, 0.12), transparent 40%),
+        linear-gradient(135deg, rgba(8, 24, 36, 0.96), rgba(6, 18, 30, 0.96));
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+      padding: 16px;
+    }
+
+    .proof-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .proof-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(34, 231, 184, 0.45);
+      background: rgba(34, 231, 184, 0.1);
+      color: #bff9e8;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .proof-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .proof-art {
+      margin-bottom: 12px;
+      border: 1px solid rgba(88, 197, 255, 0.24);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 10px;
+    }
+
+    .proof-art img {
+      width: 100%;
+      max-height: 340px;
+      object-fit: contain;
+      border-radius: 10px;
+      display: block;
+      background: rgba(3, 10, 17, 0.9);
+      border: 1px solid rgba(88, 197, 255, 0.2);
+    }
+
+    .proof-art .caption {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .proof-tile {
+      border: 1px solid rgba(88, 197, 255, 0.24);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .proof-label {
+      color: var(--muted);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .proof-value {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .proof-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 760px) {
+      .proof-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="index.html">
+        <img src="logo.png" alt="A Network logo">
+        <div>
+          <h1>A NETWORK</h1>
+          <p>NFT Utility Layer</p>
+        </div>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="dex.html">DEX</a>
+        <a href="web4.html">Web4</a>
+        <a href="whitepaper.html">Whitepaper</a>
+        <a href="nft.html" class="active">NFT</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <span class="eyebrow">A Network NFT Architecture</span>
+      <h2>No Burn. <span class="accent">Closed-Loop Utility.</span></h2>
+      <p class="lead">
+        This page defines the A Network NFT direction: ANET used in swap and ecosystem activity is retained inside
+        ecosystem reserves and utility routing, not burned. NFT records can represent contribution, participation,
+        and future utility access within a closed-loop economy.
+      </p>
+
+      <div class="grid">
+        <article class="card">
+          <h3>1) No-Burn Rule</h3>
+          <p>
+            A Network does not depend on token burn for this model. Supply policy remains transparent, while ecosystem
+            value is routed through participation, liquidity, and utility access.
+          </p>
+        </article>
+        <article class="card">
+          <h3>2) NFT Contribution Identity</h3>
+          <p>
+            Qualified actions can be represented as NFT records. This enables on-chain proof of contribution and can be
+            used for access tiers, campaign rights, and ecosystem roles.
+          </p>
+        </article>
+        <article class="card">
+          <h3>3) Closed Economic Loop</h3>
+          <p>
+            Future NFT utility can gate internal benefits: platform discounts, ecosystem missions, feature unlocks,
+            governance participation, and community program rewards.
+          </p>
+        </article>
+      </div>
+
+      <div class="policy">
+        <strong>Policy Snapshot</strong>
+        ANET is intended to circulate inside the ecosystem utility loop. No forced burn mechanism is required for this
+        design path. NFT is treated as a programmable utility and participation layer. First NFT profile activation is
+        policy-gated and requires at least one successful authenticated settlement event after eligibility conditions are met.
+      </div>
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="value" id="kpi-min-ants">1</div>
+          <div class="label">Cashout Unlock Rule</div>
+        </div>
+        <div class="kpi">
+          <div class="value" id="kpi-feed-count">0</div>
+          <div class="label">Colony Feed Items</div>
+        </div>
+        <div class="kpi">
+          <div class="value" id="kpi-my-assets">0</div>
+          <div class="label">My NFT Assets</div>
+        </div>
+      </div>
+
+      <div class="cta-row">
+        <a class="btn btn-main" href="dex.html">Open Native DEX</a>
+        <a class="btn btn-alt" href="ants-program.html">View ANTS Program</a>
+        <a class="btn btn-alt" href="https://play.google.com/store/apps/details?id=com.anetwork.app&pcampaignid=web_share" target="_blank" rel="noopener noreferrer">Install App</a>
+      </div>
+    </section>
+
+    <section class="proof-section" aria-label="Public proof NFT showcase">
+      <div class="proof-header">
+        <div>
+          <h3 style="margin:0;font-family:'Orbitron',sans-serif;letter-spacing:0.04em;">Public Proof NFT</h3>
+          <p class="muted" style="margin:4px 0 0;">Always visible on this page as public proof that NFT test flow is successful.</p>
+        </div>
+        <div class="proof-badge">ANT #0001 Reseed</div>
+      </div>
+
+      <div class="proof-art">
+        <img src="assets/Ant-001-NFT.png" alt="ANT #0001 Reseed NFT public proof artwork" loading="eager" decoding="async" onerror="this.onerror=null;this.src='logo.png';">
+        <div class="caption">ANT #0001 Reseed official public proof artwork.</div>
+      </div>
+
+      <div class="proof-grid">
+        <div class="proof-tile">
+          <div class="proof-label">Token ID</div>
+          <div class="proof-value">ANT-0001-RESEED</div>
+        </div>
+        <div class="proof-tile">
+          <div class="proof-label">Status</div>
+          <div class="proof-value">Public Verification Record</div>
+        </div>
+        <div class="proof-tile">
+          <div class="proof-label">Program Milestone</div>
+          <div class="proof-value">NFT Test Success Confirmed</div>
+        </div>
+        <div class="proof-tile">
+          <div class="proof-label">Cashout Requirement</div>
+          <div class="proof-value">1,000 validated ANTS sessions before cashout</div>
+        </div>
+      </div>
+
+      <p class="proof-note">
+        This proof block is intentionally public and persistent for visitors. Miner onboarding now focuses on session completion and ANET cashout readiness.
+      </p>
+    </section>
+
+    <section class="studio-grid" aria-label="NFT identity studio">
+      <article class="studio-card">
+        <h3>Backend Connection</h3>
+        <p class="muted">Set NFT API base URL, then login as miner using your generated wallet address.</p>
+
+        <div class="row-1 field">
+          <label for="api-base-url">API Base URL</label>
+          <input id="api-base-url" class="input" type="text" placeholder="https://your-backend-domain">
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="save-api-btn" type="button">Save API URL</button>
+          <button class="btn btn-alt" id="test-api-btn" type="button">Test API</button>
+        </div>
+
+        <div id="api-status" class="status info">Set your backend URL. If you enter https://a-network.net, this page auto-routes to the live NFT backend.</div>
+
+        <div class="row" style="margin-top:12px;">
+          <div class="field">
+            <label for="miner-login-uid">Miner UID / ANET Profile ID</label>
+            <input id="miner-login-uid" class="input" type="text" placeholder="your uid">
+          </div>
+          <div class="field">
+            <label for="miner-login-username">Pi Username</label>
+            <input id="miner-login-username" class="input" type="text" placeholder="your pi username">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="miner-login-wallet">Generated Wallet Address</label>
+          <input id="miner-login-wallet" class="input" type="text" placeholder="ANET wallet address">
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="miner-login-btn" type="button">Miner Login</button>
+          <button class="btn btn-alt" id="miner-logout-btn" type="button">Logout</button>
+        </div>
+
+        <div id="miner-auth-status" class="status info">Miner login required for create/list/bid/buy actions. Feed and market browsing are public.</div>
+      </article>
+
+      <article class="studio-card">
+        <h3>ANET Profile Identity</h3>
+        <p class="muted">Single rule: NFT unlocks after first successful ANET cashout/swap flow.</p>
+
+        <div class="row">
+          <div class="field">
+            <label for="profile-uid">ANET Profile ID</label>
+            <input id="profile-uid" class="input" type="text" placeholder="anet profile id">
+          </div>
+          <div class="field">
+            <label for="profile-username">Username</label>
+            <input id="profile-username" class="input" type="text" placeholder="username">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="profile-wallet">Wallet Address</label>
+            <input id="profile-wallet" class="input" type="text" placeholder="ANET wallet">
+          </div>
+          <div class="field">
+            <label for="profile-ants-balance">ANTS Balance</label>
+            <input id="profile-ants-balance" class="input" type="number" min="0" step="1" placeholder="1000">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="profile-display-name">Display Name</label>
+            <input id="profile-display-name" class="input" type="text" placeholder="public display name">
+          </div>
+          <div class="field">
+            <label for="profile-avatar">Avatar URI</label>
+            <input id="profile-avatar" class="input" type="text" placeholder="https://...">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="profile-banner">Banner URI</label>
+          <input id="profile-banner" class="input" type="text" placeholder="https://...">
+        </div>
+
+        <div class="row-1 field">
+          <label for="profile-bio">Bio</label>
+          <textarea id="profile-bio" class="textarea" placeholder="Tell the colony who you are"></textarea>
+        </div>
+
+        <div class="row-1 field">
+          <label for="profile-theme">Theme JSON</label>
+          <textarea id="profile-theme" class="textarea" placeholder='{"accent":"#22e7b8","mode":"colony"}'></textarea>
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="profile-save-btn" type="button">Create or Update Profile</button>
+          <button class="btn btn-alt" id="profile-load-btn" type="button">Load Profile</button>
+        </div>
+
+        <div id="profile-status" class="status info">Profile studio ready.</div>
+
+        <div class="preview" id="profile-preview">
+          <p class="preview-title">Profile Preview</p>
+          <div class="mono" id="profile-preview-json">No profile loaded yet.</div>
+        </div>
+      </article>
+
+      <article class="studio-card">
+        <h3>Create Custom NFT Asset</h3>
+        <p class="muted">Users can create and customize their own NFT assets inside the ecosystem loop.</p>
+
+        <div class="row">
+          <div class="field">
+            <label for="asset-uid">ANET Profile ID</label>
+            <input id="asset-uid" class="input" type="text" placeholder="same ANET profile id">
+          </div>
+          <div class="field">
+            <label for="asset-ants-balance">ANTS Balance</label>
+            <input id="asset-ants-balance" class="input" type="number" min="0" step="1" placeholder="1000">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="asset-name">Asset Name</label>
+            <input id="asset-name" class="input" type="text" placeholder="Ant Colony Badge">
+          </div>
+          <div class="field">
+            <label for="asset-slug">Slug</label>
+            <input id="asset-slug" class="input" type="text" placeholder="ant-colony-badge">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="asset-description">Description</label>
+          <textarea id="asset-description" class="textarea" placeholder="Describe your NFT utility"></textarea>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="asset-image">Image URI</label>
+            <input id="asset-image" class="input" type="text" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="asset-metadata">Metadata URI</label>
+            <input id="asset-metadata" class="input" type="text" placeholder="https://...">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="asset-ants-stake">ANTS Stake</label>
+            <input id="asset-ants-stake" class="input" type="number" min="0" step="1" placeholder="0">
+          </div>
+          <div class="field">
+            <label for="asset-status">Status</label>
+            <select id="asset-status" class="select">
+              <option value="active">active</option>
+              <option value="draft">draft</option>
+              <option value="locked">locked</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="asset-traits">Traits JSON Array</label>
+          <textarea id="asset-traits" class="textarea" placeholder='[{"trait_type":"Colony","value":"Atlas"}]'></textarea>
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="asset-create-btn" type="button">Create NFT Asset</button>
+          <button class="btn btn-alt" id="asset-load-btn" type="button">Load My Assets</button>
+        </div>
+
+        <div id="asset-status-box" class="status info">Asset studio ready.</div>
+      </article>
+
+      <article class="studio-card">
+        <h3>My NFT Assets</h3>
+        <p class="muted">Edit existing assets to let users keep customizing their digital identity.</p>
+        <div id="asset-list" class="asset-list">
+          <div class="status info">No assets loaded yet.</div>
+        </div>
+      </article>
+
+      <article class="studio-card" style="grid-column: 1 / -1;">
+        <h3>ANET Marketplace - List NFT</h3>
+        <p class="muted">Submit your designed NFT to the market as fixed price, timed auction, or .ant domain auction (minimum bid 10000 ANTS).</p>
+
+        <div class="row">
+          <div class="field">
+            <label for="market-seller-id">Seller ANET Profile ID</label>
+            <input id="market-seller-id" class="input" type="text" placeholder="your ANET profile id">
+          </div>
+          <div class="field">
+            <label for="market-asset-id">Asset ID</label>
+            <input id="market-asset-id" class="input" type="text" placeholder="nft_asset_xxx">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="market-listing-type">Listing Type</label>
+            <select id="market-listing-type" class="select">
+              <option value="fixed">fixed</option>
+              <option value="auction">auction</option>
+              <option value="domain-auction">domain-auction (.ant only)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="market-duration-hours">Auction Duration (hours)</label>
+            <input id="market-duration-hours" class="input" type="number" min="1" max="168" step="1" value="24">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="market-ask-price">Fixed Ask Price (ANTS)</label>
+            <input id="market-ask-price" class="input" type="number" min="0" step="1" value="0">
+          </div>
+          <div class="field">
+            <label for="market-min-bid">Auction Min Bid (ANTS)</label>
+            <input id="market-min-bid" class="input" type="number" min="0" step="1" value="0">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="market-buy-now">Buy Now Price (ANTS, optional)</label>
+          <input id="market-buy-now" class="input" type="number" min="0" step="1" value="0">
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="market-create-btn" type="button">Create Listing</button>
+          <button class="btn btn-alt" id="market-refresh-btn" type="button">Refresh Marketplace</button>
+        </div>
+
+        <div id="market-status" class="status info">Marketplace listing form ready.</div>
+      </article>
+
+      <article class="studio-card" style="grid-column: 1 / -1;">
+        <h3>ANET Auction + Store Floor</h3>
+        <p class="muted">Like game item market flow: bid in auctions, buy fixed listings, or close your own listing.</p>
+
+        <div class="row">
+          <div class="field">
+            <label for="market-actor-id">Your ANET Profile ID (for buy/bid/close)</label>
+            <input id="market-actor-id" class="input" type="text" placeholder="your ANET profile id">
+          </div>
+          <div class="field">
+            <label for="market-filter-status">Filter Status</label>
+            <select id="market-filter-status" class="select">
+              <option value="active">active</option>
+              <option value="sold">sold</option>
+              <option value="cancelled">cancelled</option>
+              <option value="expired">expired</option>
+              <option value="all" selected>all</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="market-filter-type">Board View</label>
+            <select id="market-filter-type" class="select">
+              <option value="all">all listings</option>
+              <option value="domain-auction">domain auction board (.ant)</option>
+              <option value="auction">auction only</option>
+              <option value="fixed">fixed only</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Domain Rule</label>
+            <div class="status info" style="margin-top:0;">Domain board enforces .ant and minimum bid of 10000 ANTS.</div>
+          </div>
+        </div>
+
+        <div id="market-list" class="asset-list">
+          <div class="status info">Marketplace not loaded yet.</div>
+        </div>
+      </article>
+
+      <article class="studio-card" style="grid-column: 1 / -1;">
+        <h3>Genesis Collection + Live Supply Stats</h3>
+        <p class="muted">The first 100 Genesis Ants are capped forever. Track minted supply and remaining slots in real time.</p>
+        <div class="asset-actions">
+          <button class="btn btn-alt" id="collections-refresh-btn" type="button">Refresh Collections</button>
+        </div>
+        <div id="collections-list" class="collections-grid">
+          <div class="status info">Collections not loaded yet.</div>
+        </div>
+      </article>
+
+      <article class="studio-card" style="grid-column: 1 / -1;">
+        <h3>Colony Domain Studio — Build Your .ant Base</h3>
+        <p class="muted">Register your own <strong>.ant</strong> colony domain as an NFT. Full authority: customize your base, set your logo, banner, theme, links — then buy, sell, or auction it on the marketplace.</p>
+
+        <div class="row">
+          <div class="field">
+            <label for="domain-uid">Your ANET Profile ID</label>
+            <input id="domain-uid" class="input" type="text" placeholder="your ANET profile id">
+          </div>
+          <div class="field">
+            <label for="domain-name">Colony Domain Name</label>
+            <input id="domain-name" class="input" type="text" placeholder="mycolony (or mycolony.ant)">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="domain-description">Colony Mission / Description</label>
+          <textarea id="domain-description" class="textarea" placeholder="What is your colony about? What's your mission?"></textarea>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="domain-logo-uri">Colony Logo URI</label>
+            <input id="domain-logo-uri" class="input" type="text" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="domain-banner-uri">Colony Banner URI</label>
+            <input id="domain-banner-uri" class="input" type="text" placeholder="https://...">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="domain-image-uri">NFT Image URI (marketplace thumbnail)</label>
+            <input id="domain-image-uri" class="input" type="text" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="domain-ants-stake">ANTS Stake</label>
+            <input id="domain-ants-stake" class="input" type="number" min="0" step="1" placeholder="0">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="domain-theme">Colony Theme JSON (colors, mode)</label>
+          <textarea id="domain-theme" class="textarea" placeholder='{"accent":"#22e7b8","mode":"dark"}'></textarea>
+        </div>
+
+        <div class="row-1 field">
+          <label for="domain-links">Social Links JSON (twitter, discord, website…)</label>
+          <textarea id="domain-links" class="textarea" placeholder='{"website":"https://...","twitter":"@handle"}'></textarea>
+        </div>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="domain-create-btn" type="button">Register Colony Domain</button>
+          <button class="btn btn-alt" id="domain-load-btn" type="button">Load Colony Domains</button>
+        </div>
+        <div id="domain-status" class="status info">Register your .ant domain — your base in the colony.</div>
+
+        <div id="domain-list" class="domain-list">
+          <div class="status info">No colony domains loaded yet.</div>
+        </div>
+      </article>
+
+      <article class="studio-card" style="grid-column: 1 / -1;">
+        <h3>Token Factory — PoS Closed Loop <span class="accent" style="font-size:0.7em;">(ANTS-gas)</span></h3>
+        <p class="muted">
+          Same logic as every EVM token factory (deploy your own ERC-20-like asset, set name + symbol + supply, list on the marketplace),
+          <strong>except gas + the deploy fee are paid in ANTS</strong>, not BNB/ETH. The ecosystem stays a closed loop:
+          ANTS in → ANTS out. ANET is the L1 ticker; ANTS is the in-ecosystem unit of account.
+        </p>
+        <p class="muted" style="margin-top:6px;">
+          <strong>Identity:</strong> sign-in is <em>not</em> by email or wallet address alone — it's by your
+          <strong>ANET Profile NFT</strong>. Your Public Proof NFT is your real, on-chain identity in this
+          decentralized ecosystem (minted on first cashout / first swap). Every action below is signed
+          against that NFT, every deployed token is bound to it, and slashing burns the NFT's stake — not
+          a disposable wallet's. If you do not yet have an active Profile NFT, complete your first cashout
+          or swap in the A-Network mobile app, then come back and log in here.
+        </p>
+        <p class="muted" style="margin-top:6px;">
+          <strong>Eligibility (PoS gate):</strong> stake at least
+          <code style="background:rgba(34,231,184,0.10);padding:2px 6px;border-radius:6px;">1,000 ANTS</code>
+          from the wallet your Profile NFT belongs to. Stake is locked for a 7-day cooldown after each deploy,
+          and slashed if the deployed token is governance-flagged as malicious — the slash hits the NFT identity,
+          not just the wallet, so a bad actor cannot churn through new wallets to escape consequences.
+        </p>
+
+        <div class="factory-stake-panel" style="background:rgba(34,231,184,0.06);border:1px solid rgba(34,231,184,0.18);border-radius:12px;padding:14px;margin:14px 0;">
+          <div class="row">
+            <div class="field">
+              <label for="factory-uid">Your ANET Profile ID</label>
+              <input id="factory-uid" class="input" type="text" placeholder="your ANET profile id">
+            </div>
+            <div class="field">
+              <label for="factory-stake-amount">Stake Amount (ANTS, min 1,000)</label>
+              <input id="factory-stake-amount" class="input" type="number" min="1000" step="1" placeholder="1000">
+            </div>
+          </div>
+          <div class="asset-actions">
+            <button class="btn btn-main" id="factory-stake-btn" type="button">Stake ANTS</button>
+            <button class="btn btn-alt" id="factory-unstake-btn" type="button">Unstake (after cooldown)</button>
+            <button class="btn btn-alt" id="factory-check-eligibility-btn" type="button">Refresh Eligibility</button>
+          </div>
+          <div id="factory-stake-status" class="status info">Stake at least 1,000 ANTS to unlock the factory.</div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="factory-token-name">Token Name</label>
+            <input id="factory-token-name" class="input" type="text" placeholder="My Colony Token">
+          </div>
+          <div class="field">
+            <label for="factory-token-symbol">Symbol (3–6 chars)</label>
+            <input id="factory-token-symbol" class="input" type="text" maxlength="6" placeholder="MCT">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="factory-token-supply">Initial Supply</label>
+            <input id="factory-token-supply" class="input" type="number" min="1" step="1" placeholder="1000000">
+          </div>
+          <div class="field">
+            <label for="factory-token-decimals">Decimals</label>
+            <input id="factory-token-decimals" class="input" type="number" min="0" max="18" step="1" value="9">
+          </div>
+        </div>
+
+        <div class="row-1 field">
+          <label for="factory-token-description">Token Description / Use Case</label>
+          <textarea id="factory-token-description" class="textarea" placeholder="What is this token for? (game currency, colony governance, points, …)"></textarea>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="factory-token-logo">Logo URI</label>
+            <input id="factory-token-logo" class="input" type="text" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="factory-token-mintable">Mintable After Deploy?</label>
+            <select id="factory-token-mintable" class="input">
+              <option value="false" selected>No — fixed supply (recommended)</option>
+              <option value="true">Yes — owner can mint more</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="muted" style="font-size:0.78rem;margin:4px 0 12px;">
+          Deploy fee: <strong>500 ANTS</strong> (burned to the protocol sink — same role BNB gas plays on BSC, but recycled back as miner rewards).
+          The deployed token lives in the closed loop: tradable on the ANET marketplace, payable to other A-Network wallets, never bridged out automatically.
+        </p>
+
+        <div class="asset-actions">
+          <button class="btn btn-main" id="factory-deploy-btn" type="button" disabled>Deploy Token (stake required)</button>
+          <button class="btn btn-alt" id="factory-load-tokens-btn" type="button">Load My Tokens</button>
+        </div>
+        <div id="factory-deploy-status" class="status info">Stake first, then deploy your token.</div>
+
+        <div id="factory-tokens-list" class="domain-list" style="margin-top:14px;">
+          <div class="status info">No factory tokens loaded yet.</div>
+        </div>
+      </article>
+
+      <article class="studio-card" style="grid-column: 1 / -1;">
+        <h3>Ant Colony Feed</h3>
+        <p class="muted">Recent NFT activity from users across the ecosystem.</p>
+        <div class="asset-actions">
+          <button class="btn btn-main" id="feed-refresh-btn" type="button">Refresh Feed</button>
+        </div>
+        <div id="feed-list" class="feed-list">
+          <div class="status info">Feed not loaded yet.</div>
+        </div>
+
+        <div class="analytics-card">
+          <h3 style="margin:0 0 4px;">Live NFT Activity Tracker</h3>
+          <p class="muted" style="margin:0;">Tracks real-time image views and interaction clicks on this page.</p>
+
+          <div class="analytics-mini-kpis">
+            <div class="analytics-mini-kpi">
+              <div class="value" id="analytics-view-total">0</div>
+              <div class="label">Image Views</div>
+            </div>
+            <div class="analytics-mini-kpi">
+              <div class="value" id="analytics-click-total">0</div>
+              <div class="label">Button/Image Clicks</div>
+            </div>
+            <div class="analytics-mini-kpi">
+              <div class="value" id="analytics-unique-assets">0</div>
+              <div class="label">Tracked Assets</div>
+            </div>
+          </div>
+
+          <div id="analytics-bars" class="analytics-bars" aria-label="Live activity bars"></div>
+          <div id="analytics-top-list" class="analytics-top-list"></div>
+        </div>
+      </article>
+    </section>
+
+    <footer>
+      <div class="foot-links">
+        <a href="index.html">Home</a>
+        <a href="dex.html">DEX</a>
+        <a href="web4.html">Web4</a>
+        <a href="whitepaper.html">Whitepaper</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </div>
+      <div>© 2026 A Network. NFT utility layer roadmap page.</div>
+    </footer>
+  </div>
+
+  <div class="nft-image-viewer" id="nft-image-viewer" aria-hidden="true">
+    <div class="nft-image-viewer-inner">
+      <div class="nft-image-viewer-head">
+        <p class="nft-image-viewer-title" id="nft-viewer-title">NFT Image</p>
+        <button class="nft-image-viewer-close" id="nft-viewer-close" type="button" aria-label="Close image viewer">Close</button>
+      </div>
+      <div class="nft-image-viewer-body">
+        <img id="nft-viewer-image" src="" alt="NFT Image">
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/nft.js?v=20260528-1"></script>
+  <script src="assets/js/site-ai.js" defer></script>
+</body>
+</html>
