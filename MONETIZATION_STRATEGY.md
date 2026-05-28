@@ -19,7 +19,7 @@ The five viable paths, in priority order:
 
 1. **AnetSwap listing fees** (immediate, zero policy risk, scales with chain TVL)
 2. **Ecosystem grants** (BNB Chain Builder, Pi Hackathon, others)
-3. **Website sponsorships + AdSense on a-network.net** (web ads were never banned)
+3. **Website sponsorships on a-network.net** via Carbon Ads / EthicalAds / direct (AdSense is also closed)
 4. **Premium in-app features via Play Billing** (Pro tier — analytics, custom RPC, theming)
 5. **Future companion product with own ad inventory** (Axon — long-term, build after L1 mainnet)
 
@@ -111,37 +111,56 @@ with.
 
 ---
 
-## Path 3 — Website monetization (a-network.net)
+## Path 3 — Website sponsorships (a-network.net)
 
-**What:** Web ads on the marketing/landing site are not subject to the AdMob
-ban (different product, different policy regime).
+**What:** Direct sponsorships + crypto-friendly ad networks on the marketing
+site. AdSense is **not available** — confirmed 2026-05-28 that the AdSense
+account `pub-4393604935823547` is **closed by Google**, same fate as AdMob.
 
 **Current state:**
-- `ads.txt` at `https://a-network.net/ads.txt` already lists
-  `google.com, pub-4393604935823547, DIRECT` ✅
-- AdSense for web (`pub-4393604935823547`) is the publisher ID — needs
-  verification it's still active (the *AdMob* ban may or may not have spilled
-  over to AdSense; check first)
-- If web AdSense was also banned, fall back to Carbon Ads or EthicalAds (both
-  are crypto-friendly developer-focused networks)
+- AdSense: ❌ closed (verified 2026-05-28)
+- AdMob: ❌ banned (already known)
+- `ads.txt` on a-network.net has been updated to remove the dead AdSense line
+  (the unity.com DIRECT line stays — that's the website's own optional
+  authorization, harmless)
 
-**Realistic revenue at current website traffic:**
-- Whitepaper / docs / landing-page visits: ~5K/mo (estimate; verify with
-  Cloudflare or Plausible)
-- AdSense web eCPM for crypto/tech audience: $1–3
-- **Estimated: $5–50/mo** — small, but $0 effort once it's set up
+**What still works for the website:**
 
-**Bigger lever — direct sponsorships:**
-- Sell a "Sponsored by" footer slot to other crypto projects: $200–500/mo
-- Sell a tutorial / case-study landing-page slot: $500–1,000 one-time
+| Source | eCPM / fee | Crypto-friendly? | Effort |
+|---|---|---|---|
+| **Direct sponsorships** ("Sponsored by X") | $200–1,000/mo per slot | Yes | Manual outreach |
+| **Carbon Ads** (carbonads.net) | $1–3 eCPM | Mostly dev/tech, no crypto-specific | Free signup, requires traffic threshold |
+| **EthicalAds** (ethicalads.io) | $1–2 eCPM | Yes — devtools and open-source friendly | Free signup |
+| **Coinzilla / Cointraffic / BitMedia** | $2–5 eCPM | Crypto-native — built for this | Signup + KYC |
+| **A-Ads** (a-ads.com) | $0.50–2 eCPM | Crypto-native, pseudonymous | Instant signup, no KYC |
+
+**Recommended stack:**
+1. **Direct sponsorships** — primary revenue. Add a "Sponsorships" page with
+   pricing and a Google Form contact.
+2. **A-Ads or Coinzilla** — fill remainder inventory. Both are crypto-native
+   networks; neither will reject a wallet site.
+3. **Avoid Carbon/EthicalAds** for now — they're tech-friendly but not
+   crypto-focused; lower fill on a wallet site.
+
+**Realistic revenue at current website traffic (~5K visits/mo estimated):**
+- Direct sponsorships: $200–500/mo if one slot sells, $0 if none
+- Crypto network fill: ~$10–30/mo
+- **Estimated total: $0–500/mo** depending on direct-sponsor success
 
 **Action items:**
-- [ ] Verify AdSense status at https://www.google.com/adsense
-- [ ] If active, place AdSense unit in whitepaper.html footer
-- [ ] If banned, replace with Carbon Ads (`carbonads.net`)
-- [ ] Add "Sponsorships" link in site footer pointing to a Google Form
+- [x] Verify AdSense status — **CONFIRMED CLOSED**
+- [x] Remove dead AdSense line from `ads.txt`
+- [ ] Add "Sponsorships" page to a-network.net with pricing and contact form
+- [ ] Sign up for A-Ads (crypto-native, no KYC) — drop tag in whitepaper.html
+      footer as fill
+- [ ] Reach out to 5 partner projects (PancakeSwap clones, smaller BSC tokens)
+      with sponsorship pitch
 
-**Time to first revenue:** 1–2 weeks.
+**Time to first revenue:** 2–6 weeks (direct sponsorships take time to close).
+
+**Caveat:** Do NOT apply for a new AdSense account under a different email —
+Google de-duplicates by tax ID, IP, payment method, and device fingerprint.
+Fraudulent re-application would risk the entire Google Workspace account.
 
 ---
 
@@ -249,7 +268,8 @@ building a smart-contract audit fund (~$1,000/mo saved).
 **Phase 0 — RIGHT NOW (this week)**
 - ✅ Wait for v129 (1.0.66) Play review to clear
 - ✅ Post X threads from `OUTREACH_COPY_PACK.md` (grows DAU = grows everything)
-- ✅ Verify AdSense web account status
+- ✅ AdSense status verified — closed by Google (2026-05-28). Path 3 pivoted
+      to direct sponsorships + crypto-native networks (A-Ads, Coinzilla).
 
 **Phase 1 — Next 2 weeks (after v129 ships)**
 - Ship v130 — edge-to-edge Android 15 fixes only
@@ -281,3 +301,7 @@ building a smart-contract audit fund (~$1,000/mo saved).
 | 2026-05-28 | Publish app-ads.txt anyway | Costs nothing, future-proof |
 | 2026-05-28 | Defer all in-app ads indefinitely | AdMob ban + flagged listing makes risk-adjusted EV negative |
 | 2026-05-28 | Prioritize listing fees + grants over ads | Zero policy risk, scales with chain TVL |
+| 2026-05-28 | AdSense `pub-4393604935823547` confirmed closed | Verified at adsense.google.com — "Your account has been closed by Google". Same Google identity as the AdMob ban. |
+| 2026-05-28 | Remove dead AdSense line from `ads.txt` | Publisher ID is invalid; serving it confuses crawlers. Keep Unity DIRECT line as harmless future hygiene. |
+| 2026-05-28 | Path 3 pivoted to direct sponsorships + A-Ads / Coinzilla | Crypto-native networks don't share Google's policy stack. |
+| 2026-05-28 | Do NOT re-apply for a new AdSense account | Google de-dupes by tax ID + payment + fingerprint; fraudulent re-application risks entire Workspace account. |

@@ -1,1 +1,3 @@
-google.com, pub-4393604935823547, DIRECT, f08c47fec0942fa0
+# A-Network website ad authorizations
+# AdSense pub-4393604935823547 was closed by Google (2026-05-28) — removed.
+# This file intentionally minimal; using crypto-native networks (A-Ads, Coinzilla) for web ads.

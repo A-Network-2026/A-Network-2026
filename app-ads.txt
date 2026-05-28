@@ -1,4 +1,3 @@
-google.com, pub-4393604935823547, DIRECT, f08c47fec0942fa0
 unity.com, 124336440, DIRECT, 96cabb5fbdde37a7
 adyoulike.com, aff404dd1a704f379acae5190701c9c2, RESELLER
 adyoulike.com, f78b24039641337f06634ab9a3da4b48, RESELLER
