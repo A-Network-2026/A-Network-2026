@@ -891,14 +891,14 @@
               <tr>
                 <td>5</td>
                 <td><strong>48-hour timelock on vault admin actions</strong></td>
-                <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
-                <td>Any admin proposal (pause, recover, reconfigure) becomes visible on-chain 48h before it can execute, so the community can react.</td>
+                <td><span style="color:#22e7b8;font-weight:700;">✅ DONE</span><br/><span style="font-size:11.5px;color:#a8a8a8;">May 25, 2026</span></td>
+                <td>Shipped as part of the May 25 AnetBridgeVault deploy. Every admin parameter change (fee bps, fee recipient, signer-set rotation, threshold change, pauser/operator rotation, unpause) goes through <code>scheduleChange</code> &rarr; <strong>48-hour</strong> wait &rarr; <code>executeChange</code>, with a 14-day grace window and bait-and-switch-resistant arg re-hashing. Cancellable via <code>cancelChange(id)</code>. Source: <code>TIMELOCK_DELAY = 48 hours</code> in <a href="contracts/src/AnetBridgeVault.sol" style="color:#7fb8ff;">AnetBridgeVault.sol</a>.</td>
               </tr>
               <tr>
                 <td>6</td>
-                <td><strong>AnetSwap ownership &rarr; multisig + renounce</strong></td>
-                <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
-                <td>Removes the operator's ability to drain swap-collected BNB/USDT/USDC at will. <code>withdrawNative</code> / <code>withdrawToken</code> become timelock-gated, then renounced.</td>
+                <td><strong>AnetSwap ownership &rarr; multisig + timelock</strong></td>
+                <td><span style="color:#ffb84a;font-weight:700;">🟡 IN PROGRESS</span><br/><span style="font-size:11.5px;color:#a8a8a8;">Code shipped May 28, 2026 &middot; awaiting v3.6 deploy</span></td>
+                <td>Contract code complete in v3.6: 48h timelock on every parameter change, 3-role split (<code>admin</code> / <code>pauser</code> / <code>operator</code>), 2-step admin handover, withdrawals admin-only with destination hard-wired to <code>admin</code> so a compromised owner key cannot redirect. See <a href="#v36-changelog" style="color:#7fb8ff;">v3.6 changelog</a>. <strong>Pending:</strong> fresh BSC deploy with Safe multisig as <code>admin</code> + bridge-state migration off the v3.5 contract at <code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>. Renounce remains a separate downstream milestone (analogous to #10).</td>
               </tr>
               <tr>
                 <td>7</td>
@@ -1013,7 +1013,7 @@
       <ul>
         <li>New constructor signature: <code>AnetSwap(admin, pauser, operator, feeRecipient)</code>. Deploy script (<code>scripts/deploy.js</code>) reads <code>ANET_BRIDGE_ADMIN</code>, <code>ANET_BRIDGE_PAUSER</code>, <code>ANET_BRIDGE_OPERATOR</code>, falling back to <code>ANET_BRIDGE_OWNER</code> then to the deployer EOA. Each fallback emits a warning.</li>
         <li>Token whitelist script (<code>scripts/setup-tokens.js</code>) now runs in two phases: <code>TOKEN_SETUP_PHASE=schedule</code> stages every token change and writes a state file; <code>TOKEN_SETUP_PHASE=execute</code> replays them after the 48-hour delay.</li>
-        <li>The currently-deployed BSC contract <code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code> is the v3.5 build. Migration to the v3.6 governance contract is on the roadmap and requires a fresh deploy + bridge-state migration. Until that ships, scorecard milestone&nbsp;#6 remains <em>Planned</em>.</li>
+        <li>The currently-deployed BSC contract <code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code> is the v3.5 build. Migration to the v3.6 governance contract is on the roadmap and requires a fresh deploy + bridge-state migration. Until that ships, scorecard milestone&nbsp;#6 sits at <em>In Progress</em> (code complete, deploy pending).</li>
       </ul>
 
       <h3>Testing</h3>
