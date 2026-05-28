@@ -158,6 +158,9 @@ contract AnetSwap is Ownable, ReentrancyGuard, Pausable {
     event TokenConfigUpdated(address indexed token, bool accepted, uint256 minAmount, uint256 maxAmount);
     event FeeBpsUpdated(uint256 oldBps, uint256 newBps);
     event FeeRecipientUpdated(address indexed oldRecipient, address indexed newRecipient);
+    event NativeWithdrawn(address indexed to, uint256 amount);
+    event TokenWithdrawn(address indexed token, address indexed to, uint256 amount);
+    event FeeForwardFailed(address indexed token, address indexed feeRecipient, uint256 amount);
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
@@ -249,12 +252,19 @@ contract AnetSwap is Ownable, ReentrancyGuard, Pausable {
 
     function withdrawNative(uint256 amount) external onlyOwner {
         require(amount <= address(this).balance, "AnetSwap: insufficient balance");
-        payable(owner()).transfer(amount);
+        address payable to = payable(owner());
+        // Use .call to forward all gas — owner may be a Safe multisig whose
+        // receive() exceeds the 2300-gas stipend of .transfer()/.send().
+        (bool ok, ) = to.call{value: amount}("");
+        require(ok, "AnetSwap: native withdraw failed");
+        emit NativeWithdrawn(to, amount);
     }
 
     function withdrawToken(address token, uint256 amount) external onlyOwner {
         require(token != address(0), "AnetSwap: use withdrawNative for BNB");
-        IERC20(token).safeTransfer(owner(), amount);
+        address to = owner();
+        IERC20(token).safeTransfer(to, amount);
+        emit TokenWithdrawn(token, to, amount);
     }
 
     function pause()   external onlyOwner { _pause(); }
@@ -282,7 +292,16 @@ contract AnetSwap is Ownable, ReentrancyGuard, Pausable {
         uint256 netAmount = msg.value - fee;
 
         if (fee > 0) {
-            payable(feeRecipient).transfer(fee);
+            // Forward all gas so a Safe/contract feeRecipient does not revert
+            // due to the 2300-gas stipend of .transfer(). If the recipient
+            // refuses native coin (or runs out of gas), retain the fee in
+            // the contract — it can be swept later via withdrawNative — and
+            // emit FeeForwardFailed so operators see it.
+            (bool ok, ) = payable(feeRecipient).call{value: fee}("");
+            if (!ok) {
+                netAmount = msg.value; // keep accounting honest: nothing was sent out
+                emit FeeForwardFailed(address(0), feeRecipient, fee);
+            }
         }
 
         totalNativeReceived += netAmount;
@@ -398,6 +417,46 @@ contract AnetSwap is Ownable, ReentrancyGuard, Pausable {
             }
         }
         return result;
+    }
+
+    /// @notice Bounded pagination for pending swaps. Off-chain indexers should
+    ///         prefer this over getPendingSwaps() once total swap count grows
+    ///         large enough that the unbounded variant hits the block gas limit.
+    /// @param  startId  swap id to start scanning from (inclusive)
+    /// @param  maxScan  hard cap on swaps inspected this call (e.g. 500)
+    /// @param  maxReturn hard cap on results returned (e.g. 50)
+    /// @return ids        ids of pending swaps in [startId, startId+maxScan)
+    /// @return swaps      the swap structs
+    /// @return nextStartId next id to resume from (== _swaps.length when done)
+    function getPendingSwapsPaged(uint256 startId, uint256 maxScan, uint256 maxReturn)
+        external view
+        returns (uint256[] memory ids, SwapRequest[] memory swaps, uint256 nextStartId)
+    {
+        uint256 total = _swaps.length;
+        if (startId >= total || maxScan == 0 || maxReturn == 0) {
+            return (new uint256[](0), new SwapRequest[](0), total);
+        }
+        uint256 endExclusive = startId + maxScan;
+        if (endExclusive > total) endExclusive = total;
+
+        // First pass: count to size the arrays exactly.
+        uint256 found;
+        for (uint256 i = startId; i < endExclusive && found < maxReturn; i++) {
+            if (!_swaps[i].processed) found++;
+        }
+
+        ids   = new uint256[](found);
+        swaps = new SwapRequest[](found);
+        uint256 idx;
+        uint256 cursor = startId;
+        for (; cursor < endExclusive && idx < found; cursor++) {
+            if (!_swaps[cursor].processed) {
+                ids[idx]   = cursor;
+                swaps[idx] = _swaps[cursor];
+                idx++;
+            }
+        }
+        nextStartId = cursor;
     }
 
     function getContractBalance() external view returns (uint256 nativeBal) {

@@ -4399,6 +4399,46 @@ app.post('/api/evm/activity', async (req, res) => {
 
 initializeNftDatabase()
   .then(() => {
+    // ── S1-3: Production safety gate (fail closed before listen) ─────────
+    // A single env typo like PI_SANDBOX=true leaking into prod would silently
+    // enable admin force-unlock and test-asset minting via the default-on
+    // ternaries above. Mirror the anet-chain `validate_production_safety_flags`
+    // pattern: when NODE_ENV is production, hard-exit if any sandbox toggle
+    // is true. Warnings stay for non-prod so reviewers still see the banner.
+    const RUNTIME_ENV = String(process.env.NODE_ENV || process.env.APP_ENV || '')
+      .trim()
+      .toLowerCase();
+    const IS_PRODUCTION_RUNTIME = RUNTIME_ENV === 'production' || RUNTIME_ENV === 'prod';
+    if (IS_PRODUCTION_RUNTIME) {
+      const violations = [];
+      if (PI_SANDBOX) violations.push('PI_SANDBOX=true');
+      if (PI_ENABLE_TEST_ADMIN) violations.push('PI_ENABLE_TEST_ADMIN=true');
+      if (PI_ALLOW_TEST_ASSET_MINT) violations.push('PI_ALLOW_TEST_ASSET_MINT=true');
+      if ((process.env.PI_ALLOW_INELIGIBLE_FOR_DEX_TEST || 'false').toLowerCase() === 'true') {
+        violations.push('PI_ALLOW_INELIGIBLE_FOR_DEX_TEST=true');
+      }
+      if (BTC_ENABLE_TEST_ADMIN) violations.push('BTC_ENABLE_TEST_ADMIN=true');
+      if (violations.length > 0) {
+        console.error(
+          `[FATAL] Unsafe production config: ${violations.join(', ')}. ` +
+          'These sandbox-only toggles MUST be false in NODE_ENV=production. ' +
+          'Refusing to start.'
+        );
+        process.exit(2);
+      }
+      if (!PI_ADMIN_KEY) {
+        console.error('[FATAL] PI_ADMIN_KEY is required in production. Refusing to start.');
+        process.exit(2);
+      }
+      if (ALLOWED_ORIGIN === '*') {
+        console.error(
+          '[FATAL] ALLOWED_ORIGIN="*" is not allowed in production. ' +
+          'Set ALLOWED_ORIGIN to your production domain (e.g. https://a-network.net). Refusing to start.'
+        );
+        process.exit(2);
+      }
+    }
+
     app.listen(port, host, () => {
       console.log(`Pi backend listening on http://${host}:${port}`);
       console.log(`[NFT] Identity DB ready at ${NFT_DB_PATH}`);

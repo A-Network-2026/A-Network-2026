@@ -76,6 +76,16 @@ contract AnetBridgeVault is ReentrancyGuard {
     /// @notice Timelock delay for admin parameter changes.
     uint256 public constant TIMELOCK_DELAY = 48 hours;
 
+    /// @notice After a scheduled change becomes executable (block.timestamp ≥
+    ///         eta), the admin has this long to execute it. If the window
+    ///         lapses the schedule is dead and must be re-scheduled. This
+    ///         prevents a compromised admin key from sitting on an already-
+    ///         observed-and-tolerated schedule and executing it months later
+    ///         when the community is no longer paying attention. 14 days is
+    ///         long enough to absorb holiday weekends and signer-availability
+    ///         issues without becoming an indefinite latent capability.
+    uint256 public constant EXECUTION_GRACE = 14 days;
+
     /// @notice EIP-712 domain.
     bytes32 public immutable DOMAIN_SEPARATOR;
     bytes32 private constant _RELEASE_TYPEHASH = keccak256(
@@ -453,6 +463,7 @@ contract AnetBridgeVault is ReentrancyGuard {
         require(p.paramKey  == expectedKey,            "Vault: wrong param");
         require(p.valueHash == expectedValueHash,      "Vault: value mismatch");
         require(block.timestamp >= p.eta,              "Vault: timelock");
+        require(block.timestamp <= uint256(p.eta) + EXECUTION_GRACE, "Vault: change expired");
         delete pending[id];
         emit ChangeExecuted(id, expectedKey);
     }

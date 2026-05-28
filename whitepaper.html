@@ -675,7 +675,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v3.4 · 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v3.5 · 2026</sub>
 
       </div>
 
@@ -693,6 +693,8 @@
     <a class="nav-item" href="#l1-burn-bridge">v3.1 L1 &rarr; BSC Burn Bridge</a>
 
     <a class="nav-item" href="#bridge-vault">v3.3 AnetBridgeVault (2-of-3 EIP-712)</a>
+
+    <a class="nav-item" href="#v35-changelog">v3.5 AnetSwap Hardening</a>
 
     <a class="nav-item" href="#introduction">Introduction</a>
 
@@ -852,7 +854,7 @@
            Honest accounting of which components are trustless vs operator-run
            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
       <div style="border:2px solid #4a90e2;background:linear-gradient(135deg,rgba(74,144,226,0.08),rgba(74,144,226,0.02));border-radius:12px;padding:18px 22px;margin-bottom:22px;">
-        <div style="font-size:0.78rem;letter-spacing:0.14em;font-weight:700;color:#7fb8ff;text-transform:uppercase;margin-bottom:8px;">📊 Decentralization Status Tracker &middot; Updated May 25, 2026</div>
+        <div style="font-size:0.78rem;letter-spacing:0.14em;font-weight:700;color:#7fb8ff;text-transform:uppercase;margin-bottom:8px;">📊 Decentralization Status Tracker &middot; Updated May 28, 2026</div>
         <div style="font-size:0.98rem;line-height:1.55;color:#e8e8e8;margin-bottom:14px;">
           A-Network is on a <strong>phased decentralization roadmap</strong>. This scorecard documents exactly which components are currently trustless versus operator-run. We publish it so the community can hold the project accountable, in line with the Bitcoin principle: <em>"don't trust &mdash; verify."</em>
         </div>
@@ -922,6 +924,12 @@
                 <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
                 <td>After 6+ months of clean bridge operation under multisig, the admin role on AnetBridgeVault is renounced. Bridge becomes fully Model-2 (smart-contract, trustless).</td>
               </tr>
+              <tr>
+                <td>11</td>
+                <td><strong>AnetSwap hardening pass (v3.5 audit)</strong></td>
+                <td><span style="color:#22e7b8;font-weight:700;">✅ DONE</span><br/><span style="font-size:11.5px;color:#a8a8a8;">May 28, 2026</span></td>
+                <td>Internal &ldquo;Satoshi &amp; Engineer Thanks&rdquo; audit applied: Safe-multisig&ndash;compatible fee/withdraw via <code>.call{value:}</code>, paginated <code>getPendingSwapsPaged()</code> view, withdrawal &amp; fee-forward events, graceful fee-forward fallback. See <a href="#v35-changelog" style="color:#7fb8ff;">v3.5 changelog</a>.</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -933,12 +941,12 @@
         </div>
       </div>
 
-      <div class="hero-badge">Technical Paper v3.2 (Fully Decentralized BEP-20)</div>
+      <div class="hero-badge">Technical Paper v3.5 (AnetSwap Hardening · Safe-Multisig Compatible)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 3.2 records a permanent milestone: on <strong>May 24, 2026</strong> the ANET BEP-20 contract on BNB Chain (<code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>) had its ownership <strong>permanently renounced</strong> (<code>owner = 0x0000…0000</code>). The functions <code>mint()</code>, <code>pause()</code>, <code>unpause()</code>, and <code>setBlacklist()</code> are now permanently disabled, locking maximum supply at <strong>21,000,000 ANET</strong> forever. Version 3.1's bidirectional bridge remains intact: users can swap BNB, USDT, or USDC into ANET via the <strong>AnetSwap</strong> contract on BSC mainnet (<code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>), and conversely burn Layer&nbsp;1 ANET through the <code>POST&nbsp;/bridge/burn</code> endpoint on the ANET L1 node to receive wANET (BEP-20) on BSC from a dedicated escrow wallet. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
+      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 3.5 lands the AnetSwap hardening pass (Safe-multisig–compatible fee/withdraw path via <code>.call{value:}</code>, paginated indexer view, withdrawal &amp; fee-forward events) following the internal &ldquo;Satoshi &amp; Engineer Thanks&rdquo; audit on <strong>May 28, 2026</strong>. It carries forward Version 3.2&apos;s permanent milestone: on <strong>May 24, 2026</strong> the ANET BEP-20 contract on BNB Chain (<code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>) had its ownership <strong>permanently renounced</strong> (<code>owner = 0x0000…0000</code>). The functions <code>mint()</code>, <code>pause()</code>, <code>unpause()</code>, and <code>setBlacklist()</code> are now permanently disabled, locking maximum supply at <strong>21,000,000 ANET</strong> forever. Version 3.1's bidirectional bridge remains intact: users can swap BNB, USDT, or USDC into ANET via the <strong>AnetSwap</strong> contract on BSC mainnet (<code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>), and conversely burn Layer&nbsp;1 ANET through the <code>POST&nbsp;/bridge/burn</code> endpoint on the ANET L1 node to receive wANET (BEP-20) on BSC from a dedicated escrow wallet. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> &mdash; 3.2 (Fully Decentralized BEP-20 · May 2026)</div>
-        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 24, 2026</div>
+        <div class="hero-meta-item"><strong>Version</strong> &mdash; 3.5 (AnetSwap Hardening · May 2026)</div>
+        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 28, 2026 (v3.5) · Renounce milestone May 24, 2026 (v3.2)</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong> &mdash; Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>Web3 Token</strong> &mdash; 21,000,000 ANET BEP-20 on BNB Chain &middot; DEX-listed &middot; <strong>Ownership Renounced (owner = 0x0)</strong></div>
         <div class="hero-meta-item"><strong>Denomination</strong> &mdash; 1 ANET = 100,000,000 ANTS</div>
@@ -946,7 +954,61 @@
       </div>
     </div>
 
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         v3.5 CHANGELOG — AnetSwap Hardening (May 28, 2026)
+         Internal "Satoshi & Engineer Thanks" audit pass
+         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section class="wp-section" id="v35-changelog">
+      <div class="section-label">v3.5 Changelog · May 28, 2026</div>
+      <h2>Version 3.5 &mdash; AnetSwap Hardening Pass</h2>
+      <p>Version 3.5 documents an internal security &amp; correctness audit performed on the AnetSwap entry-side contract and the immediate fixes that were applied. The audit was conducted under a deliberately adversarial frame &mdash; cryptographic rigor in the spirit of Satoshi Nakamoto, with engineering review for gas, ERC-20 edge cases, and DoS surface. The companion <strong>AnetBridgeVault</strong> (v3.3) was re-reviewed and required no code changes; its 2-of-3 EIP-712 release path, true 24-slot rolling cap accounting, high-<code>s</code> signature rejection, strictly-ascending unique-signer enforcement, and 48h admin timelock all passed without finding.</p>
 
+      <h3>Fixes applied to AnetSwap.sol (BSC <code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>)</h3>
+      <div class="table-wrap">
+        <table class="data-table" style="font-size:13px;">
+          <thead>
+            <tr><th>Finding</th><th>Severity</th><th>Fix</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Fee/withdraw used <code>.transfer()</code></strong> &mdash; the 2,300-gas stipend would brick every native swap the moment <code>feeRecipient</code> or <code>owner</code> became a Gnosis Safe.</td>
+              <td>Medium</td>
+              <td>Switched to <code>.call{value:}("")</code> with success check. Fee forwarding now falls back gracefully: if the recipient refuses native coin, the fee is retained inside the contract and a <code>FeeForwardFailed(token, recipient, amount)</code> event is emitted &mdash; the user&apos;s swap is never reverted by an operator-side mistake.</td>
+            </tr>
+            <tr>
+              <td><strong>Unbounded loops</strong> in <code>getPendingSwaps()</code> and <code>getSwapsBySender()</code> &mdash; iterate the full historical swap array; eventually hit the block gas limit and break backend polling.</td>
+              <td>Medium</td>
+              <td>Added <code>getPendingSwapsPaged(startId, maxScan, maxReturn)</code> with bounded scan/return windows and a <code>nextStartId</code> cursor. Legacy views retained for backwards-compatibility while the backend migrates.</td>
+            </tr>
+            <tr>
+              <td><strong>Silent owner withdrawals</strong> &mdash; <code>withdrawNative</code> / <code>withdrawToken</code> drained funds with no on-chain event trail for indexers or holders.</td>
+              <td>Medium</td>
+              <td>Added <code>NativeWithdrawn(to, amount)</code> and <code>TokenWithdrawn(token, to, amount)</code> events on every withdrawal. (Timelock for these calls is tracked separately on the decentralization scorecard, milestone&nbsp;#6.)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Outstanding hardening backlog (acknowledged, not yet patched)</h3>
+      <ul>
+        <li><strong>Fee-on-transfer / rebasing token accounting (Medium).</strong> <code>swapTokenForAnet</code> currently uses the user-supplied <code>amount</code> for net accounting. Tokens that take a transfer tax would result in over-credit on Layer&nbsp;1. Planned fix: measure <code>balanceOf(this)</code> delta before/after <code>safeTransferFrom</code> and credit the actual received amount.</li>
+        <li><strong>Entry-side rolling caps (Medium).</strong> AnetBridgeVault enforces per-tx / per-recipient-24h / global-24h caps on the release side. AnetSwap currently has only per-token min/max. Planned fix: mirror the vault&apos;s rolling-24h pattern on the entry side so a backend compromise cannot be drained as fast as users send.</li>
+        <li><strong>Deployer key rotation (operational High).</strong> The plaintext <code>DEPLOYER_PRIVATE_KEY_BSC</code> on the deployment workstation must be rotated to a hardware-wallet or Safe-owned deployer flow. Git history is clean (<code>.env</code> is gitignored and was never committed), but disk-resident plaintext is not the standard A-Network is held to.</li>
+      </ul>
+
+      <h3>Items confirmed sound (no change required)</h3>
+      <ul>
+        <li>AnetBridgeVault EIP-712 domain pins <code>chainid</code> at construction; release path verified end-to-end.</li>
+        <li>High-<code>s</code> rejection constant in <code>_recover</code> equals <code>secp256k1_n / 2</code> exactly.</li>
+        <li><code>rescueOtherToken</code> cannot be tricked into transferring the vault&apos;s own wANET (the token whose <code>transfer</code> is called is the passed token, not wANET).</li>
+        <li>Hardhat config refuses placeholder keys and refuses silent fallback &mdash; per-chain deployer key required.</li>
+        <li>pi-backend has strict CSP, rate limits, IP allowlist on admin routes, and timing-safe admin-key comparison.</li>
+      </ul>
+
+      <p style="font-size:0.9rem;color:#a8a8a8;font-style:italic;margin-top:14px;">
+        The fix commits and the full audit report are tracked in the contracts repository. The next whitepaper bump (v3.6) will record the fee-on-transfer and entry-side cap fixes, and milestone&nbsp;#6 (AnetSwap multisig + timelock) on the decentralization scorecard.
+      </p>
+    </section>
 
 
 
