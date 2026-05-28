@@ -57,7 +57,7 @@
         <a href="whitepaper.html">Resources</a>
         <a href="ants-program.html">Developers</a>
         <a href="index.html">More</a>
-        <a class="signin" href="index.html#decentralization">Sign In</a>
+        <a class="signin" href="portal.html">Sign In</a>
       </nav>
     </div>
   </header>
@@ -146,15 +146,15 @@
       </div>
     </section>
 
-    <!-- ── Twin panels ───────────────────────────── -->
-    <section class="twin">
+    <!-- ── Twin panels (Blockchain anchor) ──────── -->
+    <section class="twin" id="blockchain">
       <div class="card">
         <div class="card-head">
           <h3>Latest Blocks</h3>
           <button class="customize" type="button">⚙ Customize</button>
         </div>
         <div id="latestBlocks"></div>
-        <div class="card-foot"><a href="scan.html#blockchain">View all blocks →</a></div>
+        <div class="card-foot"><a href="https://explorer.a-network.net/blocks" target="_blank" rel="noopener">View all blocks →</a></div>
       </div>
       <div class="card">
         <div class="card-head">
@@ -162,7 +162,50 @@
           <button class="customize" type="button">⚙ Customize</button>
         </div>
         <div id="latestTxs"></div>
-        <div class="card-foot"><a href="scan.html#blockchain">View all transactions →</a></div>
+        <div class="card-foot"><a href="https://explorer.a-network.net/blocks" target="_blank" rel="noopener">View all transactions →</a></div>
+      </div>
+    </section>
+
+    <!-- ── Validators anchor ─────────────────────── -->
+    <section class="twin" id="validators">
+      <div class="card" style="grid-column:1 / -1;">
+        <div class="card-head">
+          <h3>Validators</h3>
+          <a class="customize" href="whitepaper.html#consensus" style="text-decoration:none;">Read consensus spec →</a>
+        </div>
+        <p class="lbl" style="padding:6px 14px 0;color:var(--muted);">A Network is currently validated by the genesis validator set listed below. Phase 2 validator recruitment is open — see the <a href="https://github.com/A-Network-2026/anet-chain/blob/main/VALIDATOR_DEPLOYMENT_GUIDE.md" target="_blank" rel="noopener">Validator Deployment Guide</a>.</p>
+        <div id="latestValidators" style="padding:0 14px 14px;"></div>
+        <div class="card-foot"><a href="https://explorer.a-network.net/validators" target="_blank" rel="noopener">Open validators on explorer node →</a></div>
+      </div>
+    </section>
+
+    <!-- ── Tokens anchor ─────────────────────────── -->
+    <section class="twin" id="tokens">
+      <div class="card" style="grid-column:1 / -1;">
+        <div class="card-head">
+          <h3>Tokens</h3>
+          <a class="customize" href="nft-marketplace.html" style="text-decoration:none;">Open Token Factory →</a>
+        </div>
+        <p class="lbl" style="padding:6px 14px 0;color:var(--muted);">ANTS is the native unit of the closed-loop A Network economy. Third-party tokens are deployable via the Token Factory once a holder owns a Public Proof NFT. The Token Factory ships in Phase 4 of the <a href="ROADMAP_2026.md">2026 Roadmap</a>.</p>
+        <div style="padding:0 14px 14px;">
+          <div class="row">
+            <div class="ico-sm">A</div>
+            <div class="meta">
+              <div class="top"><span class="num">ANTS</span><span class="ago">native</span></div>
+              <div class="bot">A Network closed-loop unit · gas paid in ANET · 1 ANET = 1,000,000 ANTS</div>
+            </div>
+            <span class="val-pill" id="tokenAnetSupply">—</span>
+          </div>
+          <div class="row">
+            <div class="ico-sm">w</div>
+            <div class="meta">
+              <div class="top"><span class="num">wANET</span><span class="ago">BEP-20</span></div>
+              <div class="bot">BSC mirror · vault <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener">0x3143…8B49</a> · 2-of-3 EIP-712 release</div>
+            </div>
+            <span class="val-pill"><a href="https://bscscan.com/token/0xCD5036c6e3e36F0DD79968BcEa61f6E03A8eE32B" target="_blank" rel="noopener">BscScan ↗</a></span>
+          </div>
+        </div>
+        <div class="card-foot"><a href="whitepaper.html#tokens">Read tokens spec →</a></div>
       </div>
     </section>
   </div>

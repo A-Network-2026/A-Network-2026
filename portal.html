@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Portal | A Network</title>
+  <meta name="description" content="Sign in to A Network — view your NFT Profile, linked wallets (ANET L1, EVM/BSC, Pi), bound devices, and on-chain activity. The closed-loop ANTS economy member portal.">
+  <meta name="theme-color" content="#041019">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://explorer.a-network.net https://api.a-network.net https://rmp-site.onrender.com https://pi-backend.onrender.com https://anet-private-mainnet.onrender.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta name="referrer" content="no-referrer">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="A Network">
+  <meta property="og:title" content="Member Portal | A Network">
+  <meta property="og:description" content="Your A Network identity hub: NFT Profile, linked wallets, devices and activity.">
+  <meta property="og:url" content="https://a-network.net/portal.html">
+  <meta property="og:image" content="https://a-network.net/logo.png">
+  <link rel="canonical" href="https://a-network.net/portal.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/scan.css?v=20260528-3">
+  <link rel="stylesheet" href="assets/css/portal.css?v=20260528-1">
+</head>
+<body class="page-portal">
+
+  <!-- ── Top utility bar ───────────────────────────── -->
+  <div class="topbar">
+    <div class="shell">
+      <span class="ticker">ANET Mainnet: <strong style="color:var(--good)">live</strong></span>
+      <span class="ticker">Closed-loop ANTS economy</span>
+      <span class="spacer"></span>
+      <span class="ticker"><a href="scan.html">Explorer</a></span>
+      <span class="ticker"><a href="nft.html">NFTs</a></span>
+      <span class="ticker"><a href="dex.html">DEX</a></span>
+    </div>
+  </div>
+
+  <!-- ── Header / nav ──────────────────────────────── -->
+  <header class="scan-header">
+    <div class="shell">
+      <a class="brand" href="index.html">
+        <img src="logo.png" alt="A Network">
+        <div>
+          <div class="brand-title">Member Portal</div>
+          <div class="brand-sub">A NETWORK ORIGINAL</div>
+        </div>
+      </a>
+      <nav class="scan-nav">
+        <a href="index.html">Home</a>
+        <a href="scan.html">Explorer</a>
+        <a href="nft.html">NFTs</a>
+        <a href="dex.html">DEX</a>
+        <a href="whitepaper.html">Whitepaper</a>
+        <a href="portal.html" class="active">Portal</a>
+        <a id="portalSignOut" class="signin" href="#" hidden>Sign out</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ── SIGN-IN VIEW ──────────────────────────────── -->
+  <section id="signInView" class="shell portal-section">
+    <div class="portal-hero">
+      <h1>Sign in to your <span class="accent">A Network</span> Profile</h1>
+      <p class="tag">Your NFT Profile is the only identity on A Network — minted on your first cashout or first DEX swap, non-transferable, holder-controlled. Sign in to view every wallet and device linked to your profile.</p>
+      <p class="tiny">A Network never holds your seed phrase or private key. Sign-in proves ownership cryptographically. <a href="WHY_NFT_NOT_KYC.md">Why NFT, not KYC</a></p>
+    </div>
+
+    <div class="portal-card">
+      <div class="portal-tabs" role="tablist">
+        <button type="button" class="portal-tab active" data-tab="profile" role="tab" aria-selected="true">ANET Profile</button>
+        <button type="button" class="portal-tab" data-tab="evm" role="tab" aria-selected="false">MetaMask / EVM</button>
+        <button type="button" class="portal-tab" data-tab="pi" role="tab" aria-selected="false">Pi Network</button>
+      </div>
+
+      <!-- Tab A: ANET Profile (email + PIN, hits rmp-site /auth/login) -->
+      <div class="portal-pane active" data-pane="profile">
+        <p class="pane-lead">Sign in with the email and PIN you use in the A Network mobile app.</p>
+        <form id="profileLoginForm" autocomplete="off">
+          <label class="field">
+            <span class="label">Email</span>
+            <input id="profileEmail" type="email" required autocomplete="username" placeholder="you@example.com">
+          </label>
+          <label class="field">
+            <span class="label">PIN</span>
+            <input id="profilePin" type="password" required inputmode="numeric" pattern="[0-9]{4,8}" autocomplete="current-password" placeholder="••••">
+          </label>
+          <label class="field">
+            <span class="label">2FA code <span class="optional">(if enabled)</span></span>
+            <input id="profileOtp" type="text" inputmode="numeric" pattern="[0-9]{6}" placeholder="123456">
+          </label>
+          <button type="submit" class="btn-primary" id="profileLoginBtn">Sign in</button>
+        </form>
+        <p class="pane-status" id="profileStatus" aria-live="polite"></p>
+        <p class="tiny">Don&rsquo;t have an account yet?
+          <a href="https://apps.apple.com/app/a-network/id6747522933">Download iOS</a> ·
+          <a href="https://play.google.com/store/apps/details?id=com.anetwork.app">Download Android</a>
+        </p>
+      </div>
+
+      <!-- Tab B: MetaMask SIWE -->
+      <div class="portal-pane" data-pane="evm" hidden>
+        <p class="pane-lead">Sign in with your BSC wallet (MetaMask, Rabby, Trust&hellip;). We&rsquo;ll ask MetaMask to sign a short message proving you control the wallet linked to your NFT Profile. No transaction, no gas.</p>
+        <button type="button" class="btn-primary" id="evmConnectBtn">
+          <span id="evmConnectLabel">Connect &amp; sign with MetaMask</span>
+        </button>
+        <p class="pane-status" id="evmStatus" aria-live="polite"></p>
+        <details class="pane-help">
+          <summary>How linking works</summary>
+          <p>On your first ANET → BSC bridge or first DEX swap, the EVM wallet you used was attached to your NFT Profile in the chain&rsquo;s registry. Signing here proves you still control that wallet and lets the portal show every other identity (email accounts, Pi UID, devices) bound to the same Profile NFT.</p>
+        </details>
+      </div>
+
+      <!-- Tab C: Pi Network -->
+      <div class="portal-pane" data-pane="pi" hidden>
+        <p class="pane-lead">Open the Pi Browser and tap below to sign in with your Pi identity. We&rsquo;ll exchange the Pi access token for an A Network session bound to your NFT Profile.</p>
+        <button type="button" class="btn-primary" id="piConnectBtn">Sign in with Pi</button>
+        <p class="pane-status" id="piStatus" aria-live="polite"></p>
+        <details class="pane-help">
+          <summary>Why Pi?</summary>
+          <p>Many early A Network miners use Pi Network alongside ANET. If your A Network NFT Profile was created from a Pi session, signing in with Pi here will surface the same dashboard, the same wallets, the same devices.</p>
+        </details>
+      </div>
+    </div>
+
+    <div class="portal-card portal-card-soft">
+      <h3>What you&rsquo;ll see after sign-in</h3>
+      <ul class="portal-checklist">
+        <li><strong>NFT Profile card</strong> &mdash; your Public Proof NFT (token id, mint tx, holder address, activation date).</li>
+        <li><strong>Linked wallets</strong> &mdash; legacy ANET, secp256k1 ANET, your BSC EVM address, your Pi UID &mdash; every identity that has ever signed a message for this profile.</li>
+        <li><strong>Bound devices</strong> &mdash; every phone / browser that has mined or signed for this profile, with last-seen and revoke controls.</li>
+        <li><strong>Activity</strong> &mdash; recent swaps, bridges, NFT mints, payouts &mdash; pulled live from the L1 explorer node.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── DASHBOARD VIEW (revealed after sign-in) ──── -->
+  <section id="dashboardView" class="shell portal-section" hidden>
+    <div class="portal-hero">
+      <h1 id="dashGreeting">Welcome back</h1>
+      <p class="tag" id="dashSubtitle">Your A Network identity, linked wallets and devices &mdash; all tied to one non-transferable Profile NFT.</p>
+    </div>
+
+    <!-- NFT Profile card -->
+    <div class="portal-card">
+      <div class="dash-head">
+        <h3>NFT Profile</h3>
+        <span class="pill" id="dashProfileStatus">—</span>
+      </div>
+      <div class="dash-grid">
+        <div class="dash-cell">
+          <p class="lbl">Profile ID</p>
+          <div class="val mono" id="dashProfileId">—</div>
+        </div>
+        <div class="dash-cell">
+          <p class="lbl">Holder (secp ANET)</p>
+          <div class="val mono" id="dashHolder">—</div>
+        </div>
+        <div class="dash-cell">
+          <p class="lbl">Minted at</p>
+          <div class="val" id="dashMintedAt">—</div>
+        </div>
+        <div class="dash-cell">
+          <p class="lbl">Mint tx</p>
+          <div class="val mono"><a id="dashMintTx" href="scan.html">—</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Linked wallets -->
+    <div class="portal-card">
+      <div class="dash-head">
+        <h3>Linked wallets</h3>
+        <button type="button" class="btn-ghost" id="dashLinkEvmBtn">+ Link an EVM wallet</button>
+      </div>
+      <div class="dash-list" id="dashWallets">
+        <div class="dash-empty">Loading wallets&hellip;</div>
+      </div>
+      <p class="tiny">Wallets are linked by signing a one-time challenge with each wallet&rsquo;s private key. A Network never sees the key &mdash; only the signature. The Profile NFT is the join key across all of them.</p>
+    </div>
+
+    <!-- Bound devices -->
+    <div class="portal-card">
+      <div class="dash-head">
+        <h3>Bound devices</h3>
+        <span class="pill" id="dashDeviceCount">—</span>
+      </div>
+      <div class="dash-list" id="dashDevices">
+        <div class="dash-empty">Loading devices&hellip;</div>
+      </div>
+      <p class="tiny">Each device generates a local key pair that signs mining proofs and chain actions. Revoking a device immediately blocks it from claiming rewards or signing for your Profile.</p>
+    </div>
+
+    <!-- Activity -->
+    <div class="portal-card">
+      <div class="dash-head">
+        <h3>Recent activity</h3>
+        <a class="btn-ghost" href="scan.html">Open Explorer</a>
+      </div>
+      <div class="dash-list" id="dashActivity">
+        <div class="dash-empty">Loading activity&hellip;</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ──────────────────────────────────── -->
+  <footer class="scan-foot">
+    <div class="shell">
+      <span>© 2026 A Network · Member Portal · Closed-loop ANTS economy.</span>
+      <span class="spacer" style="flex:1;"></span>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="whitepaper.html">Whitepaper</a>
+      <a href="scan.html">Mainnet</a>
+      <a href="nft.html">NFTs</a>
+    </div>
+  </footer>
+
+  <script src="assets/js/portal.js?v=20260528-1" defer></script>
+</body>
+</html>

@@ -257,7 +257,7 @@
         (stats.price.change24h != null
           ? ` <span class="${stats.price.change24h >= 0 ? "up" : "down"}">(${stats.price.change24h >= 0 ? "+" : ""}${Number(stats.price.change24h).toFixed(2)}%)</span>`
           : "")
-      : "<strong>Unavailable</strong>";
+      : "<strong>—</strong>";
 
     const gasEl = $("#anetGas");
     if (gasEl) gasEl.innerHTML = `<strong>${stats.gasGwei != null ? stats.gasGwei + " Gwei" : "—"}</strong>`;
@@ -314,6 +314,46 @@
             <span class="val-pill">${t.valueAnts != null ? fmt(t.valueAnts) + " ANTS" : (t.isEvent ? "event" : "0 ANTS")}</span>
           </div>`).join("")
         : emptyRows("No transactions in the recent block window.", 6);
+    }
+
+    // ── Validators panel (id="validators" anchor) ──
+    const valsEl = $("#latestValidators");
+    if (valsEl) {
+      const validators = new Map();
+      for (const b of blocksRaw) {
+        const ts = b && b.epoch_end ? Math.floor(Date.parse(b.epoch_end) / 1000) : 0;
+        if (Array.isArray(b.miners)) {
+          for (const m of b.miners) {
+            const key = String(m);
+            const prev = validators.get(key) || { blocks: 0, lastSeen: 0 };
+            prev.blocks += 1;
+            if (ts > prev.lastSeen) prev.lastSeen = ts;
+            validators.set(key, prev);
+          }
+        }
+      }
+      const sorted = Array.from(validators.entries())
+        .sort((a, b) => b[1].blocks - a[1].blocks)
+        .slice(0, 8);
+      valsEl.innerHTML = sorted.length
+        ? sorted.map(([addr, v], i) => `
+          <div class="row">
+            <div class="ico-sm">#${i + 1}</div>
+            <div class="meta">
+              <div class="top"><span class="num" title="${addr}">${shortHash(addr, 12, 8)}</span><span class="ago">${timeAgo(v.lastSeen)}</span></div>
+              <div class="bot">${v.blocks} block${v.blocks === 1 ? "" : "s"} signed in last window</div>
+            </div>
+            <span class="val-pill">active</span>
+          </div>`).join("")
+        : emptyRows("Validator set warming up.", 4);
+    }
+
+    // ── Tokens panel: ANTS circulating supply ──
+    const antsSupplyEl = $("#tokenAnetSupply");
+    if (antsSupplyEl) {
+      antsSupplyEl.textContent = stats.circulatingAnts != null
+        ? fmt(stats.circulatingAnts) + " ANTS"
+        : "—";
     }
   }
 
