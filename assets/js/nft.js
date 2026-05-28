@@ -127,6 +127,12 @@
     minerAuthenticated: false,
     minerSessionToken: "",
     minerUid: "",
+    // Profile NFT = real decentralized identity. The Token Factory and any
+    // future PoS-gated action requires this to be active, NOT just a miner
+    // session. A miner session proves the wallet; the Profile NFT proves
+    // the on-chain identity has been minted + first-cashout activated.
+    nftActivated: false,
+    nftTokenId: "",
     analytics: loadAnalyticsState()
   };
 
@@ -345,6 +351,8 @@
     state.minerAuthenticated = Boolean(payload?.sessionToken && uid);
     state.minerSessionToken = String(payload?.sessionToken || "");
     state.minerUid = uid;
+    state.nftActivated = Boolean(payload?.nftActivated);
+    state.nftTokenId = String(payload?.nftTokenId || payload?.profileNftTokenId || "");
 
     if (state.minerAuthenticated) {
       syncUidAcrossForms(uid);
@@ -368,6 +376,8 @@
     state.minerAuthenticated = false;
     state.minerSessionToken = "";
     state.minerUid = "";
+    state.nftActivated = false;
+    state.nftTokenId = "";
     setStatus(els.minerAuthStatus, "info", "Miner login required for create/list/bid/buy actions. Feed and market browsing are public.");
   }
 
@@ -376,6 +386,22 @@
       return true;
     }
     setStatus(statusEl || els.minerAuthStatus, "bad", "Login as miner first (UID + username + wallet address).");
+    return false;
+  }
+
+  // Stronger gate: requires an *active* Profile NFT, not just a miner session.
+  // Used by the Token Factory and any future PoS-gated action that should be
+  // bound to the on-chain decentralized identity rather than a fungible login.
+  function ensureNftIdentity(statusEl) {
+    if (!ensureMinerLoggedIn(statusEl)) return false;
+    if (state.nftActivated && state.nftTokenId) {
+      return true;
+    }
+    setStatus(
+      statusEl || els.minerAuthStatus,
+      "bad",
+      "This action requires an active ANET Profile NFT. Complete your first cashout/swap in the wallet app to mint and activate your Profile NFT, then re-login here."
+    );
     return false;
   }
 
@@ -1601,7 +1627,7 @@
       setStatus(els.factoryStakeStatus, "bad", "Connect NFT API first.");
       return;
     }
-    if (!ensureMinerLoggedIn(els.factoryStakeStatus)) return;
+    if (!ensureNftIdentity(els.factoryStakeStatus)) return;
     const uid = normalizeUid(els.factoryUid?.value || state.minerUid);
     if (!uid) {
       setStatus(els.factoryStakeStatus, "bad", "ANET Profile ID is required.");
@@ -1636,7 +1662,7 @@
       setStatus(els.factoryStakeStatus, "bad", "Connect NFT API first.");
       return;
     }
-    if (!ensureMinerLoggedIn(els.factoryStakeStatus)) return;
+    if (!ensureNftIdentity(els.factoryStakeStatus)) return;
     const uid = normalizeUid(els.factoryUid?.value || state.minerUid);
     const amount = Math.floor(Number(els.factoryStakeAmount?.value || 0));
     if (!uid) {
@@ -1651,7 +1677,7 @@
     try {
       const result = await apiFetch("/api/nft/factory/stake", {
         method: "POST",
-        body: { uid, amountAnts: amount }
+        body: { uid, amountAnts: amount, profileNftTokenId: state.nftTokenId }
       });
       const staked = Number(result.stakedAnts || amount);
       setStatus(els.factoryStakeStatus, "good", `Staked. Total: ${staked.toLocaleString()} ANTS.`);
@@ -1666,7 +1692,7 @@
       setStatus(els.factoryStakeStatus, "bad", "Connect NFT API first.");
       return;
     }
-    if (!ensureMinerLoggedIn(els.factoryStakeStatus)) return;
+    if (!ensureNftIdentity(els.factoryStakeStatus)) return;
     const uid = normalizeUid(els.factoryUid?.value || state.minerUid);
     if (!uid) {
       setStatus(els.factoryStakeStatus, "bad", "ANET Profile ID is required.");
@@ -1679,7 +1705,7 @@
     try {
       const result = await apiFetch("/api/nft/factory/unstake", {
         method: "POST",
-        body: { uid }
+        body: { uid, profileNftTokenId: state.nftTokenId }
       });
       const returned = Number(result.returnedAnts || 0);
       setStatus(els.factoryStakeStatus, "good", `Unstaked ${returned.toLocaleString()} ANTS.`);
@@ -1698,7 +1724,20 @@
     const description = String(els.factoryTokenDescription?.value || "").trim();
     const logoUri = String(els.factoryTokenLogo?.value || "").trim();
     const mintable = String(els.factoryTokenMintable?.value || "false") === "true";
-    return { uid, name, symbol, supply, decimals, description, logoUri, mintable };
+    // profileNftTokenId binds the deployed token to the deployer's on-chain
+    // identity (Public Proof NFT). The backend rejects deploys whose NFT is
+    // not active, so a wallet alone is never enough.
+    return {
+      uid,
+      profileNftTokenId: state.nftTokenId,
+      name,
+      symbol,
+      supply,
+      decimals,
+      description,
+      logoUri,
+      mintable
+    };
   }
 
   async function onFactoryDeployToken() {
@@ -1706,7 +1745,7 @@
       setStatus(els.factoryDeployStatus, "bad", "Connect NFT API first.");
       return;
     }
-    if (!ensureMinerLoggedIn(els.factoryDeployStatus)) return;
+    if (!ensureNftIdentity(els.factoryDeployStatus)) return;
     const payload = getFactoryTokenPayload();
     if (!payload.uid) {
       setStatus(els.factoryDeployStatus, "bad", "ANET Profile ID is required.");

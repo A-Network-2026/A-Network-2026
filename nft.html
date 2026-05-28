@@ -1375,9 +1375,19 @@
           ANTS in → ANTS out. ANET is the L1 ticker; ANTS is the in-ecosystem unit of account.
         </p>
         <p class="muted" style="margin-top:6px;">
+          <strong>Identity:</strong> sign-in is <em>not</em> by email or wallet address alone — it's by your
+          <strong>ANET Profile NFT</strong>. Your Public Proof NFT is your real, on-chain identity in this
+          decentralized ecosystem (minted on first cashout / first swap). Every action below is signed
+          against that NFT, every deployed token is bound to it, and slashing burns the NFT's stake — not
+          a disposable wallet's. If you do not yet have an active Profile NFT, complete your first cashout
+          or swap in the A-Network mobile app, then come back and log in here.
+        </p>
+        <p class="muted" style="margin-top:6px;">
           <strong>Eligibility (PoS gate):</strong> stake at least
           <code style="background:rgba(34,231,184,0.10);padding:2px 6px;border-radius:6px;">1,000 ANTS</code>
-          to unlock the factory. Stake is locked for a 7-day cooldown after each deploy, slashed if the deployed token is governance-flagged as malicious.
+          from the wallet your Profile NFT belongs to. Stake is locked for a 7-day cooldown after each deploy,
+          and slashed if the deployed token is governance-flagged as malicious — the slash hits the NFT identity,
+          not just the wallet, so a bad actor cannot churn through new wallets to escape consequences.
         </p>
 
         <div class="factory-stake-panel" style="background:rgba(34,231,184,0.06);border:1px solid rgba(34,231,184,0.18);border-radius:12px;padding:14px;margin:14px 0;">
