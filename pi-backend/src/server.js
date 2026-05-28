@@ -3993,8 +3993,20 @@ app.post('/api/btc/admin/force-confirm', (req, res) => {
   });
 });
 
-app.post('/api/pi/settlement/record', (req, res) => {
+app.post('/api/pi/settlement/record', adminRateLimiter, enforceAdminIpAllowlist, (req, res) => {
   try {
+    // CRITICAL: settlement records mutate persisted on-chain mirroring state.
+    // Require the same PI_ADMIN_KEY as other admin endpoints (constant-time compare).
+    if (!PI_ADMIN_KEY) {
+      return res.status(503).json({ ok: false, error: 'PI_ADMIN_KEY is not configured on this deployment' });
+    }
+    const providedKey = String(
+      req.headers['x-pi-admin-key'] || req.body?.admin_key || ''
+    ).trim();
+    if (!safeKeyEqual(providedKey, PI_ADMIN_KEY)) {
+      return res.status(401).json({ ok: false, error: 'Invalid admin key' });
+    }
+
     const piPaymentId = String(req.body?.pi_payment_id || '').trim();
     const piTxid = String(req.body?.pi_txid || '').trim();
     const piAmount = String(req.body?.pi_amount || '').trim();
@@ -4065,8 +4077,20 @@ app.get('/api/pi/settlement/recent', (_req, res) => {
   }
 });
 
-app.post('/api/btc/settlement/record', (req, res) => {
+app.post('/api/btc/settlement/record', adminRateLimiter, enforceAdminIpAllowlist, (req, res) => {
   try {
+    // CRITICAL: settlement records mutate persisted on-chain mirroring state.
+    // Require the same PI_ADMIN_KEY as other admin endpoints (constant-time compare).
+    if (!PI_ADMIN_KEY) {
+      return res.status(503).json({ ok: false, error: 'PI_ADMIN_KEY is not configured on this deployment' });
+    }
+    const providedKey = String(
+      req.headers['x-pi-admin-key'] || req.body?.admin_key || ''
+    ).trim();
+    if (!safeKeyEqual(providedKey, PI_ADMIN_KEY)) {
+      return res.status(401).json({ ok: false, error: 'Invalid admin key' });
+    }
+
     const btcTxid = String(req.body?.btc_txid || '').trim();
     const btcAmount = String(req.body?.btc_amount || '').trim();
     const fromAddress = String(req.body?.from_address || '').trim();
