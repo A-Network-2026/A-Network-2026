@@ -4397,6 +4397,283 @@ app.post('/api/evm/activity', async (req, res) => {
 
 /* ── End EVM Wallet Activity ─────────────────────────────────────── */
 
+/* ──────────────────────────────────────────────────────────────────────
+ * AnetScan Explorer Read-only Endpoints
+ *
+ * Powers the static explorer pages at /scan.html (mainnet) and /nft.html
+ * (NFT explorer) on a-network.net. All routes are public, read-only, and
+ * cached for 15s to absorb traffic spikes without hitting the chain node.
+ *
+ * If the chain node or NFT db is unavailable, endpoints return shaped
+ * empty payloads (never 500) so the explorer renders skeletons cleanly.
+ * ──────────────────────────────────────────────────────────────────── */
+const SCAN_CACHE_TTL_MS = 15 * 1000;
+const _scanCache = new Map(); // key -> { at, value }
+function scanCacheGet(key) {
+  const hit = _scanCache.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.at > SCAN_CACHE_TTL_MS) { _scanCache.delete(key); return null; }
+  return hit.value;
+}
+function scanCachePut(key, value) {
+  _scanCache.set(key, { at: Date.now(), value });
+  return value;
+}
+
+function chainNodeBase() {
+  return String(process.env.ANET_CHAIN_API_BASE_URL || '').replace(/\/+$/, '');
+}
+
+async function chainNodeFetch(path, timeoutMs = 4000) {
+  const base = chainNodeBase();
+  if (!base) return null;
+  try {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), timeoutMs);
+    const r = await fetch(base + path, { signal: controller.signal, headers: { 'accept': 'application/json' } });
+    clearTimeout(t);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (_) {
+    return null;
+  }
+}
+
+// GET /api/chain/stats — header tile metrics for scan.html
+app.get('/api/chain/stats', async (_req, res) => {
+  try {
+    const cached = scanCacheGet('chain:stats');
+    if (cached) return res.json(cached);
+
+    const upstream = await chainNodeFetch('/explorer/stats');
+    const txChart = await chainNodeFetch('/explorer/tx-history?days=14');
+    const payload = {
+      price: {
+        value: upstream && upstream.priceUsd != null ? Number(upstream.priceUsd) : null,
+        change24h: upstream && upstream.priceChange24h != null ? Number(upstream.priceChange24h) : null
+      },
+      gasGwei: upstream && upstream.gasGwei != null ? Number(upstream.gasGwei) : 0.001,
+      transactions24h: upstream && upstream.transactions24h != null ? Number(upstream.transactions24h) : null,
+      tps: upstream && upstream.tps != null ? Number(upstream.tps) : null,
+      latestBlock: {
+        height: upstream && upstream.latestBlockHeight != null ? Number(upstream.latestBlockHeight) : 0,
+        timeSec: upstream && upstream.blockTimeSec != null ? Number(upstream.blockTimeSec) : 0.5
+      },
+      marketCapAnts: upstream && upstream.marketCapAnts != null ? Number(upstream.marketCapAnts) : null,
+      circulatingAnts: upstream && upstream.circulatingAnts != null ? Number(upstream.circulatingAnts) : null,
+      votingPowerAnet: upstream && upstream.votingPowerAnet != null ? Number(upstream.votingPowerAnet) : null,
+      txChart14d: Array.isArray(txChart && txChart.points) ? txChart.points.map(Number) : Array(14).fill(0),
+      updatedAt: new Date().toISOString()
+    };
+    return res.json(scanCachePut('chain:stats', payload));
+  } catch (_) {
+    return res.json({
+      price: { value: null, change24h: null },
+      gasGwei: 0.001,
+      transactions24h: null,
+      tps: null,
+      latestBlock: { height: 0, timeSec: 0.5 },
+      marketCapAnts: null,
+      circulatingAnts: null,
+      votingPowerAnet: null,
+      txChart14d: Array(14).fill(0),
+      updatedAt: new Date().toISOString()
+    });
+  }
+});
+
+// GET /api/chain/latest-blocks?limit=
+app.get('/api/chain/latest-blocks', async (req, res) => {
+  try {
+    const limit = Math.max(1, Math.min(50, Number(req.query.limit) || 6));
+    const key = 'chain:blocks:' + limit;
+    const cached = scanCacheGet(key);
+    if (cached) return res.json(cached);
+
+    const upstream = await chainNodeFetch('/explorer/blocks?limit=' + limit);
+    const list = Array.isArray(upstream && upstream.blocks) ? upstream.blocks : [];
+    const payload = list.map((b) => ({
+      height: Number(b.height || 0),
+      timestamp: Number(b.timestamp || 0),
+      validator: String(b.proposer || b.validator || ''),
+      txCount: Number(b.txCount || 0),
+      reward: b.reward != null ? Number(b.reward) : null
+    }));
+    return res.json(scanCachePut(key, payload));
+  } catch (_) {
+    return res.json([]);
+  }
+});
+
+// GET /api/chain/latest-transactions?limit=
+app.get('/api/chain/latest-transactions', async (req, res) => {
+  try {
+    const limit = Math.max(1, Math.min(50, Number(req.query.limit) || 6));
+    const key = 'chain:txs:' + limit;
+    const cached = scanCacheGet(key);
+    if (cached) return res.json(cached);
+
+    const upstream = await chainNodeFetch('/explorer/transactions?limit=' + limit);
+    const list = Array.isArray(upstream && upstream.transactions) ? upstream.transactions : [];
+    const payload = list.map((t) => ({
+      hash: String(t.hash || ''),
+      timestamp: Number(t.timestamp || 0),
+      from: String(t.from || ''),
+      to: String(t.to || ''),
+      valueAnts: t.valueAnts != null ? Number(t.valueAnts) : null
+    }));
+    return res.json(scanCachePut(key, payload));
+  } catch (_) {
+    return res.json([]);
+  }
+});
+
+// GET /api/nft/stats — header tile metrics for nft.html explorer
+app.get('/api/nft/stats', async (_req, res) => {
+  try {
+    const cached = scanCacheGet('nft:stats');
+    if (cached) return res.json(cached);
+
+    let totalNfts = 0, collections = 0, activeListings = 0, totalHolders = 0;
+    let floorAnts = null, volume24hAnts = null;
+    const mintChart14d = Array(14).fill(0);
+
+    if (nftDb) {
+      try {
+        const row = await dbGet(nftDb, 'SELECT COUNT(*) AS c FROM nft_assets', []);
+        totalNfts = Number(row && row.c) || 0;
+      } catch (_) {}
+      try {
+        const row = await dbGet(nftDb, "SELECT COUNT(DISTINCT collection_id) AS c FROM nft_assets WHERE collection_id IS NOT NULL AND collection_id != ''", []);
+        collections = Number(row && row.c) || 0;
+      } catch (_) {}
+      try {
+        const row = await dbGet(nftDb, "SELECT COUNT(*) AS c FROM nft_market_listings WHERE status = 'active'", []);
+        activeListings = Number(row && row.c) || 0;
+      } catch (_) {}
+      try {
+        const row = await dbGet(nftDb, 'SELECT COUNT(DISTINCT uid) AS c FROM nft_assets', []);
+        totalHolders = Number(row && row.c) || 0;
+      } catch (_) {}
+      try {
+        const row = await dbGet(nftDb, "SELECT MIN(ask_price_ants) AS p FROM nft_market_listings WHERE status = 'active' AND ask_price_ants > 0", []);
+        floorAnts = row && row.p != null ? Number(row.p) : null;
+      } catch (_) {}
+      try {
+        const sinceSec = Math.floor((Date.now() - 24 * 3600 * 1000) / 1000);
+        const row = await dbGet(nftDb, "SELECT COALESCE(SUM(final_price_ants), 0) AS v FROM nft_market_listings WHERE status = 'sold' AND COALESCE(sold_at, updated_at, created_at) >= ?", [sinceSec]);
+        volume24hAnts = row && row.v != null ? Number(row.v) : 0;
+      } catch (_) {}
+      try {
+        // Build 14-day mint histogram. Bucket index 0 = oldest, 13 = today.
+        const nowSec = Math.floor(Date.now() / 1000);
+        const startSec = nowSec - 14 * 86400;
+        const rows = await dbAll(
+          nftDb,
+          'SELECT created_at FROM nft_assets WHERE created_at >= ? ORDER BY created_at ASC',
+          [startSec]
+        );
+        if (Array.isArray(rows)) {
+          for (const r of rows) {
+            const ts = Number(r.created_at || 0);
+            if (!ts) continue;
+            const idx = Math.min(13, Math.max(0, Math.floor((ts - startSec) / 86400)));
+            mintChart14d[idx]++;
+          }
+        }
+      } catch (_) {}
+    }
+
+    const payload = {
+      floorAnts,
+      volume24hAnts,
+      collections,
+      totalNfts,
+      activeListings,
+      totalHolders,
+      mintChart14d,
+      updatedAt: new Date().toISOString()
+    };
+    return res.json(scanCachePut('nft:stats', payload));
+  } catch (_) {
+    return res.json({
+      floorAnts: null, volume24hAnts: null, collections: 0,
+      totalNfts: 0, activeListings: 0, totalHolders: 0,
+      mintChart14d: Array(14).fill(0),
+      updatedAt: new Date().toISOString()
+    });
+  }
+});
+
+// GET /api/nft/latest-mints?limit=
+app.get('/api/nft/latest-mints', async (req, res) => {
+  try {
+    const limit = Math.max(1, Math.min(50, Number(req.query.limit) || 6));
+    const key = 'nft:mints:' + limit;
+    const cached = scanCacheGet(key);
+    if (cached) return res.json(cached);
+    if (!nftDb) return res.json([]);
+
+    const rows = await dbAll(
+      nftDb,
+      `SELECT id AS tokenId, uid AS minter, created_at AS timestamp,
+              COALESCE(collection_id, asset_type, 'public-proof') AS collection,
+              NULL AS priceAnts
+         FROM nft_assets
+         ORDER BY created_at DESC
+         LIMIT ?`,
+      [limit]
+    );
+    const payload = (rows || []).map((r) => ({
+      tokenId: String(r.tokenId || ''),
+      minter: String(r.minter || ''),
+      timestamp: Number(r.timestamp || 0),
+      collection: String(r.collection || ''),
+      priceAnts: r.priceAnts != null ? Number(r.priceAnts) : null
+    }));
+    return res.json(scanCachePut(key, payload));
+  } catch (_) {
+    return res.json([]);
+  }
+});
+
+// GET /api/nft/latest-sales?limit=
+app.get('/api/nft/latest-sales', async (req, res) => {
+  try {
+    const limit = Math.max(1, Math.min(50, Number(req.query.limit) || 6));
+    const key = 'nft:sales:' + limit;
+    const cached = scanCacheGet(key);
+    if (cached) return res.json(cached);
+    if (!nftDb) return res.json([]);
+
+    const rows = await dbAll(
+      nftDb,
+      `SELECT asset_id AS tokenId,
+              seller_uid AS seller,
+              COALESCE(winner_uid, '') AS buyer,
+              COALESCE(sold_at, updated_at, created_at) AS timestamp,
+              final_price_ants AS priceAnts
+         FROM nft_market_listings
+         WHERE status = 'sold'
+         ORDER BY COALESCE(sold_at, updated_at, created_at) DESC
+         LIMIT ?`,
+      [limit]
+    );
+    const payload = (rows || []).map((r) => ({
+      tokenId: String(r.tokenId || ''),
+      seller: String(r.seller || ''),
+      buyer: String(r.buyer || ''),
+      timestamp: Number(r.timestamp || 0),
+      priceAnts: r.priceAnts != null ? Number(r.priceAnts) : null
+    }));
+    return res.json(scanCachePut(key, payload));
+  } catch (_) {
+    return res.json([]);
+  }
+});
+
+/* ── End AnetScan Explorer Endpoints ─────────────────────────────── */
+
 initializeNftDatabase()
   .then(() => {
     // ── S1-3: Production safety gate (fail closed before listen) ─────────
