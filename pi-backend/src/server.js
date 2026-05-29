@@ -60,6 +60,52 @@ const PI_TEST_ADMIN_ALLOWED_IPS = String(process.env.PI_TEST_ADMIN_ALLOWED_IPS |
   .map((entry) => entry.trim())
   .filter(Boolean);
 
+// Normalize an IP string: strip IPv6-mapped IPv4 prefix (::ffff:1.2.3.4 → 1.2.3.4).
+function normalizeIp(ip) {
+  const s = String(ip || '').trim();
+  const m = s.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/i);
+  return m ? m[1] : s;
+}
+
+// Convert a dotted IPv4 string to a 32-bit unsigned integer, or null if invalid.
+function ipv4ToInt(ip) {
+  const parts = normalizeIp(ip).split('.');
+  if (parts.length !== 4) return null;
+  let value = 0;
+  for (const part of parts) {
+    if (!/^\d+$/.test(part)) return null;
+    const n = Number(part);
+    if (n < 0 || n > 255) return null;
+    value = (value * 256) + n;
+  }
+  return value >>> 0;
+}
+
+// True if `ip` matches an allowlist entry. Entries may be an exact IPv4
+// address (e.g. "1.2.3.4") or a CIDR range (e.g. "74.220.50.0/24").
+function ipMatchesEntry(ip, entry) {
+  const target = normalizeIp(ip);
+  const trimmed = String(entry || '').trim();
+  if (!trimmed) return false;
+  if (!trimmed.includes('/')) {
+    return target === trimmed;
+  }
+  const [range, bitsRaw] = trimmed.split('/');
+  const bits = Number(bitsRaw);
+  if (!Number.isInteger(bits) || bits < 0 || bits > 32) return false;
+  const ipInt = ipv4ToInt(target);
+  const rangeInt = ipv4ToInt(range);
+  if (ipInt === null || rangeInt === null) return false;
+  if (bits === 0) return true;
+  const mask = (0xffffffff << (32 - bits)) >>> 0;
+  return (ipInt & mask) === (rangeInt & mask);
+}
+
+// True if `ip` is allowed by any entry in the allowlist (exact or CIDR).
+function isIpAllowed(ip, allowlist) {
+  return allowlist.some((entry) => ipMatchesEntry(ip, entry));
+}
+
 // ── EVM Bridge config ──────────────────────────────────────────────────────
 // The bsc-relayer service is the authoritative writer for EVM → L1 swaps.
 // pi-backend only needs read-side config: RPC URLs (for /api/evm/activity's
@@ -1155,7 +1201,7 @@ function enforceAdminIpAllowlist(req, res, next) {
     return next();
   }
   const ip = getClientIp(req);
-  if (!PI_TEST_ADMIN_ALLOWED_IPS.includes(ip)) {
+  if (!isIpAllowed(ip, PI_TEST_ADMIN_ALLOWED_IPS)) {
     return res.status(403).json({ ok: false, error: 'Admin endpoint access denied for this IP' });
   }
   return next();
@@ -1306,6 +1352,62 @@ app.post('/api/pi/admin/force-unlock', (req, res) => {
 
   const record = upsertLifetimeUnlock(syntheticPayment, 'admin-force-unlock', null);
   return res.status(200).json({ ok: true, unlock: record });
+});
+
+// Admin: re-point NFT identity records from an old wallet address to a new one
+// after a wallet re-key (lost-seed recovery / re-migration). Requires PI_ADMIN_KEY.
+// Keyed by wallet_address, so the user's NFT profile + AI training rows follow
+// their account to the freshly generated wallet. Old address is left orphaned
+// (it is tombstoned on the L1 chain and in the Web2 backend).
+app.post('/api/pi/admin/nft/rekey', async (req, res) => {
+  if (!PI_ADMIN_KEY) {
+    return res.status(503).json({ ok: false, error: 'PI_ADMIN_KEY is not configured on this deployment' });
+  }
+
+  const providedKey = String(req.body?.admin_key || req.headers['x-admin-key'] || '').trim();
+  if (!safeKeyEqual(providedKey, PI_ADMIN_KEY)) {
+    return res.status(401).json({ ok: false, error: 'Invalid admin key' });
+  }
+
+  const oldAddress = String(req.body?.old_address || '').trim().toUpperCase();
+  const newAddress = String(req.body?.new_address || '').trim().toUpperCase();
+  if (!oldAddress || !newAddress) {
+    return res.status(400).json({ ok: false, error: 'old_address and new_address are required' });
+  }
+  if (oldAddress === newAddress) {
+    return res.status(400).json({ ok: false, error: 'old_address and new_address must differ' });
+  }
+
+  try {
+    const nowIso = new Date().toISOString();
+    const profileUpdate = await dbRun(
+      nftDb,
+      `UPDATE nft_profiles SET wallet_address = ?, updated_at = ? WHERE UPPER(TRIM(wallet_address)) = ?`,
+      [newAddress, nowIso, oldAddress]
+    );
+    let trainingChanges = 0;
+    try {
+      const trainingUpdate = await dbRun(
+        nftDb,
+        `UPDATE ai_training_data SET wallet_address = ? WHERE UPPER(TRIM(wallet_address)) = ?`,
+        [newAddress, oldAddress]
+      );
+      trainingChanges = trainingUpdate.changes || 0;
+    } catch (trainingErr) {
+      console.warn('[pi-backend] nft rekey: ai_training_data update skipped:', trainingErr.message || trainingErr);
+    }
+
+    return res.status(200).json({
+      ok: true,
+      old_address: oldAddress,
+      new_address: newAddress,
+      profiles_updated: profileUpdate.changes || 0,
+      training_rows_updated: trainingChanges,
+    });
+  } catch (err) {
+    console.error('[pi-backend] nft rekey failed:', err.message || err);
+    return res.status(500).json({ ok: false, error: 'NFT identity re-key failed' });
+  }
 });
 
 app.post('/api/pi/admin/force-dex-record', async (req, res) => {
