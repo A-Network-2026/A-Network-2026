@@ -2673,7 +2673,7 @@ async function doCreatePool() {
   if (!discoveryMode && isStableSymbol(sym) && Math.abs(tokAmt - anetAmt) > 0.0000001) {
     const tokEl = document.getElementById('create-token-amount');
     if (tokEl) tokEl.value = String(anetAmt);
-    toast(`Adjusted ${sym} amount to match ANET for 1:1 launch price.`, 'info', 3500);
+    toast(`Adjusted ${sym} amount to match ANET for a 1:1 starting ratio (market sets the real price).`, 'info', 3500);
   }
 
   const btn = document.getElementById('create-pool-btn');
@@ -2776,7 +2776,7 @@ function quickCreateStablePool(symbol) {
   syncCreatePoolPegDraft();
   updateCreatePoolDepthPreview();
 
-  toast(`Draft set: ANET/${symbol} at 1:1 (1 ANET = $1). Review and click Create Pool.`, 'info', 4500);
+  toast(`Draft set: ANET/${symbol} at a 1:1 starting ratio. The market sets the real price from here — no fixed or guaranteed USD value. Review and click Create Pool.`, 'info', 4500);
 }
 
 function syncCreatePoolPegDraft() {
@@ -2793,7 +2793,7 @@ function syncCreatePoolPegDraft() {
   if (!discoveryMode && isStableSymbol(sym) && !isNaN(anetAmt) && anetAmt > 0) {
     tokEl.value = String(anetAmt);
     if (hintEl) {
-      hintEl.textContent = `Peg mode active: ${sym} amount mirrors ANET amount (1 ANET = $1).`;
+      hintEl.textContent = `Peg mode active: ${sym} amount mirrors ANET amount (1:1 starting ratio). The AMM discovers the real price — no fixed USD value.`;
       hintEl.style.color = 'var(--accent-2)';
     }
   } else if (discoveryMode) {
@@ -2802,7 +2802,7 @@ function syncCreatePoolPegDraft() {
       hintEl.style.color = 'var(--accent)';
     }
   } else if (hintEl) {
-    hintEl.textContent = 'Tip: for USDT/USDC pools, keep TOKEN AMOUNT equal to ANET AMOUNT to start at 1 ANET = $1.';
+    hintEl.textContent = 'Tip: keeping TOKEN AMOUNT equal to ANET AMOUNT starts the pool at a 1:1 ratio. The market sets the price from there — no fixed or redeemable USD value.';
     hintEl.style.color = 'var(--muted-2)';
   }
 
