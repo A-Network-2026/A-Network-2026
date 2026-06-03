@@ -88,6 +88,17 @@
 
   <!-- ── Stats panel ──────────────────────────────── -->
   <div class="shell">
+    <!-- ── Search results (hidden until a search runs) ── -->
+    <section class="twin" id="scanResults" hidden>
+      <div class="card" style="grid-column:1 / -1;">
+        <div class="card-head">
+          <h3 id="scanResultsTitle">Search results</h3>
+          <button class="customize" type="button" id="scanResultsClose">✕ Close</button>
+        </div>
+        <div id="scanResultsBody" style="padding:0 14px 14px;"></div>
+      </div>
+    </section>
+
     <section class="stats-panel">
       <div class="col">
         <div class="stat-row">

@@ -231,7 +231,7 @@
       for (let i = txs.length - 1; i >= 0; i--) {
         const t = txs[i] || {};
         out.push({
-          hash: String(t.hash || t.id || (`blk${b.block_height || 0}-${i}`)),
+          hash: String(t.tx_hash || t.hash || t.id || (`blk${b.block_height || 0}-${i}`)),
           timestamp: ts,
           from: String(t.from || t.sender || t.source || ""),
           to: String(t.to || t.recipient || t.destination || ""),
@@ -512,20 +512,210 @@
   }
 
   /* ── Search handler ────────────────────────────────── */
+
+  // Escape user-controlled text before putting it in innerHTML.
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+
+  function isoToUnix(iso) {
+    const ms = Date.parse(iso);
+    return Number.isFinite(ms) ? Math.floor(ms / 1000) : 0;
+  }
+
+  function showSearchPanel(title, html) {
+    const panel = $("#scanResults");
+    const body = $("#scanResultsBody");
+    const titleEl = $("#scanResultsTitle");
+    if (!panel || !body) return;
+    if (titleEl) titleEl.textContent = title;
+    body.innerHTML = html;
+    panel.hidden = false;
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function searchError(msg) {
+    return `<p class="lbl" style="color:var(--muted);padding:8px 0;">${esc(msg)}</p>`;
+  }
+
+  function renderAccountResult(acc) {
+    const addr = esc(acc.address);
+    const validator = acc.is_validator
+      ? `<span class="val-pill" style="color:var(--accent-2,#6ae7b1)">validator</span>`
+      : `<span class="val-pill">not a validator</span>`;
+    return `
+      <div class="row">
+        <div class="ico-sm">A</div>
+        <div class="meta">
+          <div class="top"><span class="num" title="${addr}">${addr}</span></div>
+          <div class="bot">Account · ${esc(acc.sessions)} sessions</div>
+        </div>
+        ${validator}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+        <span class="val-pill">${esc(acc.anet_balance)} ANET</span>
+        <span class="val-pill">${fmt(acc.ants_balance)} ANTS</span>
+      </div>`;
+  }
+
+  function renderBlockResult(b) {
+    const height = Number(b.block_height || 0);
+    const ts = isoToUnix(b.epoch_end || b.epoch_start);
+    const txs = Array.isArray(b.transactions) ? b.transactions : [];
+    const miners = Array.isArray(b.miners) ? b.miners.length : 0;
+    const rows = txs.slice(0, 12).map((t) => {
+      const hash = String(t.tx_hash || t.hash || "—");
+      return `
+        <div class="row">
+          <div class="meta">
+            <div class="top"><span class="num" title="${esc(hash)}">${esc(shortHash(hash, 14, 8))}</span></div>
+            <div class="bot">${esc(shortHash(t.from, 10, 6))} → ${esc(shortHash(t.to, 10, 6))}</div>
+          </div>
+          <span class="val-pill">${t.amount_ants != null ? fmt(t.amount_ants) + " ANTS" : "—"}</span>
+        </div>`;
+    }).join("");
+    return `
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <span class="val-pill">block #${fmt(height)}</span>
+        <span class="val-pill">${timeAgo(ts)}</span>
+        <span class="val-pill">${txs.length} txns</span>
+        <span class="val-pill">${miners} validators</span>
+        <span class="val-pill">${fmt(b.total_fees_ants || 0)} ANTS fees</span>
+      </div>
+      <div class="bot" style="word-break:break-all;margin-bottom:10px;">hash: ${esc(b.hash || "—")}</div>
+      ${rows || searchError("This block carried no individual transactions.")}`;
+  }
+
+  function renderTxResult(t, blockHeight) {
+    const hash = String(t.tx_hash || t.hash || "—");
+    return `
+      <div class="bot" style="word-break:break-all;margin-bottom:10px;">hash: ${esc(hash)}</div>
+      <div class="row">
+        <div class="meta">
+          <div class="top"><span class="num">${esc(shortHash(t.from, 14, 8))} → ${esc(shortHash(t.to, 14, 8))}</span></div>
+          <div class="bot">in block #${fmt(blockHeight)} · ${esc(t.tx_type || "transfer")}</div>
+        </div>
+        <span class="val-pill">${t.amount_ants != null ? fmt(t.amount_ants) + " ANTS" : "—"}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+        <span class="val-pill">fee ${fmt(t.fee_ants || 0)} ANTS</span>
+        <span class="val-pill">nonce ${esc(t.nonce != null ? t.nonce : "—")}</span>
+        ${t.memo ? `<span class="val-pill">memo: ${esc(t.memo)}</span>` : ""}
+      </div>`;
+  }
+
+  async function lookupAccount(addr) {
+    try { return await fetchJson(CHAIN_NODE + "/accounts/" + encodeURIComponent(addr)); }
+    catch (_) { return null; }
+  }
+  async function lookupBlockByHeight(h) {
+    try { return await fetchJson(CHAIN_NODE + "/blocks/height/" + encodeURIComponent(h)); }
+    catch (_) { return null; }
+  }
+  async function lookupBlockByHash(h) {
+    try { return await fetchJson(CHAIN_NODE + "/blocks/" + encodeURIComponent(h)); }
+    catch (_) { return null; }
+  }
+  // No direct tx-by-hash endpoint on the chain node yet, so scan the recent
+  // block window for a matching transaction hash.
+  async function lookupTxByHash(h) {
+    let blocks = [];
+    try { blocks = await fetchJson(CHAIN_NODE + "/blocks?limit=256"); }
+    catch (_) { return null; }
+    if (!Array.isArray(blocks)) return null;
+    const needle = String(h).toLowerCase();
+    for (let i = blocks.length - 1; i >= 0; i--) {
+      const b = blocks[i];
+      const txs = Array.isArray(b.transactions) ? b.transactions : [];
+      for (const t of txs) {
+        const th = String(t.tx_hash || t.hash || "").toLowerCase();
+        if (th && th === needle) return { tx: t, height: Number(b.block_height || 0) };
+      }
+    }
+    return null;
+  }
+
+  async function runSearch(q, kind) {
+    showSearchPanel("Searching…", searchError(`Looking up “${q}” …`));
+
+    const raw = q.trim();
+    const upper = raw.toUpperCase();
+    const isNumber = /^[0-9]+$/.test(raw);
+    const hashCandidate = raw.replace(/^0x/i, "");
+    const isHash = /^[0-9a-f]{64}$/i.test(hashCandidate);
+    const isAddress = /^ANET[0-9A-F]{20,60}$/i.test(raw);
+
+    // Explicit filter selections.
+    if (kind === "address" || kind === "validator") {
+      const acc = await lookupAccount(upper);
+      return acc
+        ? showSearchPanel("Account " + shortHash(upper, 10, 6), renderAccountResult(acc))
+        : showSearchPanel("Not found", searchError(`No account found for “${raw}”.`));
+    }
+    if (kind === "block") {
+      const b = isNumber ? await lookupBlockByHeight(raw) : await lookupBlockByHash(hashCandidate);
+      return b
+        ? showSearchPanel("Block #" + fmt(Number(b.block_height || 0)), renderBlockResult(b))
+        : showSearchPanel("Not found", searchError(`No block found for “${raw}”.`));
+    }
+    if (kind === "tx") {
+      const hit = await lookupTxByHash(hashCandidate);
+      return hit
+        ? showSearchPanel("Transaction", renderTxResult(hit.tx, hit.height))
+        : showSearchPanel("Not found", searchError(`No transaction found for “${raw}” in the recent block window.`));
+    }
+    if (kind === "token" || kind === "nft") {
+      return showSearchPanel("Not yet on-chain", searchError(
+        "Token & NFT lookup ships with the Token Factory (Phase 4). For NFTs, use the NFT explorer."));
+    }
+
+    // "All filters" — auto-detect by shape.
+    if (isNumber) {
+      const b = await lookupBlockByHeight(raw);
+      if (b) return showSearchPanel("Block #" + fmt(Number(b.block_height || 0)), renderBlockResult(b));
+      return showSearchPanel("Not found", searchError(`No block at height ${raw}.`));
+    }
+    if (isAddress) {
+      const acc = await lookupAccount(upper);
+      if (acc) return showSearchPanel("Account " + shortHash(upper, 10, 6), renderAccountResult(acc));
+      return showSearchPanel("Not found", searchError(`No account found for “${raw}”.`));
+    }
+    if (isHash) {
+      // Could be a block hash or a transaction hash — try block first.
+      const b = await lookupBlockByHash(hashCandidate);
+      if (b) return showSearchPanel("Block #" + fmt(Number(b.block_height || 0)), renderBlockResult(b));
+      const hit = await lookupTxByHash(hashCandidate);
+      if (hit) return showSearchPanel("Transaction", renderTxResult(hit.tx, hit.height));
+      return showSearchPanel("Not found", searchError(`No block or transaction matches “${raw}”.`));
+    }
+
+    // Last resort: try it as an account address.
+    const acc = await lookupAccount(upper);
+    if (acc) return showSearchPanel("Account " + shortHash(upper, 10, 6), renderAccountResult(acc));
+    return showSearchPanel("Not found", searchError(
+      `“${raw}” doesn't look like a block height, address, or transaction hash.`));
+  }
+
   function bindSearch() {
     const form = $("#scanSearch");
     if (!form) return;
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const q = String($("#scanQuery").value || "").trim();
-      const kind = String($("#scanFilter").value || "all");
+      const kind = String($("#scanFilter") && $("#scanFilter").value || "all");
       if (!q) return;
-      // Route by best guess; backend resolver TBD.
-      let target = "#/search?q=" + encodeURIComponent(q) + "&kind=" + kind;
-      if (/^[0-9]+$/.test(q)) target = "#/block/" + q;
-      else if (/^0x[0-9a-f]{64}$/i.test(q) || /^[0-9a-f]{64}$/i.test(q)) target = "#/tx/" + q;
-      else if (/^anet1[a-z0-9]{20,}$/i.test(q)) target = "#/addr/" + q;
-      location.hash = target;
+      runSearch(q, kind).catch((err) => {
+        showSearchPanel("Search error", searchError(
+          "Something went wrong reaching the chain node. Please try again."));
+        if (window.console) console.warn("search failed", err);
+      });
+    });
+    const closeBtn = $("#scanResultsClose");
+    if (closeBtn) closeBtn.addEventListener("click", () => {
+      const panel = $("#scanResults");
+      if (panel) panel.hidden = true;
     });
   }
 
