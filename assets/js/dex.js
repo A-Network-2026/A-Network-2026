@@ -2366,8 +2366,8 @@ function renderDexChart(history) {
     if (emptyNoteEl) {
       emptyNoteEl.style.display = 'flex';
       emptyNoteEl.textContent = state.marketViewMode === MARKET_VIEW_MODES.TEST
-        ? 'Public Test View is preparing demo candles. Keep this tab open for a few refresh cycles.'
-        : 'No production chart candles yet. Create/activate a live pool or switch to Public Test View.';
+        ? 'Public Test View is preparing demo trend data. Keep this tab open for a few refresh cycles.'
+        : 'No production trend data yet. Create/activate a live pool or switch to Public Test View.';
     }
     const startEl = document.getElementById('dex-chart-start');
     const midEl = document.getElementById('dex-chart-mid');
@@ -2394,7 +2394,7 @@ function renderDexChart(history) {
   if (!ohlc.length) {
     if (emptyNoteEl) {
       emptyNoteEl.style.display = 'flex';
-      emptyNoteEl.textContent = 'Not enough points to render candles yet.';
+      emptyNoteEl.textContent = 'Not enough points to render the trendline yet.';
     }
     return;
   }
@@ -2421,39 +2421,30 @@ function renderDexChart(history) {
   const plotWidth = width - leftPad * 2 - rightAxisWidth;
   const plotHeight = height - topPad - bottomPad;
   const candleStep = Math.max(6, plotWidth / Math.max(1, ohlc.length));
-  const bodyWidth = Math.min(18, Math.max(4, candleStep * 0.55));
-  const minVisibleSpread = Math.max(0.6, rawRange * 0.04);
-  const minVisibleBody = Math.max(1, plotHeight * 0.01);
   const valueToY = (value) => topPad + (maxValue - value) / range * plotHeight;
 
-  const candleSvgs = ohlc
-    .map((candle, index) => {
-      const x = leftPad + index * candleStep + candleStep * 0.5;
-      const spread = Math.max(candle.high - candle.low, minVisibleSpread);
-      const centerValue = (candle.open + candle.close) / 2;
-      const displayHigh = candle.high > candle.low ? candle.high : centerValue + spread / 2;
-      const displayLow = candle.high > candle.low ? candle.low : centerValue - spread / 2;
-      const yHigh = valueToY(displayHigh);
-      const yLow = valueToY(displayLow);
-      const yOpen = valueToY(candle.open);
-      const yClose = valueToY(candle.close);
+  // Trendline built from close prices (line is clearer for trend than candles)
+  const points = ohlc.map((candle, index) => ({
+    x: leftPad + index * candleStep + candleStep * 0.5,
+    y: valueToY(candle.close),
+  }));
+  const firstClose = ohlc[0].close;
+  const lastClose = ohlc[ohlc.length - 1].close;
+  const trendColor = lastClose >= firstClose ? '#22e7b8' : '#ff7d8f';
+  const trendFill = lastClose >= firstClose ? 'rgba(34,231,184,0.14)' : 'rgba(255,125,143,0.14)';
 
-      let yBodyTop = Math.min(yOpen, yClose);
-      let yBodyBottom = Math.max(yOpen, yClose);
-      if (yBodyBottom - yBodyTop < minVisibleBody) {
-        const bodyCenter = (yBodyTop + yBodyBottom) / 2;
-        yBodyTop = Math.max(topPad, bodyCenter - minVisibleBody / 2);
-        yBodyBottom = Math.min(topPad + plotHeight, bodyCenter + minVisibleBody / 2);
-      }
-      const bodyHeight = Math.max(minVisibleBody, yBodyBottom - yBodyTop);
-
-      const color = candle.isBullish ? '#22e7b8' : '#ff7d8f';
-      const wickSvg = `<line class="dex-wick" x1="${x.toFixed(2)}" y1="${yHigh.toFixed(2)}" x2="${x.toFixed(2)}" y2="${yLow.toFixed(2)}" stroke="${color}" stroke-width="1.2" opacity="0.85"></line>`;
-      const bodySvg = `<rect class="dex-candle" x="${(x - bodyWidth / 2).toFixed(2)}" y="${yBodyTop.toFixed(2)}" width="${bodyWidth.toFixed(2)}" height="${bodyHeight.toFixed(2)}" fill="${color}" opacity="0.9" rx="0.4"></rect>`;
-
-      return `${wickSvg}${bodySvg}`;
-    })
-    .join('');
+  const linePath = points
+    .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
+    .join(' ');
+  const baselineY = (topPad + plotHeight).toFixed(2);
+  const areaPath = points.length
+    ? `M${points[0].x.toFixed(2)} ${baselineY} `
+      + points.map((p) => `L${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ')
+      + ` L${points[points.length - 1].x.toFixed(2)} ${baselineY} Z`
+    : '';
+  const candleSvgs =
+    `<path class="dex-trend-area" d="${areaPath}" fill="${trendFill}" stroke="none"></path>`
+    + `<path class="dex-trend-line" d="${linePath}" fill="none" stroke="${trendColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>`;
 
   const gridLevels = [minValue, minValue + range / 2, maxValue];
   const gridLines = gridLevels
@@ -2477,7 +2468,7 @@ function renderDexChart(history) {
 
   const pool = getSelectedMarketPool();
   const sym = pool?.token_symbol || '?';
-  const title = `DEX market chart OHLC candlesticks (${timeframe.label}). Green = up, red = down. Last: ${fmt(lastCandle?.close, 6)} ANET per ${sym}.`;
+  const title = `DEX market trendline (${timeframe.label}). Green = uptrend, red = downtrend. Last: ${fmt(lastCandle?.close, 6)} ANET per ${sym}.`;
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   svg.setAttribute('aria-label', title);
   svg.innerHTML = `<title>${title}</title>${gridLines}${candleSvgs}${lastMarker}${rightAxisLabels}`;
