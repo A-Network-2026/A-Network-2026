@@ -70,12 +70,23 @@
     return s.slice(0, head) + "…" + s.slice(-tail);
   }
 
+  // Real gas label for the closed-loop economy. Gas is paid in ANET, settled in
+  // ANTS. Shows the recent average network fee per transaction (ANTS) when the
+  // block window carried fee-bearing txs; otherwise the near-zero baseline.
+  function gasLabel(stats) {
+    if (stats && Number(stats.gasAnts) > 0) {
+      return fmt(stats.gasAnts, 2) + " ANTS";
+    }
+    return "~0 ANTS";
+  }
+
   /* ── Demo / fallback data ─────────────────────────── */
   function demoStats() {
     // Used until live api wires up. Conservative honest placeholders.
     return {
       price: { value: null, change24h: null },
       gasGwei: 0.001,
+      gasAnts: 0,
       transactions24h: null,
       tps: null,
       latestBlock: { height: 0, timeSec: 0.5 },
@@ -109,6 +120,7 @@
     const stats = {
       price: { value: null, change24h: null },
       gasGwei: 0.001,
+      gasAnts: 0,
       transactions24h: 0,
       tps: null,
       latestBlock: { height: 0, timeSec: 0.5 },
@@ -125,9 +137,13 @@
 
     let txs24h = 0;
     let activatedAnts = 0;
+    let windowFeesAnts = 0;
+    let windowTxs = 0;
     for (const b of blocks) {
       const ts = b && b.epoch_end ? Date.parse(b.epoch_end) : NaN;
       const txCount = Array.isArray(b.transactions) ? b.transactions.length : 0;
+      windowFeesAnts += Number(b.total_fees_ants || 0);
+      windowTxs += txCount;
       if (Number.isFinite(ts)) {
         if (nowMs - ts <= dayMs) txs24h += txCount;
         if (ts >= startMs) {
@@ -138,6 +154,14 @@
       if (Number(b.activated_supply_ants) > activatedAnts) activatedAnts = Number(b.activated_supply_ants);
     }
     stats.transactions24h = txs24h;
+    // Real gas tracker: average network fee per transaction (in ANTS) across
+    // the recent block window. Falls back to the closed-loop minimum when the
+    // window carried no fee-bearing transactions.
+    if (windowTxs > 0 && windowFeesAnts > 0) {
+      stats.gasAnts = windowFeesAnts / windowTxs;
+    } else {
+      stats.gasAnts = 0;
+    }
     if (activatedAnts > 0) {
       stats.marketCapAnts = activatedAnts;
       stats.circulatingAnts = activatedAnts;
@@ -247,6 +271,15 @@
       if (!Array.isArray(blocksRaw)) blocksRaw = [];
     } catch (_) { blocksRaw = []; }
 
+    // Rich, read-only validator directory (sessions, voting power, online
+    // status, bootstrap-vs-organic). Optional — falls back to block-derived
+    // signer list if the endpoint is unavailable.
+    let validatorDir = null;
+    try {
+      const vd = await fetchJson(CHAIN_NODE + "/validators");
+      if (vd && Array.isArray(vd.validators)) validatorDir = vd;
+    } catch (_) { validatorDir = null; }
+
     if (blocksRaw.length) stats = Object.assign(stats, deriveChainStats(blocksRaw));
     const blocks = mapBlocks(blocksRaw, 6);
     const txs = mapTransactions(blocksRaw, 6);
@@ -260,7 +293,7 @@
       : "<strong>—</strong>";
 
     const gasEl = $("#anetGas");
-    if (gasEl) gasEl.innerHTML = `<strong>${stats.gasGwei != null ? stats.gasGwei + " Gwei" : "—"}</strong>`;
+    if (gasEl) gasEl.innerHTML = `<strong>${gasLabel(stats)}</strong>`;
 
     const setText = (sel, val) => { const el = $(sel); if (el) el.innerHTML = val; };
     setText("#statPrice", stats.price && stats.price.value != null
@@ -271,16 +304,18 @@
     setText("#statTxs", stats.transactions24h != null
       ? fmt(stats.transactions24h) + (stats.tps ? ` <span class="sub">(${Number(stats.tps).toFixed(1)} TPS)</span>` : "")
       : "—");
-    setText("#statGas", stats.gasGwei != null ? `${stats.gasGwei} Gwei <span class="sub">(&lt; $0.00001)</span>` : "—");
+    setText("#statGas", gasLabel(stats) + ' <span class="sub">(&lt; $0.00001)</span>');
     setText("#statMcap", stats.marketCapAnts != null
       ? fmt(stats.marketCapAnts) + ' <span class="sub">ANTS</span>'
       : "—");
     setText("#statBlock", stats.latestBlock && stats.latestBlock.height
       ? fmt(stats.latestBlock.height) + ` <span class="sub">(${stats.latestBlock.timeSec || 0.5}s)</span>`
       : "—");
-    setText("#statVoting", stats.votingPowerAnet != null
-      ? fmt(stats.votingPowerAnet) + ' <span class="sub">validators</span>'
-      : "—");
+    setText("#statVoting", validatorDir
+      ? fmt(validatorDir.total_eligible) + ` <span class="sub">validators${validatorDir.online_count ? ` · ${fmt(validatorDir.online_count)} online` : ""}</span>`
+      : (stats.votingPowerAnet != null
+          ? fmt(stats.votingPowerAnet) + ' <span class="sub">validators</span>'
+          : "—"));
 
     drawChart($("#txChart"), stats.txChart14d);
 
@@ -319,33 +354,72 @@
     // ── Validators panel (id="validators" anchor) ──
     const valsEl = $("#latestValidators");
     if (valsEl) {
-      const validators = new Map();
-      for (const b of blocksRaw) {
-        const ts = b && b.epoch_end ? Math.floor(Date.parse(b.epoch_end) / 1000) : 0;
-        if (Array.isArray(b.miners)) {
-          for (const m of b.miners) {
-            const key = String(m);
-            const prev = validators.get(key) || { blocks: 0, lastSeen: 0 };
-            prev.blocks += 1;
-            if (ts > prev.lastSeen) prev.lastSeen = ts;
-            validators.set(key, prev);
+      if (validatorDir && validatorDir.validators.length) {
+        // Real, on-chain eligible validator set with live status.
+        const summary = `
+          <div class="val-summary" style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;">
+            <span class="val-pill">${fmt(validatorDir.total_eligible)} eligible</span>
+            <span class="val-pill">${fmt(validatorDir.online_count)} online</span>
+            <span class="val-pill">${fmt(validatorDir.bootstrap_count)} bootstrap</span>
+            <span class="val-pill">${fmt(validatorDir.organic_count)} organic</span>
+            <span class="val-pill">cap ${fmt(validatorDir.max_validators)}</span>
+          </div>`;
+        const rows = validatorDir.validators.slice(0, 12).map((v) => {
+          const power = (Number(v.voting_power_bps || 0) / 100).toFixed(2);
+          const tag = v.is_bootstrap
+            ? `<span style="color:var(--accent-3)">bootstrap</span>`
+            : `<span style="color:var(--muted)">organic</span>`;
+          const dot = v.online ? "#6ae7b1" : "#e76a6a";
+          const statusLabel = v.online
+            ? "online"
+            : (v.last_seen_at ? "offline" : "no heartbeat");
+          const seen = v.last_seen_at
+            ? timeAgo(Math.floor(Date.parse(v.last_seen_at) / 1000))
+            : "—";
+          return `
+          <div class="row">
+            <div class="ico-sm">#${v.rank}</div>
+            <div class="meta">
+              <div class="top">
+                <span class="num" title="${v.address}">${shortHash(v.address, 12, 8)}</span>
+                <span class="ago"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dot};margin-right:5px;"></span>${statusLabel} · ${seen}</span>
+              </div>
+              <div class="bot">${tag} · ${fmt(v.sessions)} sessions · ${power}% voting power</div>
+            </div>
+            <span class="val-pill">${v.eligible ? "eligible" : "—"}</span>
+          </div>`;
+        }).join("");
+        valsEl.innerHTML = summary + rows;
+      } else {
+        // Fallback: derive a best-effort signer list from the block window.
+        const validators = new Map();
+        for (const b of blocksRaw) {
+          const ts = b && b.epoch_end ? Math.floor(Date.parse(b.epoch_end) / 1000) : 0;
+          if (Array.isArray(b.miners)) {
+            for (const m of b.miners) {
+              const key = String(m);
+              const prev = validators.get(key) || { blocks: 0, lastSeen: 0 };
+              prev.blocks += 1;
+              if (ts > prev.lastSeen) prev.lastSeen = ts;
+              validators.set(key, prev);
+            }
           }
         }
+        const sorted = Array.from(validators.entries())
+          .sort((a, b) => b[1].blocks - a[1].blocks)
+          .slice(0, 8);
+        valsEl.innerHTML = sorted.length
+          ? sorted.map(([addr, v], i) => `
+            <div class="row">
+              <div class="ico-sm">#${i + 1}</div>
+              <div class="meta">
+                <div class="top"><span class="num" title="${addr}">${shortHash(addr, 12, 8)}</span><span class="ago">${timeAgo(v.lastSeen)}</span></div>
+                <div class="bot">${v.blocks} block${v.blocks === 1 ? "" : "s"} signed in last window</div>
+              </div>
+              <span class="val-pill">active</span>
+            </div>`).join("")
+          : emptyRows("Validator set warming up.", 4);
       }
-      const sorted = Array.from(validators.entries())
-        .sort((a, b) => b[1].blocks - a[1].blocks)
-        .slice(0, 8);
-      valsEl.innerHTML = sorted.length
-        ? sorted.map(([addr, v], i) => `
-          <div class="row">
-            <div class="ico-sm">#${i + 1}</div>
-            <div class="meta">
-              <div class="top"><span class="num" title="${addr}">${shortHash(addr, 12, 8)}</span><span class="ago">${timeAgo(v.lastSeen)}</span></div>
-              <div class="bot">${v.blocks} block${v.blocks === 1 ? "" : "s"} signed in last window</div>
-            </div>
-            <span class="val-pill">active</span>
-          </div>`).join("")
-        : emptyRows("Validator set warming up.", 4);
     }
 
     // ── Tokens panel: ANTS circulating supply ──
