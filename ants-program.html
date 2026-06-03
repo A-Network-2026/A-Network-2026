@@ -287,7 +287,7 @@
         <div class="section-head">
           <div>
             <h2>Monthly Active Colony Snapshot</h2>
-            <p class="section-copy">Per-month, per-owner mining activity. Canonical daily snapshots are written by a GitHub Action at ~00:30 UTC and committed to <code>data/colony-monthly-YYYY-MM.json</code>, so every visitor sees the same chart. The current month resets automatically on the 1st at 00:00 UTC; the previous month becomes a read-only archive. Source: public chain stats endpoint.</p>
+            <p class="section-copy">Per-month, per-colony activity. Canonical daily snapshots are written by a GitHub Action at ~00:30 UTC and committed to <code>data/colony-monthly-YYYY-MM.json</code>, so every visitor sees the same chart. The current month resets automatically on the 1st at 00:00 UTC; the previous month becomes a read-only archive. Source: public colony leaderboard endpoint.</p>
           </div>
           <div class="progress-chip-wrap">
             <span class="progress-chip" id="cm-status">Loading...</span>
@@ -303,7 +303,7 @@
           <div><small>Tracked Owners</small><strong id="cm-owner-count">—</strong></div>
           <div><small>Tracked Colonies</small><strong id="cm-colony-count">—</strong></div>
           <div><small>Snapshots This Month</small><strong id="cm-sample-count">—</strong></div>
-          <div><small>Peak Mining (Top Owner)</small><strong id="cm-peak-mining">—</strong></div>
+          <div><small>Peak Active (Top Colony)</small><strong id="cm-peak-mining">—</strong></div>
         </div>
 
         <div class="cm-controls">
@@ -313,9 +313,9 @@
           </select>
           <label for="cm-metric-select" style="font-size:.82rem;color:#9aa5b8;margin-left:8px">Metric:</label>
           <select id="cm-metric-select" aria-label="Choose metric">
-            <option value="mining">Active Mining (active_chat_ants)</option>
-            <option value="members">Tracked Members</option>
-            <option value="rooms">Room Count</option>
+            <option value="mining">Active Members (mining)</option>
+            <option value="members">Total Members</option>
+            <option value="rooms">Verified Members</option>
           </select>
           <label for="cm-topn-select" style="font-size:.82rem;color:#9aa5b8;margin-left:8px">Show top:</label>
           <select id="cm-topn-select" aria-label="How many owners to plot">
@@ -445,7 +445,7 @@
   </div>
   <script src="assets/js/site-ai.js" defer></script>
   <script src="assets/js/ants-program.js?v=20260509-23" defer></script>
-  <script src="assets/js/colony-monthly.js?v=20260524-2" defer></script>
+  <script src="assets/js/colony-monthly.js?v=20260603-1" defer></script>
 </body>
 </html>
 

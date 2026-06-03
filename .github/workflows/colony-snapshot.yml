@@ -30,7 +30,7 @@ jobs:
 
       - name: Run snapshot script
         env:
-          ANET_STATS_ENDPOINT: https://explorer.a-network.net/stats/investor
+          ANET_STATS_ENDPOINT: https://api.a-network.net/colony-rewards/leaderboard?limit=200
         run: node scripts/colony-snapshot.js
 
       - name: Commit & push if changed

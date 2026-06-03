@@ -29,7 +29,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ENDPOINT = process.env.ANET_STATS_ENDPOINT
-  || 'https://explorer.a-network.net/stats/investor';
+  || 'https://api.a-network.net/colony-rewards/leaderboard?limit=200';
 const DATA_DIR = path.join(__dirname, '..', 'data');
 
 function utcMonthKey(d) {
@@ -44,7 +44,10 @@ function safeInt(v, fallback = 0) {
 }
 function extractOwnerCode(row) {
   return String(
-    row?.owner_code
+    row?.inviteCode
+      || row?.colonyLabel
+      || row?.ownerLabel
+      || row?.owner_code
       || row?.ownerCode
       || row?.ant_code
       || row?.antCode
@@ -81,7 +84,8 @@ async function main() {
     throw new Error(`Upstream HTTP ${res.status}`);
   }
   const payload = await res.json();
-  const rows = Array.isArray(payload?.rooms) ? payload.rooms
+  const rows = Array.isArray(payload?.leaderboard) ? payload.leaderboard
+    : Array.isArray(payload?.rooms) ? payload.rooms
     : Array.isArray(payload?.colonies) ? payload.colonies
     : Array.isArray(payload?.data) ? payload.data
     : Array.isArray(payload) ? payload
@@ -97,10 +101,10 @@ async function main() {
   rows.forEach((row) => {
     const code = extractOwnerCode(row);
     if (!code) return;
-    const mining = safeInt(row?.active_chat_ants);
-    const members = safeInt(row?.member_count || row?.members || row?.tracked_members || row?.active_chat_ants);
-    const rooms = safeInt(row?.room_count || row?.rooms || 1, 1);
-    const colonyName = String(row?.room_name || row?.colony || code).trim();
+    const mining = safeInt(row?.activeMembers ?? row?.active_chat_ants);
+    const members = safeInt(row?.totalMembers ?? row?.member_count ?? row?.members ?? row?.tracked_members ?? row?.active_chat_ants);
+    const rooms = safeInt(row?.verifiedMembers ?? row?.room_count ?? row?.rooms ?? 0, 0);
+    const colonyName = String(row?.colonyLabel || row?.room_name || row?.colony || code).trim();
     const prev = byOwner[code];
     if (!prev || mining > prev.mining) {
       byOwner[code] = { mining, members, rooms, colonyName };

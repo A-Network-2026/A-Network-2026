@@ -24,6 +24,10 @@
 
   const CHAIN_API = 'https://explorer.a-network.net';
   const STATS_ENDPOINT = '/stats/investor';
+  // Per-colony activity lives on the rewards leaderboard endpoint, not the
+  // network-summary /stats/investor object (which has no per-owner rows).
+  const COLONY_API = 'https://api.a-network.net';
+  const COLONY_ENDPOINT = '/colony-rewards/leaderboard?limit=200';
   const STORAGE_PREFIX = 'anet_colony_monthly_v1_';
   const ARCHIVE_PREFIX = 'anet_colony_monthly_v1_archive_';
   const STATIC_PREFIX = 'data/colony-monthly-';   // canonical: written daily by GitHub Action
@@ -181,7 +185,7 @@
   /* ── fetch + ingest ─────────────────────────────────────────────────── */
 
   async function fetchStats() {
-    const url = `${CHAIN_API}${STATS_ENDPOINT}`;
+    const url = `${COLONY_API}${COLONY_ENDPOINT}`;
     const res = await fetch(url, { credentials: 'omit' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();
@@ -193,7 +197,10 @@
    */
   function extractOwnerCode(row) {
     return String(
-      row?.owner_code
+      row?.inviteCode
+        || row?.colonyLabel
+        || row?.ownerLabel
+        || row?.owner_code
         || row?.ownerCode
         || row?.ant_code
         || row?.antCode
@@ -205,7 +212,8 @@
   }
 
   function ingest(payload) {
-    const rows = Array.isArray(payload?.rooms) ? payload.rooms
+    const rows = Array.isArray(payload?.leaderboard) ? payload.leaderboard
+      : Array.isArray(payload?.rooms) ? payload.rooms
       : Array.isArray(payload?.colonies) ? payload.colonies
       : Array.isArray(payload?.data) ? payload.data
       : Array.isArray(payload) ? payload
@@ -224,10 +232,13 @@
     rows.forEach((row) => {
       const ownerCode = extractOwnerCode(row);
       if (!ownerCode) return;
-      const mining = safeInt(row?.active_chat_ants);
-      const members = safeInt(row?.member_count || row?.members || row?.tracked_members || row?.active_chat_ants);
-      const rooms = safeInt(row?.room_count || row?.rooms || 1, 1);
-      const colonyName = String(row?.room_name || row?.colony || ownerCode).trim();
+      // mining   = active (mining) members in the colony this cycle
+      // members  = total members in the colony
+      // rooms    = verified members (repurposed third metric)
+      const mining = safeInt(row?.activeMembers ?? row?.active_chat_ants);
+      const members = safeInt(row?.totalMembers ?? row?.member_count ?? row?.members ?? row?.tracked_members ?? row?.active_chat_ants);
+      const rooms = safeInt(row?.verifiedMembers ?? row?.room_count ?? row?.rooms ?? 0, 0);
+      const colonyName = String(row?.colonyLabel || row?.room_name || row?.colony || ownerCode).trim();
 
       // If same owner has multiple rooms in the payload, take their max mining row
       const prev = byOwner[ownerCode];
