@@ -356,11 +356,15 @@
     if (valsEl) {
       if (validatorDir && validatorDir.validators.length) {
         // Real, on-chain eligible validator set with live status.
+        const retired = validatorDir.bootstrap_retired === true;
+        const sunsetPill = retired
+          ? `<span class="val-pill" style="color:var(--accent-2,#6ae7b1)">bootstrap retired · fully organic</span>`
+          : `<span class="val-pill">${fmt(validatorDir.bootstrap_count)} bootstrap</span>`;
         const summary = `
           <div class="val-summary" style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;">
             <span class="val-pill">${fmt(validatorDir.total_eligible)} eligible</span>
             <span class="val-pill">${fmt(validatorDir.online_count)} online</span>
-            <span class="val-pill">${fmt(validatorDir.bootstrap_count)} bootstrap</span>
+            ${sunsetPill}
             <span class="val-pill">${fmt(validatorDir.organic_count)} organic</span>
             <span class="val-pill">cap ${fmt(validatorDir.max_validators)}</span>
           </div>`;
