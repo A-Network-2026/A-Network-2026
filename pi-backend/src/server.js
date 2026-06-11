@@ -4338,7 +4338,7 @@ app.get('/api/bridge/evm/status/:txHash', async (req, res) => {
  * NOTE: only legacy pre-migration records appear here. The bsc-relayer is the
  * authoritative writer for new swaps and does not populate this list.
  */
-app.get('/api/bridge/evm/history/:evmAddress', (req, res) => {
+app.get('/api/bridge/evm/history/:evmAddress', async (req, res) => {
   const addr = String(req.params.evmAddress || '').toLowerCase().trim();
   if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) {
     return res.status(400).json({ ok: false, error: 'Invalid EVM address.' });
@@ -4347,10 +4347,46 @@ app.get('/api/bridge/evm/history/:evmAddress', (req, res) => {
   const nativeSym = EVM_NATIVE_SYMBOL[chainId] || 'BNB';
   const explorerBase = EVM_EXPLORER_TX[chainId] || '';
 
-  const swaps = Object.values(cashoutState.evmBridgeRequests || {})
+  const records = Object.values(cashoutState.evmBridgeRequests || {})
     .filter(r => r.evmSender === addr)
     .sort((a, b) => b.createdAt - a.createdAt)
-    .slice(0, 50)
+    .slice(0, 50);
+
+  // Reconcile records still marked unprocessed against L1, the source of truth.
+  // The bsc-relayer credits L1 directly and never writes back to this legacy
+  // local store, so without this check a swap that was actually credited would
+  // display as "pending" forever. The L1 lookup is idempotent and read-only; we
+  // persist the flip so subsequent reads are cheap. (Object.values returns the
+  // live stored objects, so mutating `r` mutates cashoutState directly.)
+  if (ANET_CHAIN_API_BASE_URL) {
+    let mutated = false;
+    await Promise.all(records.map(async (r) => {
+      if (r.processed) return;
+      const txHash = String(r.txHash || '').toLowerCase();
+      if (!/^0x[0-9a-fA-F]{64}$/.test(txHash)) return;
+      try {
+        const resp = await fetch(
+          `${ANET_CHAIN_API_BASE_URL}/bridge/evm/credit/${txHash}`,
+          { method: 'GET', headers: { 'Accept': 'application/json' } }
+        );
+        if (!resp.ok) return;
+        const data = await resp.json().catch(() => ({}));
+        if (data && data.processed) {
+          r.processed = true;
+          r.anetTxId = r.anetTxId || data.tx_id || `bridge:evm:${txHash}`;
+          r.processedAt = r.processedAt || Date.now();
+          mutated = true;
+        }
+      } catch (err) {
+        console.warn(`[EVM Bridge] history reconcile failed for ${txHash.slice(0, 18)}…: ${err.message}`);
+      }
+    }));
+    if (mutated) {
+      try { persistState(); } catch (_) {}
+    }
+  }
+
+  const swaps = records
     .map(r => {
       const isNative = r.tokenAddress === '0x0000000000000000000000000000000000000000';
       const tokenSymbol = isNative ? nativeSym : 'TOKEN';
