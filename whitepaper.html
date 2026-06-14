@@ -8,18 +8,18 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v3.5 | Live Layer 1 Mainnet · Hybrid TPoW + PoS · Fully Decentralized BEP-20 (Ownership Renounced) · AnetBridgeVault 2-of-3 EIP-712 · Founder Treasury Custody Migrated · Mine -> 1,000 Sessions -> Swap/Transfer -> NFT Activation · Bidirectional EVM Bridge · Layer 1 · Web3</title>
+  <title>A-Network Whitepaper v3.9 | Auditable L1 Liquidity · Separate Bitcoin and EVM Markets · Regulatory Launch Controls</title>
 
-  <meta name="description" content="The official A-Network v3.4 whitepaper. Documents the permanent renounce of the ANET BEP-20 ownership on May 24, 2026 (owner = 0x0), the AnetBridgeVault 2-of-3 EIP-712 smart-contract bridge deployed May 25, 2026, the founder treasury custody migration (10.5M wANET moved into the vault on May 25, 2026), the unified miner lifecycle rule, ANTS accounting, Layer 1 + Web3 architecture, bidirectional in-app EVM bridge (AnetSwap BSC contract + L1 burn endpoint), DEX settlement flow, security model, and full roadmap." />
+  <meta name="description" content="The official A-Network v3.9 whitepaper. Documents the fixed-function Layer 1, auditable wallet-funded liquidity controls, the separately accounted Bitcoin reserve market, the separate EVM market, treasury disclosures, and regulatory launch gates." />
 
   <meta name="theme-color" content="#07101a" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
   <meta http-equiv="X-Frame-Options" content="DENY" />
   <meta name="referrer" content="no-referrer" />
 
-  <meta property="og:title" content="A-Network Whitepaper" />
+  <meta property="og:title" content="A-Network Whitepaper v3.9" />
 
-  <meta property="og:description" content="Complete technical specification of the A-Network ecosystem: ANTS-first Web2 Ant Work, session-based halving, hard-cap issuance-ended behavior, 64-bit scale hardening, proxy-safe registration, wallet migration design, Web4 Layer 1, ANET Core, and full roadmap." />
+  <meta property="og:description" content="Technical specification for A-Network Layer 1, real-liquidity audit gates, treasury controls, separate Bitcoin and EVM markets, and compliance review requirements." />
 
   <meta property="og:url" content="https://a-network.net/whitepaper.html" />
 
@@ -675,7 +675,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v3.5 · 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v3.9 · JUNE 14, 2026</sub>
 
       </div>
 
@@ -695,6 +695,12 @@
     <a class="nav-item" href="#bridge-vault">v3.3 AnetBridgeVault (2-of-3 EIP-712)</a>
 
     <a class="nav-item" href="#v35-changelog">v3.5 AnetSwap Hardening</a>
+
+    <a class="nav-item" href="#v37-changelog">v3.7 Decentralization &amp; Oracle</a>
+
+    <a class="nav-item" href="#v38-changelog">v3.8 Governance V1</a>
+
+    <a class="nav-item" href="#v39-changelog">v3.9 L1 Liquidity Controls</a>
 
     <a class="nav-item" href="#introduction">Introduction</a>
 
@@ -788,15 +794,19 @@
 
     <a class="nav-item sub" href="#user-transparency">User Transparency</a>
 
+    <a class="nav-item sub" href="#l1-liquidity">L1 Liquidity &amp; Reserves</a>
+
+    <a class="nav-item sub" href="#btc-market">Bitcoin Reserve Market</a>
 
 
-    <div class="nav-section">Smart Contracts</div>
 
-    <a class="nav-item" href="#smart-contracts">Smart Contract Vision</a>
+    <div class="nav-section">Execution Model</div>
 
-    <a class="nav-item sub" href="#ants-gas">ANTS as Gas</a>
+    <a class="nav-item" href="#smart-contracts">Fixed-Function L1</a>
 
-    <a class="nav-item sub" href="#sc-implementation">Implementation Approach</a>
+    <a class="nav-item sub" href="#ants-gas">Native Fees</a>
+
+    <a class="nav-item sub" href="#sc-implementation">Future Upgrade Gate</a>
 
 
 
@@ -810,7 +820,7 @@
 
     <a class="nav-item" href="#official-links">Official Links</a>
 
-    <a class="nav-item" href="#legal">Legal Disclaimer</a>
+    <a class="nav-item" href="#legal">Regulatory Review Framework</a>
 
   </nav>
 
@@ -934,25 +944,149 @@
           </table>
         </div>
         <div style="font-size:0.85rem;line-height:1.6;color:#a8a8a8;margin-top:12px;">
-          <strong style="color:#cfcfcf;">Current honest classification:</strong> the <strong>ANET BEP-20 token contract is fully decentralized</strong>, and as of May 25, 2026 the <strong>bridge release path is also trustless</strong> &mdash; wANET can only leave AnetBridgeVault via a 2-of-3 EIP-712 signature threshold from independent self-hosted signers, with on-chain caps and burn-ID dedup. The <strong>L1 chain, cash-out escrow, and off-chain operations remain operator-run today</strong> and migrate to trustless components on the milestones above. A-Network does not claim to be "fully decentralized" until milestones 1&ndash;9 are complete and externally verified.
+          <strong style="color:#cfcfcf;">Current honest classification:</strong> the <strong>ANET BEP-20 token contract is ownerless</strong>, while the bridge release path remains controlled by its disclosed 2-of-3 signer policy, on-chain caps, and burn-ID dedup. These controls reduce single-key risk but do not make the whole system trustless. The <strong>L1 chain, cash-out escrow, reserve operations, and off-chain services remain operator-run today</strong>. A-Network does not claim system-wide decentralization until the stated milestones are complete and externally verified.
         </div>
         <div style="font-size:0.85rem;line-height:1.55;color:#a8a8a8;margin-top:8px;font-style:italic;">
           Global supply invariant (enforced across every phase): <code>&Sigma; wANET<sub>all chains</sub> &le; ANET<sub>locked on L1</sub> &le; 21,000,000</code>.
         </div>
       </div>
 
-      <div class="hero-badge">Technical Paper v3.6 (AnetSwap Governance Hardening · Timelock + Role Split)</div>
+      <div class="hero-badge">Technical Paper v3.9 (Auditable L1 Liquidity · Separate BTC and EVM Markets · Launch Gates)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
-      <p class="hero-sub">A-Network operates a dual economic architecture: a closed-loop Layer 1 economy denominated in ANTS (utility-driven, participation-based) and an open-market Web3 economy on BNB Chain (market-driven, liquidity-accessible). Version 3.6 lands the AnetSwap governance hardening pass &mdash; the entry-side contract now mirrors the AnetBridgeVault administrative model: a 48-hour timelock with a 14-day execution-grace window on all parameter changes, a three-role split (<code>admin</code> / <code>pauser</code> / <code>operator</code>) so a compromised pauser cannot unpause and a compromised operator cannot move funds, and a 2-step <code>transferAdmin</code>/<code>acceptAdmin</code> handover. This closes the last single-key surface on the BNB Chain side. Version 3.5 (May 28, 2026) landed the AnetSwap correctness pass (Safe-multisig–compatible fee/withdraw path via <code>.call{value:}</code>, paginated indexer view, withdrawal &amp; fee-forward events) following the internal &ldquo;Satoshi &amp; Engineer Thanks&rdquo; audit. It carries forward Version 3.2&apos;s permanent milestone: on <strong>May 24, 2026</strong> the ANET BEP-20 contract on BNB Chain (<code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>) had its ownership <strong>permanently renounced</strong> (<code>owner = 0x0000…0000</code>). The functions <code>mint()</code>, <code>pause()</code>, <code>unpause()</code>, and <code>setBlacklist()</code> are now permanently disabled, locking maximum supply at <strong>21,000,000 ANET</strong> forever. Version 3.1's bidirectional bridge remains intact: users can swap BNB, USDT, or USDC into ANET via the <strong>AnetSwap</strong> contract on BSC mainnet (<code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>), and conversely burn Layer&nbsp;1 ANET through the <code>POST&nbsp;/bridge/burn</code> endpoint on the ANET L1 node to receive wANET (BEP-20) on BSC from a dedicated escrow wallet. The lifecycle rule remains: <strong>mine first, complete 1,000 verified sessions, unlock mobile wallet execution for swap/transfer/cashout, then NFT profile is activated after first successful settlement event</strong>.</p>
+      <p class="hero-sub">A-Network operates a native Layer 1 settlement ledger and a separate EVM market. Version 3.9 defines the controls required before public Layer 1 liquidity can be described as real: every pool contribution must debit a named wallet, the paired reserve asset must be registered and externally verifiable, bootstrap or administrator-created balances cannot be presented as liquidity, and the mobile interface must fail closed when any audit gate is missing. The designated EVM reserve treasury is <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code>. A Bitcoin reserve may support a separately identified ANET/BTC market only after a Bitcoin treasury address and proof transaction are published. Bitcoin reserves, EVM reserves, and native Layer 1 balances are never merged in accounting or represented as interchangeable custody. Layer 1 currently uses fixed protocol operations and has no general-purpose smart-contract virtual machine; any future VM requires a separately specified consensus upgrade, public test environment, independent audit, and explicit activation decision.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> &mdash; 3.6 (AnetSwap Governance Hardening · May 2026)</div>
-        <div class="hero-meta-item"><strong>Published</strong> &mdash; May 28, 2026 (v3.6) · Correctness pass May 28, 2026 (v3.5) · Renounce milestone May 24, 2026 (v3.2)</div>
+        <div class="hero-meta-item"><strong>Version</strong> &mdash; 3.9 (L1 Liquidity and Regulatory Controls)</div>
+        <div class="hero-meta-item"><strong>Published</strong> &mdash; June 14, 2026</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong> &mdash; Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
-        <div class="hero-meta-item"><strong>Web3 Token</strong> &mdash; 21,000,000 ANET BEP-20 on BNB Chain &middot; DEX-listed &middot; <strong>Ownership Renounced (owner = 0x0)</strong></div>
+        <div class="hero-meta-item"><strong>EVM Reserve Treasury</strong> &mdash; <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code></div>
+        <div class="hero-meta-item"><strong>Market Separation</strong> &mdash; Native L1 &middot; Bitcoin reserve market &middot; EVM market accounted separately</div>
         <div class="hero-meta-item"><strong>Denomination</strong> &mdash; 1 ANET = 100,000,000 ANTS</div>
-        <div class="hero-meta-item"><strong>Lifecycle Rule</strong> &mdash; Mine &rarr; 1,000 sessions &rarr; Mobile swap/transfer/cashout &rarr; NFT unlock</div>
+        <div class="hero-meta-item"><strong>Liquidity Rule</strong> &mdash; Wallet-funded &middot; reserve-backed &middot; independently auditable &middot; never bootstrap</div>
       </div>
     </div>
+
+    <section class="wp-section" id="v39-changelog">
+      <div class="section-label">v3.9 Changelog &middot; June 14, 2026</div>
+      <h2>Version 3.9 &mdash; Auditable Layer 1 Liquidity</h2>
+      <p>Version 3.9 separates protocol capability from market readiness. A pool existing in node state does not, by itself, prove that real assets funded it. Public liquidity is considered launch-ready only when the complete funding path can be reconstructed from named wallets, signed requests, Layer 1 events, external-chain reserve evidence, and current balances.</p>
+
+      <div class="panel panel-red">
+        <h4>Current status: bootstrap liquidity is not real liquidity</h4>
+        <p style="margin-bottom:0;">Any existing pool whose reserves were created from protocol defaults, genesis configuration, administrator top-up, or any source that did not debit a contributor wallet is classified as <strong>bootstrap/test state</strong>. It must not be advertised, priced, counted in total value locked, or opened for additional public deposits. The liquidity interface displays this classification and disables contribution.</p>
+      </div>
+
+      <h3 id="l1-liquidity">Real-liquidity launch gates</h3>
+      <ul>
+        <li><strong>Wallet debit proof:</strong> the provider's native ANET and paired asset balances are debited by a signed, nonce-protected request recorded on Layer 1.</li>
+        <li><strong>Registered reserve asset:</strong> the paired receipt asset identifies its source chain, contract or native asset, decimals, reserve address, and proof policy.</li>
+        <li><strong>External backing proof:</strong> reserve balances and proof transactions are independently queryable on the relevant public chain. A node configuration value alone is not proof of reserves.</li>
+        <li><strong>No administrator top-up:</strong> privileged reserve mutations are excluded from real-liquidity totals and trigger a failed audit status.</li>
+        <li><strong>Market-specific accounting:</strong> stablecoin, Bitcoin, and EVM token reserves use separate symbols, reserve records, pool ledgers, and disclosures.</li>
+        <li><strong>User protection:</strong> the UI discloses price impact, impermanent loss, custody structure, fees, withdrawal availability, and the absence of guaranteed yield before accepting a signed contribution.</li>
+      </ul>
+
+      <h3 id="btc-market">Bitcoin reserve market</h3>
+      <p>A-Network may expose an <strong>ANET/BTC reserve market</strong> on Layer 1 using a registered BTC receipt asset backed by Bitcoin held at a disclosed Bitcoin treasury address. This is a reserve-backed market, not Bitcoin consensus and not a Bitcoin mining pool. The BTC market remains disabled until the treasury address, funding transaction, confirmation policy, reserve-to-receipt reconciliation, and redemption process are published and independently reproducible.</p>
+
+      <h3>Separate EVM market and treasury</h3>
+      <p>The EVM market remains separate from native Layer 1 accounting. Its designated reserve treasury is <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code>. Assets at that address are not automatically Layer 1 liquidity: each supported asset requires registration, balance verification, transaction evidence, and a corresponding Layer 1 receipt liability. No statement in this paper grants the treasury address authority to mint native Layer 1 ANET.</p>
+
+      <h3>Audit and publication package</h3>
+      <p>Before unrestricted public liquidity activation, A-Network will publish the relevant source revision, deployment/configuration manifest, reserve addresses, supported assets, pool-creation transactions, current reserve reconciliation, known limitations, and independent security assessment. Financial or reserve attestations must identify their scope and date. The word <em>audited</em> will not be used without naming the auditor, report, version, and unresolved findings.</p>
+    </section>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         v3.8 CHANGELOG — Governance V1 (June 10, 2026)
+         Participation-based community voting · 1 qualified account = 1 vote
+         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section class="wp-section" id="v38-changelog">
+      <div class="section-label">v3.8 Changelog · June 10, 2026</div>
+      <h2>Version 3.8 &mdash; Governance V1: Participation-Based Community Voting</h2>
+      <p>Version 3.8 introduces <strong>A-Network Governance V1</strong>, the protocol&apos;s first on-platform community vote. Governance is deliberately <strong>participation-based, not capital-based</strong>: voting power is <strong>one qualified account = one vote</strong>. It is explicitly <em>not</em> token-weighted (not 1&nbsp;ANET&nbsp;=&nbsp;1&nbsp;vote), <em>not</em> wallet-weighted, and <em>not</em> NFT-weighted. This keeps governance aligned with A-Network&apos;s utility-first, fair-distribution ethos &mdash; a long-time miner with one account has exactly the same voice as the largest holder.</p>
+
+      <h3>Voting power model</h3>
+      <ul>
+        <li><strong>1 qualified account = 1 vote.</strong> Voting weight is account-based and uniform; it is never scaled by ANET balance, wallet count, or NFT holdings.</li>
+        <li>The ballot is <strong>account-based and server-validated</strong>. Vote authority is enforced entirely on the backend, so the model cannot be gamed by an outdated client.</li>
+      </ul>
+
+      <h3>Eligibility gates (all must pass)</h3>
+      <ul>
+        <li><strong>Email verified</strong> &mdash; the account has a confirmed email.</li>
+        <li><strong>Account not banned</strong> &mdash; accounts flagged by the risk/ban system cannot vote.</li>
+        <li><strong>At least one completed mining session</strong> &mdash; proof of genuine participation.</li>
+        <li><strong>Web3 migration wallet configured</strong> &mdash; the account has set its migration wallet.</li>
+        <li><strong>Has not already voted</strong> on the active proposal &mdash; enforced by a database <code>UNIQUE(proposal_id, user_id)</code> constraint plus a row-locked transaction, making double-voting and API replay impossible.</li>
+      </ul>
+      <p>Accounts that fail any gate see a clear <strong>&ldquo;Not Eligible To Vote&rdquo;</strong> state with a per-requirement checklist, rather than a silent failure.</p>
+
+      <h3>The first proposal</h3>
+      <p><strong>Utility-First Distribution Roadmap.</strong> The inaugural vote asks the community to prioritize utility, governance, validators, wallet migration, and smart-contract preparation <em>before</em> Layer&nbsp;1 monetary activation. Under the proposal, Layer&nbsp;1 market settlement and broader liquidity activation would occur only after <strong>50% of the total mineable supply</strong> has been distributed, and Web3 reflections may be discontinued after that milestone to support fairer long-term distribution. Choices are <strong>YES / NO / ABSTAIN</strong>.</p>
+
+      <h3>Lifecycle &amp; activation</h3>
+      <ul>
+        <li><strong>21-day voting window.</strong> Each proposal opens for 21 days, after which the tally is final and the proposal closes automatically.</li>
+        <li><strong>Backend-activated start.</strong> Voting begins the moment the operator enables the governance feature flag on the backend &mdash; not when each user updates their app. The start and end timestamps are fixed server-side at activation, so every participant shares one synchronized window.</li>
+        <li><strong>Live, public results.</strong> Status, proposal text, and the running YES/NO/ABSTAIN tally are readable without authentication; casting a vote requires a signed-in, eligible account.</li>
+      </ul>
+
+      <h3>Integrity &amp; auditability</h3>
+      <ul>
+        <li>Every governance action &mdash; cast, rejected-ineligible, rejected-duplicate, rejected-closed &mdash; is written to an append-only <code>governance_audit_logs</code> trail.</li>
+        <li>Votes are recorded inside a single database transaction with <code>SELECT &hellip; FOR UPDATE</code>; the unique constraint guarantees exactly one ballot per account even under concurrent requests.</li>
+        <li>The vote endpoints are additive and isolated under <code>/governance</code>; no existing mining, wallet, or bridge behavior changes.</li>
+      </ul>
+
+      <p style="font-size:0.9rem;color:#a8a8a8;font-style:italic;margin-top:14px;">
+        Governance V1 is intentionally minimal: one account, one vote, transparent tally. Future iterations may add proposal threading and on-chain anchoring of finalized results, but the participation-based (non-capital-weighted) principle is foundational and will be preserved.
+      </p>
+    </section>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         v3.7 CHANGELOG — Decentralization Phase 0 + Phase 2 (June 7, 2026)
+         Auditable sync surface, standalone verifier, signed session oracle
+         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <section class="wp-section" id="v37-changelog">
+      <div class="section-label">v3.7 Changelog · June 7, 2026</div>
+      <h2>Version 3.7 &mdash; Decentralization: Auditable Sync &amp; Signed Session Oracle</h2>
+      <p>Version 3.7 is the first concrete step toward making the L1 <strong>independently verifiable</strong> and toward making the Web2&nbsp;&rarr;&nbsp;consensus boundary <strong>auditable instead of implicitly trusted</strong>. It ships a read-only chain verifier (Phase&nbsp;0) and a signed Web2 session oracle (Phase&nbsp;2). <strong>No monetary or staking mechanics are introduced</strong> &mdash; price discovery remains an L2 concern, consistent with the deferred-economics plan. Every new endpoint is additive; the oracle stays dormant until an operator explicitly enables it.</p>
+
+      <h3>Auditable sync surface (Phase 0)</h3>
+      <ul>
+        <li><strong><code>GET /sync/head</code></strong> returns a compact head summary: <code>{ chain_id, genesis_hash, tip_height, tip_hash, block_count }</code>.</li>
+        <li><strong><code>GET /blocks?from=&amp;to=</code></strong> returns a height-bounded range of blocks, capped at <strong>256</strong> per request, so any follower can paginate the full chain deterministically.</li>
+        <li>Both endpoints are <strong>read-only and additive</strong> &mdash; existing routes and behavior are unchanged.</li>
+      </ul>
+
+      <h3>Standalone chain verifier (Phase 0)</h3>
+      <p>A new database-free auditor can be pointed at any peer and independently re-checks history with no keys and no genesis file:</p>
+      <ul>
+        <li><strong>Hash-chain linkage</strong> &mdash; every block&apos;s <code>previous_hash</code> matches the prior block&apos;s hash.</li>
+        <li><strong>Block hash validity</strong> &mdash; the recomputed canonical hash matches.</li>
+        <li><strong>Structural validity</strong> &mdash; block shape and invariants hold.</li>
+        <li><strong>Per-transaction signatures</strong> &mdash; each signed transaction recovers to its claimed sender for this chain.</li>
+      </ul>
+      <p>Invocation: <code>--verify-peer &lt;url&gt; --expect-chain-id anet-private-mainnet-1 [--verify-once]</code>. Chain integrity is no longer a claim &mdash; it is reproducible from outside.</p>
+
+      <h3>One eligibility rule (consistency)</h3>
+      <p>Validator eligibility is now expressed in exactly one source-of-truth predicate &mdash; <code>is_session_eligible(sessions) = sessions &gt;= 1,000</code> &mdash; shared by the chain&apos;s validator computation and the oracle. This removes any risk of the chain and the Web2 backend silently drifting apart on what &ldquo;eligible&rdquo; means.</p>
+
+      <h3>Signed Web2 session oracle (Phase 2)</h3>
+      <p>Account session counts are credited from the Web2 backend; historically that edge was trusted implicitly. The oracle turns it into a <strong>signed, independently verifiable</strong> statement. The Web2 backend publishes a snapshot signed by a known key, and the chain (or anyone) verifies it cryptographically before it has any effect.</p>
+      <ul>
+        <li><strong>Canonical, order-independent preimage</strong>: <code>session-oracle-v1|chain_id|as_of_ms|WALLET:SESSIONS,...</code> with entries sorted by wallet &mdash; exactly one valid signature per logical snapshot.</li>
+        <li><strong>Verification</strong> requires all of: chain-id match, signature recovers to the configured oracle address, freshness window (default 900s), valid ANET wallets, and a low-S secp256k1 recovery.</li>
+        <li><strong>Monotonic application</strong>: verified session counts can only ever rise, so a replayed or stale snapshot is a no-op &mdash; never a demotion. The chain alone decides eligibility from on-chain state.</li>
+        <li><strong>Opt-in by design</strong>: <code>POST /oracle/session-snapshot</code> is disabled (HTTP&nbsp;503) until <code>ANET_WEB2_ORACLE_ADDRESS</code> is set. The signature <em>is</em> the authorization &mdash; no admin key required.</li>
+      </ul>
+
+      <h3>Security posture</h3>
+      <p>The oracle <strong>reduces</strong> trust rather than adding it: the Web2&nbsp;&rarr;&nbsp;chain edge moves from implicit to cryptographically verified and publicly replayable. Any change to a wallet, a session count, the chain-id, or the timestamp invalidates the signature; monotonic application plus the freshness window make stale or duplicated snapshots inert.</p>
+
+      <p style="font-size:0.9rem;color:#a8a8a8;font-style:italic;margin-top:14px;">
+        Next: a matching Web2 snapshot signer using the identical eligibility rule; Phase&nbsp;1 on-chain activation events so a follower can rebuild full account state from blocks alone; Phase&nbsp;3 producer-signed multi-producer blocks. Economics/PoS remain deferred (price discovery stays on L2).
+      </p>
+    </section>
 
     <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
          v3.6 CHANGELOG — AnetSwap Governance Hardening (May 28, 2026)
@@ -1118,7 +1252,7 @@
 
 
 
-      <p>The roadmap currently targets a broader Layer 1 release window in roughly <strong>8 months</strong>, subject to engineering readiness. Project planning may reference an illustrative early price zone around <strong>$0.000001</strong> for initial Layer 1 market discovery, but that is not a guaranteed launch price and actual valuation will be determined by open market participation.</p>
+      <p>Broader Layer 1 market access is subject to engineering, security, reserve, consumer-protection, and licensing readiness. A-Network does not set, target, forecast, or guarantee an initial market price. Any market value must arise from actual independently funded liquidity and willing counterparties, not bootstrap balances or an operator-supplied reference.</p>
 
 
 
@@ -1680,7 +1814,7 @@
 
             <tr><td><strong>Web4 Network</strong></td><td>ANET Layer 1</td><td>live ANTS Mainnet now; broader release targeted in roughly 8 months, subject to readiness</td></tr>
 
-            <tr><td><strong>Initial Market Reference</strong></td><td>~$0.000001</td><td>Illustrative early Layer 1 planning reference only, not a guaranteed launch price</td></tr>
+            <tr><td><strong>Initial Market Reference</strong></td><td>None</td><td>No operator-set target or implied valuation; price discovery requires real, auditable liquidity</td></tr>
 
           </tbody>
 
@@ -1708,7 +1842,7 @@
             </thead>
             <tbody>
               <tr><td><strong>Native Layer 1 coin</strong></td><td><strong>ANET</strong></td><td>BTC</td><td>Fixed supply of 21,000,000. Mined via verified Ant Work sessions. The economic identity of the network.</td></tr>
-              <tr><td><strong>Smallest indivisible unit</strong></td><td><strong>ANTS</strong> (Ant)</td><td>Satoshi (sat)</td><td>1 ANET = 100,000,000 ANTS. All ledger accounting, mining rewards, and L1 gas are denominated in ANTS.</td></tr>
+              <tr><td><strong>Smallest indivisible unit</strong></td><td><strong>ANTS</strong> (Ant)</td><td>Satoshi (sat)</td><td>1 ANET = 100,000,000 ANTS. Native balances, rewards, transfers, and protocol fees are denominated in ANTS.</td></tr>
               <tr><td><strong>Wrapped representation</strong></td><td><strong>wANET</strong></td><td>WBTC / BTCB</td><td>1:1 wrapped BEP-20 on BNB Chain, used for external liquidity, DEX routing, and cross-chain trading. Not the native coin.</td></tr>
             </tbody>
           </table>
@@ -1896,7 +2030,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
         <li>All session rewards are credited as ANTS.</li>
         <li>Mining output and fee models are defined in ANTS.</li>
         <li>The block explorer records ANTS-denominated balances and transactions.</li>
-        <li>ANTS functions as the gas unit for the planned smart contract layer.</li>
+        <li>ANTS is the atomic unit for native protocol fees; no general-purpose L1 contract gas market is active.</li>
         <li>Settlement/cashout can occur only through authorized bridge and DEX execution flow under policy controls.</li>
       </ul>
       <p>Spendable Layer 1 ANET is a higher-denomination representation. <strong>1 ANET = 100,000,000 ANTS.</strong> This ratio is fixed. Conversion from ANTS to spendable ANET is available once a participant reaches the 1,000-session genesis threshold.</p>
@@ -1932,7 +2066,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <h3 id="value-formation">Value Formation</h3>
       <div class="panel panel-accent">
         <h4>Layer 1 Value Formation</h4>
-        <p style="margin-bottom:0;">Value in the Layer 1 economy is derived from <strong>utility, participation, and network usage</strong>. As more users mine, transact, and use smart contracts (Phase 4+), ANTS flow through the fee market. There is no external price feed; Layer 1 ANET value is anchored to the network&rsquo;s own economic activity.</p>
+        <p style="margin-bottom:0;">Layer 1 utility derives from participation and native settlement activity. Market value, if any, is determined only in separately identified, actually funded markets. The protocol does not claim that usage creates a particular price or return.</p>
       </div>
       <div class="panel panel-green">
         <h4>Web3 Value Formation</h4>
@@ -1948,7 +2082,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
         </div>
       </div>
       <ul>
-        <li><strong>KYC:</strong> KYC is not required at the protocol level. External fiat on/off-ramp services, if used, may impose their own KYC requirements independently of A-Network.</li>
+        <li><strong>Identity and customer due diligence:</strong> cryptographic wallet verification does not by itself decide whether CDD/KYC is required. Operator-provided exchange, custody, bridge, redemption, or transfer services may require identity controls based on jurisdiction, risk, and licensing status.</li>
         <li><strong>Web3 token risk:</strong> The BEP-20 ANET token operates under independent market conditions. Price, liquidity, and availability are not controlled by A-Network.</li>
         <li><strong>Layer 1 and Web3 are separate:</strong> Holding or trading the Web3 BEP-20 token does not grant Layer 1 mining rewards, and Layer 1 mining does not guarantee Web3 token value.</li>
         <li><strong>No buy-to-mine shortcut:</strong> Acquiring Web3 ANET does not unlock or mint native mined ANET; real Layer 1 coin participation remains tied to verified mining lifecycle and eligibility thresholds.</li>
@@ -1960,44 +2094,42 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
 
     <!-- ─────────────────────────────────────────────────────────────────
-         § SC  SMART CONTRACT VISION
+         § SC  FIXED-FUNCTION L1 AND FUTURE EXECUTION UPGRADES
     ──────────────────────────────────────────────────────────────────── -->
     <section class="wp-section" id="smart-contracts">
       <div class="section-label">§ SC</div>
-      <h2>Smart Contract Vision</h2>
+      <h2>Fixed-Function Layer 1 Execution Model</h2>
 
-      <p>A planned future phase of A-Network (Phase 4 in the roadmap) introduces a smart contract layer directly on Layer 1. This section describes the architectural intent, the role of ANTS as gas, and the implementation approach under evaluation.</p>
+      <p>The production Layer 1 currently exposes defined protocol operations such as native transfers, registered-asset accounting, swaps, liquidity actions, bridge records, and governance-related state. It does <strong>not</strong> expose an EVM, arbitrary bytecode deployment, or a general-purpose smart-contract virtual machine. This narrower execution surface makes current behavior easier to specify, test, and audit.</p>
 
       <div class="notice info">
         <div class="notice-icon">Info</div>
         <div class="notice-body">
-          <strong>Phase 4 &mdash; Planned, Not Yet Deployed</strong>
-          Smart contract functionality is a roadmap target. The specifications below represent current design intent and are subject to revision as engineering and security evaluation progresses.
+          <strong>EVM remains a separate market</strong>
+          Existing BNB Chain contracts and markets do not run inside A-Network Layer 1. Their contracts, custody, fees, risks, and balances remain on their source EVM chain and are reconciled through separately disclosed bridge or reserve processes.
         </div>
       </div>
 
-      <h3 id="ants-gas">ANTS as Gas</h3>
-      <p>In the planned smart contract model, <strong>ANTS serves as the gas unit</strong> for smart contract execution on Layer 1. This aligns execution cost with the native unit of the network&rsquo;s economy, keeping fees denominated in the same asset used for mining rewards and balances.</p>
+      <h3 id="ants-gas">Native protocol fees</h3>
+      <p>Native operations may charge deterministic fees denominated in ANTS. These are protocol fees for specifically implemented actions, not gas for arbitrary user-deployed code.</p>
       <ul>
-        <li>Every contract call consumes a defined quantity of ANTS as an execution fee.</li>
-        <li>Gas fees flow back into the network&rsquo;s fee distribution model, contributing to ecosystem sustainability.</li>
-        <li>Miners and validators benefit from gas fee distribution in addition to block rewards.</li>
-        <li>ANTS-denominated gas keeps the cost model independent of external token markets.</li>
+        <li>Fee schedules and recipient rules must be public and versioned.</li>
+        <li>Fee changes require the governance and activation controls defined by the relevant protocol release.</li>
+        <li>No fee schedule represents or guarantees income to miners, validators, or liquidity providers.</li>
       </ul>
 
-      <h3 id="sc-implementation">Implementation Approach</h3>
+      <h3 id="sc-implementation">Future execution upgrade gate</h3>
       <div class="panel panel-accent">
-        <h4>EVM Compatibility Evaluation</h4>
-        <p>A-Network is evaluating EVM compatibility as the primary approach for the smart contract layer. EVM compatibility would allow existing Solidity tooling, developer ecosystems, and audited contract patterns to be used on A-Network Layer 1 without requiring a separate language or VM learning curve.</p>
-        <p style="margin-bottom:0;">A custom VM approach remains under consideration as an alternative if EVM integration presents architectural conflicts with the Layer 1 consensus model.</p>
+        <h4>No automatic smart-contract activation</h4>
+        <p style="margin-bottom:0;">A future VM is a separate consensus and security decision, not a feature that automatically opens when development reaches an informal percentage. Activation requires a written specification, threat model, deterministic implementation, public test environment, state-transition tests, independent security audit, validator compatibility review, upgrade and rollback procedure, and explicit network activation decision.</p>
       </div>
       <div class="panel panel-green">
-        <h4>Developer Tooling &amp; SDK</h4>
-        <p style="margin-bottom:0;">Phase 4 implementation includes developer-facing SDK tooling, RPC endpoint access, and documentation for contract deployment on Layer 1. The block explorer will be extended to display contract state, transaction traces, and gas consumption.</p>
+        <h4>Bitcoin-inspired boundary</h4>
+        <p style="margin-bottom:0;">The intended near-term model is Bitcoin-like in one limited sense: a native coin ledger with a small, consensus-defined transaction surface. A-Network does not claim Bitcoin's proof-of-work, security budget, decentralization, operational history, or network properties.</p>
       </div>
       <div class="panel panel-purple">
-        <h4>Security-First Deployment</h4>
-        <p style="margin-bottom:0;">Smart contract deployment on Layer 1 will follow a staged rollout with independent security audits before public contract execution is enabled. No user funds or contracts will be activated on the production chain until audit criteria are met.</p>
+        <h4>Review before production</h4>
+        <p style="margin-bottom:0;">No production user funds may depend on a future execution engine until the exact deployed revision and its upgrade controls have completed independent review. Audit completion does not eliminate risk and must not be described as a guarantee of safety.</p>
       </div>
     </section>
 
@@ -3392,7 +3524,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       <div class="panel" style="border-left:3px solid #22e7b8;background:rgba(34,231,184,.06);">
         <h4 style="margin-top:0;">Hybrid TPoW + PoS &mdash; the Live Mainnet model</h4>
-        <p>Following the Bitcoin precedent, A-Network does <strong>not</strong> run a separate testnet. The Layer 1 reachable at <a href="https://explorer.a-network.net" target="_blank" rel="noopener">explorer.a-network.net</a> is the production <strong>Mainnet</strong>. Consensus pairs two independent signals:</p>
+        <p>The Layer 1 reachable at <a href="https://explorer.a-network.net" target="_blank" rel="noopener">explorer.a-network.net</a> is identified as the production <strong>Mainnet</strong>. Production status is not a substitute for staged testing. Any material consensus, custody, liquidity, or execution change must first be exercised in an isolated test environment or reproducible local network before mainnet activation. The current design describes two participation signals:</p>
         <ul>
           <li><strong>TPoW (entry)</strong> &mdash; eligibility is earned through verified 6-hour mining sessions on commodity smartphones. ASIC-resistant and capital-resistant by construction.</li>
           <li><strong>PoS (finality)</strong> &mdash; once a participant crosses the 1,000-session genesis threshold, accumulated ANTS &rarr; ANET stake can be bonded to operate a validator and sign settlement blocks. Slashing applies to equivocation and downtime.</li>
@@ -3736,7 +3868,7 @@ Block {
 
           <li><strong>Verification Period:</strong> A 30-day public verification window allows any participant to audit their balance against the published snapshot.</li>
 
-          <li><strong>Full Activation:</strong> After verification, the Layer 1 chain is opened for transactions, smart contracts, and fee mining.</li>
+          <li><strong>Full Native Activation:</strong> After verification, approved native transfers and fixed-function protocol operations may be opened under published limits. A general-purpose smart-contract VM is not included and would require a separate consensus upgrade.</li>
 
         </ol>
 
@@ -4236,18 +4368,18 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
         <div class="rm-item">
           <div class="rm-dot future"></div>
-          <div class="rm-phase">Phase 4 &mdash; Smart Contract Layer (Planned)</div>
-          <div class="rm-title">Smart Contracts on Layer 1 with ANTS Gas</div>
+          <div class="rm-phase">Phase 4 &mdash; Auditable Native Markets (Planned)</div>
+          <div class="rm-title">Wallet-Funded L1 Liquidity and Reserve Reconciliation</div>
           <div class="rm-desc">
-            Deployment of a smart contract execution layer directly on A-Network Layer 1. ANTS serves as the gas unit for all contract execution. EVM compatibility is the primary approach under evaluation; a custom VM remains an alternative. Phase includes developer SDK, RPC endpoints, explorer extensions, and independent security audits before production activation.
+            Activation of native fixed-function markets only after wallet-debit provenance, registered reserve assets, external reserve proofs, withdrawal paths, consumer disclosures, sanctions/AML controls where applicable, and independent security review are complete. Bitcoin-backed and EVM-backed markets remain separately identified and reconciled.
           </div>
           <div class="rm-tags">
-            <span class="rm-tag">Smart Contracts</span>
-            <span class="rm-tag">ANTS as Gas</span>
-            <span class="rm-tag">EVM Evaluation</span>
-            <span class="rm-tag">Developer SDK</span>
-            <span class="rm-tag">Security Audits</span>
-            <span class="rm-tag">Staged Rollout</span>
+            <span class="rm-tag">Real Liquidity</span>
+            <span class="rm-tag">Proof of Reserves</span>
+            <span class="rm-tag">BTC Market Separation</span>
+            <span class="rm-tag">EVM Market Separation</span>
+            <span class="rm-tag">Independent Audit</span>
+            <span class="rm-tag">Regulatory Gate</span>
           </div>
         </div>
 
@@ -4323,7 +4455,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <!-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-         Section  15 LEGAL
+         Section  15 REGULATORY AND LEGAL REVIEW
 
     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
@@ -4331,7 +4463,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
       <div class="section-label">Section 15</div>
 
-      <h2>Legal Disclaimer</h2>
+      <h2>Regulatory and Legal Review Framework</h2>
 
 
 
@@ -4339,7 +4471,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
         <h4>Company Information</h4>
 
-        <p style="margin-bottom: 0;">A-Network is operated by <strong>A Network LLC</strong>, a California limited liability company. California Entity No. <strong>20260170159</strong>. Initial business filing approved on <strong>April 15, 2026</strong>.</p>
+        <p style="margin-bottom: 0;">Project records identify the operator as <strong>A Network LLC</strong>, a California limited liability company, California Entity No. <strong>20260170159</strong>, with an initial business filing dated <strong>April 15, 2026</strong>. Corporate status, beneficial ownership, authority, tax treatment, and required registrations must be independently confirmed during legal due diligence.</p>
 
       </div>
 
@@ -4347,18 +4479,47 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
       <div class="panel panel-red">
 
-        <p><strong>This whitepaper is provided for informational purposes only.</strong> Nothing in this document constitutes financial advice, investment advice, or a solicitation to purchase any digital asset. Participation in A-Network mining involves risks including but not limited to: technological risk, regulatory risk, and market risk.</p>
+        <p><strong>This whitepaper is technical and informational; it is not a legal opinion, approval, prospectus, financial recommendation, or guarantee of regulatory treatment.</strong> No whitepaper can by itself ensure that a product will pass regulatory review. Classification depends on the asset, transaction, marketing, distribution, operator conduct, custody, counterparties, and jurisdiction at the relevant time.</p>
 
-        <p>The ANET coin is a utility coin within the A-Network ecosystem. It is not a security, does not represent equity in any company, and does not entitle the holder to any dividend, profit share, or management rights.</p>
+        <p>ANET does not state a contractual right to company equity, dividends, profit share, or management. That fact alone does not determine legal classification. In the United States, the federal securities analysis must be applied to the facts and manner of offer or sale, including whether a non-security crypto asset is offered as part of an investment contract. The project must obtain current U.S. securities counsel review before any public sale, liquidity incentive, yield program, exchange campaign, or materially changed distribution.</p>
 
         <p>The development timelines, technical specifications, and feature descriptions in this whitepaper represent current plans and intentions. They are subject to change as the project evolves. No guarantee is made regarding any specific future feature, capability, timeline, financial return, or controlled distribution outcome.</p>
 
-        <p>A Network does not guarantee financial returns. All values, metrics, and distributions described here are based on participation, system rules, and network conditions. The platform is designed for ecosystem participation, not speculative investment.</p>
+        <p>A Network does not guarantee price, liquidity, yield, appreciation, redemption value, or financial return. Liquidity-provider fees are variable compensation for market activity and risk, not interest or a promised return. Marketing materials and interfaces must not imply otherwise.</p>
 
-        <p>Users are responsible for complying with all applicable laws and regulations in their jurisdiction. A-Network does not represent that participation is legal in any specific jurisdiction. Always conduct your own research (DYOR).</p>
+        <p>Users remain responsible for their own legal and tax obligations, but operator obligations cannot be shifted to users by disclaimer. A-Network does not represent that every feature is lawful or available in every jurisdiction.</p>
 
-        <p style="margin-bottom: 0;"><strong>By using the A-Network application or holding ANET, you acknowledge that you have read and understood this disclaimer.</strong></p>
+        <p style="margin-bottom: 0;"><strong>Features that have not passed the applicable legal, security, reserve, and operational launch gates must remain disabled or geographically restricted.</strong></p>
 
+      </div>
+
+      <h3>Required U.S. review</h3>
+      <ul>
+        <li><strong>Securities:</strong> apply the U.S. Securities and Exchange Commission's current crypto-asset interpretation to each asset and transaction structure; do not rely on the label <em>utility</em>. Reference: <a href="https://www.sec.gov/newsroom/press-releases/2026-30-sec-clarifies-application-federal-securities-laws-crypto-assets" target="_blank" rel="noopener">SEC release, March 17, 2026</a>.</li>
+        <li><strong>Money transmission and AML:</strong> evaluate whether operating the DEX interface, bridge, custody, redemption, or reserve-backed receipt system makes any person a money transmitter or other money services business. A noncustodial interface label does not decide the analysis. Reference: <a href="https://www.fincen.gov/sites/default/files/2019-05/FinCEN%20Guidance%20CVC%20FINAL%20508.pdf" target="_blank" rel="noopener">FinCEN convertible virtual currency guidance</a>.</li>
+        <li><strong>Sanctions:</strong> maintain a documented, risk-based sanctions program covering customers or counterparties where applicable, wallet screening, geographic exposure, escalation, recordkeeping, and blocked/rejected transaction handling. Reference: <a href="https://ofac.treasury.gov/media/913571/download?inline" target="_blank" rel="noopener">OFAC virtual currency sanctions guidance</a>.</li>
+        <li><strong>State law and consumer protection:</strong> review money-transmitter, digital-asset, unfair-practices, privacy, cybersecurity, and advertising requirements in every state where operator-provided services are offered.</li>
+      </ul>
+
+      <h3>Philippines review</h3>
+      <p>Because the application and operations may reach users in the Philippines, counsel must assess the Bangko Sentral ng Pilipinas virtual asset service provider framework, including licensing scope, customer due diligence, AML controls, travel-rule obligations, custody and reserve safeguards, transaction records, consumer disclosures, and complaint handling. Reference: <a href="https://www.bsp.gov.ph/Regulations/Issuances/2021/1108.pdf" target="_blank" rel="noopener">BSP Circular No. 1108</a>. Features within regulated scope must not be launched to Philippine users until the required authority or a documented legal basis is in place.</p>
+
+      <h3>Operational compliance controls</h3>
+      <ul>
+        <li>Document the responsible legal entity, operators, beneficial owners, treasury signers, reserve custodians, service providers, and complaint contact.</li>
+        <li>Segregate customer or backing assets from operating funds; reconcile reserve assets to receipt liabilities; publish exceptions and remediation.</li>
+        <li>Maintain risk-based onboarding, transaction monitoring, sanctions screening, suspicious-activity escalation, travel-rule handling where applicable, and legally required records.</li>
+        <li>Publish plain-language disclosures for custody, reserve claims, redemption, fees, spreads, slippage, impermanent loss, smart-contract or protocol risk, forks, outages, and geographic restrictions.</li>
+        <li>Subject production code, custody controls, key management, reserve reporting, and financial statements or attestations to appropriately scoped independent review.</li>
+        <li>Retain versioned evidence of legal sign-off and launch approval for each market. Approval for an EVM market does not automatically cover the native Layer 1 or Bitcoin reserve market.</li>
+      </ul>
+
+      <div class="notice warn">
+        <div class="notice-icon">Gate</div>
+        <div class="notice-body">
+          <strong>Launch decision</strong>
+          Public liquidity remains disabled until written legal review identifies the permitted jurisdictions and operator obligations, the deployed code revision passes independent security review, reserve evidence is reproducible, withdrawal/redemption works, and the user interface enforces the resulting controls.
+        </div>
       </div>
 
 
@@ -4375,7 +4536,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <div class="wp-footer">
 
-      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> &middot; Official Whitepaper v3.1 &middot; May 22, 2026</p>
+      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> &middot; Official Whitepaper v3.9 &middot; June 14, 2026</p>
 
       <p>Website: <a href="https://a-network.net">a-network.net</a> &middot; Contract: <a href="https://bscscan.com/address/0x791055A7d52AA392eaE8De04250497f33807E46A">0x791055A7...E46A</a> &middot; App: <a href="https://play.google.com/store/apps/details?id=com.anetwork.app">Google Play</a></p>
 
@@ -4572,9 +4733,3 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 </body>
 
 </html>
-
-
-
-
-
-

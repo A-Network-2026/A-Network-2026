@@ -84,14 +84,11 @@ module.exports = {
       chainId: 31337,
     },
   },
+  // Etherscan API V2: a single unified key verifies across all supported
+  // chains (BSC, ETH, Polygon, Base, ...). The legacy per-network object is
+  // deprecated. Falls back to ETHERSCAN_API_KEY if BSCSCAN_API_KEY is unset.
   etherscan: {
-    apiKey: {
-      bsc:            BSCSCAN_API_KEY,
-      bscTestnet:     BSCSCAN_API_KEY,
-      mainnet:        ETHERSCAN_API_KEY,
-      polygon:        process.env.POLYGONSCAN_API_KEY || "",
-      base:           process.env.BASESCAN_API_KEY    || "",
-    },
+    apiKey: BSCSCAN_API_KEY || ETHERSCAN_API_KEY,
   },
   paths: {
     sources:   "./src",

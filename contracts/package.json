@@ -9,6 +9,10 @@
     "deploy:bsc": "hardhat run scripts/deploy.js --network bsc",
     "deploy:bsc-testnet": "hardhat run scripts/deploy.js --network bsc_testnet",
     "deploy:eth": "hardhat run scripts/deploy.js --network eth",
+    "deploy:l2portal:bsc": "hardhat run scripts/deploy-l2-portal.js --network bsc",
+    "deploy:l2portal:bsc-testnet": "hardhat run scripts/deploy-l2-portal.js --network bsc_testnet",
+    "deploy:feeproc:bsc": "hardhat run scripts/deploy-fee-processor.js --network bsc",
+    "deploy:feeproc:bsc-testnet": "hardhat run scripts/deploy-fee-processor.js --network bsc_testnet",
     "setup:bsc": "hardhat run scripts/setup-tokens.js --network bsc",
     "verify:bsc": "hardhat verify --network bsc"
   },

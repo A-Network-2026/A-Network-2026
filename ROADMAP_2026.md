@@ -1,7 +1,7 @@
 # A-Network Development Roadmap 2026
 
 **Status:** Whitepaper v3.0 (May 2026) | App v1.0.21+71 | Live Backend  
-**Updated:** May 17, 2026
+**Updated:** June 11, 2026 (Architecture Decision: BSC ANET = L2 native gas asset; L1 stays separate)
 
 ---
 
@@ -53,7 +53,7 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
 **What it is:**
 - Fixed-supply BEP-20 ANET utility token on BNB Smart Chain
 - External market visibility and liquidity discovery
-- Dual-economy model (separate from Layer 1 mining coin)
+- **Designated future L2 native gas asset** (see *Architecture Decision — June 11, 2026* below). The BSC ANET token is the asset earmarked to pay gas on the planned BSC-anchored L2; it is **not** a separate, unrelated economy from that L2.
 
 **Key Features:**
 - Supply: 21,000,000 ANET fixed (no minting)
@@ -65,10 +65,25 @@ A-Network is structured as a **long-horizon infrastructure project**, progressin
   - Bridge contract: `0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8` (AnetSwap, BSC mainnet)
   - 1% bridge fee, whitelisted: BNB, USDT, USDC, WBNB, BUSD
   - Every bridge swap recorded on ANET Layer 1 explorer
-- **Important:** Web3 BEP-20 ANET ≠ Layer 1 mining ANET
-  - Holding Web3 token ≠ mining rewards
-  - Trading Web3 token ≠ Layer 1 mining rights
-  - Two separate economic systems coexist
+- **Important:** BSC ANET (BEP-20) and the in-development custom **L1** chain are *different layers*, not interchangeable balances:
+  - The custom L1 (Rust, ANTS-denominated, mined) keeps its own **mining-only** supply model.
+  - The BSC ANET token is the **designated L2 native gas asset** and is governed by its fixed 21M cap on BSC.
+  - Holding BSC ANET ≠ L1 mining rewards; trading BSC ANET ≠ L1 mining rights.
+  - The two ledgers remain **operationally separate today.** Any future unification is a deliberate, governed *migration decision* (see Phase 3 and the Architecture Decision below) — not an automatic bridge.
+
+> ### 🧭 Architecture Decision — June 11, 2026
+>
+> A code audit clarified that the current Rust chain is a **custom L1**, not an L2 rollup, and that the BSC↔L1 credit relayer must **not** be treated as a canonical L2 bridge. The adopted, workable direction is:
+>
+> 1. **BSC ANET becomes the L2 native gas asset.** The existing BEP-20 token (`0x791055A7d52AA392eaE8De04250497f33807E46A`, fixed 21M cap) is the gas/settlement asset for the planned BSC-anchored L2.
+> 2. **ANTS remains the gas/accounting unit.** On-chain accounting and fees stay denominated in ANTS (100M ANTS = 1 ANET).
+> 3. **1,000 completed sessions unlock L2 utilities.** The participation gate (Time-PoW eligibility) is the on-ramp to L2 features.
+> 4. **The unfinished ANET L1 remains separate** until a future, explicit migration decision. No code change in this release merges the two ledgers.
+>
+> **Guardrails enforced in code (this release):**
+> - The BSC→L1 USDC relayer (`bsc-relayer`) credits ANET by quoting the L1 AMM and minting from a synthetic treasury. This is a **legacy L1 convenience path only**. It is flagged `IS_L2_CANONICAL_BRIDGE = false`, and the relayer **refuses to boot** if an operator tries to designate it as the L2 canonical bridge (`L2_CANONICAL_BRIDGE=true`). It must never back L2 supply.
+> - `AnetBridgeVault.sol` is the **L1→BSC cash-out vault**, not the L2 deposit/withdraw portal.
+> - The L1 mining-only supply guarantee is unaffected; synthetic-treasury credits exist solely to mirror real off-chain USDC deposits on the legacy L1 and are not a supply source for any L2.
 
 **Current Status:**
 - ✅ Contract deployed and verified

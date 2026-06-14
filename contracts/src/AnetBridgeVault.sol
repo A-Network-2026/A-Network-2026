@@ -33,6 +33,13 @@ pragma solidity ^0.8.20;
  * ║                                                                          ║
  * ║ Solidity 0.8.20, no external dependencies (vendored minimal interfaces  ║
  * ║ to keep deployment + verification trivial on BscScan).                  ║
+ * ║                                                                          ║
+ * ║ ⚠️  SCOPE (audit 2026-06-11): This is the L1 → BSC CASH-OUT vault only.  ║
+ * ║   It is NOT the canonical L2 deposit/withdraw portal. Per the June 11,  ║
+ * ║   2026 Architecture Decision (BSC ANET = designated L2 native gas       ║
+ * ║   asset; the custom L1 stays separate), an L2 canonical bridge, if and  ║
+ * ║   when built, is a distinct contract. Do not repurpose this vault as    ║
+ * ║   that portal. See ROADMAP_2026.md → Architecture Decision.             ║
  * ╚══════════════════════════════════════════════════════════════════════════╝
  */
 
