@@ -3622,7 +3622,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       <h4>Proof Generation Algorithm</h4>
 
-      <p>Miners generate proofs by finding a SHA256 hash with a specified number of leading zero bits, without requiring network communication:</p>
+      <p>Miners generate proofs by finding a SHA256 hash with a network-defined minimum number of leading zero bits, without requiring network communication. Stronger proofs are valid; easier client-selected targets are rejected by validators.</p>
 
       <div class="formula-box">
 
@@ -3634,7 +3634,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
 &nbsp;&nbsp;base_payload = format!(<span class="string">"{miner}|{timestamp_ms}|"</span>)<br/>
 
-&nbsp;&nbsp;<span class="keyword">for</span> nonce <span class="keyword">in</span> 0..max_iterations {<br/>
+&nbsp;&nbsp;<span class="keyword">for</span> nonce <span class="keyword">in</span> 1..max_iterations {<br/>
 
 &nbsp;&nbsp;&nbsp;&nbsp;payload = format!(<span class="string">"{base_payload}{nonce}"</span>)<br/>
 
@@ -3666,7 +3666,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
           <li><strong>Wallet Match:</strong> Recovered wallet must equal the claimed miner wallet</li>
 
-          <li><strong>Difficulty Check:</strong> Proof hash must have ≥ N leading zero bits</li>
+          <li><strong>Difficulty Check:</strong> Proof hash must have ≥ N leading zero bits, where N must meet or exceed the network target</li>
 
           <li><strong>Nonce Uniqueness:</strong> Nonce must not have been used before by this miner (persistent DB check)</li>
 
