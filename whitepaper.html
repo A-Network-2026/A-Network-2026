@@ -3682,6 +3682,14 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       <p>Accepted proofs are buffered in-memory and automatically included in the next block. Validators keep proofs for up to 5 minutes; older proofs are discarded. Proofs appear in the block's <code>tpow_proofs</code> array alongside transactions.</p>
 
+      <h4>On-Chain, Self-Verifying Mining Ledger</h4>
+
+      <p>Each proof is sealed into the block in <strong>complete, self-verifying form</strong> — miner, nonce, timestamp, chain ID, proof hash, difficulty, and signature — rather than as a summary. This makes every proof independently re-checkable from the block bytes alone: no database, oracle, or admin input is required to confirm the work.</p>
+
+      <p>Every node rebuilds a <strong>block-derived mining ledger</strong> (a per-miner count of accepted proofs) purely by re-verifying the proofs recorded in block history. The verification used for this is the timeless cryptographic core (signature, difficulty target, and hash-preimage binding) without the live freshness window, so a proof sealed in the past re-verifies identically at any later time. Any node — or any third-party auditor — derives exactly the same ledger from the same blocks. Each wallet's count is surfaced as <code>mined_proofs</code> on its account view, and <code>GET /network/capabilities</code> advertises this under <code>tpow.on_chain_accrual</code>.</p>
+
+      <p>This is the foundation for deriving eligibility and issuance from the chain's own history instead of a trusted off-chain feed. It introduces <strong>no new issuance</strong>: the capped emission schedule and the 21,000,000 ANET ceiling are unchanged, and proof submission remains gated to eligible validators.</p>
+
       <h4>Backward Compatibility</h4>
 
       <p>Phase 5 is <strong>fully backward compatible</strong>. The server-approved mining endpoint (<code>POST /mining/complete</code>) remains fully functional. Miners choose which model to use: decentralized proofs or server approval. This dual-mode design ensures no disruption to existing mining operations.</p>
