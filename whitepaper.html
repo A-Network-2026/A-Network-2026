@@ -3696,6 +3696,12 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       <p>These receipts are <strong>mint-neutral</strong>: they record the activation the chain already applies under the 21,000,000 ANET cap; they never mint anything themselves. A wallet's coins therefore exist on-chain the moment its session completes, yet remain <strong>unspendable until the wallet has completed 1,000 sessions</strong> — the single source-of-truth eligibility gate. The receipt's <code>eligible</code> flag reflects that gate exactly. <code>GET /network/consensus</code> advertises this under <code>issuance.session_activation_record</code>. This makes session history an explicit, immutable on-chain record while the bootstrap validators continue producing blocks (Satoshi-style early phase).</p>
 
+      <h4>Whole-Ledger Session Commitment (every miner on-chain)</h4>
+
+      <p>So that <strong>every</strong> miner is provably on-chain from their first completed session — not only those past the 1,000-session threshold — each sync seals a <strong>Merkle root over every miner's completed-session count</strong> into a block as a <code>SessionProgressRoot</code> event. This is a "both" design: the single 32-byte root is what every node (including a phone) stores, while the individual leaves are served on request.</p>
+
+      <p>Any miner can call <code>GET /sessions/proof/&lt;wallet&gt;</code> to obtain a <strong>Merkle inclusion proof</strong> — their session count, leaf hash, and the sibling path — and verify it against the on-chain root. The leaf is <code>SHA256d("session-progress-v1|{WALLET}|{SESSIONS}")</code> and the tree uses Bitcoin's double-SHA256 with odd-leaf duplication, so the proof is reproducible in any language (verified against an independent JavaScript implementation). The commitment is <strong>mint-neutral</strong>: it commits to session data and changes no balance; spendability is still governed solely by the 1,000-session gate. <code>GET /sessions/root</code> publishes the current root, and <code>GET /network/consensus</code> advertises it under <code>issuance.session_progress_commitment</code>.</p>
+
       <h4>Backward Compatibility</h4>
 
       <p>Phase 5 is <strong>fully backward compatible</strong>. The server-approved mining endpoint (<code>POST /mining/complete</code>) remains fully functional. Miners choose which model to use: decentralized proofs or server approval. This dual-mode design ensures no disruption to existing mining operations.</p>
