@@ -1,7 +1,45 @@
 # A-Network Development Roadmap 2026
 
-**Status:** Whitepaper v3.0 (May 2026) | App v1.0.21+71 | Live Backend  
-**Updated:** June 11, 2026 (Architecture Decision: BSC ANET = L2 native gas asset; L1 stays separate)
+**Status:** Whitepaper v3.3 (Jun 2026) | App v1.0.100+162 | Live Backend  
+**Updated:** June 16, 2026 (Decentralization: on-chain self-verifying mining ledger + published consensus rules)
+
+---
+
+## 🔒 Decentralization Status & Freeze Readiness — June 16, 2026
+
+A-Network's L1 is being made **independently verifiable and rule-bound** ("works
+like Bitcoin: just rules, no admin"). This section is the honest, current state.
+
+**✅ Shipped & live (sound money + verifiability core):**
+- **Capped issuance, no admin mint.** ANET enters circulation only via session
+  mining and backed 1:1 EVM-bridge credit. The admin mint path and the fake
+  bootstrap DEX pool were removed. The 21,000,000 ANET ceiling is enforced
+  on-chain.
+- **Self-verifying mining proofs (Phase B).** Each block seals full TPoW proofs;
+  every node rebuilds an identical per-miner ledger by re-verifying them from
+  block history alone — no database, oracle, or admin.
+- **Block-committed account state.** Balances/sessions are committed to the v4
+  block hash and replayable.
+- **Independently verifiable end-to-end.** The standalone read-only verifier
+  (`--verify-peer`) re-checks the full hash chain + every signature with no
+  database. Verified live: 1,920 blocks, all signatures valid.
+- **Published consensus rules.** `GET /network/consensus` serves the fixed,
+  ungovernable rule set (issuance schedule, eligibility, proof format,
+  verification steps) straight from the running node.
+- **Backed-only bridge.** Only native ANET crosses the bridge, credited 1:1
+  against ANET locked on BSC; token-conversion minting is disabled.
+
+**⚠️ Deferred — one-way door (requires explicit sign-off, not auto-shipped):**
+- **Issuance cutover.** Making the on-chain ledger the *sole* source of mining
+  issuance and retiring the Web2 mint is irreversible and affects live balances.
+  It is also not a simple switch: the validator-proof model differs from the
+  6-hour user-session mining model, so it is a core-product re-architecture.
+  **Status: design-gated. Web2 remains the issuance source today.**
+
+**❌ Deferred — audit-gated, 2027+ (must not be rushed before a freeze):**
+- **Phase 4 (smart contracts)** and **Phase 5 (identity/governance/AI)** require
+  independent security audits of user-fund-handling code. They remain on the
+  long-horizon roadmap below and are intentionally *not* implemented pre-freeze.
 
 ---
 
