@@ -3690,6 +3690,12 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       <p>This is the foundation for deriving eligibility and issuance from the chain's own history instead of a trusted off-chain feed. It introduces <strong>no new issuance</strong>: the capped emission schedule and the 21,000,000 ANET ceiling are unchanged, and proof submission remains gated to eligible validators.</p>
 
+      <h4>On-Chain Session Activation Receipts</h4>
+
+      <p>Every completed-session activation is sealed into a block as an immutable <code>SessionActivation</code> event — a "session receipt" recording the wallet, its new session count, the session and credited-ANTS deltas, the running total, and whether the wallet has crossed the spend threshold. Because block events are committed to the block hash, each receipt is permanent and replayable from history.</p>
+
+      <p>These receipts are <strong>mint-neutral</strong>: they record the activation the chain already applies under the 21,000,000 ANET cap; they never mint anything themselves. A wallet's coins therefore exist on-chain the moment its session completes, yet remain <strong>unspendable until the wallet has completed 1,000 sessions</strong> — the single source-of-truth eligibility gate. The receipt's <code>eligible</code> flag reflects that gate exactly. <code>GET /network/consensus</code> advertises this under <code>issuance.session_activation_record</code>. This makes session history an explicit, immutable on-chain record while the bootstrap validators continue producing blocks (Satoshi-style early phase).</p>
+
       <h4>Backward Compatibility</h4>
 
       <p>Phase 5 is <strong>fully backward compatible</strong>. The server-approved mining endpoint (<code>POST /mining/complete</code>) remains fully functional. Miners choose which model to use: decentralized proofs or server approval. This dual-mode design ensures no disruption to existing mining operations.</p>
