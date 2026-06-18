@@ -49,6 +49,16 @@
     return num.toLocaleString(undefined, { maximumFractionDigits: decimals });
   }
 
+  // 1 ANET = 100,000,000 ANTS. Render an integer ant balance as a whole-ANET
+  // string with up to 8 decimals (trailing zeros trimmed).
+  const ANTS_PER_ANET = 100000000;
+  function formatAnet(ants) {
+    const n = Number(ants || 0);
+    if (!Number.isFinite(n)) return "0";
+    const anet = n / ANTS_PER_ANET;
+    return anet.toLocaleString(undefined, { maximumFractionDigits: 8 });
+  }
+
   function fmtUsd(n, decimals = 4) {
     if (n === null || n === undefined || Number.isNaN(Number(n))) return "—";
     return "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: decimals });
@@ -545,18 +555,30 @@
     const validator = acc.is_validator
       ? `<span class="val-pill" style="color:var(--accent-2,#6ae7b1)">validator</span>`
       : `<span class="val-pill">not a validator</span>`;
+    const statusLabel = acc.status === "ACTIVATED"
+      ? "Activated on-chain"
+      : acc.status === "NOT_ACTIVATED"
+        ? "Mining · not yet activated"
+        : "Account";
+    const sessions = Number(acc.sessions || 0);
+    const eligible = acc.is_eligible
+      ? `<span class="val-pill" style="color:var(--accent-2,#6ae7b1)">eligible</span>`
+      : `<span class="val-pill">${fmt(Math.max(0, 1000 - sessions))} sessions to eligibility</span>`;
     return `
       <div class="row">
         <div class="ico-sm">A</div>
         <div class="meta">
           <div class="top"><span class="num" title="${addr}">${addr}</span></div>
-          <div class="bot">Account · ${esc(acc.sessions)} sessions</div>
+          <div class="bot">${esc(statusLabel)}</div>
         </div>
         ${validator}
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
         <span class="val-pill">${esc(acc.anet_balance)} ANET</span>
         <span class="val-pill">${fmt(acc.ants_balance)} ANTS</span>
+        <span class="val-pill">${fmt(sessions)} sessions</span>
+        <span class="val-pill">${fmt(acc.referrals)} referrals</span>
+        ${eligible}
       </div>`;
   }
 
@@ -607,8 +629,41 @@
   }
 
   async function lookupAccount(addr) {
-    try { return await fetchJson(CHAIN_NODE + "/accounts/" + encodeURIComponent(addr)); }
-    catch (_) { return null; }
+    // Resolve a wallet from BOTH chain views in parallel:
+    //   /account/full/:addr — hybrid endpoint that returns data for on-chain
+    //     (activated) AND Web2-only (mined sessions, not yet activated) wallets,
+    //     including session count and direct referrals. This is what lets a
+    //     miner who has not activated on-chain still show up in search.
+    //   /accounts/:addr     — pure on-chain view (validator status, block-
+    //     derived mined-proof count, on-chain session count). 404s for wallets
+    //     that only exist in Web2, so it is best-effort enrichment.
+    const [full, onchain] = await Promise.all([
+      fetchJson(CHAIN_NODE + "/account/full/" + encodeURIComponent(addr)).catch(() => null),
+      fetchJson(CHAIN_NODE + "/accounts/" + encodeURIComponent(addr)).catch(() => null),
+    ]);
+    if (!full && !onchain) return null;
+
+    const web2 = (full && full.web2) || {};
+    const onchainAnts = Number(
+      (onchain && onchain.ants_balance) ||
+      (full && full.onchain && full.onchain.ants_balance) || 0
+    );
+    const ants = Math.max(Number(web2.ants_balance || 0), onchainAnts);
+    const sessions = Math.max(
+      Number(web2.sessions || 0),
+      Number((onchain && onchain.sessions) || 0)
+    );
+    return {
+      address: (onchain && onchain.address) || (full && full.address) || addr,
+      ants_balance: ants,
+      anet_balance: formatAnet(ants),
+      sessions,
+      referrals: Number(web2.referrals || 0),
+      is_validator: Boolean(onchain && onchain.is_validator),
+      is_eligible: Boolean(web2.is_eligible) || sessions >= 1000,
+      mined_proofs: Number((onchain && onchain.mined_proofs) || 0),
+      status: (full && full.status) || (onchain ? "ACTIVATED" : "NOT_ACTIVATED"),
+    };
   }
   async function lookupBlockByHeight(h) {
     try { return await fetchJson(CHAIN_NODE + "/blocks/height/" + encodeURIComponent(h)); }
