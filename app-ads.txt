@@ -1,3 +1,4 @@
+ownerdomain=a-network.net
 criteo.com, b-062019, RESELLER, 9fac4a4a87c2a44f
 lunamedia.io, 2fdb16a1-5025-4c41-9b17-e01e47ebc8b4, RESELLER, 524ecb396915caaf
 risecodes.com, 68d54e2fe125150001dd91e2, RESELLER
