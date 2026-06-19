@@ -1,7 +1,3 @@
-# A-Network website ad authorizations
-# AdSense pub-4393604935823547 was closed by Google (2026-05-28) — removed.
-# This file intentionally minimal; using crypto-native networks (A-Ads, Coinzilla) for web ads.
-
 ownerdomain=a-network.net
 criteo.com, b-062019, RESELLER, 9fac4a4a87c2a44f
 lunamedia.io, 2fdb16a1-5025-4c41-9b17-e01e47ebc8b4, RESELLER, 524ecb396915caaf
