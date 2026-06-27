@@ -119,9 +119,16 @@ function resolveChainApiBase() {
   return DEFAULT_CHAIN_API;
 }
 
-const CHAIN_API = resolveChainApiBase();
+let CHAIN_API = resolveChainApiBase();
 const ANTS_PER_ANET = 100_000_000;  // 1 ANET = 10^8 ants
-const INVESTOR_WEB_VIEW_ONLY = true;
+// Fallback L1 chain id used when signing actions. Refreshed from /sync/head at
+// init so the signed `chain_id` always matches the live node.
+const ANET_L1_CHAIN_ID = 'anet-private-mainnet-1';
+// Native, non-custodial in-browser trading. Users connect an ANET wallet whose
+// private key is held encrypted in this browser (MetaMask-style, see
+// anet-wallet.js) and sign swaps/liquidity locally; every action is recorded
+// on the A Network L1. Set true to fall back to the deep-link "open app" flow.
+const INVESTOR_WEB_VIEW_ONLY = false;
 const WALLET_APP_DEEPLINK = 'anetwork://invite';
 const WALLET_APP_FALLBACK_URL = 'https://play.google.com/store/apps/details?id=com.anetwork.app';
 const APP_WALLET_CONNECTION_KEY = 'anet:walletConnection';
@@ -410,8 +417,14 @@ const PUBLIC_TEST_POOLS = [
 
 /* ── App state ──────────────────────────────── */
 const state = {
-  // ANET wallet (in-memory only, never persisted)
+  // Native ANET L1 wallet. The private key never leaves the browser: it is held
+  // encrypted at rest by anet-wallet.js and only decrypted in memory to sign.
+  // `sessionToken` is retained only for backward compatibility and is unused by
+  // the native signing path.
   anetWallet: { address: '', sessionToken: '', balance: null },
+
+  // L1 chain id used to sign actions (refreshed from /sync/head at init).
+  chainId: ANET_L1_CHAIN_ID,
 
   // EVM wallet
   evmWallet: { address: '', chainId: null, balance: null },
@@ -534,47 +547,145 @@ async function getSwapQuote({ tokenSymbol, amountIn, anetToToken }) {
   });
 }
 
-async function executeSwap({ trader, sessionToken, tokenSymbol, amountIn, anetToToken }) {
-  return apiFetch('/dex/swap/execute', {
-    method: 'POST',
-    headers: sessionToken ? { 'X-ANET-SESSION': sessionToken } : {},
-    body: JSON.stringify({
-      trader,
-      session_token: sessionToken,
-      token_symbol: tokenSymbol,
-      amount_in: amountIn,
-      anet_to_token: anetToToken,
-    }),
-  });
+/* ── Native L1 signing helpers ──────────────────
+   Every write below is a secp256k1-signed action recovered on-chain to the
+   trader's ANET address, so each swap/liquidity move is recorded in a block.
+   The private key is supplied by the locally-unlocked, encrypted wallet
+   (anet-wallet.js); it is never transmitted. */
+function activeChainId() { return state.chainId || ANET_L1_CHAIN_ID; }
+function normSym(sym) { return String(sym == null ? '' : sym).trim().toUpperCase(); }
+
+function anetSignerReady() {
+  return !!(window.AnetWallet && window.AnetWallet.isUnlocked() && state.anetWallet.address);
 }
 
-async function addLiquidity({ provider, sessionToken, tokenSymbol, anetAmountAnts, tokenAmountUnits }) {
+function requireAnetSigner() {
+  if (!window.AnetWallet) throw new Error('Wallet module failed to load. Refresh the page.');
+  if (!window.AnetWallet.isUnlocked()) throw new Error('Unlock your ANET wallet to sign this action.');
+  return window.AnetWallet.currentAddress();
+}
+
+async function executeSwap({ trader, tokenSymbol, amountIn, anetToToken, minAmountOut }) {
+  requireAnetSigner();
+  const traderUc = normSym(trader);
+  const symbol = normSym(tokenSymbol);
+  const minOut = (minAmountOut == null) ? null : Math.trunc(Number(minAmountOut));
+  // Signed payload must byte-match the chain's expected canonical payload.
+  const auth = window.AnetWallet.signAction('dex_swap', {
+    route: 'dex_swap',
+    trader: traderUc,
+    token_symbol: symbol,
+    amount_in: amountIn,
+    anet_to_token: anetToToken,
+    min_amount_out: minOut,
+    deadline_block: null,
+  }, activeChainId());
+  const body = {
+    trader: traderUc,
+    token_symbol: symbol,
+    amount_in: amountIn,
+    anet_to_token: anetToToken,
+    auth,
+  };
+  if (minOut != null) body.min_amount_out = minOut;
+  return apiFetch('/dex/swap/execute', { method: 'POST', body: JSON.stringify(body) });
+}
+
+async function addLiquidity({ provider, tokenSymbol, anetAmountAnts, tokenAmountUnits }) {
+  requireAnetSigner();
+  const providerUc = normSym(provider);
+  const symbol = normSym(tokenSymbol);
+  const auth = window.AnetWallet.signAction('dex_add_liquidity', {
+    route: 'dex_add_liquidity',
+    provider: providerUc,
+    token_symbol: symbol,
+    anet_amount_ants: anetAmountAnts,
+    token_amount_units: tokenAmountUnits,
+  }, activeChainId());
   return apiFetch('/dex/pools/add-liquidity', {
     method: 'POST',
-    headers: sessionToken ? { 'X-ANET-SESSION': sessionToken } : {},
     body: JSON.stringify({
-      provider,
-      session_token: sessionToken,
-      token_symbol: tokenSymbol,
+      provider: providerUc,
+      token_symbol: symbol,
       anet_amount_ants: anetAmountAnts,
       token_amount_units: tokenAmountUnits,
+      auth,
     }),
   });
 }
 
-async function createPool({ provider, sessionToken, tokenSymbol, anetAmountAnts, tokenAmountUnits, feeBps }) {
-  return apiFetch('/dex/pools/create', {
+async function removeLiquidity({ provider, tokenSymbol, lpUnits }) {
+  requireAnetSigner();
+  const providerUc = normSym(provider);
+  const symbol = normSym(tokenSymbol);
+  const lp = String(lpUnits);
+  const auth = window.AnetWallet.signAction('dex_remove_liquidity', {
+    route: 'dex_remove_liquidity',
+    provider: providerUc,
+    token_symbol: symbol,
+    lp_units: lp,
+  }, activeChainId());
+  return apiFetch('/dex/pools/remove-liquidity', {
     method: 'POST',
-    headers: sessionToken ? { 'X-ANET-SESSION': sessionToken } : {},
-    body: JSON.stringify({
-      provider,
-      session_token: sessionToken,
-      token_symbol: tokenSymbol,
-      anet_amount_ants: anetAmountAnts,
-      token_amount_units: tokenAmountUnits,
-      fee_bps: feeBps,
-    }),
+    body: JSON.stringify({ provider: providerUc, token_symbol: symbol, lp_units: lp, auth }),
   });
+}
+
+async function createPool({ provider, tokenSymbol, anetAmountAnts, tokenAmountUnits, feeBps }) {
+  requireAnetSigner();
+  const providerUc = normSym(provider);
+  const symbol = normSym(tokenSymbol);
+  const fee = (feeBps == null) ? null : (feeBps | 0);
+  const auth = window.AnetWallet.signAction('dex_create_pool', {
+    route: 'dex_create_pool',
+    provider: providerUc,
+    token_symbol: symbol,
+    anet_amount_ants: anetAmountAnts,
+    token_amount_units: tokenAmountUnits,
+    fee_bps: fee,
+  }, activeChainId());
+  const body = {
+    provider: providerUc,
+    token_symbol: symbol,
+    anet_amount_ants: anetAmountAnts,
+    token_amount_units: tokenAmountUnits,
+    auth,
+  };
+  if (fee != null) body.fee_bps = fee;
+  return apiFetch('/dex/pools/create', { method: 'POST', body: JSON.stringify(body) });
+}
+
+/* Records a signed UI event on-chain (best-effort; never blocks a trade).
+   The chain stores it as an app-activity entry tied to the wallet. */
+async function recordChainActivity(action, status, detail) {
+  try {
+    if (!anetSignerReady()) return;
+    const wallet = state.anetWallet.address;
+    const payload = {
+      route: 'app_activity',
+      source: 'web',
+      action: String(action),
+      wallet: wallet,
+      screen: 'dex',
+      status: status == null ? null : String(status),
+      client_version: 'web-dex',
+      detail: detail == null ? null : String(detail),
+    };
+    const auth = window.AnetWallet.signAction('app_activity', payload, activeChainId());
+    await apiFetch('/app/activity', {
+      method: 'POST',
+      body: JSON.stringify({
+        source: 'web',
+        action: payload.action,
+        wallet: wallet,
+        screen: 'dex',
+        status: payload.status,
+        client_version: 'web-dex',
+        detail: payload.detail,
+        auth,
+      }),
+    });
+  } catch (_) { /* activity logging is non-critical */ }
 }
 
 async function getAccount(address) {
@@ -672,13 +783,25 @@ async function switchEvmChain(chainId) {
   }
 }
 
-/* ── ANET Wallet ────────────────────────────── */
-function openAnetWalletModal() {
+/* ── Native ANET L1 Wallet ──────────────────────────────────────────────────
+   Non-custodial, MetaMask-style: the private key is derived from the user's
+   seed phrase (or imported raw key), encrypted with a password (AES-256-GCM via
+   anet-wallet.js) and stored only in THIS browser. It is unlocked into memory
+   to sign L1 actions and auto-locks on inactivity. The key is never sent to any
+   server — only the resulting signature + public address are. */
+let _anetWalletMode = 'auto';   // 'unlock' | 'import' | 'manage'
+
+function openAnetWalletModal(mode) {
   if (INVESTOR_WEB_VIEW_ONLY) {
-    toast('Web portal is investor view only. Open A Network wallet app to authorize.', 'info', 5000);
+    toast('Open the A Network wallet app to authorize.', 'info', 5000);
     openWalletApp('connect');
     return;
   }
+  if (!window.AnetWallet) { toast('Wallet module is still loading. Try again in a moment.', 'info'); return; }
+  _anetWalletMode = mode || (window.AnetWallet.isUnlocked()
+    ? 'manage'
+    : (window.AnetWallet.hasVault() ? 'unlock' : 'import'));
+  renderAnetWalletModal();
   const overlay = document.getElementById('anet-wallet-modal');
   if (overlay) overlay.classList.add('open');
 }
@@ -688,47 +811,257 @@ function closeAnetWalletModal() {
   if (overlay) overlay.classList.remove('open');
 }
 
-async function connectAnetWallet() {
-  if (INVESTOR_WEB_VIEW_ONLY) {
-    toast('Use A Network wallet app for secure sign-in and trading.', 'info', 5000);
-    openWalletApp('connect');
+// Kept for the header button onclick.
+function connectAnetWallet() { openAnetWalletModal(); }
+
+function switchAnetWalletMode(mode) { _anetWalletMode = mode; renderAnetWalletModal(); }
+
+function rpcAdvancedHtml() {
+  const rpc = escapeHtml(CHAIN_API);
+  return `
+    <details class="anet-advanced" style="margin-top:14px;">
+      <summary style="cursor:pointer;font-size:12px;color:var(--muted-2);">Advanced: RPC endpoint</summary>
+      <div style="margin-top:10px;">
+        <label class="form-label" for="anet-rpc-input">A Network L1 RPC URL</label>
+        <input class="form-input" id="anet-rpc-input" type="text" spellcheck="false"
+               autocomplete="off" value="${rpc}" placeholder="https://explorer.a-network.net">
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn btn-outline btn-sm" type="button" onclick="setCustomRpc(document.getElementById('anet-rpc-input').value)">Use this node</button>
+          <button class="btn btn-ghost btn-sm" type="button" onclick="setCustomRpc('')">Reset to default</button>
+        </div>
+        <p style="font-size:11px;color:var(--muted-2);margin:8px 0 0;">
+          Point the DEX at your own A Network node (Bitcoin-Core style) or the public RPC. Page reloads on change.
+        </p>
+      </div>
+    </details>`;
+}
+
+function renderAnetWalletModal() {
+  const body = document.getElementById('anet-wallet-modal-body');
+  const titleEl = document.getElementById('anet-modal-title');
+  if (!body) return;
+  const W = window.AnetWallet;
+  const hasVault = W && W.hasVault();
+  const unlocked = W && W.isUnlocked();
+
+  // ── Connected / manage view ──────────────────────────────────────────────
+  if (_anetWalletMode === 'manage' && unlocked) {
+    if (titleEl) titleEl.textContent = 'ANET WALLET';
+    const addr = state.anetWallet.address;
+    const bal = state.anetWallet.balance != null ? fmt(parseFloat(ants2anet(state.anetWallet.balance)), 8) + ' ANET' : '—';
+    body.innerHTML = `
+      <div class="info-box" style="word-break:break-all;">
+        <div style="font-size:11px;color:var(--muted-2);margin-bottom:4px;">Your L1 address</div>
+        <strong style="font-size:13px;">${escapeHtml(addr)}</strong>
+        <div style="margin-top:8px;font-size:12px;">Balance: <strong>${bal}</strong></div>
+        <a href="${escapeHtml(CHAIN_API)}/explorer/accounts/${encodeURIComponent(addr)}" target="_blank" rel="noopener" style="font-size:11.5px;">View on Explorer ↗</a>
+      </div>
+      <button class="btn btn-primary btn-full" type="button" onclick="lockAnetWallet()" style="margin-top:12px;">Lock wallet</button>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-outline btn-sm" type="button" onclick="switchAnetWalletMode('reveal')" style="flex:1;">Show private key</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="forgetAnetWallet()" style="flex:1;color:#ff8a8a;">Remove from device</button>
+      </div>
+      ${rpcAdvancedHtml()}`;
     return;
   }
-  const address = document.getElementById('anet-address-input')?.value?.trim();
-  const sessionToken = document.getElementById('anet-session-input')?.value?.trim();
-  if (!address) { toast('Please enter your ANET wallet address', 'error'); return; }
-  if (!sessionToken) { toast('Please enter your ANET session token', 'error'); return; }
 
+  // ── Reveal private key view ───────────────────────────────────────────────
+  if (_anetWalletMode === 'reveal') {
+    if (titleEl) titleEl.textContent = 'SHOW PRIVATE KEY';
+    body.innerHTML = `
+      <div class="warn-box">⚠ Never share your private key. Anyone with it controls your funds. We only show it to you, locally.</div>
+      <div class="form-group">
+        <label class="form-label" for="anet-reveal-pw">Password</label>
+        <input class="form-input" id="anet-reveal-pw" type="password" autocomplete="off" placeholder="Your wallet password">
+      </div>
+      <button class="btn btn-primary btn-full" type="button" onclick="revealAnetPrivateKey()">Reveal</button>
+      <div id="anet-reveal-output" style="display:none;margin-top:12px;"></div>
+      <button class="btn btn-ghost btn-sm" type="button" onclick="switchAnetWalletMode('manage')" style="margin-top:10px;">← Back</button>`;
+    return;
+  }
+
+  // ── Unlock view (a vault exists on this device) ───────────────────────────
+  if (_anetWalletMode === 'unlock' && hasVault) {
+    if (titleEl) titleEl.textContent = 'UNLOCK ANET WALLET';
+    body.innerHTML = `
+      <div class="info-box" style="word-break:break-all;">
+        Saved wallet on this device:<br><strong style="font-size:12.5px;">${escapeHtml(W.vaultAddress())}</strong>
+      </div>
+      <div class="form-group" style="margin-top:12px;">
+        <label class="form-label" for="anet-unlock-password">Password</label>
+        <input class="form-input" id="anet-unlock-password" type="password" autocomplete="current-password"
+               placeholder="Your wallet password" onkeydown="if(event.key==='Enter')submitAnetUnlock()">
+      </div>
+      <button class="btn btn-primary btn-full" type="button" onclick="submitAnetUnlock()">Unlock</button>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-ghost btn-sm" type="button" onclick="switchAnetWalletMode('import')" style="flex:1;">Use a different wallet</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="forgetAnetWallet()" style="flex:1;color:#ff8a8a;">Forget</button>
+      </div>
+      ${rpcAdvancedHtml()}`;
+    return;
+  }
+
+  // ── Import view (default) ─────────────────────────────────────────────────
+  if (titleEl) titleEl.textContent = 'CONNECT ANET WALLET';
+  body.innerHTML = `
+    <div class="warn-box">
+      Your key stays in this browser. It is encrypted with your password and never sent to any server —
+      the same model as MetaMask. Only sign in on a device you trust.
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="anet-secret-input">Seed phrase or private key</label>
+      <textarea class="form-input" id="anet-secret-input" rows="3" spellcheck="false" autocomplete="off"
+        placeholder="Paste your A Network seed phrase, or a 64-character private key"
+        oninput="anetPreviewAddress()" style="resize:vertical;font-family:inherit;"></textarea>
+      <div id="anet-address-preview" style="font-size:11.5px;color:var(--muted-2);margin-top:6px;min-height:16px;"></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer;margin:4px 0 10px;">
+      <input type="checkbox" id="anet-persist-check" checked onchange="renderAnetPersistFields()">
+      Keep this wallet on this device (encrypted)
+    </label>
+    <div id="anet-password-fields">
+      <div class="form-group">
+        <label class="form-label" for="anet-password-input">Create a password</label>
+        <input class="form-input" id="anet-password-input" type="password" autocomplete="new-password" placeholder="At least 8 characters">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="anet-password-confirm">Confirm password</label>
+        <input class="form-input" id="anet-password-confirm" type="password" autocomplete="new-password" placeholder="Re-enter password">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" type="button" onclick="submitAnetImport()">Connect</button>
+    ${hasVault ? `<button class="btn btn-ghost btn-sm" type="button" onclick="switchAnetWalletMode('unlock')" style="margin-top:10px;">← Unlock saved wallet</button>` : ''}
+    <div class="info-box" style="margin-top:12px;">
+      No wallet yet? Create one in the
+      <a href="https://play.google.com/store/apps/details?id=com.anetwork.app" target="_blank" rel="noopener">A Network app</a>,
+      then reveal your seed phrase there to use it here.
+    </div>
+    ${rpcAdvancedHtml()}`;
+}
+
+function renderAnetPersistFields() {
+  const persist = document.getElementById('anet-persist-check')?.checked;
+  const fields = document.getElementById('anet-password-fields');
+  if (fields) fields.style.display = persist ? 'block' : 'none';
+}
+
+function anetPreviewAddress() {
+  const el = document.getElementById('anet-address-preview');
+  if (!el) return;
+  const secret = document.getElementById('anet-secret-input')?.value || '';
+  if (!secret.trim()) { el.textContent = ''; return; }
   try {
-    const acct = await getAccount(address);
-    state.anetWallet.address = address;
-    state.anetWallet.sessionToken = sessionToken;
-    state.anetWallet.balance = acct.ants_balance != null ? Number(acct.ants_balance) : null;
-    updateAnetWalletUI();
-    closeAnetWalletModal();
-    toast('ANET wallet connected', 'success');
+    const addr = window.AnetWallet.previewAddress(secret.trim());
+    el.innerHTML = `Wallet address: <strong style="color:var(--accent-2);">${escapeHtml(addr)}</strong>`;
   } catch (e) {
-    toast(e.message || 'Failed to verify ANET account', 'error');
+    el.textContent = e.message || 'Could not derive an address from that input.';
   }
 }
 
-function disconnectAnetWallet() {
+async function submitAnetImport() {
+  const W = window.AnetWallet;
+  const secret = (document.getElementById('anet-secret-input')?.value || '').trim();
+  const persist = !!document.getElementById('anet-persist-check')?.checked;
+  const pw = document.getElementById('anet-password-input')?.value || '';
+  const pw2 = document.getElementById('anet-password-confirm')?.value || '';
+  if (!secret) { toast('Enter your seed phrase or private key', 'error'); return; }
+  if (persist) {
+    if (pw.length < 8) { toast('Password must be at least 8 characters', 'error'); return; }
+    if (pw !== pw2) { toast('Passwords do not match', 'error'); return; }
+  }
+  try {
+    const addr = await W.importSecret({ secret, password: pw, persist });
+    await afterAnetUnlock(addr, persist ? 'imported_saved' : 'imported_session');
+  } catch (e) {
+    toast(e.message || 'Could not connect wallet', 'error');
+  }
+}
+
+async function submitAnetUnlock() {
+  const pw = document.getElementById('anet-unlock-password')?.value || '';
+  if (!pw) { toast('Enter your password', 'error'); return; }
+  try {
+    const addr = await window.AnetWallet.unlock(pw);
+    await afterAnetUnlock(addr, 'unlocked');
+  } catch (e) {
+    toast(e.message || 'Unlock failed', 'error');
+  }
+}
+
+async function revealAnetPrivateKey() {
+  const pw = document.getElementById('anet-reveal-pw')?.value || '';
+  const out = document.getElementById('anet-reveal-output');
+  if (!pw) { toast('Enter your password', 'error'); return; }
+  try {
+    const hex = await window.AnetWallet.revealPrivateKey(pw);
+    if (out) {
+      out.style.display = 'block';
+      out.innerHTML = `<div class="info-box" style="word-break:break-all;font-family:monospace;font-size:12px;">${escapeHtml(hex)}</div>`;
+    }
+  } catch (e) {
+    toast(e.message || 'Could not reveal key', 'error');
+  }
+}
+
+async function afterAnetUnlock(addr, how) {
+  state.anetWallet.address = addr;
+  state.anetWallet.sessionToken = 'native';  // sentinel: native signing path is active
+  state.anetWallet.balance = null;
+  updateAnetWalletUI();
+  closeAnetWalletModal();
+  toast('ANET wallet connected: ' + shortAddr(addr), 'success');
+  try { await refreshAnetBalance(); } catch (_) {}
+  recordChainActivity('web_dex_connect', how, null);
+}
+
+function lockAnetWallet() {
+  if (window.AnetWallet) window.AnetWallet.lock();
+  state.anetWallet.address = '';
+  state.anetWallet.sessionToken = '';
+  state.anetWallet.balance = null;
+  updateAnetWalletUI();
+  closeAnetWalletModal();
+  toast('Wallet locked', 'info');
+}
+
+// disconnect == lock (keystore stays saved for next unlock)
+function disconnectAnetWallet() { lockAnetWallet(); }
+
+function forgetAnetWallet() {
+  if (!confirm('Remove this wallet from this browser?\n\nMake sure your seed phrase or private key is backed up — it cannot be recovered here.')) return;
+  if (window.AnetWallet) window.AnetWallet.forget();
   state.anetWallet = { address: '', sessionToken: '', balance: null };
   updateAnetWalletUI();
-  toast('ANET wallet disconnected', 'info');
+  _anetWalletMode = 'import';
+  renderAnetWalletModal();
+  toast('Wallet removed from this device', 'info');
+}
+
+function setCustomRpc(url) {
+  const u = String(url || '').trim().replace(/\/+$/, '');
+  if (u && !/^https:\/\//i.test(u)) { toast('RPC URL must start with https://', 'error'); return; }
+  try {
+    if (u) localStorage.setItem(CHAIN_API_OVERRIDE_KEY, u);
+    else localStorage.removeItem(CHAIN_API_OVERRIDE_KEY);
+  } catch (_) {}
+  toast('RPC endpoint updated — reloading…', 'success', 1500);
+  setTimeout(() => location.reload(), 700);
 }
 
 function updateAnetWalletUI() {
   const btn = document.getElementById('anet-wallet-btn');
-  if (!btn) return;
-  const { address, balance } = state.anetWallet;
-  if (!address) {
-    btn.innerHTML = `<span class="dot"></span><span>Connect ANET Wallet</span>`;
-    btn.className = 'wallet-btn';
-  } else {
-    const anet = balance != null ? ants2anet(balance) : '—';
-    btn.innerHTML = `<span class="dot"></span><span class="addr">${shortAddr(address)}</span><span style="color:var(--muted-2);">${fmt(parseFloat(anet), 4)} ANET</span>`;
-    btn.className = 'wallet-btn connected';
+  if (btn) {
+    const { address, balance } = state.anetWallet;
+    if (!address) {
+      const label = (window.AnetWallet && window.AnetWallet.hasVault()) ? 'Unlock ANET Wallet' : 'Connect ANET Wallet';
+      btn.innerHTML = `<span class="dot"></span><span>${label}</span>`;
+      btn.className = 'wallet-btn';
+    } else {
+      const anet = balance != null ? ants2anet(balance) : '—';
+      const balLabel = balance != null ? fmt(parseFloat(anet), 4) + ' ANET' : '';
+      btn.innerHTML = `<span class="dot"></span><span class="addr">${shortAddr(address)}</span><span style="color:var(--muted-2);">${balLabel}</span>`;
+      btn.className = 'wallet-btn connected';
+    }
   }
   // update balance displays in swap/liq UI
   updateSwapFromBalance();
@@ -845,7 +1178,7 @@ async function doCashout() {
     openWalletApp('cashout');
     return;
   }
-  if (!state.anetWallet.address || !state.anetWallet.sessionToken) {
+  if (!anetSignerReady()) {
     openAnetWalletModal();
     return;
   }
@@ -864,7 +1197,6 @@ async function doCashout() {
   try {
     const result = await executeSwap({
       trader:      state.anetWallet.address,
-      sessionToken: state.anetWallet.sessionToken,
       tokenSymbol: stable,
       amountIn:    anet2ants(amt),
       anetToToken: true,
@@ -1732,7 +2064,7 @@ async function doSwap() {
     openWalletApp('swap');
     return;
   }
-  if (!state.anetWallet.address || !state.anetWallet.sessionToken) {
+  if (!anetSignerReady()) {
     openAnetWalletModal();
     return;
   }
@@ -1745,18 +2077,24 @@ async function doSwap() {
   const tokenSym = isAnetToToken ? state.toToken : state.fromToken;
   const amountAnts = isAnetToToken ? anet2ants(amt) : Math.round(amt * ANTS_PER_ANET);
 
+  // Slippage-protected minimum output (smallest units), derived from the live
+  // quote and the user's tolerance, so the on-chain swap reverts on a bad price.
+  const expectedOut = parseInt(state.quote.amount_out || 0);
+  const slipPct = Number(state.slippage) || 1;
+  const minAmountOut = expectedOut > 0 ? Math.max(0, Math.floor(expectedOut * (1 - slipPct / 100))) : null;
+
   const btn = document.getElementById('do-swap-btn');
   const statusEl = document.getElementById('swap-status');
   btn.disabled = true;
-  if (statusEl) { statusEl.className = 'swap-status show loading'; statusEl.innerHTML = '<span class="spinner"></span> Broadcasting transaction…'; }
+  if (statusEl) { statusEl.className = 'swap-status show loading'; statusEl.innerHTML = '<span class="spinner"></span> Signing &amp; broadcasting on A Network L1…'; }
 
   try {
     const result = await executeSwap({
       trader: state.anetWallet.address,
-      sessionToken: state.anetWallet.sessionToken,
       tokenSymbol: tokenSym,
       amountIn: amountAnts,
       anetToToken: isAnetToToken,
+      minAmountOut,
     });
 
     const amtOut = parseInt(result.amount_out || 0) / ANTS_PER_ANET;
@@ -1793,6 +2131,7 @@ async function doSwap() {
     });
 
     toast(`Swap successful! Received ${fmt(amtOut, 6)} ${isAnetToToken ? tokenSym : 'ANET'}`, 'success', 6000);
+    recordChainActivity('web_dex_swap', 'success', `${isAnetToToken ? 'ANET->' + tokenSym : tokenSym + '->ANET'}`);
 
     // refresh balance & pools
     document.getElementById('from-amount').value = '';
@@ -2606,7 +2945,7 @@ async function doAddLiquidity() {
     openWalletApp('liquidity');
     return;
   }
-  if (!state.anetWallet.address || !state.anetWallet.sessionToken) { openAnetWalletModal(); return; }
+  if (!anetSignerReady()) { openAnetWalletModal(); return; }
 
   const sym    = document.getElementById('liq-pool-select')?.value;
   const anetAmt = parseFloat(document.getElementById('liq-anet-amount')?.value);
@@ -2623,12 +2962,12 @@ async function doAddLiquidity() {
   try {
     const result = await addLiquidity({
       provider: state.anetWallet.address,
-      sessionToken: state.anetWallet.sessionToken,
       tokenSymbol: sym,
       anetAmountAnts: anet2ants(anetAmt),
       tokenAmountUnits: Math.round(tokAmt * ANTS_PER_ANET),
     });
     toast(`Liquidity added! LP units: ${result.lp_minted}`, 'success', 6000);
+    recordChainActivity('web_dex_add_liquidity', 'success', `ANET/${normSym(sym)}`);
     await Promise.all([refreshPools(), refreshAnetBalance()]);
     document.getElementById('liq-anet-amount').value = '';
     document.getElementById('liq-token-amount').value = '';
@@ -2646,7 +2985,7 @@ async function doCreatePool() {
     openWalletApp('create-pool');
     return;
   }
-  if (!state.anetWallet.address || !state.anetWallet.sessionToken) { openAnetWalletModal(); return; }
+  if (!anetSignerReady()) { openAnetWalletModal(); return; }
 
   const sym    = document.getElementById('create-token-sym')?.value?.trim()?.toUpperCase();
   const anetAmt = parseFloat(document.getElementById('create-anet-amount')?.value);
@@ -2674,13 +3013,13 @@ async function doCreatePool() {
   try {
     await createPool({
       provider: state.anetWallet.address,
-      sessionToken: state.anetWallet.sessionToken,
       tokenSymbol: sym,
       anetAmountAnts: anet2ants(anetAmt),
       tokenAmountUnits: Math.round(submitTokAmt * ANTS_PER_ANET),
       feeBps: fee,
     });
     toast(`Pool ANET/${sym} created!`, 'success', 6000);
+    recordChainActivity('web_dex_create_pool', 'success', `ANET/${normSym(sym)}`);
     await refreshPools();
     applyCreatePoolStartDefaults();
     syncCreatePoolPegDraft();
@@ -3063,10 +3402,45 @@ function initEvmEventListeners() {
   });
 }
 
+/* ── Native wallet bootstrap ────────────────── */
+async function loadChainId() {
+  try {
+    const head = await apiFetch('/sync/head');
+    if (head && head.chain_id) state.chainId = String(head.chain_id);
+  } catch (_) { /* keep ANET_L1_CHAIN_ID default */ }
+}
+
+function initNativeWallet() {
+  if (!window.AnetWallet) {
+    console.warn('[dex] AnetWallet unavailable — native L1 trading disabled.');
+    return;
+  }
+  // Reflect any saved (still-locked) wallet in the header button.
+  updateAnetWalletUI();
+  // Keep the UI in sync when the wallet auto-locks or unlocks.
+  window.AnetWallet.onLock(() => {
+    state.anetWallet.address = '';
+    state.anetWallet.sessionToken = '';
+    state.anetWallet.balance = null;
+    updateAnetWalletUI();
+  });
+  window.AnetWallet.onUnlock((addr) => {
+    state.anetWallet.address = addr;
+    state.anetWallet.sessionToken = 'native';
+    updateAnetWalletUI();
+  });
+  // Count user interaction as activity for the inactivity auto-lock timer.
+  ['click', 'keydown', 'touchstart'].forEach((evt) =>
+    window.addEventListener(evt, () => window.AnetWallet.touch(), { passive: true })
+  );
+}
+
 /* ── Init ───────────────────────────────────── */
 async function init() {
   applyInvestorViewMode();
   initAppWalletEventHooks();
+  initNativeWallet();
+  loadChainId();
   hydrateEvmWalletFromAppConnection();
 
   // Check if MetaMask already connected

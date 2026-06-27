@@ -30,37 +30,14 @@
   <!-- ── Toast container ─────────────────────── -->
   <div id="toast-container"></div>
 
-  <!-- ── ANET Wallet Modal ─────────────────────── -->
+  <!-- ── ANET Wallet Modal (native, non-custodial — body rendered by dex.js) ── -->
   <div class="modal-overlay" id="anet-wallet-modal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="anet-modal-title">
       <div class="modal-header">
         <span class="modal-title" id="anet-modal-title">CONNECT ANET WALLET</span>
         <button class="modal-close" onclick="closeAnetWalletModal()" aria-label="Close">✕</button>
       </div>
-      <div class="modal-body">
-        <div class="warn-box">
-          ⚠ Security upgrade: this website does not accept seed phrase or private key.
-          Authorize in the official ANET wallet/app and use a short-lived session token for web actions.
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="anet-address-input">ANET Wallet Address</label>
-          <input class="form-input" id="anet-address-input" type="text"
-                 placeholder="e.g. anet1abc…" autocomplete="off" spellcheck="false">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="anet-session-input">ANET Session Token</label>
-          <input class="form-input" id="anet-session-input" type="password"
-                 placeholder="Paste short-lived session token from ANET app" autocomplete="off" spellcheck="false">
-        </div>
-        <button class="btn btn-primary btn-full" onclick="connectAnetWallet()">
-          Connect Wallet
-        </button>
-        <div class="info-box">
-          Don't have an ANET wallet yet? Download the
-          <a href="https://play.google.com/store/apps/details?id=net.anetwork.app" target="_blank" rel="noopener">A Network app</a>
-          to create your Layer 1 wallet and start mining ANTS.
-        </div>
-      </div>
+      <div class="modal-body" id="anet-wallet-modal-body"><!-- rendered by dex.js --></div>
     </div>
   </div>
 
@@ -118,13 +95,13 @@
           <span class="cashout-ready-dot"></span>
           <span>Cashout Ready: 1,000 Sessions</span>
         </a>
-        <button class="wallet-btn" id="evm-wallet-btn" onclick="openWalletApp('connect')" aria-label="Open wallet app">
+        <button class="wallet-btn" id="evm-wallet-btn" onclick="connectEvmWallet()" aria-label="Connect MetaMask or EVM wallet">
           <span class="dot"></span>
-          <span>Open Wallet App</span>
+          <span>Connect EVM Wallet</span>
         </button>
-        <button class="wallet-btn" id="anet-wallet-btn" onclick="openWalletApp('connect')" aria-label="Open wallet app">
+        <button class="wallet-btn" id="anet-wallet-btn" onclick="openAnetWalletModal()" aria-label="Connect ANET wallet">
           <span class="dot"></span>
-          <span>Open Wallet App</span>
+          <span>Connect ANET Wallet</span>
         </button>
       </div>
     </header>
@@ -140,7 +117,7 @@
       </div>
       <ol style="margin:10px 0 0 18px;padding:0;color:var(--muted);font-size:12.5px;line-height:1.55;">
         <li>Complete <strong>1,000 validated ANTS sessions</strong> to unlock cashout eligibility.</li>
-        <li>Tap <strong>Open Wallet App</strong> and authorize your wallet session there (no seed phrase on web, trusted sessions auto-connect).</li>
+        <li>Tap <strong>Connect ANET Wallet</strong> and unlock with your seed phrase or private key — it is encrypted and kept only in this browser (MetaMask-style), never sent to a server.</li>
         <li>Inside native DEX flow, ANET can wrap 1:1 into <strong>wANET</strong> (BEP-20 on BNB Chain &mdash; the same way Bitcoin wraps into WBTC) for AMM routing, then swap into stable pools such as USDT/USDC.</li>
         <li>Your stable token settles to your <strong>ANET Layer 1 wallet</strong> first (about 2 seconds).</li>
         <li>When bridge transfer is enabled, move from ANET L1 to your EVM wallet as Step 3.</li>
@@ -348,7 +325,7 @@
 
             <!-- Wallet required hint -->
             <div class="info-box" id="wallet-hint" style="text-align:center;font-size:12px;">
-              Open Wallet App to authorize swaps on native L1. Swap and cashout unlock at <strong>1,000 verified sessions</strong>.
+              Connect your ANET wallet to sign swaps on native L1 — your key stays encrypted in this browser. Swap and cashout unlock at <strong>1,000 verified sessions</strong>.
             </div>
 
           </div><!-- /card-body -->
@@ -1421,7 +1398,9 @@
 
   </div><!-- /shell -->
 
-  <script src="assets/js/dex.js?v=20260603-trend"></script>
+  <script src="assets/js/vendor/anet-crypto.bundle.js?v=20260628"></script>
+  <script src="assets/js/anet-wallet.js?v=20260628"></script>
+  <script src="assets/js/dex.js?v=20260628-native-wallet"></script>
 
 </body>
 </html>
