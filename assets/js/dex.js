@@ -2197,9 +2197,11 @@ function renderTokenDropdownItems(side, filter) {
   const list = dropdown.querySelector('.token-list');
   if (!list) return;
 
-  // build available token list: ANET + all pool tokens
+  // build available token list: ANET first, then pool tokens + known tokens,
+  // de-duplicated (KNOWN_TOKENS already contains ANET, so a single Set over the
+  // whole list prevents ANET appearing twice).
   const poolTokens = state.pools.map(p => p.token_symbol);
-  const allTokens = ['ANET', ...new Set([...poolTokens, ...KNOWN_TOKENS.map(t => t.symbol)])];
+  const allTokens = [...new Set(['ANET', ...poolTokens, ...KNOWN_TOKENS.map(t => t.symbol)])];
   const q = filter.trim().toUpperCase();
   const filtered = allTokens.filter(sym => !q || sym.includes(q));
 
