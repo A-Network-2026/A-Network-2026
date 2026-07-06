@@ -8,16 +8,16 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v3.9 | Auditable L1 Liquidity · Separate Bitcoin and EVM Markets · Regulatory Launch Controls</title>
+  <title>A-Network Whitepaper v4.0 | Multi-Chain On-Chain DEX · ANET Wallet Extension · Auditable L1 Liquidity</title>
 
-  <meta name="description" content="The official A-Network v3.9 whitepaper. Documents the fixed-function Layer 1, auditable wallet-funded liquidity controls, the separately accounted Bitcoin reserve market, the separate EVM market, treasury disclosures, and regulatory launch gates." />
+  <meta name="description" content="The official A-Network v4.0 whitepaper. Documents the multi-chain on-chain DEX (PancakeSwap, Uniswap, Jupiter) with live pricing and a 0.875% treasury fee, on-chain liquidity provision, the non-custodial ANET Wallet browser extension, plus the fixed-function Layer 1, auditable liquidity gates, separate Bitcoin and EVM markets, and regulatory launch controls." />
 
   <meta name="theme-color" content="#07101a" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
   <meta http-equiv="X-Frame-Options" content="DENY" />
   <meta name="referrer" content="no-referrer" />
 
-  <meta property="og:title" content="A-Network Whitepaper v3.9" />
+  <meta property="og:title" content="A-Network Whitepaper v4.0" />
 
   <meta property="og:description" content="Technical specification for A-Network Layer 1, real-liquidity audit gates, treasury controls, separate Bitcoin and EVM markets, and compliance review requirements." />
 
@@ -675,7 +675,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v3.9 · JUNE 14, 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v4.0 · JULY 6, 2026</sub>
 
       </div>
 
@@ -701,6 +701,10 @@
     <a class="nav-item" href="#v38-changelog">v3.8 Governance V1</a>
 
     <a class="nav-item" href="#v39-changelog">v3.9 L1 Liquidity Controls</a>
+
+    <a class="nav-item" href="#v40-changelog">v4.0 On-Chain DEX &amp; Wallet</a>
+
+    <a class="nav-item" href="#how-to-trade">How to Trade &amp; Provide Liquidity</a>
 
     <a class="nav-item" href="#introduction">Introduction</a>
 
@@ -951,12 +955,12 @@
         </div>
       </div>
 
-      <div class="hero-badge">Technical Paper v3.9 (Auditable L1 Liquidity · Separate BTC and EVM Markets · Launch Gates)</div>
+      <div class="hero-badge">Technical Paper v4.0 (Multi-Chain On-Chain DEX · ANET Wallet Extension · Auditable L1 Liquidity)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
       <p class="hero-sub">A-Network operates a native Layer 1 settlement ledger and a separate EVM market. Version 3.9 defines the controls required before public Layer 1 liquidity can be described as real: every pool contribution must debit a named wallet, the paired reserve asset must be registered and externally verifiable, bootstrap or administrator-created balances cannot be presented as liquidity, and the mobile interface must fail closed when any audit gate is missing. The designated EVM reserve treasury is <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code>. A Bitcoin reserve may support a separately identified ANET/BTC market only after a Bitcoin treasury address and proof transaction are published. Bitcoin reserves, EVM reserves, and native Layer 1 balances are never merged in accounting or represented as interchangeable custody. Layer 1 currently uses fixed protocol operations and has no general-purpose smart-contract virtual machine; any future VM requires a separately specified consensus upgrade, public test environment, independent audit, and explicit activation decision.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> &mdash; 3.9 (L1 Liquidity and Regulatory Controls)</div>
-        <div class="hero-meta-item"><strong>Published</strong> &mdash; June 14, 2026</div>
+        <div class="hero-meta-item"><strong>Version</strong> &mdash; 4.0 (Multi-Chain On-Chain DEX and ANET Wallet Extension)</div>
+        <div class="hero-meta-item"><strong>Published</strong> &mdash; July 6, 2026</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong> &mdash; Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>EVM Reserve Treasury</strong> &mdash; <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code></div>
         <div class="hero-meta-item"><strong>Market Separation</strong> &mdash; Native L1 &middot; Bitcoin reserve market &middot; EVM market accounted separately</div>
@@ -964,6 +968,100 @@
         <div class="hero-meta-item"><strong>Liquidity Rule</strong> &mdash; Wallet-funded &middot; reserve-backed &middot; independently auditable &middot; never bootstrap</div>
       </div>
     </div>
+
+    <section class="wp-section" id="v40-changelog">
+      <div class="section-label">v4.0 Changelog &middot; July 6, 2026</div>
+      <h2>Version 4.0 &mdash; Multi-Chain On-Chain DEX &amp; ANET Wallet Extension</h2>
+      <p>Version 4.0 ships the public trading surface for the <strong>separate EVM and Solana markets</strong> and a dedicated <strong>ANET Wallet browser extension</strong> for the native Layer 1. It does not change Layer 1 consensus, supply, or the liquidity-audit gates in v3.9: the on-chain trades described below settle on third-party public AMMs (PancakeSwap, Uniswap, Jupiter), not on the A-Network Layer 1, and are accounted separately.</p>
+
+      <div class="panel panel-red">
+        <h4>Scope &amp; market separation</h4>
+        <p style="margin-bottom:0;">The on-chain DEX trades the market representation of ANET &mdash; the ownerless BEP-20 <code>0x791055A7d52AA392eaE8De04250497f33807E46A</code> &mdash; and third-party assets on their own chains. Native Layer 1 balances, the Bitcoin reserve market, and the EVM market remain accounted separately per v3.9. Nothing in this release grants any address authority to mint native Layer 1 ANET.</p>
+      </div>
+
+      <h3 id="v40-dex">Multi-chain on-chain DEX (<code>dex.html</code>)</h3>
+      <ul>
+        <li><strong>Real swaps on public AMMs:</strong> BNB Chain via <strong>PancakeSwap&nbsp;V2</strong>, Ethereum via <strong>Uniswap&nbsp;V2</strong>, and Solana via the <strong>Jupiter</strong> aggregator. Every trade returns a verifiable transaction hash on the relevant chain (BscScan / Etherscan / Solscan).</li>
+        <li><strong>Wallets:</strong> MetaMask or any EVM wallet for BNB Chain &amp; Ethereum; <strong>Phantom</strong> for Solana.</li>
+        <li><strong>Live pricing &amp; charts:</strong> ANET price, market capitalization, 24h volume, pool liquidity, and a live ticking price chart, sourced from DexScreener (the real PancakeSwap ANET/WBNB pair) and CoinGecko for major assets. Circulating figures reconcile to the token contract&apos;s fixed <code>21,000,000 ANET</code> total supply.</li>
+        <li><strong>On-chain reads:</strong> premium Ankr RPC endpoints (Ethereum, BNB Chain, Solana) are used for quotes, balances, and confirmations.</li>
+        <li><strong>Swap fee:</strong> a <strong>0.875%</strong> fee (matching the standard MetaMask swap fee) is charged on each on-chain swap and sent to the EVM Reserve Treasury <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code> before the swap executes.</li>
+      </ul>
+
+      <h3 id="v40-liquidity">On-chain liquidity provision</h3>
+      <p>Anyone can add or remove liquidity on the real PancakeSwap&nbsp;V2 ANET/BNB pool directly from <code>dex.html</code> (Swap tab &rarr; Liquidity). Providers deposit ANET and BNB at the current pool ratio, receive standard LP tokens that earn the 0.25% pool trading fee, and can withdraw any percentage at any time. This is a third-party AMM liquidity position on BNB Chain and is independent of the v3.9 Layer&nbsp;1 real-liquidity gates, which continue to govern native L1 pools.</p>
+
+      <h3 id="v40-extension">ANET Wallet browser extension</h3>
+      <p>A non-custodial <strong>ANET Wallet</strong> browser extension (Manifest&nbsp;V3) brings the native Layer&nbsp;1 into the wider web3 ecosystem. It reuses the exact key-derivation and signing scheme the L1 verifies, so a wallet created in the mobile app, the website, or the extension is the <strong>same account</strong>.</p>
+      <ul>
+        <li>Create or import a wallet (seed phrase or private key), encrypted on-device with PBKDF2 + AES-256-GCM. The private key never leaves the browser.</li>
+        <li>View live ANET / ANTS balance; send and receive native ANET (signed locally, broadcast to the Layer&nbsp;1 mempool).</li>
+        <li>Injects a standard <code>window.anet</code> provider so any dapp can request the account address, balance, and signatures behind an explicit approval popup.</li>
+        <li>The DEX auto-detects the extension and routes native Layer&nbsp;1 signatures (swaps, liquidity, pool creation) through it when connected; the key stays inside the extension.</li>
+      </ul>
+
+      <div class="panel panel-red">
+        <h4>MetaMask cannot hold native ANET</h4>
+        <p style="margin-bottom:0;">The A-Network Layer&nbsp;1 is not EVM-compatible, so MetaMask and Phantom cannot sign native L1 transactions. Use the <strong>ANET Wallet extension</strong> for native ANET. To use MetaMask specifically, first bridge L1&nbsp;ANET &rarr; wANET (BEP-20, 1:1) and trade wANET on PancakeSwap; the native L1 side is signed by the ANET Wallet extension or app.</p>
+      </div>
+    </section>
+
+    <section class="wp-section" id="how-to-trade">
+      <div class="section-label">Instructions &middot; Updated July 6, 2026</div>
+      <h2>How to Trade, Provide Liquidity &amp; Use the ANET Wallet</h2>
+      <p>The following steps describe the public v4.0 trading and wallet surface. On-chain actions require gas on the relevant network (BNB, ETH, or SOL) and are irreversible once confirmed. Verify contract addresses independently before signing.</p>
+
+      <h3 id="how-to-buy">1. Buy or sell ANET on-chain (BNB Chain)</h3>
+      <ol>
+        <li>Open <a href="dex.html" style="color:#7fb8ff;">the DEX</a> and select the <strong>Swap</strong> tab. The on-chain card defaults to <strong>BNB Chain</strong>.</li>
+        <li>Click <strong>Connect Wallet (MetaMask)</strong> and approve; the app switches your wallet to BNB Chain if needed.</li>
+        <li>Choose <strong>Buy</strong> (BNB &rarr; ANET) or <strong>Sell</strong> (ANET &rarr; BNB), enter an amount, and review the live quote: rate, the 0.875% treasury fee, minimum received at your slippage, and the PancakeSwap route.</li>
+        <li>Set slippage (2% default; raise it for volatile conditions), then click <strong>Buy&nbsp;/&nbsp;Sell</strong>.</li>
+        <li>Confirm the fee transfer, any token approval, and the swap in MetaMask. When the block confirms, an on-chain receipt with the BscScan transaction link appears.</li>
+      </ol>
+
+      <h3 id="how-to-eth-sol">2. Trade on Ethereum or Solana</h3>
+      <ol>
+        <li>In the on-chain card, switch the network to <strong>Ethereum</strong> (Uniswap&nbsp;V2, MetaMask) or <strong>Solana</strong> (Jupiter, Phantom).</li>
+        <li>Connect the matching wallet, pick your token pair, enter an amount, and review the quote.</li>
+        <li>Approve the transaction in MetaMask (EVM) or Phantom (Solana). Each trade returns a verifiable Etherscan or Solscan link.</li>
+      </ol>
+
+      <h3 id="how-to-liquidity">3. Provide liquidity (PancakeSwap ANET/BNB)</h3>
+      <ol>
+        <li>On BNB Chain, switch the card from <strong>Trade</strong> to <strong>Liquidity</strong> and select <strong>Add</strong>.</li>
+        <li>Enter an ANET amount; the required BNB is computed automatically from the live pool ratio, along with your estimated pool share.</li>
+        <li>Click <strong>Add Liquidity</strong>, approve ANET to the router, then confirm the deposit. You receive LP tokens that earn the 0.25% pool fee.</li>
+        <li>To withdraw, choose <strong>Remove</strong>, pick a percentage (25/50/75/100%), and confirm. Your ANET and BNB are returned to your wallet.</li>
+      </ol>
+
+      <h3 id="how-to-extension">4. Install the ANET Wallet extension</h3>
+      <ol>
+        <li>Get the extension from <code>anet-extension/</code> in the project repository.</li>
+        <li>Open <code>chrome://extensions</code> (or the Edge/Brave equivalent), enable <strong>Developer mode</strong>, and choose <strong>Load unpacked</strong> &rarr; select the <code>anet-extension</code> folder. (Firefox: <code>about:debugging</code> &rarr; Load Temporary Add-on.)</li>
+        <li>Open the extension and <strong>Create</strong> a new wallet (back up the private key shown once) or <strong>Import</strong> your existing seed phrase / key. Set a password to encrypt it on this device.</li>
+        <li>The extension shows your live ANET / ANTS balance and lets you <strong>Send</strong> and <strong>Receive</strong> native ANET.</li>
+      </ol>
+
+      <h3 id="how-to-connect-dex">5. Sign L1 actions from the DEX with the extension</h3>
+      <ol>
+        <li>With the extension installed, open the DEX. A <strong>Connect ANET Wallet (Extension)</strong> button appears in the header.</li>
+        <li>Click it and approve the connection in the extension popup. The header then shows your account with an <em>&middot;&nbsp;Ext</em> tag.</li>
+        <li>Native Layer&nbsp;1 actions (native swaps, add/remove liquidity, pool creation) are signed inside the extension via an approval popup; your key never touches the web page.</li>
+      </ol>
+
+      <h3 id="how-to-metamask-sell">6. Sell your activated L1 coins via MetaMask</h3>
+      <ol>
+        <li>Because MetaMask cannot hold native ANET, first bridge <strong>L1 ANET &rarr; wANET</strong> (BEP-20, 1:1) using the wallet-authorized bridge flow.</li>
+        <li>Once you hold wANET in your EVM wallet, open the DEX on BNB Chain and <strong>Sell</strong> wANET/ANET for BNB or a stablecoin on PancakeSwap with MetaMask.</li>
+        <li>Every step is verifiable: the bridge burn/release on-chain and the PancakeSwap swap on BscScan.</li>
+      </ol>
+
+      <div class="panel panel-red">
+        <h4>Safety</h4>
+        <p style="margin-bottom:0;">Never share your seed phrase or private key. A-Network never asks for it. Confirm you are on <code>a-network.net</code>, verify the ANET contract <code>0x791055A7d52AA392eaE8De04250497f33807E46A</code> on BscScan, and start with a small test amount. On-chain transactions are irreversible.</p>
+      </div>
+    </section>
 
     <section class="wp-section" id="v39-changelog">
       <div class="section-label">v3.9 Changelog &middot; June 14, 2026</div>
