@@ -454,7 +454,8 @@
           <button class="btn btn-outline btn-full" id="oc-connect-btn" style="padding:12px;">Connect Wallet</button>
 
           <div class="info-box" style="text-align:center;font-size:11.5px;color:var(--muted-2);">
-            Real on-chain settlement · ${MM_FEE_PCT}% fee → treasury · every action returns a verifiable tx hash.
+            Permissionless on-chain settlement · ${MM_FEE_PCT}% interface fee → treasury · price is market-discovered.<br>
+            Not investment advice · trade at your own risk · DYOR. Restricted where required by law.
           </div>
         </div>
       </div>`;

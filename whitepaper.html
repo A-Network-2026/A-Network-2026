@@ -8,16 +8,16 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v4.0 | Multi-Chain On-Chain DEX · ANET Wallet Extension · Auditable L1 Liquidity</title>
+  <title>A-Network Whitepaper v4.1 | Permissionless DEX · Transparent Protocol Revenue · Honest Decentralization</title>
 
-  <meta name="description" content="The official A-Network v4.0 whitepaper. Documents the multi-chain on-chain DEX (PancakeSwap, Uniswap, Jupiter) with live pricing and a 0.875% treasury fee, on-chain liquidity provision, the non-custodial ANET Wallet browser extension, plus the fixed-function Layer 1, auditable liquidity gates, separate Bitcoin and EVM markets, and regulatory launch controls." />
+  <meta name="description" content="The official A-Network v4.1 whitepaper. Documents the permissionless multi-chain DEX and community pool creation, market-discovered pricing, a transparent 0.875% interface fee to the disclosed treasury, the non-custodial ANET Wallet extension, an honest phased-decentralization posture, and the regulatory review framework." />
 
   <meta name="theme-color" content="#07101a" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
   <meta http-equiv="X-Frame-Options" content="DENY" />
   <meta name="referrer" content="no-referrer" />
 
-  <meta property="og:title" content="A-Network Whitepaper v4.0" />
+  <meta property="og:title" content="A-Network Whitepaper v4.1" />
 
   <meta property="og:description" content="Technical specification for A-Network Layer 1, real-liquidity audit gates, treasury controls, separate Bitcoin and EVM markets, and compliance review requirements." />
 
@@ -675,7 +675,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v4.0 · JULY 6, 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v4.1 · JULY 6, 2026</sub>
 
       </div>
 
@@ -703,6 +703,8 @@
     <a class="nav-item" href="#v39-changelog">v3.9 L1 Liquidity Controls</a>
 
     <a class="nav-item" href="#v40-changelog">v4.0 On-Chain DEX &amp; Wallet</a>
+
+    <a class="nav-item" href="#v41-changelog">v4.1 Permissionless &amp; Revenue</a>
 
     <a class="nav-item" href="#how-to-trade">How to Trade &amp; Provide Liquidity</a>
 
@@ -955,11 +957,11 @@
         </div>
       </div>
 
-      <div class="hero-badge">Technical Paper v4.0 (Multi-Chain On-Chain DEX · ANET Wallet Extension · Auditable L1 Liquidity)</div>
+      <div class="hero-badge">Technical Paper v4.1 (Permissionless DEX · Transparent Protocol Revenue · Honest Decentralization)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
       <p class="hero-sub">A-Network operates a native Layer 1 settlement ledger and a separate EVM market. Version 3.9 defines the controls required before public Layer 1 liquidity can be described as real: every pool contribution must debit a named wallet, the paired reserve asset must be registered and externally verifiable, bootstrap or administrator-created balances cannot be presented as liquidity, and the mobile interface must fail closed when any audit gate is missing. The designated EVM reserve treasury is <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code>. A Bitcoin reserve may support a separately identified ANET/BTC market only after a Bitcoin treasury address and proof transaction are published. Bitcoin reserves, EVM reserves, and native Layer 1 balances are never merged in accounting or represented as interchangeable custody. Layer 1 currently uses fixed protocol operations and has no general-purpose smart-contract virtual machine; any future VM requires a separately specified consensus upgrade, public test environment, independent audit, and explicit activation decision.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> &mdash; 4.0 (Multi-Chain On-Chain DEX and ANET Wallet Extension)</div>
+        <div class="hero-meta-item"><strong>Version</strong> &mdash; 4.1 (Permissionless DEX and Transparent Revenue Model)</div>
         <div class="hero-meta-item"><strong>Published</strong> &mdash; July 6, 2026</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong> &mdash; Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>EVM Reserve Treasury</strong> &mdash; <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code></div>
@@ -968,6 +970,31 @@
         <div class="hero-meta-item"><strong>Liquidity Rule</strong> &mdash; Wallet-funded &middot; reserve-backed &middot; independently auditable &middot; never bootstrap</div>
       </div>
     </div>
+
+    <section class="wp-section" id="v41-changelog">
+      <div class="section-label">v4.1 Changelog &middot; July 6, 2026</div>
+      <h2>Version 4.1 &mdash; Permissionless DEX, Transparent Revenue &amp; Decentralization Posture</h2>
+      <p>Version 4.1 states the governance and revenue posture of the v4.0 trading surface in plain terms, consistent with the Regulatory and Legal Review Framework in <a href="#legal" style="color:#7fb8ff;">Section&nbsp;15</a>. It introduces no new custody, yield, or price promise.</p>
+
+      <h3>Permissionless by design</h3>
+      <ul>
+        <li><strong>Ownerless token.</strong> The ANET BEP-20 contract is immutable &mdash; ownership renounced, supply fixed at 21,000,000, and <code>mint</code>/<code>pause</code>/<code>blacklist</code> permanently disabled.</li>
+        <li><strong>Permissionless pools.</strong> On the native L1 DEX, creating a pool and adding liquidity require only a signed action from the provider&apos;s own wallet &mdash; there is no admin or operator gate. Any community member can open a market.</li>
+        <li><strong>Third-party AMMs.</strong> On-chain trades route through public, permissionless AMMs (PancakeSwap, Uniswap, Jupiter). A-Network provides an interface; it does not operate those venues.</li>
+        <li><strong>Market-discovered price.</strong> A-Network does not set, pre-seed at a chosen price, target, or guarantee any ANET price. Price emerges from free trading, and 1:1 bridge arbitrage keeps L1 and L2 aligned. This restates the commitments in the Economic Architecture and Section&nbsp;15.</li>
+      </ul>
+
+      <h3>Honest decentralization posture (no over-claim)</h3>
+      <p>A-Network does <strong>not</strong> claim system-wide decentralization. Decentralized or permissionless today: the ownerless token contract, the 2-of-3 EIP-712 bridge vault, and permissionless DEX pool creation. Still operator-run and on a published, phased roadmap: the Layer&nbsp;1 chain (multi-validator set in progress), the cash-out escrow, and off-chain services. The current state is tracked publicly in the Decentralization Status Tracker at the top of this paper. Describing the system as &ldquo;fully decentralized&rdquo; while these components are operator-run would be inaccurate &mdash; honesty here is a compliance control, not a marketing weakness.</p>
+
+      <h3>Transparent protocol revenue</h3>
+      <p>The on-chain swap interface charges a <strong>0.875% interface fee</strong> (matching the common MetaMask rate) on each on-chain swap, sent transparently to the disclosed treasury <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code> operated by A&nbsp;Network&nbsp;LLC. This is a <strong>service fee for using the interface</strong> that funds development and operations. It is <strong>not</strong> interest, a dividend, a profit-share, a staking reward, or a promised return to any token holder, and it confers no equity or governance right. Separately, liquidity providers earn the underlying AMM&apos;s pool fee (typically 0.25&ndash;0.30%) as variable compensation for supplying capital and bearing risk &mdash; not a guaranteed yield. Fees, spreads, slippage, impermanent loss, and protocol risk are disclosed in the interface. Any change to fee programs, incentives, or distribution is subject to the counsel review required by Section&nbsp;15.</p>
+
+      <div class="panel panel-red">
+        <h4>No investment solicitation</h4>
+        <p style="margin-bottom:0;">Nothing in the DEX, the ANET Wallet extension, or this paper is an offer, solicitation, or recommendation to buy, sell, or hold any asset, nor investment, legal, or tax advice. Trading crypto assets carries risk, including total loss. Do your own research. Features that have not passed the applicable legal, security, reserve, and operational launch gates remain disabled or geographically restricted, and each user is responsible for compliance in their own jurisdiction.</p>
+      </div>
+    </section>
 
     <section class="wp-section" id="v40-changelog">
       <div class="section-label">v4.0 Changelog &middot; July 6, 2026</div>
