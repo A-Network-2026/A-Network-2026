@@ -1259,3 +1259,84 @@ footer .copyright { font-size: 12px; color: var(--muted-2); }
   white-space: nowrap;
 }
 .network-item .v { color: var(--text); font-weight: 600; }
+
+/* =============================================
+   On-chain Buy/Sell card + live ANET ticker
+   ============================================= */
+.onchain-card { border: 1px solid var(--line-strong); }
+.onchain-body { display: flex; flex-direction: column; gap: 12px; }
+
+/* Live ANET ticker */
+.anet-ticker {
+  position: relative;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(57,217,138,0.05), rgba(9,23,37,0));
+}
+.anet-ticker-main { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.anet-ticker-pair { font-size: 12px; letter-spacing: 0.08em; color: var(--muted); }
+.anet-ticker-price { font-size: 30px; font-weight: 800; font-family: 'Orbitron', sans-serif; color: var(--text); }
+.anet-ticker-change { font-size: 13px; font-weight: 700; }
+.anet-ticker-change.up { color: var(--success); }
+.anet-ticker-change.down { color: var(--danger); }
+.anet-ticker-change.neutral { color: var(--muted); }
+.anet-ticker-svg { display: block; width: 100%; height: 70px; margin: 8px 0 4px; }
+.anet-ticker-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px 16px; margin-top: 4px;
+}
+.anet-ticker-stats > div { display: flex; flex-direction: column; }
+.anet-ticker-stats span { font-size: 10.5px; letter-spacing: 0.04em; color: var(--muted-2); text-transform: uppercase; }
+.anet-ticker-stats b { font-size: 13px; color: var(--text); font-weight: 600; }
+
+/* Network + side selectors */
+.onchain-net-row, .onchain-side-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.net-btn {
+  flex: 1; min-width: 100px; padding: 10px 12px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--bg-3); color: var(--muted); font-size: 13px; font-weight: 600;
+  transition: all 0.15s;
+}
+.net-btn:hover { border-color: var(--line-strong); color: var(--text); }
+.net-btn.active { border-color: var(--accent); color: var(--text); background: rgba(88,197,255,0.1); }
+
+.onchain-side-row .side-btn {
+  flex: 1; padding: 11px; cursor: pointer; font-size: 14px; font-weight: 700;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--bg-3); color: var(--muted); transition: all 0.15s;
+}
+.side-btn.buy.active { border-color: var(--success); color: #0a1f16; background: var(--success); }
+.side-btn.sell.active { border-color: var(--danger); color: #2a0d14; background: var(--danger); }
+
+/* Token <select> inside on-chain fields */
+.oc-token-select {
+  appearance: none; -webkit-appearance: none;
+  padding: 9px 30px 9px 12px; min-width: 108px; cursor: pointer;
+  border: 1px solid var(--line-strong); border-radius: 999px;
+  background: var(--bg-2) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%239eb2c9' stroke-width='1.5' fill='none'/></svg>") no-repeat right 12px center;
+  color: var(--text); font-size: 14px; font-weight: 700;
+}
+.oc-token-select:focus { outline: none; border-color: var(--accent); }
+.btn.connected { border-color: var(--success) !important; color: var(--success) !important; }
+
+/* Mode (Trade/Liquidity) + liquidity sub-tabs */
+.onchain-mode-row { display: flex; gap: 8px; }
+.mode-btn {
+  flex: 1; padding: 9px; cursor: pointer; font-size: 13px; font-weight: 700; letter-spacing: 0.03em;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: transparent; color: var(--muted); transition: all 0.15s;
+}
+.mode-btn:hover { color: var(--text); border-color: var(--line-strong); }
+.mode-btn.active { border-color: var(--accent); color: var(--text); background: rgba(88,197,255,0.1); }
+.liq-sub-row { display: flex; gap: 8px; margin-bottom: 4px; }
+.liq-sub-btn {
+  flex: 1; padding: 8px; cursor: pointer; font-size: 12.5px; font-weight: 600;
+  border: 1px solid var(--line); border-radius: var(--radius-xs);
+  background: var(--bg-3); color: var(--muted); transition: all 0.15s;
+}
+.liq-sub-btn.active { border-color: var(--accent-2); color: var(--text); background: rgba(34,231,184,0.1); }
+.oc-token-fixed {
+  display: inline-flex; align-items: center; padding: 9px 14px; min-width: 108px;
+  border: 1px solid var(--line-strong); border-radius: 999px;
+  background: var(--bg-2); font-size: 14px; font-weight: 700;
+}

@@ -167,8 +167,8 @@
           <div class="stat-lbl">TOTAL LIQUIDITY</div>
         </div>
         <div class="hero-stat">
-          <div class="stat-val">0.30%</div>
-          <div class="stat-lbl">BASE FEE</div>
+          <div class="stat-val">0.875%</div>
+          <div class="stat-lbl">SWAP FEE</div>
         </div>
         <div class="hero-stat">
           <div class="stat-val">2s</div>
@@ -227,6 +227,10 @@
          TAB: SWAP
          ════════════════════════════════════════ -->
     <div class="tab-panel active" id="tab-swap" role="tabpanel">
+
+      <!-- Real on-chain Buy/Sell (PancakeSwap V2 / Uniswap V2 / Jupiter) + live ANET price -->
+      <div id="onchain-trade-mount" style="margin-bottom:22px;"></div>
+
       <div class="dex-main-grid">
 
         <!-- Swap card -->
@@ -1399,8 +1403,10 @@
   </div><!-- /shell -->
 
   <script src="assets/js/vendor/anet-crypto.bundle.js?v=20260628"></script>
+  <script src="assets/js/vendor/anet-solana.bundle.js?v=20260706"></script>
   <script src="assets/js/anet-wallet.js?v=20260628"></script>
-  <script src="assets/js/dex.js?v=20260628b-token-dedupe"></script>
+  <script src="assets/js/dex.js?v=20260706-onchain"></script>
+  <script src="assets/js/dex-onchain.js?v=20260706-onchain"></script>
 
 </body>
 </html>
