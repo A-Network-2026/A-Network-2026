@@ -723,6 +723,21 @@ async function createPool({ provider, tokenSymbol, anetAmountAnts, tokenAmountUn
   return apiFetch('/dex/pools/create', { method: 'POST', body: JSON.stringify(body) });
 }
 
+// Wrap native ANET into L1 wANET (1:1). Signed 'dex_wrap' action → recorded on L1.
+async function dexWrap(amountAnts) {
+  const wallet = normSym(state.anetWallet.address);
+  if (!wallet) throw new Error('Connect your ANET wallet first.');
+  const auth = await anetSignAction('dex_wrap', {
+    route: 'dex_wrap',
+    wallet,
+    amount_ants: amountAnts,
+  });
+  return apiFetch('/dex/wrap', {
+    method: 'POST',
+    body: JSON.stringify({ wallet, amount_ants: amountAnts, auth }),
+  });
+}
+
 /* Records a signed UI event on-chain (best-effort; never blocks a trade).
    The chain stores it as an app-activity entry tied to the wallet. */
 async function recordChainActivity(action, status, detail) {
@@ -1143,6 +1158,8 @@ function updateAnetWalletUI() {
   if (hint) hint.style.display = state.anetWallet.address ? 'none' : 'block';
   // keep cashout panel in sync if it's visible
   if (state.activeTab === 'cashout') initCashoutTab();
+  // keep the Open L1 Market status current
+  openL1MarketRefresh();
 }
 
 /* ── Tab navigation ─────────────────────────── */
@@ -1155,7 +1172,7 @@ function setTab(name) {
     renderMarketMicrostructure();
     refreshMarketActivity();
   }
-  if (name === 'liquidity')   renderLiquidityPools();
+  if (name === 'liquidity')   { renderLiquidityPools(); openL1MarketRefresh(); }
   if (name === 'multichain')  renderMultiChainTab();
   if (name === 'cashout')     initCashoutTab();
 }
@@ -3101,6 +3118,98 @@ async function doCreatePool() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Create Pool';
+  }
+}
+
+/* ── Open L1 Market (guided ANET/wANET pool seeding) ─────────────────
+   Every step is a signed Layer-1 action recorded in a block:
+   wrap (dex_wrap), create pool (dex_create_pool), add liquidity
+   (dex_add_liquidity). Nothing is off-chain. */
+async function openL1MarketRefresh() {
+  const statusEl = document.getElementById('l1-market-status');
+  if (!statusEl) return;
+  if (!state.anetWallet.address) {
+    statusEl.innerHTML = 'Connect your ANET wallet (or the extension) to begin.';
+    return;
+  }
+  let anet = null;
+  try {
+    const acct = await getAccount(state.anetWallet.address);
+    anet = Number(acct.ants_balance || 0) / ANTS_PER_ANET;
+  } catch (_) {}
+  const pool = state.pools.find(p => normSym(p.token_symbol) === 'WANET');
+  const via = state.anetWallet.viaExtension ? ' · Ext' : '';
+  statusEl.innerHTML =
+    `Wallet <strong>${shortAddr(state.anetWallet.address)}${via}</strong> · ` +
+    `L1 ANET: <strong>${anet == null ? '—' : fmt(anet, 4)}</strong> · ` +
+    `ANET/wANET pool: <strong style="color:${pool ? 'var(--accent-2)' : 'var(--muted-2)'};">${pool ? 'LIVE' : 'not created'}</strong>`;
+}
+
+async function openL1MarketWrap() {
+  if (!ensureAnetSigner()) return;
+  const amt = parseFloat(document.getElementById('l1-wrap-amount')?.value);
+  if (!(amt > 0)) { toast('Enter an ANET amount to wrap', 'error'); return; }
+  const btn = document.getElementById('l1-wrap-btn');
+  const msg = document.getElementById('l1-market-msg');
+  if (btn) { btn.disabled = true; btn.textContent = 'Wrapping…'; }
+  if (msg) { msg.className = 'swap-status show loading'; msg.innerHTML = '<span class="spinner"></span> Signing & recording wrap on L1…'; }
+  try {
+    await dexWrap(anet2ants(amt));
+    if (msg) { msg.className = 'swap-status show success'; msg.textContent = `✓ Wrapped ${fmt(amt, 4)} ANET → wANET · recorded on L1.`; }
+    toast('Wrapped on L1', 'success');
+    recordChainActivity('l1_market_wrap', 'success', `${amt} ANET`);
+    document.getElementById('l1-wrap-amount').value = '';
+    await Promise.all([refreshAnetBalance(), refreshPools()]);
+    openL1MarketRefresh();
+  } catch (e) {
+    if (msg) { msg.className = 'swap-status show error'; msg.textContent = `✕ ${e.message || 'Wrap failed'}`; }
+    toast(e.message || 'Wrap failed', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Wrap'; }
+  }
+}
+
+async function openL1MarketCreate() {
+  if (!ensureAnetSigner()) return;
+  const anetAmt = parseFloat(document.getElementById('l1-pool-anet')?.value);
+  const wanetAmt = parseFloat(document.getElementById('l1-pool-wanet')?.value);
+  if (!(anetAmt > 0) || !(wanetAmt > 0)) { toast('Enter ANET and wANET amounts', 'error'); return; }
+  const btn = document.getElementById('l1-create-btn');
+  const msg = document.getElementById('l1-market-msg');
+  if (btn) { btn.disabled = true; btn.textContent = 'Opening…'; }
+  if (msg) { msg.className = 'swap-status show loading'; msg.innerHTML = '<span class="spinner"></span> Signing & broadcasting to A Network L1…'; }
+  try {
+    const existing = state.pools.find(p => normSym(p.token_symbol) === 'WANET');
+    if (existing) {
+      await addLiquidity({
+        provider: state.anetWallet.address,
+        tokenSymbol: 'WANET',
+        anetAmountAnts: anet2ants(anetAmt),
+        tokenAmountUnits: anet2ants(wanetAmt),
+      });
+      if (msg) { msg.className = 'swap-status show success'; msg.textContent = '✓ Added liquidity to ANET/wANET · recorded on L1.'; }
+    } else {
+      await createPool({
+        provider: state.anetWallet.address,
+        tokenSymbol: 'WANET',
+        anetAmountAnts: anet2ants(anetAmt),
+        tokenAmountUnits: anet2ants(wanetAmt),
+        feeBps: 30,
+      });
+      if (msg) { msg.className = 'swap-status show success'; msg.textContent = '✓ ANET/wANET pool created & seeded. The L1 market is OPEN — recorded on-chain.'; }
+    }
+    toast('L1 market opened', 'success', 6000);
+    recordChainActivity('open_l1_market', 'success', 'ANET/WANET');
+    document.getElementById('l1-pool-anet').value = '';
+    document.getElementById('l1-pool-wanet').value = '';
+    await Promise.all([refreshPools(), refreshAnetBalance()]);
+    renderSwapTokenSelectors();
+    openL1MarketRefresh();
+  } catch (e) {
+    if (msg) { msg.className = 'swap-status show error'; msg.textContent = `✕ ${e.message || 'Failed to open market'}`; }
+    toast(e.message || 'Failed to open market', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Create & Open Market'; }
   }
 }
 
