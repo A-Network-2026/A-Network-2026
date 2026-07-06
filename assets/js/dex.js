@@ -3140,16 +3140,16 @@ function setL1MarketPair(sym) {
   if (pairInput) pairInput.placeholder = (isWrap ? 'wANET' : l1MarketPair) + ' amount';
   const note = document.getElementById('l1-pair-note');
   if (note) note.innerHTML = isWrap
-    ? 'wANET pairs 1:1 with ANET — an on-ramp from the L2 market. Equal amounts start the pool at 1:1.'
-    : `${l1MarketPair} is a <strong>dollar-priced</strong> pair: the ANET:${l1MarketPair} ratio you deposit sets the opening USD price. The ${l1MarketPair} side must be a reserve-backed L1 asset (bridge it onto L1 first) and is subject to the v3.9 real-liquidity gates.`;
+    ? 'wANET pairs 1:1 with ANET — an on-ramp from the open market. The community sets the depth; the market sets the price.'
+    : `${l1MarketPair} is a <strong>dollar-priced</strong> pair. The ratio you deposit only seeds a starting point — the <strong>free market</strong> (and arbitrage with the wANET market) discovers the real price. The ${l1MarketPair} side must be a reserve-backed L1 asset (bring it onto L1 first) and is subject to the v3.9 real-liquidity gates.`;
   const step1 = document.getElementById('l1-step1-note');
   if (step1) step1.innerHTML = isWrap
-    ? 'Bridge treasury wANET (BSC) → native ANET into your L1 wallet using the wallet-authorized bridge. The credited balance appears in the status line above. This step moves real funds and is performed from the treasury wallet.'
-    : `You need both <strong>native ANET</strong> and reserve-backed <strong>${l1MarketPair}</strong> on L1. Bridge ANET and ${l1MarketPair} into your treasury L1 wallet first; balances are debited when you seed the pool.`;
+    ? 'Bring native ANET onto L1 — bridge wANET → ANET, or use mined ANET. Anyone can do this with their own wallet; there is no privileged operator.'
+    : `You need <strong>native ANET</strong> and reserve-backed <strong>${l1MarketPair}</strong> on L1. Bring both onto L1 with your own wallet first; balances are debited when you seed the pool.`;
   const step3 = document.getElementById('l1-step3-note');
   if (step3) step3.innerHTML = isWrap
-    ? 'Equal amounts start the pool at 1:1 (matching the bridge peg). 0.30% pool fee. Once created, anyone can buy ANET on the L1 DEX.'
-    : `The ANET:${l1MarketPair} ratio sets the opening price (e.g. 100 ANET + 2500 ${l1MarketPair} ⇒ 1 ANET = 25 ${l1MarketPair}). 0.30% pool fee. Disclose reserves per the v3.9 gates.`;
+    ? 'Equal amounts seed a 1:1 starting ratio (matching the peg); the market takes over from there. 0.30% pool fee. Once any pool is live, anyone can buy and sell ANET on the L1 DEX.'
+    : `The ANET:${l1MarketPair} ratio only seeds a starting point — the free market discovers the price from there. 0.30% pool fee. Disclose reserves per the v3.9 gates.`;
   openL1MarketRefresh();
 }
 

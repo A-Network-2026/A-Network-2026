@@ -1057,16 +1057,16 @@
         <li>Every step is verifiable: the bridge burn/release on-chain and the PancakeSwap swap on BscScan.</li>
       </ol>
 
-      <h3 id="how-to-open-l1">7. Open / seed the native L1 market (treasury &amp; operator)</h3>
-      <p>Buying ANET on the <strong>native L1 DEX</strong> requires a funded L1 pool to exist. Until a pool is seeded, there is nothing to trade against on Layer&nbsp;1 (the L2 PancakeSwap market is separate and already live). Seeding a pool deposits real assets from a named wallet and is therefore a wallet-funded action subject to the v3.9 real-liquidity gates. Use the DEX <strong>Liquidity</strong> tab &rarr; <strong>Open L1 Market</strong> panel:</p>
+      <h3 id="how-to-open-l1">7. Open the native L1 market (permissionless &middot; community)</h3>
+      <p>The native L1 DEX follows the Bitcoin principle: <strong>no founder sets the price and no participant is privileged.</strong> Pool creation and liquidity provision on Layer&nbsp;1 are <strong>permissionless</strong> — any wallet can open a pool by signing an on-chain action; there is no admin or operator gate. ANET&apos;s value is discovered by the <strong>free market</strong> — it already trades on the open wANET market, and 1:1 bridge arbitrage keeps L1 and L2 aligned. The project does <strong>not</strong> pre-seed a founder pool at a chosen price; the community opens pools and the market decides. From the DEX <strong>Liquidity</strong> tab &rarr; <strong>Open L1 Market</strong> panel, anyone can:</p>
       <ol>
-        <li><strong>Choose the pair.</strong> <em>ANET/wANET</em> is a 1:1 on-ramp (holders convert wANET&nbsp;&harr;&nbsp;ANET on L1); <em>ANET/USDT</em> or <em>ANET/USDC</em> are dollar-priced markets where the deposit ratio sets the opening USD price.</li>
-        <li><strong>Get the assets onto L1.</strong> Bridge treasury wANET (BSC) &rarr; native ANET into the operator&apos;s L1 wallet; for a stablecoin pair, also bring reserve-backed USDT/USDC onto L1. Balances appear in the panel&apos;s status line.</li>
-        <li><strong>Wrap (wANET pair only).</strong> Wrap part of your native ANET into L1 wANET so you hold both sides. This is a signed <code>dex_wrap</code> action recorded on L1.</li>
-        <li><strong>Create &amp; seed.</strong> Enter the ANET and pair amounts and create the pool (signed <code>dex_create_pool</code>), or add to an existing one (<code>dex_add_liquidity</code>). Every action is recorded in an L1 block; sign with the ANET Wallet extension or the in-page wallet.</li>
-        <li><strong>Disclose.</strong> Per the v3.9 audit package, publish the funding wallet, deposit transactions, the paired reserve asset and its backing, and any limitations before advertising the market as public liquidity.</li>
+        <li><strong>Choose the pair.</strong> <em>ANET/wANET</em> is a 1:1 on-ramp (convert wANET&nbsp;&harr;&nbsp;ANET on L1); <em>ANET/USDT</em> or <em>ANET/USDC</em> are dollar-priced markets whose deposit ratio only seeds a starting point — the free market discovers the real price from there.</li>
+        <li><strong>Bring the assets onto L1.</strong> Bridge wANET&nbsp;&rarr;&nbsp;native ANET into your own L1 wallet (or use mined ANET); for a stablecoin pair, also bring reserve-backed USDT/USDC onto L1. Balances appear in the panel&apos;s status line.</li>
+        <li><strong>Wrap (wANET pair only).</strong> Wrap part of your native ANET into L1 wANET so you hold both sides. Signed <code>dex_wrap</code>, recorded on L1.</li>
+        <li><strong>Create &amp; add liquidity.</strong> Enter the amounts and create the pool (signed <code>dex_create_pool</code>), or add to an existing one (<code>dex_add_liquidity</code>). Every action is recorded in an L1 block; sign with the ANET Wallet extension or the in-page wallet.</li>
+        <li><strong>Disclose (stablecoin pairs).</strong> Per the v3.9 audit package, publish the funding wallet, deposit transactions, and the paired reserve asset and its backing before advertising a pool as public liquidity.</li>
       </ol>
-      <p>Once a pool is live, anyone can buy and sell ANET on the native L1 DEX, and every trade settles as a signed, on-chain L1 transaction.</p>
+      <p>Once any community pool is live, anyone can buy and sell ANET on the native L1 DEX, and every trade settles as a signed, on-chain L1 transaction. Price emerges from free trading — not from any privileged party.</p>
 
       <div class="panel panel-red">
         <h4>Safety</h4>
