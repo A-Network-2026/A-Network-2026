@@ -658,28 +658,36 @@
          ════════════════════════════════════════ -->
     <div class="tab-panel" id="tab-liquidity" role="tabpanel">
 
-      <!-- ── Guided: Open the native L1 market (ANET/wANET) ── -->
+      <!-- ── Guided: Open the native L1 market ── -->
       <div class="card" id="open-l1-market" style="margin-bottom:18px;border-color:var(--line-strong);">
         <div class="card-header">
-          <span class="card-title">OPEN L1 MARKET · ANET / wANET</span>
+          <span class="card-title">OPEN L1 MARKET · ANET / <span id="l1-pair-label">wANET</span></span>
           <span class="pill">Treasury / Operator</span>
         </div>
         <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
           <p style="font-size:12.5px;color:var(--muted);margin:0;line-height:1.55;">
-            Seed the native Layer&nbsp;1 <strong>ANET/wANET</strong> pool so anyone can buy ANET on our own L1 DEX.
+            Seed a native Layer&nbsp;1 pool so anyone can buy ANET on our own L1 DEX.
             Every step below is a <strong>signed, on-chain L1 action recorded in a block</strong> — nothing is off-chain.
           </p>
 
+          <!-- Pair selector -->
+          <div id="l1-pair-row" style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="net-btn active" data-pair="WANET" onclick="setL1MarketPair('WANET')">ANET / wANET <span style="color:var(--muted-2);">· 1:1 on-ramp</span></button>
+            <button class="net-btn" data-pair="USDT" onclick="setL1MarketPair('USDT')">ANET / USDT <span style="color:var(--muted-2);">· $ priced</span></button>
+            <button class="net-btn" data-pair="USDC" onclick="setL1MarketPair('USDC')">ANET / USDC <span style="color:var(--muted-2);">· $ priced</span></button>
+          </div>
+
           <div class="info-box" id="l1-market-status" style="font-size:12.5px;">Connect your ANET wallet (or the extension) to begin.</div>
+          <div class="info-box" id="l1-pair-note" style="font-size:11.5px;color:var(--muted);">wANET pairs 1:1 with ANET — an on-ramp from the L2 market. Equal amounts start the pool at 1:1.</div>
 
           <!-- Step 1 -->
           <div style="border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 12px;">
-            <div style="font-size:12.5px;font-weight:600;color:var(--text);"><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:rgba(88,197,255,0.15);color:var(--accent);font-size:11px;margin-right:6px;">1</span> Get native ANET onto L1</div>
-            <p style="font-size:11.5px;color:var(--muted-2);margin:6px 0 0;line-height:1.5;">Bridge treasury wANET (BSC) → native ANET into your L1 wallet using the wallet-authorized bridge. The credited balance appears in the status line above. This step moves real funds and is performed from the treasury wallet.</p>
+            <div style="font-size:12.5px;font-weight:600;color:var(--text);"><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:rgba(88,197,255,0.15);color:var(--accent);font-size:11px;margin-right:6px;">1</span> Get the assets onto L1</div>
+            <p id="l1-step1-note" style="font-size:11.5px;color:var(--muted-2);margin:6px 0 0;line-height:1.5;">Bridge treasury wANET (BSC) → native ANET into your L1 wallet using the wallet-authorized bridge. The credited balance appears in the status line above. This step moves real funds and is performed from the treasury wallet.</p>
           </div>
 
-          <!-- Step 2: wrap -->
-          <div style="border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 12px;">
+          <!-- Step 2: wrap (wANET pair only) -->
+          <div id="l1-step-wrap" style="border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 12px;">
             <div style="font-size:12.5px;font-weight:600;color:var(--text);"><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:rgba(88,197,255,0.15);color:var(--accent);font-size:11px;margin-right:6px;">2</span> Wrap ANET → wANET (for the pair)</div>
             <div style="display:flex;gap:8px;margin-top:8px;">
               <input class="form-input" id="l1-wrap-amount" type="number" placeholder="ANET to wrap" min="0" step="any" style="flex:1;">
@@ -689,12 +697,12 @@
 
           <!-- Step 3: create + seed -->
           <div style="border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 12px;">
-            <div style="font-size:12.5px;font-weight:600;color:var(--text);"><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:rgba(88,197,255,0.15);color:var(--accent);font-size:11px;margin-right:6px;">3</span> Create &amp; seed the ANET/wANET pool</div>
+            <div style="font-size:12.5px;font-weight:600;color:var(--text);"><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:rgba(88,197,255,0.15);color:var(--accent);font-size:11px;margin-right:6px;">3</span> Create &amp; seed the ANET/<span class="l1-pair-name">wANET</span> pool</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
               <input class="form-input" id="l1-pool-anet" type="number" placeholder="ANET amount" min="0" step="any">
-              <input class="form-input" id="l1-pool-wanet" type="number" placeholder="wANET amount" min="0" step="any">
+              <input class="form-input" id="l1-pool-pair" type="number" placeholder="wANET amount" min="0" step="any">
             </div>
-            <p style="font-size:11px;color:var(--muted-2);margin:6px 0 0;">Equal amounts start the pool at 1:1 (matching the bridge peg). 0.30% pool fee. Once created, anyone can buy ANET on the L1 DEX.</p>
+            <p id="l1-step3-note" style="font-size:11px;color:var(--muted-2);margin:6px 0 0;">Equal amounts start the pool at 1:1 (matching the bridge peg). 0.30% pool fee. Once created, anyone can buy ANET on the L1 DEX.</p>
             <button class="btn btn-primary btn-full" id="l1-create-btn" onclick="openL1MarketCreate()" style="margin-top:8px;padding:12px;">Create &amp; Open Market</button>
           </div>
 
@@ -1454,7 +1462,7 @@
   <script src="assets/js/vendor/anet-crypto.bundle.js?v=20260628"></script>
   <script src="assets/js/vendor/anet-solana.bundle.js?v=20260706"></script>
   <script src="assets/js/anet-wallet.js?v=20260628"></script>
-  <script src="assets/js/dex.js?v=20260706-l1market"></script>
+  <script src="assets/js/dex.js?v=20260706-l1pairs"></script>
   <script src="assets/js/dex-onchain.js?v=20260706-onchain"></script>
 
 </body>

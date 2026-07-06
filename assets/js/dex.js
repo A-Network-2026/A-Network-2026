@@ -3125,6 +3125,34 @@ async function doCreatePool() {
    Every step is a signed Layer-1 action recorded in a block:
    wrap (dex_wrap), create pool (dex_create_pool), add liquidity
    (dex_add_liquidity). Nothing is off-chain. */
+let l1MarketPair = 'WANET';
+function setL1MarketPair(sym) {
+  l1MarketPair = normSym(sym) || 'WANET';
+  document.querySelectorAll('#l1-pair-row .net-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.pair === l1MarketPair));
+  const isWrap = l1MarketPair === 'WANET';
+  const wrapStep = document.getElementById('l1-step-wrap');
+  if (wrapStep) wrapStep.style.display = isWrap ? '' : 'none';
+  document.querySelectorAll('.l1-pair-name').forEach(el => { el.textContent = isWrap ? 'wANET' : l1MarketPair; });
+  const pairLabel = document.getElementById('l1-pair-label');
+  if (pairLabel) pairLabel.textContent = isWrap ? 'wANET' : l1MarketPair;
+  const pairInput = document.getElementById('l1-pool-pair');
+  if (pairInput) pairInput.placeholder = (isWrap ? 'wANET' : l1MarketPair) + ' amount';
+  const note = document.getElementById('l1-pair-note');
+  if (note) note.innerHTML = isWrap
+    ? 'wANET pairs 1:1 with ANET — an on-ramp from the L2 market. Equal amounts start the pool at 1:1.'
+    : `${l1MarketPair} is a <strong>dollar-priced</strong> pair: the ANET:${l1MarketPair} ratio you deposit sets the opening USD price. The ${l1MarketPair} side must be a reserve-backed L1 asset (bridge it onto L1 first) and is subject to the v3.9 real-liquidity gates.`;
+  const step1 = document.getElementById('l1-step1-note');
+  if (step1) step1.innerHTML = isWrap
+    ? 'Bridge treasury wANET (BSC) → native ANET into your L1 wallet using the wallet-authorized bridge. The credited balance appears in the status line above. This step moves real funds and is performed from the treasury wallet.'
+    : `You need both <strong>native ANET</strong> and reserve-backed <strong>${l1MarketPair}</strong> on L1. Bridge ANET and ${l1MarketPair} into your treasury L1 wallet first; balances are debited when you seed the pool.`;
+  const step3 = document.getElementById('l1-step3-note');
+  if (step3) step3.innerHTML = isWrap
+    ? 'Equal amounts start the pool at 1:1 (matching the bridge peg). 0.30% pool fee. Once created, anyone can buy ANET on the L1 DEX.'
+    : `The ANET:${l1MarketPair} ratio sets the opening price (e.g. 100 ANET + 2500 ${l1MarketPair} ⇒ 1 ANET = 25 ${l1MarketPair}). 0.30% pool fee. Disclose reserves per the v3.9 gates.`;
+  openL1MarketRefresh();
+}
+
 async function openL1MarketRefresh() {
   const statusEl = document.getElementById('l1-market-status');
   if (!statusEl) return;
@@ -3137,12 +3165,13 @@ async function openL1MarketRefresh() {
     const acct = await getAccount(state.anetWallet.address);
     anet = Number(acct.ants_balance || 0) / ANTS_PER_ANET;
   } catch (_) {}
-  const pool = state.pools.find(p => normSym(p.token_symbol) === 'WANET');
+  const pool = state.pools.find(p => normSym(p.token_symbol) === l1MarketPair);
   const via = state.anetWallet.viaExtension ? ' · Ext' : '';
+  const pairName = l1MarketPair === 'WANET' ? 'wANET' : l1MarketPair;
   statusEl.innerHTML =
     `Wallet <strong>${shortAddr(state.anetWallet.address)}${via}</strong> · ` +
     `L1 ANET: <strong>${anet == null ? '—' : fmt(anet, 4)}</strong> · ` +
-    `ANET/wANET pool: <strong style="color:${pool ? 'var(--accent-2)' : 'var(--muted-2)'};">${pool ? 'LIVE' : 'not created'}</strong>`;
+    `ANET/${pairName} pool: <strong style="color:${pool ? 'var(--accent-2)' : 'var(--muted-2)'};">${pool ? 'LIVE' : 'not created'}</strong>`;
 }
 
 async function openL1MarketWrap() {
@@ -3172,36 +3201,37 @@ async function openL1MarketWrap() {
 async function openL1MarketCreate() {
   if (!ensureAnetSigner()) return;
   const anetAmt = parseFloat(document.getElementById('l1-pool-anet')?.value);
-  const wanetAmt = parseFloat(document.getElementById('l1-pool-wanet')?.value);
-  if (!(anetAmt > 0) || !(wanetAmt > 0)) { toast('Enter ANET and wANET amounts', 'error'); return; }
+  const pairAmt = parseFloat(document.getElementById('l1-pool-pair')?.value);
+  const pairName = l1MarketPair === 'WANET' ? 'wANET' : l1MarketPair;
+  if (!(anetAmt > 0) || !(pairAmt > 0)) { toast(`Enter ANET and ${pairName} amounts`, 'error'); return; }
   const btn = document.getElementById('l1-create-btn');
   const msg = document.getElementById('l1-market-msg');
   if (btn) { btn.disabled = true; btn.textContent = 'Opening…'; }
   if (msg) { msg.className = 'swap-status show loading'; msg.innerHTML = '<span class="spinner"></span> Signing & broadcasting to A Network L1…'; }
   try {
-    const existing = state.pools.find(p => normSym(p.token_symbol) === 'WANET');
+    const existing = state.pools.find(p => normSym(p.token_symbol) === l1MarketPair);
     if (existing) {
       await addLiquidity({
         provider: state.anetWallet.address,
-        tokenSymbol: 'WANET',
+        tokenSymbol: l1MarketPair,
         anetAmountAnts: anet2ants(anetAmt),
-        tokenAmountUnits: anet2ants(wanetAmt),
+        tokenAmountUnits: anet2ants(pairAmt),
       });
-      if (msg) { msg.className = 'swap-status show success'; msg.textContent = '✓ Added liquidity to ANET/wANET · recorded on L1.'; }
+      if (msg) { msg.className = 'swap-status show success'; msg.textContent = `✓ Added liquidity to ANET/${pairName} · recorded on L1.`; }
     } else {
       await createPool({
         provider: state.anetWallet.address,
-        tokenSymbol: 'WANET',
+        tokenSymbol: l1MarketPair,
         anetAmountAnts: anet2ants(anetAmt),
-        tokenAmountUnits: anet2ants(wanetAmt),
+        tokenAmountUnits: anet2ants(pairAmt),
         feeBps: 30,
       });
-      if (msg) { msg.className = 'swap-status show success'; msg.textContent = '✓ ANET/wANET pool created & seeded. The L1 market is OPEN — recorded on-chain.'; }
+      if (msg) { msg.className = 'swap-status show success'; msg.textContent = `✓ ANET/${pairName} pool created & seeded. The L1 market is OPEN — recorded on-chain.`; }
     }
     toast('L1 market opened', 'success', 6000);
-    recordChainActivity('open_l1_market', 'success', 'ANET/WANET');
+    recordChainActivity('open_l1_market', 'success', `ANET/${l1MarketPair}`);
     document.getElementById('l1-pool-anet').value = '';
-    document.getElementById('l1-pool-wanet').value = '';
+    document.getElementById('l1-pool-pair').value = '';
     await Promise.all([refreshPools(), refreshAnetBalance()]);
     renderSwapTokenSelectors();
     openL1MarketRefresh();
