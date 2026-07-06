@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ANET Wallet — Approve</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="hdr">
+      <img src="icons/icon.png" alt="" class="logo">
+      <div class="hdr-titles">
+        <div class="hdr-title">ANET Wallet</div>
+        <div class="hdr-sub" id="ap-origin">—</div>
+      </div>
+    </header>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <section class="view">
+      <h3 id="ap-title">Request</h3>
+      <p class="muted" id="ap-desc"></p>
+
+      <div class="info" id="ap-details" style="white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:11.5px;"></div>
+
+      <div id="ap-unlock" hidden>
+        <label>Password (to sign)</label>
+        <input type="password" id="ap-pw" placeholder="Wallet password" autocomplete="current-password">
+      </div>
+
+      <button class="btn primary" id="ap-approve">Approve</button>
+      <button class="btn" id="ap-reject">Reject</button>
+    </section>
+  </div>
+
+  <script src="vendor/anet-crypto.bundle.js"></script>
+  <script src="lib/anet-wallet.js"></script>
+  <script src="approve.js"></script>
+</body>
+</html>

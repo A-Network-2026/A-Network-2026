@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "ANET Wallet",
+  "version": "1.0.0",
+  "description": "Non-custodial wallet for the A Network Layer 1. Hold, send and receive ANET / ANTS, and connect to A Network web3 dapps.",
+  "icons": {
+    "16": "icons/icon.png",
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
+  },
+  "action": {
+    "default_title": "ANET Wallet",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon.png",
+      "48": "icons/icon.png",
+      "128": "icons/icon.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://explorer.a-network.net/*",
+    "https://a-network.net/*",
+    "https://api.dexscreener.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://*/*", "http://localhost/*"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["inpage.js"],
+      "matches": ["https://*/*", "http://localhost/*"]
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ANET Wallet</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="hdr">
+      <img src="icons/icon.png" alt="" class="logo">
+      <div class="hdr-titles">
+        <div class="hdr-title">ANET Wallet</div>
+        <div class="hdr-sub" id="net-label">A Network L1</div>
+      </div>
+      <button class="icon-btn" id="lock-btn" title="Lock" hidden>🔒</button>
+    </header>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <!-- ONBOARDING -->
+    <section id="view-onboarding" class="view" hidden>
+      <div class="tabs">
+        <button class="tab active" data-tab="create">Create</button>
+        <button class="tab" data-tab="import">Import</button>
+      </div>
+
+      <div id="pane-create" class="pane">
+        <p class="muted">Create a new self-custody ANET wallet. Your key is encrypted with your password and stored only in this browser.</p>
+        <label>Password</label>
+        <input type="password" id="create-pw" placeholder="At least 8 characters" autocomplete="new-password">
+        <label>Confirm password</label>
+        <input type="password" id="create-pw2" placeholder="Repeat password" autocomplete="new-password">
+        <button class="btn primary" id="create-btn">Create Wallet</button>
+      </div>
+
+      <div id="pane-import" class="pane" hidden>
+        <p class="muted">Import an existing wallet with your seed phrase or private key (hex).</p>
+        <label>Seed phrase or private key</label>
+        <textarea id="import-secret" rows="3" placeholder="word word word…  or  0x… / hex key" autocomplete="off" spellcheck="false"></textarea>
+        <label>Password (to encrypt on this device)</label>
+        <input type="password" id="import-pw" placeholder="At least 8 characters" autocomplete="new-password">
+        <button class="btn primary" id="import-btn">Import Wallet</button>
+      </div>
+    </section>
+
+    <!-- BACKUP (shown once after create) -->
+    <section id="view-backup" class="view" hidden>
+      <h3>Back up your private key</h3>
+      <p class="muted">Write this down and keep it secret. Anyone with this key controls your funds. It is shown only once.</p>
+      <div class="key-box" id="backup-key"></div>
+      <button class="btn ghost" id="copy-key-btn">Copy key</button>
+      <label class="check"><input type="checkbox" id="backup-ack"> I have safely saved my private key</label>
+      <button class="btn primary" id="backup-done-btn" disabled>Continue</button>
+    </section>
+
+    <!-- UNLOCK -->
+    <section id="view-unlock" class="view" hidden>
+      <p class="muted">Unlock your ANET wallet.</p>
+      <div class="addr-mini" id="unlock-addr"></div>
+      <label>Password</label>
+      <input type="password" id="unlock-pw" placeholder="Password" autocomplete="current-password">
+      <button class="btn primary" id="unlock-btn">Unlock</button>
+      <button class="btn link danger" id="forget-btn">Forget this wallet</button>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="view-dashboard" class="view" hidden>
+      <div class="balance-card">
+        <div class="bal-anet" id="bal-anet">—</div>
+        <div class="bal-lbl">ANET</div>
+        <div class="bal-ants" id="bal-ants">— ANTS</div>
+        <div class="bal-usd" id="bal-usd"></div>
+      </div>
+      <div class="addr-row">
+        <span class="addr" id="dash-addr" title="Your ANET address"></span>
+        <button class="icon-btn" id="copy-addr-btn" title="Copy address">⧉</button>
+      </div>
+      <div class="actions">
+        <button class="btn action" id="nav-send">Send</button>
+        <button class="btn action" id="nav-receive">Receive</button>
+        <button class="btn action" id="refresh-btn">Refresh</button>
+      </div>
+      <a class="btn wide bridge" id="bridge-link" href="https://a-network.net/dex.html" target="_blank" rel="noopener">
+        Sell in MetaMask → bridge to wANET
+      </a>
+      <div class="foot-links">
+        <button class="btn link" id="reveal-btn">Reveal private key</button>
+        <button class="btn link" id="sites-btn">Connected sites</button>
+      </div>
+    </section>
+
+    <!-- SEND -->
+    <section id="view-send" class="view" hidden>
+      <button class="btn link back" id="send-back">← Back</button>
+      <h3>Send ANET</h3>
+      <label>Recipient address</label>
+      <input type="text" id="send-to" placeholder="ANET…" autocomplete="off" spellcheck="false">
+      <label>Amount (ANET)</label>
+      <input type="number" id="send-amount" placeholder="0.00" min="0" step="any">
+      <div class="send-meta">
+        <span id="send-avail" class="muted"></span>
+        <span class="link" id="send-max">MAX</span>
+      </div>
+      <div class="info" id="send-info"></div>
+      <button class="btn primary" id="send-btn">Review &amp; Send</button>
+    </section>
+
+    <!-- RECEIVE -->
+    <section id="view-receive" class="view" hidden>
+      <button class="btn link back" id="receive-back">← Back</button>
+      <h3>Receive ANET</h3>
+      <p class="muted">Share this address to receive ANET / ANTS on Layer 1.</p>
+      <div class="key-box" id="receive-addr"></div>
+      <button class="btn ghost" id="receive-copy">Copy address</button>
+    </section>
+
+    <!-- SITES -->
+    <section id="view-sites" class="view" hidden>
+      <button class="btn link back" id="sites-back">← Back</button>
+      <h3>Connected sites</h3>
+      <div id="sites-list" class="sites-list"></div>
+    </section>
+  </div>
+
+  <script src="vendor/anet-crypto.bundle.js"></script>
+  <script src="lib/anet-wallet.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

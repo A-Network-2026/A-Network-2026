@@ -421,7 +421,7 @@ const state = {
   // encrypted at rest by anet-wallet.js and only decrypted in memory to sign.
   // `sessionToken` is retained only for backward compatibility and is unused by
   // the native signing path.
-  anetWallet: { address: '', sessionToken: '', balance: null },
+  anetWallet: { address: '', sessionToken: '', balance: null, viaExtension: false },
 
   // L1 chain id used to sign actions (refreshed from /sync/head at init).
   chainId: ANET_L1_CHAIN_ID,
@@ -556,22 +556,93 @@ function activeChainId() { return state.chainId || ANET_L1_CHAIN_ID; }
 function normSym(sym) { return String(sym == null ? '' : sym).trim().toUpperCase(); }
 
 function anetSignerReady() {
+  if (state.anetWallet.viaExtension && state.anetWallet.address) return true;
   return !!(window.AnetWallet && window.AnetWallet.isUnlocked() && state.anetWallet.address);
 }
 
 function requireAnetSigner() {
+  if (state.anetWallet.viaExtension && state.anetWallet.address) return state.anetWallet.address;
   if (!window.AnetWallet) throw new Error('Wallet module failed to load. Refresh the page.');
   if (!window.AnetWallet.isUnlocked()) throw new Error('Unlock your ANET wallet to sign this action.');
   return window.AnetWallet.currentAddress();
 }
 
-async function executeSwap({ trader, tokenSymbol, amountIn, anetToToken, minAmountOut }) {
+/* ── ANET Wallet browser extension bridge ───────
+   When the ANET Wallet extension is installed it injects window.anet. The DEX
+   can then connect to it and route every L1 signature through the extension's
+   approval flow (the key stays in the extension). */
+function hasAnetExtension() { return !!(window.anet && window.anet.isAnet); }
+
+// Unified signer: extension when connected via it, else the in-page wallet.
+async function anetSignAction(actionType, payload) {
+  if (state.anetWallet.viaExtension) {
+    if (!window.anet) throw new Error('ANET Wallet extension not found. Reload the page.');
+    return await window.anet.signAction(actionType, payload);
+  }
   requireAnetSigner();
+  return window.AnetWallet.signAction(actionType, payload, activeChainId());
+}
+
+// Gate helper: connect the extension (when present) or open the in-page modal.
+function ensureAnetSigner() {
+  if (anetSignerReady()) return true;
+  if (hasAnetExtension()) { connectAnetExtension(); return false; }
+  openAnetWalletModal();
+  return false;
+}
+
+async function connectAnetExtension() {
+  if (!window.anet) { toast('ANET Wallet extension not detected. Install it, then reload.', 'info', 5000); return; }
+  try {
+    const res = await window.anet.connect();
+    const addr = (res && res.address) || (await window.anet.getAddress());
+    if (!addr) throw new Error('No account returned by the extension.');
+    state.anetWallet.address = String(addr).toUpperCase();
+    state.anetWallet.viaExtension = true;
+    updateAnetWalletUI();
+    renderSwapTokenSelectors();
+    refreshAnetBalance();
+    toast('ANET Wallet extension connected', 'success');
+    if (!connectAnetExtension._bound) {
+      connectAnetExtension._bound = true;
+      window.anet.on('accountsChanged', (accts) => {
+        const a = accts && accts[0];
+        if (!a) { state.anetWallet.viaExtension = false; state.anetWallet.address = ''; state.anetWallet.balance = null; }
+        else { state.anetWallet.address = String(a).toUpperCase(); refreshAnetBalance(); }
+        updateAnetWalletUI();
+      });
+    }
+  } catch (e) {
+    toast(e.message || 'Extension connect failed', 'error');
+  }
+}
+
+// Detect the extension on load, reveal its button, and hydrate if pre-authorized.
+function setupAnetExtension() {
+  const wire = () => {
+    if (!hasAnetExtension()) return;
+    const btn = document.getElementById('anet-ext-btn');
+    if (btn) btn.style.display = '';
+    window.anet.getAddress().then((addr) => {
+      if (addr && !state.anetWallet.address) {
+        state.anetWallet.address = String(addr).toUpperCase();
+        state.anetWallet.viaExtension = true;
+        updateAnetWalletUI();
+        renderSwapTokenSelectors();
+        refreshAnetBalance();
+      }
+    }).catch(() => {});
+  };
+  if (hasAnetExtension()) wire();
+  else window.addEventListener('anet#initialized', wire, { once: true });
+}
+
+async function executeSwap({ trader, tokenSymbol, amountIn, anetToToken, minAmountOut }) {
   const traderUc = normSym(trader);
   const symbol = normSym(tokenSymbol);
   const minOut = (minAmountOut == null) ? null : Math.trunc(Number(minAmountOut));
   // Signed payload must byte-match the chain's expected canonical payload.
-  const auth = window.AnetWallet.signAction('dex_swap', {
+  const auth = await anetSignAction('dex_swap', {
     route: 'dex_swap',
     trader: traderUc,
     token_symbol: symbol,
@@ -579,7 +650,7 @@ async function executeSwap({ trader, tokenSymbol, amountIn, anetToToken, minAmou
     anet_to_token: anetToToken,
     min_amount_out: minOut,
     deadline_block: null,
-  }, activeChainId());
+  });
   const body = {
     trader: traderUc,
     token_symbol: symbol,
@@ -592,16 +663,15 @@ async function executeSwap({ trader, tokenSymbol, amountIn, anetToToken, minAmou
 }
 
 async function addLiquidity({ provider, tokenSymbol, anetAmountAnts, tokenAmountUnits }) {
-  requireAnetSigner();
   const providerUc = normSym(provider);
   const symbol = normSym(tokenSymbol);
-  const auth = window.AnetWallet.signAction('dex_add_liquidity', {
+  const auth = await anetSignAction('dex_add_liquidity', {
     route: 'dex_add_liquidity',
     provider: providerUc,
     token_symbol: symbol,
     anet_amount_ants: anetAmountAnts,
     token_amount_units: tokenAmountUnits,
-  }, activeChainId());
+  });
   return apiFetch('/dex/pools/add-liquidity', {
     method: 'POST',
     body: JSON.stringify({
@@ -615,16 +685,15 @@ async function addLiquidity({ provider, tokenSymbol, anetAmountAnts, tokenAmount
 }
 
 async function removeLiquidity({ provider, tokenSymbol, lpUnits }) {
-  requireAnetSigner();
   const providerUc = normSym(provider);
   const symbol = normSym(tokenSymbol);
   const lp = String(lpUnits);
-  const auth = window.AnetWallet.signAction('dex_remove_liquidity', {
+  const auth = await anetSignAction('dex_remove_liquidity', {
     route: 'dex_remove_liquidity',
     provider: providerUc,
     token_symbol: symbol,
     lp_units: lp,
-  }, activeChainId());
+  });
   return apiFetch('/dex/pools/remove-liquidity', {
     method: 'POST',
     body: JSON.stringify({ provider: providerUc, token_symbol: symbol, lp_units: lp, auth }),
@@ -632,18 +701,17 @@ async function removeLiquidity({ provider, tokenSymbol, lpUnits }) {
 }
 
 async function createPool({ provider, tokenSymbol, anetAmountAnts, tokenAmountUnits, feeBps }) {
-  requireAnetSigner();
   const providerUc = normSym(provider);
   const symbol = normSym(tokenSymbol);
   const fee = (feeBps == null) ? null : (feeBps | 0);
-  const auth = window.AnetWallet.signAction('dex_create_pool', {
+  const auth = await anetSignAction('dex_create_pool', {
     route: 'dex_create_pool',
     provider: providerUc,
     token_symbol: symbol,
     anet_amount_ants: anetAmountAnts,
     token_amount_units: tokenAmountUnits,
     fee_bps: fee,
-  }, activeChainId());
+  });
   const body = {
     provider: providerUc,
     token_symbol: symbol,
@@ -660,6 +728,9 @@ async function createPool({ provider, tokenSymbol, anetAmountAnts, tokenAmountUn
 async function recordChainActivity(action, status, detail) {
   try {
     if (!anetSignerReady()) return;
+    // Skip best-effort activity logging for extension signers to avoid an extra
+    // approval popup on every trade.
+    if (state.anetWallet.viaExtension) return;
     const wallet = state.anetWallet.address;
     const payload = {
       route: 'app_activity',
@@ -671,7 +742,7 @@ async function recordChainActivity(action, status, detail) {
       client_version: 'web-dex',
       detail: detail == null ? null : String(detail),
     };
-    const auth = window.AnetWallet.signAction('app_activity', payload, activeChainId());
+    const auth = await anetSignAction('app_activity', payload);
     await apiFetch('/app/activity', {
       method: 'POST',
       body: JSON.stringify({
@@ -1059,7 +1130,8 @@ function updateAnetWalletUI() {
     } else {
       const anet = balance != null ? ants2anet(balance) : '—';
       const balLabel = balance != null ? fmt(parseFloat(anet), 4) + ' ANET' : '';
-      btn.innerHTML = `<span class="dot"></span><span class="addr">${shortAddr(address)}</span><span style="color:var(--muted-2);">${balLabel}</span>`;
+      const via = state.anetWallet.viaExtension ? ' · Ext' : '';
+      btn.innerHTML = `<span class="dot"></span><span class="addr">${shortAddr(address)}</span><span style="color:var(--muted-2);">${balLabel}${via}</span>`;
       btn.className = 'wallet-btn connected';
     }
   }
@@ -2065,8 +2137,7 @@ async function doSwap() {
     return;
   }
   if (!anetSignerReady()) {
-    openAnetWalletModal();
-    return;
+    if (!ensureAnetSigner()) return;
   }
   if (!state.quote) { toast('Get a quote first', 'error'); return; }
   const amt = parseFloat(state.fromAmount);
@@ -2947,7 +3018,7 @@ async function doAddLiquidity() {
     openWalletApp('liquidity');
     return;
   }
-  if (!anetSignerReady()) { openAnetWalletModal(); return; }
+  if (!ensureAnetSigner()) return;
 
   const sym    = document.getElementById('liq-pool-select')?.value;
   const anetAmt = parseFloat(document.getElementById('liq-anet-amount')?.value);
@@ -2987,7 +3058,7 @@ async function doCreatePool() {
     openWalletApp('create-pool');
     return;
   }
-  if (!anetSignerReady()) { openAnetWalletModal(); return; }
+  if (!ensureAnetSigner()) return;
 
   const sym    = document.getElementById('create-token-sym')?.value?.trim()?.toUpperCase();
   const anetAmt = parseFloat(document.getElementById('create-anet-amount')?.value);
@@ -3442,6 +3513,7 @@ async function init() {
   applyInvestorViewMode();
   initAppWalletEventHooks();
   initNativeWallet();
+  setupAnetExtension();
   loadChainId();
   hydrateEvmWalletFromAppConnection();
 
