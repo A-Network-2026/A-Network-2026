@@ -17,12 +17,18 @@
  *        Marks a lock as minted on the spoke (dedup / bookkeeping).
  *
  *   POST /bridge/x/mint-credit             { spoke_chain_id, spoke_tx_hash,
- *        out_id, l1_recipient, amount_ants, attestations: [{signer,sig}] }
+ *        out_id, l1_recipient, amount_ants, auth }
  *        A spoke BridgeOut burned wANET → L1 UNLOCKS (credits) native ANET to
- *        l1_recipient after verifying M-of-N + per-message dedup.
+ *        l1_recipient. GATED behind ANET_PORTAL_CREDIT_ENABLED (default OFF).
+ *        Requires an M-of-N native-ANET signer attestation (`auth`, action
+ *        type "portal_mint_credit") bound to the exact (chain, out_id,
+ *        amount, recipient); dedup by (spoke_chain_id, out_id). NOTE: the
+ *        signer-side native-ANET attestation is a pending relayer task — the
+ *        credit direction is disabled until reviewed + audited.
  *
  *   GET  /bridge/x/reconciliation
- *        → { locked_ants, per_chain: { <chainId>: minted_ants } }
+ *        → { chain_id, locked_ants, max_supply_ants, portal_credit_enabled }
+ *        locked_ants = Σ(portal_locks) − Σ(portal_credits) = ANET backing wANET.
  */
 const ANTS_PER_ANET = 100_000_000n;
 const WEI_PER_ANET = 10n ** 18n;
