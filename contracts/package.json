@@ -13,6 +13,9 @@
     "deploy:l2portal:bsc-testnet": "hardhat run scripts/deploy-l2-portal.js --network bsc_testnet",
     "deploy:feeproc:bsc": "hardhat run scripts/deploy-fee-processor.js --network bsc",
     "deploy:feeproc:bsc-testnet": "hardhat run scripts/deploy-fee-processor.js --network bsc_testnet",
+    "deploy:mintburn:eth": "hardhat run scripts/deploy-mint-burn-portal.js --network eth",
+    "deploy:mintburn:bsc": "hardhat run scripts/deploy-mint-burn-portal.js --network bsc",
+    "deploy:mintburn:bsc-testnet": "hardhat run scripts/deploy-mint-burn-portal.js --network bsc_testnet",
     "setup:bsc": "hardhat run scripts/setup-tokens.js --network bsc",
     "verify:bsc": "hardhat verify --network bsc"
   },
