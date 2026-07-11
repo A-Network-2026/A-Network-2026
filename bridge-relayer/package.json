@@ -1,0 +1,18 @@
+{
+  "name": "anet-bridge-relayer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Multi-chain M-of-N relayer for the ANET mint/burn bridge (L1 hub <-> BSC/ETH/... spokes).",
+  "scripts": {
+    "start": "node src/index.js",
+    "signer": "ROLE=signer node src/index.js",
+    "submitter": "ROLE=submitter node src/index.js",
+    "reconciler": "ROLE=reconciler node src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.4"
+  }
+}
