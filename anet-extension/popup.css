@@ -61,6 +61,14 @@ textarea { resize: vertical; }
 .bal-lbl { font-size: 12px; color: var(--accent-2); letter-spacing: 0.1em; }
 .bal-ants { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
 .bal-usd { font-size: 12px; color: var(--muted-2); margin-top: 2px; }
+.asset-list { display: flex; flex-direction: column; gap: 6px; margin: -2px 0 10px; }
+.asset-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 8px 10px; font-size: 12.5px;
+}
+.asset-row b { color: var(--text); }
+.asset-row span { color: var(--muted); font-family: ui-monospace, monospace; }
 
 .addr-row { display: flex; align-items: center; gap: 8px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-bottom: 10px; }
 .addr { flex: 1; font-family: ui-monospace, monospace; font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

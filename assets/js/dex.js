@@ -344,8 +344,8 @@ const KNOWN_TOKENS = [
   { symbol: 'WANET', name: 'Wrapped ANET',         chain: 'L1',    decimals: 8 },
   { symbol: 'WBNB',  name: 'Wrapped BNB',          chain: 'BNB',   decimals: 8 },
   { symbol: 'WETH',  name: 'Wrapped Ether',        chain: 'ETH',   decimals: 8 },
-  { symbol: 'USDT',  name: 'Tether USD',           chain: 'Multi', decimals: 8 },
-  { symbol: 'USDC',  name: 'USD Coin',             chain: 'Multi', decimals: 8 },
+  { symbol: 'USDT',  name: 'Tether USD',           chain: 'Multi', decimals: 6 },
+  { symbol: 'USDC',  name: 'USD Coin',             chain: 'Multi', decimals: 6 },
   { symbol: 'DAI',   name: 'Dai Stablecoin',       chain: 'Multi', decimals: 8 },
   { symbol: 'BUSD',  name: 'Binance USD',          chain: 'BNB',   decimals: 8 },
   { symbol: 'PI',    name: 'Pi Coin',              chain: 'DEX',   decimals: 8 },
@@ -395,14 +395,14 @@ const PUBLIC_TEST_POOLS = [
   {
     token_symbol: 'USDT',
     anet_reserve_anet: 98000,
-    token_reserve_units: 245000 * ANTS_PER_ANET,
+    token_reserve_units: 245000 * 1_000_000,
     fee_bps: 30,
     lp_holders: 61,
   },
   {
     token_symbol: 'USDC',
     anet_reserve_anet: 125000,
-    token_reserve_units: 312500 * ANTS_PER_ANET,
+    token_reserve_units: 312500 * 1_000_000,
     fee_bps: 30,
     lp_holders: 42,
   },
@@ -421,7 +421,7 @@ const state = {
   // encrypted at rest by anet-wallet.js and only decrypted in memory to sign.
   // `sessionToken` is retained only for backward compatibility and is unused by
   // the native signing path.
-  anetWallet: { address: '', sessionToken: '', balance: null, viaExtension: false },
+  anetWallet: { address: '', sessionToken: '', balance: null, assets: {}, viaExtension: false },
 
   // L1 chain id used to sign actions (refreshed from /sync/head at init).
   chainId: ANET_L1_CHAIN_ID,
@@ -447,6 +447,7 @@ const state = {
   recentLocalTrades: [],
   chainTxs: [],
   miniPriceSeries: {},
+  tokenMeta: {},
   
   // DEX Chart state (per-pair price history)
   dexChartPriceHistory: {},         // { [pairKey]: [{t, v}, ...] }
@@ -464,7 +465,48 @@ const state = {
 
 /* ── Utility helpers ────────────────────────── */
 function ants2anet(ants) { return (Number(ants) / ANTS_PER_ANET).toFixed(8); }
-function anet2ants(anet) { return Math.round(parseFloat(anet) * ANTS_PER_ANET); }
+function decimalAmountToUnits(amount, decimals, symbol = 'token') {
+  const raw = String(amount == null ? '' : amount).trim();
+  if (!/^(?:\d+|\d+\.\d*|\.\d+)$/.test(raw)) {
+    throw new Error(`Invalid ${symbol} amount.`);
+  }
+  let [whole, fraction = ''] = raw.split('.');
+  if (!whole) whole = '0';
+  const decimalPlaces = Math.max(0, Math.floor(Number(decimals) || 0));
+  const extraFraction = fraction.slice(decimalPlaces);
+  if (/[1-9]/.test(extraFraction)) {
+    throw new Error(`${symbol} supports up to ${decimalPlaces} decimal places.`);
+  }
+  fraction = fraction.slice(0, decimalPlaces).padEnd(decimalPlaces, '0');
+  const combined = `${whole.replace(/^0+/, '') || '0'}${fraction}`;
+  return combined.replace(/^0+/, '') || '0';
+}
+function applySlippageUnits(units, pct) {
+  const raw = BigInt(String(units || '0'));
+  const pctNum = Number.isFinite(Number(pct)) ? Math.max(0, Math.min(100, Number(pct))) : 1;
+  const bps = BigInt(Math.round(pctNum * 100));
+  return ((raw * (10_000n - bps)) / 10_000n).toString();
+}
+function anet2ants(anet) { return decimalAmountToUnits(anet, 8, 'ANET'); }
+function tokenDecimals(sym) {
+  const symbol = normSym(sym);
+  const live = state.tokenMeta[symbol];
+  if (live && Number.isFinite(Number(live.decimals))) return Number(live.decimals);
+  const known = KNOWN_TOKENS.find(t => t.symbol === symbol);
+  return Number.isFinite(Number(known?.decimals)) ? Number(known.decimals) : 8;
+}
+function tokenUnitScale(sym) { return 10 ** tokenDecimals(sym); }
+function tokenAmountToUnits(sym, amount) {
+  return decimalAmountToUnits(amount, tokenDecimals(sym), normSym(sym) || 'token');
+}
+function tokenUnitsToAmount(sym, units) {
+  return Number(units || 0) / tokenUnitScale(sym);
+}
+function displayUnitsForSymbol(sym, units) {
+  return normSym(sym) === 'ANET'
+    ? Number(units || 0) / ANTS_PER_ANET
+    : tokenUnitsToAmount(sym, units);
+}
 
 function fmt(num, decimals = 4) {
   if (num == null || isNaN(num)) return '—';
@@ -540,10 +582,27 @@ async function loadPools() {
   }
 }
 
+async function loadTokenMetadata() {
+  try {
+    const data = await apiFetch('/tokens/anrc20');
+    state.tokenMeta = Array.isArray(data)
+      ? data.reduce((acc, token) => {
+          const symbol = normSym(token.symbol);
+          if (symbol) acc[symbol] = token;
+          return acc;
+        }, {})
+      : {};
+  } catch (e) {
+    console.warn('loadTokenMetadata:', e);
+    state.tokenMeta = {};
+  }
+}
+
 async function getSwapQuote({ tokenSymbol, amountIn, anetToToken }) {
+  const amountUnits = String(amountIn);
   return apiFetch('/dex/swap/quote', {
     method: 'POST',
-    body: JSON.stringify({ token_symbol: tokenSymbol, amount_in: amountIn, anet_to_token: anetToToken }),
+    body: JSON.stringify({ token_symbol: tokenSymbol, amount_in: amountUnits, anet_to_token: anetToToken }),
   });
 }
 
@@ -607,7 +666,7 @@ async function connectAnetExtension() {
       connectAnetExtension._bound = true;
       window.anet.on('accountsChanged', (accts) => {
         const a = accts && accts[0];
-        if (!a) { state.anetWallet.viaExtension = false; state.anetWallet.address = ''; state.anetWallet.balance = null; }
+        if (!a) { state.anetWallet.viaExtension = false; state.anetWallet.address = ''; state.anetWallet.balance = null; state.anetWallet.assets = {}; }
         else { state.anetWallet.address = String(a).toUpperCase(); refreshAnetBalance(); }
         updateAnetWalletUI();
       });
@@ -640,13 +699,14 @@ function setupAnetExtension() {
 async function executeSwap({ trader, tokenSymbol, amountIn, anetToToken, minAmountOut }) {
   const traderUc = normSym(trader);
   const symbol = normSym(tokenSymbol);
-  const minOut = (minAmountOut == null) ? null : Math.trunc(Number(minAmountOut));
+  const amountUnits = String(amountIn);
+  const minOut = (minAmountOut == null) ? null : String(minAmountOut);
   // Signed payload must byte-match the chain's expected canonical payload.
   const auth = await anetSignAction('dex_swap', {
     route: 'dex_swap',
     trader: traderUc,
     token_symbol: symbol,
-    amount_in: amountIn,
+    amount_in: amountUnits,
     anet_to_token: anetToToken,
     min_amount_out: minOut,
     deadline_block: null,
@@ -654,7 +714,7 @@ async function executeSwap({ trader, tokenSymbol, amountIn, anetToToken, minAmou
   const body = {
     trader: traderUc,
     token_symbol: symbol,
-    amount_in: amountIn,
+    amount_in: amountUnits,
     anet_to_token: anetToToken,
     auth,
   };
@@ -665,20 +725,22 @@ async function executeSwap({ trader, tokenSymbol, amountIn, anetToToken, minAmou
 async function addLiquidity({ provider, tokenSymbol, anetAmountAnts, tokenAmountUnits }) {
   const providerUc = normSym(provider);
   const symbol = normSym(tokenSymbol);
+  const anetUnits = String(anetAmountAnts);
+  const tokenUnits = String(tokenAmountUnits);
   const auth = await anetSignAction('dex_add_liquidity', {
     route: 'dex_add_liquidity',
     provider: providerUc,
     token_symbol: symbol,
-    anet_amount_ants: anetAmountAnts,
-    token_amount_units: tokenAmountUnits,
+    anet_amount_ants: anetUnits,
+    token_amount_units: tokenUnits,
   });
   return apiFetch('/dex/pools/add-liquidity', {
     method: 'POST',
     body: JSON.stringify({
       provider: providerUc,
       token_symbol: symbol,
-      anet_amount_ants: anetAmountAnts,
-      token_amount_units: tokenAmountUnits,
+      anet_amount_ants: anetUnits,
+      token_amount_units: tokenUnits,
       auth,
     }),
   });
@@ -704,19 +766,21 @@ async function createPool({ provider, tokenSymbol, anetAmountAnts, tokenAmountUn
   const providerUc = normSym(provider);
   const symbol = normSym(tokenSymbol);
   const fee = (feeBps == null) ? null : (feeBps | 0);
+  const anetUnits = String(anetAmountAnts);
+  const tokenUnits = String(tokenAmountUnits);
   const auth = await anetSignAction('dex_create_pool', {
     route: 'dex_create_pool',
     provider: providerUc,
     token_symbol: symbol,
-    anet_amount_ants: anetAmountAnts,
-    token_amount_units: tokenAmountUnits,
+    anet_amount_ants: anetUnits,
+    token_amount_units: tokenUnits,
     fee_bps: fee,
   });
   const body = {
     provider: providerUc,
     token_symbol: symbol,
-    anet_amount_ants: anetAmountAnts,
-    token_amount_units: tokenAmountUnits,
+    anet_amount_ants: anetUnits,
+    token_amount_units: tokenUnits,
     auth,
   };
   if (fee != null) body.fee_bps = fee;
@@ -727,14 +791,15 @@ async function createPool({ provider, tokenSymbol, anetAmountAnts, tokenAmountUn
 async function dexWrap(amountAnts) {
   const wallet = normSym(state.anetWallet.address);
   if (!wallet) throw new Error('Connect your ANET wallet first.');
+  const amountUnits = String(amountAnts);
   const auth = await anetSignAction('dex_wrap', {
     route: 'dex_wrap',
     wallet,
-    amount_ants: amountAnts,
+    amount_ants: amountUnits,
   });
   return apiFetch('/dex/wrap', {
     method: 'POST',
-    body: JSON.stringify({ wallet, amount_ants: amountAnts, auth }),
+    body: JSON.stringify({ wallet, amount_ants: amountUnits, auth }),
   });
 }
 
@@ -1093,6 +1158,7 @@ async function afterAnetUnlock(addr, how) {
   state.anetWallet.address = addr;
   state.anetWallet.sessionToken = 'native';  // sentinel: native signing path is active
   state.anetWallet.balance = null;
+  state.anetWallet.assets = {};
   updateAnetWalletUI();
   closeAnetWalletModal();
   toast('ANET wallet connected: ' + shortAddr(addr), 'success');
@@ -1105,6 +1171,7 @@ function lockAnetWallet() {
   state.anetWallet.address = '';
   state.anetWallet.sessionToken = '';
   state.anetWallet.balance = null;
+  state.anetWallet.assets = {};
   updateAnetWalletUI();
   closeAnetWalletModal();
   toast('Wallet locked', 'info');
@@ -1116,7 +1183,7 @@ function disconnectAnetWallet() { lockAnetWallet(); }
 function forgetAnetWallet() {
   if (!confirm('Remove this wallet from this browser?\n\nMake sure your seed phrase or private key is backed up — it cannot be recovered here.')) return;
   if (window.AnetWallet) window.AnetWallet.forget();
-  state.anetWallet = { address: '', sessionToken: '', balance: null };
+  state.anetWallet = { address: '', sessionToken: '', balance: null, assets: {}, viaExtension: false };
   updateAnetWalletUI();
   _anetWalletMode = 'import';
   renderAnetWalletModal();
@@ -1227,23 +1294,24 @@ async function getCashoutQuote() {
   _cashoutQuoteTimer = setTimeout(async () => {
     if (swapBtn) { swapBtn.disabled = true; swapBtn.textContent = 'Getting quote…'; }
     try {
-      const q = await getSwapQuote({ tokenSymbol: stableEl.value, amountIn: anet2ants(amt), anetToToken: true });
-      const amtOut  = parseInt(q.amount_out  || 0) / ANTS_PER_ANET;
-      const fee     = parseInt(q.fee_charged || 0) / ANTS_PER_ANET;
-      const impact  = parseFloat(q.price_impact_pct || 0).toFixed(2);
+      const stable = normSym(stableEl.value);
+      const q = await getSwapQuote({ tokenSymbol: stable, amountIn: anet2ants(amt), anetToToken: true });
+      const amtOut  = tokenUnitsToAmount(stable, q.amount_out || 0);
+      const fee     = parseInt(q.fee_paid || 0) / ANTS_PER_ANET;
+      const impact  = (parseInt(q.price_impact_bps || 0, 10) / 100).toFixed(2);
 
-      if (recvEl)  recvEl.textContent = `${fmt(amtOut, 4)} ${stableEl.value}`;
-      if (feeEl)   feeEl.textContent  = `${fmt(fee, 6)} ${stableEl.value}`;
+      if (recvEl)  recvEl.textContent = `${fmt(amtOut, 4)} ${stable}`;
+      if (feeEl)   feeEl.textContent  = `${fmt(fee, 6)} ANET`;
       if (impEl)   { impEl.textContent = `${impact}%`; impEl.style.color = parseFloat(impact) > 2 ? 'var(--warn)' : ''; }
       if (qBox)    qBox.style.display  = 'flex';
       if (swapBtn) {
         swapBtn.disabled    = !state.anetWallet.address;
         swapBtn.textContent = state.anetWallet.address
-          ? `Swap ${fmt(amt,4)} ANET → ${fmt(amtOut,4)} ${stableEl.value}`
+          ? `Swap ${fmt(amt,4)} ANET → ${fmt(amtOut,4)} ${stable}`
           : 'Connect wallet first';
       }
       // cache quote for doCashout
-      state._cashoutQuote = { amt, amtOut, stable: stableEl.value };
+      state._cashoutQuote = { amt, amtOut, stable };
     } catch (e) {
       if (qBox)    qBox.style.display = 'none';
       if (swapBtn) { swapBtn.disabled = true; swapBtn.textContent = e.message || 'Quote failed'; }
@@ -1291,7 +1359,7 @@ async function doCashout() {
       anetToToken: true,
     });
 
-    const received = parseInt(result.amount_out || 0) / ANTS_PER_ANET;
+    const received = tokenUnitsToAmount(stable, result.amount_out || 0);
 
     appendLocalTrade({
       side: 'SELL',
@@ -1710,7 +1778,7 @@ async function refreshPools() {
 
 function getPoolPriceInAnet(pool) {
   const anetRes = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
-  const tokRes = Number(pool.token_reserve_units || 0) / ANTS_PER_ANET;
+  const tokRes = tokenUnitsToAmount(pool.token_symbol, pool.token_reserve_units || 0);
   if (!isFinite(anetRes) || !isFinite(tokRes) || tokRes <= 0) {
     return null;
   }
@@ -1819,10 +1887,10 @@ function renderPoolsSidebar() {
   }
 
   container.innerHTML = state.pools.map(pool => {
-    const anetBal = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
-    const tokenBal = Number(pool.token_reserve_units || 0);
-    const price = tokenBal > 0 ? (anetBal / tokenBal).toFixed(6) : '—';
     const sym = pool.token_symbol || '';
+    const anetBal = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
+    const tokenBal = tokenUnitsToAmount(sym, pool.token_reserve_units || 0);
+    const price = tokenBal > 0 ? (anetBal / tokenBal).toFixed(6) : '—';
     const feePct = ((pool.fee_bps || 30) / 100).toFixed(2);
     const holders = pool.lp_holders ?? 0;
     return `
@@ -1870,7 +1938,7 @@ function renderLiqPoolList() {
   el.innerHTML = state.pools.map(pool => {
     const sym = pool.token_symbol || '';
     const anetRes = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
-    const tokRes  = Number(pool.token_reserve_units || 0) / ANTS_PER_ANET;
+    const tokRes  = tokenUnitsToAmount(sym, pool.token_reserve_units || 0);
     const feePct  = ((pool.fee_bps || 30) / 100).toFixed(2);
     return `
     <div class="lp-position-row">
@@ -1929,8 +1997,10 @@ function updateSwapFromBalance() {
   if (!el) return;
   if (state.fromToken === 'ANET' && state.anetWallet.balance != null) {
     el.textContent = `Balance: ${fmt(parseFloat(ants2anet(state.anetWallet.balance)), 4)} ANET`;
+  } else if (state.fromToken && state.anetWallet.assets?.[state.fromToken] != null) {
+    el.textContent = `Balance: ${fmt(tokenUnitsToAmount(state.fromToken, state.anetWallet.assets[state.fromToken]), 6)} ${state.fromToken}`;
   } else {
-    el.textContent = state.anetWallet.address ? 'Balance: — (off-chain)' : 'Connect wallet to see balance';
+    el.textContent = state.anetWallet.address ? 'Balance: —' : 'Connect wallet to see balance';
   }
 }
 
@@ -1966,7 +2036,7 @@ async function onAmountChange() {
   // determine token symbol and direction
   const isAnetToToken = state.fromToken === 'ANET';
   const tokenSym = isAnetToToken ? state.toToken : state.fromToken;
-  const amountAnts = isAnetToToken ? anet2ants(amt) : Math.round(amt * ANTS_PER_ANET);
+  const amountAnts = isAnetToToken ? anet2ants(amt) : tokenAmountToUnits(tokenSym, amt);
 
   try {
     const q = await getSwapQuote({ tokenSymbol: tokenSym, amountIn: amountAnts, anetToToken: isAnetToToken });
@@ -1984,11 +2054,12 @@ function renderQuote(q, isAnetToToken) {
   const priceInfo = document.getElementById('swap-price-info');
   if (!priceInfo) return;
   const amtOutAnts = parseInt(q.amount_out || 0);
-  const amtOut = amtOutAnts / ANTS_PER_ANET;
+  const amtOut = isAnetToToken ? tokenUnitsToAmount(state.toToken, amtOutAnts) : amtOutAnts / ANTS_PER_ANET;
   const feeAnts = parseInt(q.fee_paid || 0);
-  const fee = feeAnts / ANTS_PER_ANET;
+  const fee = isAnetToToken ? feeAnts / ANTS_PER_ANET : tokenUnitsToAmount(state.fromToken, feeAnts);
   const impact = (parseInt(q.price_impact_bps || 0) / 100).toFixed(2);
-  const minOut = parseInt(q.min_out_1pct_slippage || 0) / ANTS_PER_ANET;
+  const minOutRaw = parseInt(q.min_out_1pct_slippage || 0);
+  const minOut = isAnetToToken ? tokenUnitsToAmount(state.toToken, minOutRaw) : minOutRaw / ANTS_PER_ANET;
   const outSym = isAnetToToken ? state.toToken : 'ANET';
   const feeSym = isAnetToToken ? 'ANET' : state.fromToken;
 
@@ -2030,9 +2101,9 @@ function buildSwapReceiptPayload({ result, inputAmountDisplay, outputAmountDispl
     to_symbol: String(toSymbol || '').toUpperCase(),
     input_amount_display: Number(inputAmountDisplay || 0),
     output_amount_display: Number(outputAmountDisplay || 0),
-    amount_in_units: Number(result?.amount_in || 0),
-    amount_out_units: Number(result?.amount_out || 0),
-    fee_paid_units: Number(result?.fee_paid || 0),
+    amount_in_units: String(result?.amount_in || '0'),
+    amount_out_units: String(result?.amount_out || '0'),
+    fee_paid_units: String(result?.fee_paid || '0'),
   };
 
   if (poolAfter) {
@@ -2112,15 +2183,15 @@ function renderSwapReceipt({ result, inputAmountDisplay, outputAmountDisplay, fr
     poolAfter,
   });
 
-  const fee = Number(result?.fee_paid || 0) / ANTS_PER_ANET;
+  const fee = displayUnitsForSymbol(fromSymbol, result?.fee_paid || 0);
   const direction = String(result?.direction || `${fromSymbol}->${toSymbol}`);
   const pairId = String(result?.pair_id || `${fromSymbol}/${toSymbol}`);
 
   let poolHtml = '<div style="color:var(--muted-2);">Pool snapshot unavailable.</div>';
   if (poolAfter) {
-    const anetReserve = Number(poolAfter.anet_reserve_ants || 0) / ANTS_PER_ANET;
-    const tokenReserve = Number(poolAfter.token_reserve_units || 0) / ANTS_PER_ANET;
     const reserveSymbol = String(poolAfter.token_symbol || toSymbol || '').toUpperCase();
+    const anetReserve = Number(poolAfter.anet_reserve_ants || 0) / ANTS_PER_ANET;
+    const tokenReserve = tokenUnitsToAmount(reserveSymbol, poolAfter.token_reserve_units || 0);
     poolHtml = `
       <div class="price-row"><span>ANET reserve</span><span class="val">${fmt(anetReserve, 8)} ANET</span></div>
       <div class="price-row"><span>${reserveSymbol} reserve</span><span class="val">${fmt(tokenReserve, 8)} ${reserveSymbol}</span></div>
@@ -2163,13 +2234,13 @@ async function doSwap() {
 
   const isAnetToToken = state.fromToken === 'ANET';
   const tokenSym = isAnetToToken ? state.toToken : state.fromToken;
-  const amountAnts = isAnetToToken ? anet2ants(amt) : Math.round(amt * ANTS_PER_ANET);
+  const amountAnts = isAnetToToken ? anet2ants(amt) : tokenAmountToUnits(tokenSym, amt);
 
   // Slippage-protected minimum output (smallest units), derived from the live
   // quote and the user's tolerance, so the on-chain swap reverts on a bad price.
-  const expectedOut = parseInt(state.quote.amount_out || 0);
+  const expectedOut = BigInt(String(state.quote.amount_out || '0'));
   const slipPct = Number(state.slippage) || 1;
-  const minAmountOut = expectedOut > 0 ? Math.max(0, Math.floor(expectedOut * (1 - slipPct / 100))) : null;
+  const minAmountOut = expectedOut > 0n ? applySlippageUnits(state.quote.amount_out, slipPct) : null;
 
   const btn = document.getElementById('do-swap-btn');
   const statusEl = document.getElementById('swap-status');
@@ -2185,7 +2256,9 @@ async function doSwap() {
       minAmountOut,
     });
 
-    const amtOut = parseInt(result.amount_out || 0) / ANTS_PER_ANET;
+    const amtOut = isAnetToToken
+      ? tokenUnitsToAmount(tokenSym, result.amount_out || 0)
+      : parseInt(result.amount_out || 0) / ANTS_PER_ANET;
     const outSym = isAnetToToken ? tokenSym : 'ANET';
 
     let poolAfter = null;
@@ -2238,6 +2311,11 @@ async function refreshAnetBalance() {
   try {
     const acct = await getAccount(state.anetWallet.address);
     state.anetWallet.balance = Number(acct.ants_balance);
+    state.anetWallet.assets = Object.entries(acct.asset_balances || {}).reduce((acc, [symbol, units]) => {
+      const normalized = normSym(symbol);
+      if (normalized) acc[normalized] = Number(units || 0);
+      return acc;
+    }, {});
     updateAnetWalletUI();
   } catch (_) {}
 }
@@ -2505,7 +2583,7 @@ function renderMarketMicrostructure() {
 
   const sym = pool.token_symbol;
   const anetRes = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
-  const tokRes = Number(pool.token_reserve_units || 0) / ANTS_PER_ANET;
+  const tokRes = tokenUnitsToAmount(sym, pool.token_reserve_units || 0);
   const mid = (anetRes > 0 && tokRes > 0) ? (anetRes / tokRes) : 0;
 
   if (!mid || !Number.isFinite(mid)) {
@@ -2636,7 +2714,7 @@ function renderMarketsTable() {
   tbody.innerHTML = pools.map(pool => {
     const sym = pool.token_symbol || '';
     const anetRes = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
-    const tokRes  = Number(pool.token_reserve_units || 0) / ANTS_PER_ANET;
+    const tokRes  = tokenUnitsToAmount(sym, pool.token_reserve_units || 0);
     const price   = tokRes > 0 ? anetRes / tokRes : 0;
     const fee     = ((pool.fee_bps || 30) / 100).toFixed(2);
     const holders = pool.lp_holders ?? 0;
@@ -3054,7 +3132,7 @@ async function doAddLiquidity() {
       provider: state.anetWallet.address,
       tokenSymbol: sym,
       anetAmountAnts: anet2ants(anetAmt),
-      tokenAmountUnits: Math.round(tokAmt * ANTS_PER_ANET),
+      tokenAmountUnits: tokenAmountToUnits(sym, tokAmt),
     });
     toast(`Liquidity added! LP units: ${result.lp_minted}`, 'success', 6000);
     recordChainActivity('web_dex_add_liquidity', 'success', `ANET/${normSym(sym)}`);
@@ -3105,7 +3183,7 @@ async function doCreatePool() {
       provider: state.anetWallet.address,
       tokenSymbol: sym,
       anetAmountAnts: anet2ants(anetAmt),
-      tokenAmountUnits: Math.round(submitTokAmt * ANTS_PER_ANET),
+      tokenAmountUnits: tokenAmountToUnits(sym, submitTokAmt),
       feeBps: fee,
     });
     toast(`Pool ANET/${sym} created!`, 'success', 6000);
@@ -3215,7 +3293,7 @@ async function openL1MarketCreate() {
         provider: state.anetWallet.address,
         tokenSymbol: l1MarketPair,
         anetAmountAnts: anet2ants(anetAmt),
-        tokenAmountUnits: anet2ants(pairAmt),
+        tokenAmountUnits: tokenAmountToUnits(l1MarketPair, pairAmt),
       });
       if (msg) { msg.className = 'swap-status show success'; msg.textContent = `✓ Added liquidity to ANET/${pairName} · recorded on L1.`; }
     } else {
@@ -3223,7 +3301,7 @@ async function openL1MarketCreate() {
         provider: state.anetWallet.address,
         tokenSymbol: l1MarketPair,
         anetAmountAnts: anet2ants(anetAmt),
-        tokenAmountUnits: anet2ants(pairAmt),
+        tokenAmountUnits: tokenAmountToUnits(l1MarketPair, pairAmt),
         feeBps: 30,
       });
       if (msg) { msg.className = 'swap-status show success'; msg.textContent = `✓ ANET/${pairName} pool created & seeded. The L1 market is OPEN — recorded on-chain.`; }
@@ -3634,11 +3712,13 @@ function initNativeWallet() {
     state.anetWallet.address = '';
     state.anetWallet.sessionToken = '';
     state.anetWallet.balance = null;
+    state.anetWallet.assets = {};
     updateAnetWalletUI();
   });
   window.AnetWallet.onUnlock((addr) => {
     state.anetWallet.address = addr;
     state.anetWallet.sessionToken = 'native';
+    state.anetWallet.assets = {};
     updateAnetWalletUI();
   });
   // Count user interaction as activity for the inactivity auto-lock timer.
@@ -3665,6 +3745,9 @@ async function init() {
     updateEvmWalletUI();
   }
   initEvmEventListeners();
+
+  // Load token metadata before pool rendering so reserves use the right decimals.
+  await loadTokenMetadata();
 
   // Load pools
   await refreshPools();

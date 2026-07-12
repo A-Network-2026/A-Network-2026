@@ -11,6 +11,7 @@
 
 const API_BASE = 'https://explorer.a-network.net';
 const ANTS_PER_ANET = 100000000;
+const DEFAULT_ASSET_DECIMALS = 8;
 
 const ports = new Set();               // active content-script ports
 const pending = new Map();             // reqId → { port, pageId, method, params, origin }
@@ -83,7 +84,41 @@ async function fetchBalance(address) {
   const res = await fetch(`${API_BASE}/accounts/${encodeURIComponent(address)}`);
   const data = await res.json().catch(() => ({}));
   const ants = Number(data.ants_balance || 0);
-  return { address, ants, anet: ants / ANTS_PER_ANET };
+  const assets = await buildAssetBalanceView(data.asset_balances || {});
+  return { address, ants, anet: ants / ANTS_PER_ANET, assets };
+}
+
+async function tokenMetadataBySymbol() {
+  try {
+    const res = await fetch(`${API_BASE}/tokens/anrc20`);
+    const rows = await res.json().catch(() => []);
+    return Array.isArray(rows)
+      ? rows.reduce((acc, token) => {
+          const symbol = String(token.symbol || '').toUpperCase();
+          if (symbol) acc[symbol] = token;
+          return acc;
+        }, {})
+      : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+async function buildAssetBalanceView(rawBalances) {
+  const meta = await tokenMetadataBySymbol();
+  const assets = {};
+  Object.entries(rawBalances || {}).forEach(([symbolRaw, unitsRaw]) => {
+    const symbol = String(symbolRaw || '').toUpperCase();
+    const units = Number(unitsRaw || 0);
+    if (!symbol || !Number.isFinite(units) || units <= 0) return;
+    const decimals = Number(meta[symbol]?.decimals ?? (symbol === 'WANET' ? 8 : DEFAULT_ASSET_DECIMALS));
+    assets[symbol] = {
+      units,
+      decimals,
+      amount: units / Math.pow(10, decimals),
+    };
+  });
+  return assets;
 }
 
 /* ── approval windows ────────────────────────────────────────────── */

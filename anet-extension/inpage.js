@@ -4,7 +4,7 @@
  * Gives any website an EIP-1193-style provider for the A Network Layer 1:
  *   await window.anet.connect()                 → { address }
  *   await window.anet.getAddress()              → 'ANET…' | null
- *   await window.anet.getBalance()              → { ants, anet }
+ *   await window.anet.getBalance()              → { ants, anet, assets }
  *   await window.anet.signAction(type, payload) → signed auth object
  *   await window.anet.signTransfer({ to, amountAnts }) → signed tx object
  *   await window.anet.request({ method, params })

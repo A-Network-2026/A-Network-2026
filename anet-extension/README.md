@@ -42,7 +42,7 @@ if (window.anet) { /* ANET Wallet is installed */ }
 const { address } = await window.anet.connect();
 
 // Read
-const bal = await window.anet.getBalance();      // { address, ants, anet }
+const bal = await window.anet.getBalance();      // { address, ants, anet, assets }
 
 // Ask the wallet to sign an L1 action (DEX swap, liquidity, etc.)
 const auth = await window.anet.signAction('dex_swap', { /* payload */ });

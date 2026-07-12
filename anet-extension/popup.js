@@ -9,8 +9,10 @@
 const API_BASE = 'https://explorer.a-network.net';
 const ANET_TOKEN = '0x791055A7d52AA392eaE8De04250497f33807E46A'; // for USD price
 const ANTS_PER_ANET = 100000000;
+const DEFAULT_ASSET_DECIMALS = 8;
 let CHAIN_ID = 'anet-private-mainnet-1';
 let backupKeyHex = '';
+let tokenMetaCache = null;
 
 const $ = (id) => document.getElementById(id);
 const W = () => window.AnetWallet;
@@ -138,10 +140,63 @@ async function loadBalance(addr) {
     loadUsd(anet);
     $('send-avail').textContent = `Available: ${fmt(anet, 4)} ANET`;
     $('send-avail').dataset.anet = String(anet);
+    await renderAssets(data.asset_balances || {});
   } catch (e) {
     $('bal-anet').textContent = '—';
     $('bal-ants').textContent = 'balance unavailable';
+    await renderAssets({});
   }
+}
+
+async function loadTokenMetadata() {
+  if (tokenMetaCache) return tokenMetaCache;
+  try {
+    const res = await fetch(`${API_BASE}/tokens/anrc20`);
+    const rows = await res.json().catch(() => []);
+    tokenMetaCache = Array.isArray(rows)
+      ? rows.reduce((acc, token) => {
+          const symbol = String(token.symbol || '').toUpperCase();
+          if (symbol) acc[symbol] = token;
+          return acc;
+        }, {})
+      : {};
+  } catch (_) {
+    tokenMetaCache = {};
+  }
+  return tokenMetaCache;
+}
+
+function formatAssetUnits(units, decimals) {
+  const amount = Number(units || 0) / Math.pow(10, decimals);
+  return fmt(amount, amount >= 1 ? 6 : 8);
+}
+
+async function renderAssets(rawBalances) {
+  const list = $('asset-list');
+  if (!list) return;
+  const meta = await loadTokenMetadata();
+  const entries = Object.entries(rawBalances || {})
+    .map(([symbolRaw, unitsRaw]) => {
+      const symbol = String(symbolRaw || '').toUpperCase();
+      const units = Number(unitsRaw || 0);
+      const decimals = Number(meta[symbol]?.decimals ?? (symbol === 'WANET' ? 8 : DEFAULT_ASSET_DECIMALS));
+      return { symbol, units, decimals };
+    })
+    .filter((asset) => asset.symbol && Number.isFinite(asset.units) && asset.units > 0)
+    .sort((a, b) => a.symbol.localeCompare(b.symbol));
+
+  list.hidden = entries.length === 0;
+  list.textContent = '';
+  entries.forEach((asset) => {
+    const row = document.createElement('div');
+    row.className = 'asset-row';
+    const sym = document.createElement('b');
+    sym.textContent = asset.symbol;
+    const amt = document.createElement('span');
+    amt.textContent = formatAssetUnits(asset.units, asset.decimals);
+    row.append(sym, amt);
+    list.appendChild(row);
+  });
 }
 
 async function loadUsd(anet) {
