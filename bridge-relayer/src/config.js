@@ -55,6 +55,13 @@ export const config = {
   l1BaseUrl: required('ANET_L1_BASE_URL'),
   l1HubChainId: intEnv('L1_HUB_CHAIN_ID', 0) || Number(required('L1_HUB_CHAIN_ID')),
 
+  // L1 native-ANET action signing (spoke→L1 credit direction).
+  // `l1ChainId` is the L1 chain_id STRING (e.g. "anet-private-mainnet-1") bound
+  // into the action preimage; `creditSignerPrivateKey` is a native-ANET secp256k1
+  // key whose derived ANET address is in the node's ANET_PORTAL_SIGNERS set.
+  l1ChainId: optional('ANET_L1_CHAIN_ID', null),
+  creditSignerPrivateKey: optional('ANET_PORTAL_SIGNER_KEY', null),
+
   // Signer identity (M-of-N). Only required for signer/submitter roles.
   signerPrivateKey: optional('SIGNER_PRIVATE_KEY', null),
 
@@ -72,4 +79,14 @@ export function requireSigner() {
     throw new Error('SIGNER_PRIVATE_KEY is required for signer/submitter roles');
   }
   return config.signerPrivateKey;
+}
+
+export function requireCreditSigner() {
+  if (!config.creditSignerPrivateKey) {
+    throw new Error('ANET_PORTAL_SIGNER_KEY is required to attest spoke→L1 credits');
+  }
+  if (!config.l1ChainId) {
+    throw new Error('ANET_L1_CHAIN_ID (the L1 chain_id string) is required to sign credit actions');
+  }
+  return { privateKey: config.creditSignerPrivateKey, l1ChainId: config.l1ChainId };
 }
