@@ -1,0 +1,14 @@
+# Anchor / Solana build artifacts
+.anchor/
+target/
+**/*.rs.bk
+test-ledger/
+
+# Node
+node_modules/
+.DS_Store
+
+# Keys — NEVER commit program or wallet keypairs
+*-keypair.json
+deploy/*.json
+.env
