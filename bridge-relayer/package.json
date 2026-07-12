@@ -8,6 +8,7 @@
     "start": "node src/index.js",
     "signer": "ROLE=signer node src/index.js",
     "submitter": "ROLE=submitter node src/index.js",
+    "solana": "ROLE=solana node src/index.js",
     "reconciler": "ROLE=reconciler node src/index.js",
     "test": "node --test"
   },

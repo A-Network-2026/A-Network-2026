@@ -48,6 +48,29 @@ function loadSpokes() {
   });
 }
 
+/**
+ * Optional Solana spoke. Only loaded when SOLANA_ENABLED is truthy so the
+ * dependency-light EVM/L1 core (and `npm test`) never needs @solana/web3.js.
+ *   SOLANA_RPC_URL, SOLANA_PROGRAM_ID, SOLANA_IDL_PATH, SOLANA_WALLET_KEYPAIR,
+ *   SOLANA_EIP712_CHAIN_ID, SOLANA_VERIFYING_CONTRACT, SOLANA_START_SIGNATURE
+ */
+function loadSolana() {
+  const on = optional('SOLANA_ENABLED', '');
+  if (!['1', 'true', 'yes', 'on'].includes(on.toLowerCase())) return null;
+  return {
+    rpcUrl: required('SOLANA_RPC_URL'),
+    programId: required('SOLANA_PROGRAM_ID'),
+    idlPath: required('SOLANA_IDL_PATH'),
+    walletKeypairPath: optional('SOLANA_WALLET_KEYPAIR', null),
+    // Synthetic chain id + 20-byte verifying-contract id bound into the program's
+    // EIP-712 domain at initialize() — the signer must use the SAME values.
+    eip712ChainId: intEnv('SOLANA_EIP712_CHAIN_ID', 0) || Number(required('SOLANA_EIP712_CHAIN_ID')),
+    verifyingContract: required('SOLANA_VERIFYING_CONTRACT'),
+    startSignature: optional('SOLANA_START_SIGNATURE', null),
+    minConfirmations: intEnv('SOLANA_MIN_CONFIRMATIONS', 31),
+  };
+}
+
 export const config = {
   role: optional('ROLE', 'reconciler'),
 
@@ -72,6 +95,7 @@ export const config = {
   attestationTtlSecs: intEnv('ATTESTATION_TTL_SECS', 3600),
 
   spokes: loadSpokes(),
+  solana: loadSolana(),
 };
 
 export function requireSigner() {
