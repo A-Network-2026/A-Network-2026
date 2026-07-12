@@ -16,6 +16,7 @@
     "deploy:mintburn:eth": "hardhat run scripts/deploy-mint-burn-portal.js --network eth",
     "deploy:mintburn:bsc": "hardhat run scripts/deploy-mint-burn-portal.js --network bsc",
     "deploy:mintburn:bsc-testnet": "hardhat run scripts/deploy-mint-burn-portal.js --network bsc_testnet",
+    "deploy:mintburn:sepolia": "hardhat run scripts/deploy-mint-burn-portal.js --network sepolia",
     "setup:bsc": "hardhat run scripts/setup-tokens.js --network bsc",
     "verify:bsc": "hardhat verify --network bsc"
   },

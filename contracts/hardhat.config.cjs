@@ -66,6 +66,13 @@ module.exports = {
       chainId:  1,
       accounts: keyFor("ETH") || [],
     },
+    // ── Ethereum testnet (Sepolia) ────────────────────────────────────────────
+    sepolia: {
+      url:      process.env.SEPOLIA_RPC_URL
+                  || `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY || ""}`,
+      chainId:  11155111,
+      accounts: keyFor("SEPOLIA") || [],
+    },
     // ── Polygon ───────────────────────────────────────────────────────────────
     polygon: {
       url:      "https://polygon-rpc.com/",
