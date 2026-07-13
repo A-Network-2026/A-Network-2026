@@ -682,6 +682,16 @@
           <div class="info-box" id="l1-market-status" style="font-size:12.5px;">Connect your ANET wallet (or the extension) to begin.</div>
           <div class="info-box" id="l1-pair-note" style="font-size:11.5px;color:var(--muted);">wANET pairs 1:1 with ANET — an on-ramp from the open market. The community sets the depth; the market sets the price.</div>
 
+          <!-- One-click seed (wANET on-ramp only) -->
+          <div id="l1-oneclick" style="border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px 13px;background:rgba(88,197,255,0.06);">
+            <div style="font-size:12.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;">⚡ One-click: open the ANET/wANET market</div>
+            <p style="font-size:11.5px;color:var(--muted-2);margin:6px 0 8px;line-height:1.5;">Wrap + create &amp; seed in a single guided flow. Enter the ANET amount for <strong>each side</strong> of the 1:1 pool — you need roughly <strong>2×</strong> that in native L1 ANET (one side stays ANET, the other is wrapped to wANET). Both steps are signed, on-chain L1 actions.</p>
+            <div style="display:flex;gap:8px;">
+              <input class="form-input" id="l1-seed-amount" type="number" placeholder="ANET per side" min="0" step="any" style="flex:1;">
+              <button class="btn btn-primary btn-sm" id="l1-seed-btn" onclick="openL1MarketSeedOneClick()" style="white-space:nowrap;">Seed market</button>
+            </div>
+          </div>
+
           <!-- Step 1 -->
           <div style="border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 12px;">
             <div style="font-size:12.5px;font-weight:600;color:var(--text);"><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:rgba(88,197,255,0.15);color:var(--accent);font-size:11px;margin-right:6px;">1</span> Get the assets onto L1</div>
@@ -1464,7 +1474,7 @@
   <script src="assets/js/vendor/anet-crypto.bundle.js?v=20260628"></script>
   <script src="assets/js/vendor/anet-solana.bundle.js?v=20260706"></script>
   <script src="assets/js/anet-wallet.js?v=20260628"></script>
-  <script src="assets/js/dex.js?v=20260706-community"></script>
+  <script src="assets/js/dex.js?v=20260713-oneclick"></script>
   <script src="assets/js/dex-onchain.js?v=20260706-v41"></script>
 
 </body>

@@ -3211,6 +3211,8 @@ function setL1MarketPair(sym) {
   const isWrap = l1MarketPair === 'WANET';
   const wrapStep = document.getElementById('l1-step-wrap');
   if (wrapStep) wrapStep.style.display = isWrap ? '' : 'none';
+  const oneClick = document.getElementById('l1-oneclick');
+  if (oneClick) oneClick.style.display = isWrap ? '' : 'none';
   document.querySelectorAll('.l1-pair-name').forEach(el => { el.textContent = isWrap ? 'wANET' : l1MarketPair; });
   const pairLabel = document.getElementById('l1-pair-label');
   if (pairLabel) pairLabel.textContent = isWrap ? 'wANET' : l1MarketPair;
@@ -3318,6 +3320,76 @@ async function openL1MarketCreate() {
     toast(e.message || 'Failed to open market', 'error');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Create & Open Market'; }
+  }
+}
+
+// One-click: wrap the shortfall + create/seed the ANET/wANET pool in a single guided flow.
+async function openL1MarketSeedOneClick() {
+  if (l1MarketPair !== 'WANET') { toast('One-click seeding is for the ANET/wANET on-ramp pair.', 'info'); return; }
+  if (!ensureAnetSigner()) return;
+  const perSide = parseFloat(document.getElementById('l1-seed-amount')?.value);
+  if (!(perSide > 0)) { toast('Enter the ANET amount per side', 'error'); return; }
+  const btn = document.getElementById('l1-seed-btn');
+  const msg = document.getElementById('l1-market-msg');
+  const setBtn = (t, d) => { if (btn) { btn.textContent = t; btn.disabled = d; } };
+  const setMsg = (cls, html) => { if (msg) { msg.className = `swap-status show ${cls}`; msg.innerHTML = html; } };
+  setBtn('Working…', true);
+  try {
+    const perSideUnits = BigInt(anet2ants(perSide));
+
+    // Read balances so we wrap only the shortfall and can pre-check native ANET.
+    let nativeAnts = 0n, wanetUnits = 0n;
+    try {
+      const acct = await getAccount(state.anetWallet.address);
+      nativeAnts = BigInt(acct.ants_balance || 0);
+      wanetUnits = BigInt((acct.asset_balances && acct.asset_balances.WANET) || 0);
+    } catch (_) {}
+
+    const wrapUnits = perSideUnits > wanetUnits ? (perSideUnits - wanetUnits) : 0n;
+    const requiredNative = perSideUnits + wrapUnits; // pool ANET side + amount to wrap
+    if (nativeAnts > 0n && nativeAnts < requiredNative) {
+      const need = Number(requiredNative) / ANTS_PER_ANET;
+      const have = Number(nativeAnts) / ANTS_PER_ANET;
+      setMsg('error', `✕ Not enough native L1 ANET. Need ~${fmt(need, 4)} ANET (have ${fmt(have, 4)}). Bring more ANET onto L1 first.`);
+      toast('Insufficient L1 ANET', 'error');
+      return;
+    }
+
+    // Step 1 — wrap the shortfall to wANET.
+    if (wrapUnits > 0n) {
+      setMsg('loading', '<span class="spinner"></span> Step 1/2 · signing wrap ANET → wANET on L1…');
+      await dexWrap(wrapUnits.toString());
+      recordChainActivity('l1_market_wrap', 'success', `${Number(wrapUnits) / ANTS_PER_ANET} ANET`);
+      await Promise.all([refreshAnetBalance(), refreshPools()]);
+    }
+
+    // Step 2 — create the pool (or add to it if it already exists).
+    const existing = state.pools.find(p => normSym(p.token_symbol) === 'WANET');
+    setMsg('loading', `<span class="spinner"></span> Step 2/2 · signing ${existing ? 'add liquidity' : 'create pool'} on A Network L1…`);
+    const args = {
+      provider: state.anetWallet.address,
+      tokenSymbol: 'WANET',
+      anetAmountAnts: perSideUnits.toString(),
+      tokenAmountUnits: perSideUnits.toString(),
+    };
+    if (existing) await addLiquidity(args);
+    else await createPool({ ...args, feeBps: 30 });
+
+    setMsg('success', existing
+      ? '✓ Added liquidity to the ANET/wANET market · recorded on L1.'
+      : '✓ ANET/wANET pool created & seeded. The L1 market is OPEN — recorded on-chain.');
+    toast('L1 market opened', 'success', 6000);
+    recordChainActivity('open_l1_market', 'success', 'ANET/WANET');
+    const seedInput = document.getElementById('l1-seed-amount');
+    if (seedInput) seedInput.value = '';
+    await Promise.all([refreshPools(), refreshAnetBalance()]);
+    renderSwapTokenSelectors();
+    openL1MarketRefresh();
+  } catch (e) {
+    setMsg('error', `✕ ${e.message || 'Failed to open market'}`);
+    toast(e.message || 'Failed to open market', 'error');
+  } finally {
+    setBtn('Seed market', false);
   }
 }
 
