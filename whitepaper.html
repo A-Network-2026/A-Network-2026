@@ -8,18 +8,18 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v4.1 | Permissionless DEX · Transparent Protocol Revenue · Honest Decentralization</title>
+  <title>A-Network Whitepaper v4.2 | Transparent Unlock Tiers · Verified Token Identity · On-Chain Attestation</title>
 
-  <meta name="description" content="The official A-Network v4.1 whitepaper. Documents the permissionless multi-chain DEX and community pool creation, market-discovered pricing, a transparent 0.875% interface fee to the disclosed treasury, the non-custodial ANET Wallet extension, an honest phased-decentralization posture, and the regulatory review framework." />
+  <meta name="description" content="The official A-Network v4.2 whitepaper. Documents transparent, code-enforced asset unlock tiers (Locked / P2P / Swap / Bridge / Fully unlocked), a verified chain-ID-and-address-keyed token identity registry, honest advertising-revenue reporting with no assumed eCPM, and an on-chain protocol-update attestation mechanism, on top of the permissionless multi-chain DEX, market-discovered pricing, the disclosed 0.875% interface fee, the non-custodial ANET Wallet extension, and the regulatory review framework." />
 
   <meta name="theme-color" content="#07101a" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
   <meta http-equiv="X-Frame-Options" content="DENY" />
   <meta name="referrer" content="no-referrer" />
 
-  <meta property="og:title" content="A-Network Whitepaper v4.1" />
+  <meta property="og:title" content="A-Network Whitepaper v4.2" />
 
-  <meta property="og:description" content="Technical specification for A-Network Layer 1, real-liquidity audit gates, treasury controls, separate Bitcoin and EVM markets, and compliance review requirements." />
+  <meta property="og:description" content="Technical specification for A-Network Layer 1, transparent unlock tiers, verified token identity, real-liquidity audit gates, treasury controls, separate Bitcoin and EVM markets, and compliance review requirements." />
 
   <meta property="og:url" content="https://a-network.net/whitepaper.html" />
 
@@ -675,7 +675,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v4.1 · JULY 6, 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v4.2 · JULY 23, 2026</sub>
 
       </div>
 
@@ -705,6 +705,7 @@
     <a class="nav-item" href="#v40-changelog">v4.0 On-Chain DEX &amp; Wallet</a>
 
     <a class="nav-item" href="#v41-changelog">v4.1 Permissionless &amp; Revenue</a>
+    <a class="nav-item" href="#v42-changelog">v4.2 Unlock Tiers &amp; Attestation</a>
 
     <a class="nav-item" href="#how-to-trade">How to Trade &amp; Provide Liquidity</a>
 
@@ -957,12 +958,12 @@
         </div>
       </div>
 
-      <div class="hero-badge">Technical Paper v4.1 (Permissionless DEX · Transparent Protocol Revenue · Honest Decentralization)</div>
+      <div class="hero-badge">Technical Paper v4.2 (Transparent Unlock Tiers · Verified Token Identity · On-Chain Attestation)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
       <p class="hero-sub">A-Network operates a native Layer 1 settlement ledger and a separate EVM market. Version 3.9 defines the controls required before public Layer 1 liquidity can be described as real: every pool contribution must debit a named wallet, the paired reserve asset must be registered and externally verifiable, bootstrap or administrator-created balances cannot be presented as liquidity, and the mobile interface must fail closed when any audit gate is missing. The designated EVM reserve treasury is <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code>. A Bitcoin reserve may support a separately identified ANET/BTC market only after a Bitcoin treasury address and proof transaction are published. Bitcoin reserves, EVM reserves, and native Layer 1 balances are never merged in accounting or represented as interchangeable custody. Layer 1 currently uses fixed protocol operations and has no general-purpose smart-contract virtual machine; any future VM requires a separately specified consensus upgrade, public test environment, independent audit, and explicit activation decision.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong> &mdash; 4.1 (Permissionless DEX and Transparent Revenue Model)</div>
-        <div class="hero-meta-item"><strong>Published</strong> &mdash; July 6, 2026</div>
+        <div class="hero-meta-item"><strong>Version</strong> &mdash; 4.2 (Transparent Unlock Tiers, Verified Token Identity &amp; On-Chain Attestation)</div>
+        <div class="hero-meta-item"><strong>Published</strong> &mdash; July 23, 2026</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong> &mdash; Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>EVM Reserve Treasury</strong> &mdash; <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code></div>
         <div class="hero-meta-item"><strong>Market Separation</strong> &mdash; Native L1 &middot; Bitcoin reserve market &middot; EVM market accounted separately</div>
@@ -970,6 +971,37 @@
         <div class="hero-meta-item"><strong>Liquidity Rule</strong> &mdash; Wallet-funded &middot; reserve-backed &middot; independently auditable &middot; never bootstrap</div>
       </div>
     </div>
+
+    <section class="wp-section" id="v42-changelog">
+      <div class="section-label">v4.2 Changelog &middot; July 23, 2026</div>
+      <h2>Version 4.2 &mdash; Transparent Unlock Tiers, Verified Token Identity &amp; On-Chain Attestation</h2>
+      <p>Version 4.2 adds a transparency layer on top of already-enforced rules &mdash; it changes no balance, no threshold, and no supply figure. Every item below either (a) reports on existing enforcement without altering it, or (b) makes an existing revenue/identity claim independently verifiable instead of asserted.</p>
+
+      <h3>Transparent, code-enforced asset unlock tiers</h3>
+      <p>A new public, read-only endpoint (<code>GET /accounts/:address/unlock-status</code>) reports exactly which utility actions a wallet can currently use, and why, using five plain-language tiers:</p>
+      <ul>
+        <li><strong>Locked</strong> &mdash; mining balance is visible on-chain but cannot be transferred, swapped, or bridged.</li>
+        <li><strong>P2P-enabled</strong> &mdash; eligible for internal Layer 1 peer-to-peer transfers.</li>
+        <li><strong>Swap-enabled</strong> &mdash; eligible for P2P transfers and the internal native DEX.</li>
+        <li><strong>Bridge-enabled</strong> &mdash; additionally eligible to move assets to a supported external network.</li>
+        <li><strong>Fully unlocked</strong> &mdash; every currently-defined utility function is available.</li>
+      </ul>
+      <p>This is deliberately a <strong>reporting layer, not a new gate</strong>: the underlying computation mirrors the chain&apos;s existing <code>is_session_eligible(sessions) = sessions &gt;= 1,000</code> rule (see &ldquo;One eligibility rule&rdquo; above) and the existing bridge-funded exemption byte-for-byte, so the reported tier can never claim a wallet is unlocked when the chain would still refuse the action, or locked when the chain would allow it. The Swap threshold is exposed as an operator-tunable value that <em>defaults to the existing 1,000-session rule</em> (no behavior changes unless deliberately raised later), and the Bridge tier defaults to locked network-wide until an official unlock is announced &mdash; consistent with bridge-out already being disabled on the live network today. No wallet is ever permanently prevented from eventually swapping its own unlocked assets; unlock conditions are transparent code, not manual, case-by-case approval.</p>
+
+      <h3>Verified token identity: chain ID and contract address, never symbol alone</h3>
+      <p>Different networks can host different tokens that share the same ticker symbol. The client-side token identity registry introduced in this version keys every supported asset by <strong>network + verified contract address</strong> (or &ldquo;native&rdquo; for a chain&apos;s base asset) as the primary identifier &mdash; symbol is a display convenience only, never the identity. Token logos resolve only for the exact verified address on record, so a same-symbol impostor token deployed at a different address cannot inherit an official logo.</p>
+
+      <h3>Honest advertising-revenue reporting (extends &ldquo;Transparent protocol revenue&rdquo;)</h3>
+      <p>In-app advertising now reports real, per-impression revenue attribution from the ad-mediation SDK&apos;s own revenue callback, rather than an assumed eCPM applied to every ad request. Backend analytics computed from this data explicitly separate <strong>actual recorded revenue</strong> from any same-rate <strong>projection</strong>, and never present a projection as booked revenue. This extends the transparent-revenue principle already published for the interface fee to the advertising revenue stream, ahead of any policy decision on directing a portion of that revenue toward protocol liquidity.</p>
+
+      <h3>On-chain protocol-update attestation</h3>
+      <p>Starting with this version, each published protocol/whitepaper update can be sealed as a block event: a SHA-256 digest of the published document, its version label, and a short title are recorded on the ANET Layer 1 chain. This moves no funds and changes no balance &mdash; its sole purpose is to make &ldquo;version X.Y was published with hash Z&rdquo; an independently verifiable historical fact against public block history, rather than only a claim on a website that could be edited without a trace. The sealing block height and document hash for this revision will be published in the Decentralization Status Tracker once recorded.</p>
+
+      <div class="panel panel-green">
+        <h4>What did NOT change</h4>
+        <p style="margin-bottom:0;">The 21,000,000 ANET supply cap, the 1,000-session activation threshold, the bridge-funded exemption, the native-DEX and P2P enforcement logic, and every existing balance are unchanged by this version. v4.2 adds visibility and independent verifiability; it does not alter economics or custody.</p>
+      </div>
+    </section>
 
     <section class="wp-section" id="v41-changelog">
       <div class="section-label">v4.1 Changelog &middot; July 6, 2026</div>

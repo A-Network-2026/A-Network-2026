@@ -52,6 +52,7 @@
         <li>Mining activity data, including session start/completion, elapsed time checks, heartbeat validation, successful session counters, ANTS balances, and claim-related audit signals.</li>
         <li>Wallet addresses, migration wallet addresses, wallet PIN status, encrypted seed vault metadata, or related wallet identifiers when users access Web3 or migration features.</li>
         <li>Phase 5 mining proof data, including proof hashes, difficulty levels, nonce counters, and proof submission timestamps when users generate and submit decentralized proofs to the chain.</li>
+        <li>AI assistant inputs, including the text prompts, questions, and optional voice input you provide to the in-app support assistant, together with related conversation metadata, processed to generate responses.</li>
         <li>Support or contact information when users communicate with us.</li>
       </ul>
     </section>
@@ -65,6 +66,7 @@
         <li>Operate mining features, ANTS-first reward accounting, referral activation logic, anti-abuse checks, and supply protection controls.</li>
         <li>Support Phase 5 decentralized proof generation, signing, submission to blockchain validators, and proof verification on the Layer 1 chain.</li>
         <li>Support app features across off-chain Web2 services, on-chain Web3 visibility, migration wallet handling, and future Web4 preparation.</li>
+        <li>Operate the optional in-app AI support assistant, including processing text or optional voice prompts to generate responses and answer product questions.</li>
         <li>Improve functionality, performance, user experience, and fraud detection.</li>
         <li>Comply with legal obligations and protect the integrity of the ecosystem.</li>
       </ul>
@@ -74,7 +76,7 @@
       <h2>3. Permissions and Minimum Scope</h2>
       <p>The current mobile-app release is designed to operate without broad access to sensitive device datasets.</p>
       <ul>
-        <li>Current Android permissions are limited to internet access, local notification support, boot-complete handling for notification scheduling, and advertising identifier support for ad services where permitted.</li>
+        <li>Current Android permissions are limited to internet access, local notification support, boot-complete handling for notification scheduling, advertising identifier support for ad services where permitted, and optional foreground microphone access that is used only when you choose to speak to the in-app assistant.</li>
         <li>The current release does not request broad contacts access, precise location, background location, geofencing, SMS, call logs, photo-library access, all-files access, or broad package visibility.</li>
         <li>If a future feature needs contact sharing, we intend to use minimum-scope system flows such as Android Contact Picker where available instead of broad address-book access unless broader access is strictly required for a core, user-facing function.</li>
         <li>If a future feature needs location, we intend to request the minimum scope needed, such as coarse location, foreground-only access, or Android's location button for one-time precise location flows where available, rather than persistent precise or background access unless strictly required for a core, user-initiated function.</li>
@@ -114,6 +116,18 @@
         <li>Accepted proofs are included in blockchain blocks and become part of the permanent, distributed ledger. This means proof data (miner address, proof hash, difficulty, and timestamp) becomes publicly visible on the blockchain.</li>
         <li>Proof nonce values are tracked persistently in the chain's database to prevent replay attacks. A miner cannot submit the same proof twice.</li>
         <li>The private key used for proof signing remains under the user's control and is never transmitted to our servers or to validators; only the signature is submitted.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>4C. AI Assistant, Voice Input, and Third-Party AI Processing</h2>
+      <p>The app includes an optional in-app support assistant that answers questions and helps users navigate features.</p>
+      <ul>
+        <li>When you send a message to the assistant, the text prompt you provide is transmitted to our hosted AI backend, which may rely on third-party AI model providers, solely to generate a response to your request.</li>
+        <li>Voice input is optional and user-initiated. If you choose to dictate a message, microphone audio is used to transcribe your speech into text through the on-device or platform speech service, and only the resulting text request is processed by the assistant. The app does not record audio in the background.</li>
+        <li>Assistant responses may be read aloud using the device text-to-speech service; this does not transmit additional personal data.</li>
+        <li>Limited use: assistant inputs are used only to provide and improve the assistant feature. We do not sell this data, and we do not use it for unrelated advertising profiling.</li>
+        <li>You remain in control: the assistant, microphone input, and voice output are active only when you open and use the assistant.</li>
       </ul>
     </section>
 
