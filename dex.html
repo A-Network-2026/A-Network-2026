@@ -95,17 +95,17 @@
           <span class="cashout-ready-dot"></span>
           <span>Cashout Ready: 1,000 Sessions</span>
         </a>
-        <button class="wallet-btn" id="evm-wallet-btn" onclick="connectEvmWallet()" aria-label="Connect MetaMask or EVM wallet">
+        <button class="wallet-btn" id="anet-wallet-btn" onclick="openAnetWalletModal()" aria-label="Connect ANET wallet">
           <span class="dot"></span>
-          <span>Connect EVM Wallet</span>
+          <span>Connect ANET Wallet</span>
         </button>
         <button class="wallet-btn" id="anet-ext-btn" onclick="connectAnetExtension()" style="display:none;" aria-label="Connect the ANET Wallet browser extension">
           <span class="dot"></span>
           <span>Connect ANET Wallet (Extension)</span>
         </button>
-        <button class="wallet-btn" id="anet-wallet-btn" onclick="openAnetWalletModal()" aria-label="Connect ANET wallet">
+        <button class="wallet-btn" id="evm-wallet-btn" onclick="connectEvmWallet()" aria-label="Connect MetaMask or EVM wallet (optional, for bridging)" title="Optional — only needed for bridging assets from other chains">
           <span class="dot"></span>
-          <span>Connect ANET Wallet</span>
+          <span>Connect EVM Wallet (Bridge only)</span>
         </button>
       </div>
     </header>
@@ -160,6 +160,9 @@
           <span class="pill" style="background:rgba(57,217,138,0.12);border:1px solid rgba(57,217,138,0.4);color:#9af7ca;">ANTS = smallest unit (like sats) · 1 ANET = 100,000,000 ANTS</span>
           <span class="pill" style="background:rgba(88,197,255,0.12);border:1px solid rgba(88,197,255,0.4);color:#7fd8ff;">wANET = 1:1 wrapped BEP-20 (like WBTC)</span>
         </div>
+        <p style="margin-top:10px;font-size:12.5px;color:var(--accent-2);">
+          <strong>No MetaMask needed.</strong> Create or import your ANET wallet directly on this page (seed phrase or private key, just like MetaMask) — swaps, liquidity, balances and history all work natively on L1. An EVM wallet is only needed if you're bridging assets in from another chain.
+        </p>
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
@@ -202,6 +205,10 @@
       <button class="tab-btn active" role="tab" data-tab="swap"
               onclick="setTab('swap')" aria-selected="true">
         <span class="tab-icon">⇄</span> Swap
+      </button>
+      <button class="tab-btn" role="tab" data-tab="portfolio"
+              onclick="setTab('portfolio')" aria-selected="false">
+        <span class="tab-icon">👛</span> Portfolio
       </button>
       <button class="tab-btn" role="tab" data-tab="bridge"
               onclick="setTab('bridge')" aria-selected="false">
@@ -360,6 +367,108 @@
 
       </div><!-- /dex-main-grid -->
     </div><!-- /tab-swap -->
+
+    <!-- ════════════════════════════════════════
+         TAB: PORTFOLIO
+         ════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-portfolio" role="tabpanel">
+
+      <!-- Disconnected state -->
+      <div class="card" id="portfolio-disconnected">
+        <div class="card-body" style="text-align:center;padding:56px 24px;">
+          <div class="empty-icon" style="font-size:40px;margin-bottom:14px;">👛</div>
+          <h3 style="margin:0 0 8px;font-size:15px;letter-spacing:0.04em;">CONNECT YOUR ANET WALLET</h3>
+          <p style="color:var(--muted);font-size:13px;max-width:440px;margin:0 auto 18px;line-height:1.55;">
+            View your live ANET balance, every token asset you hold on L1 (wANET, USDT, USDC and more),
+            and your full on-chain transaction history — all signed and verifiable on the explorer.
+          </p>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="openAnetWalletModal()">Connect ANET Wallet</button>
+            <button class="btn btn-outline" onclick="connectAnetExtension()">Use Extension</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connected state -->
+      <div id="portfolio-connected" style="display:none;">
+
+        <div class="hero-stats" style="margin-bottom:20px;">
+          <div class="hero-stat">
+            <div class="stat-val" id="pf-stat-balance">—</div>
+            <div class="stat-lbl">ANET BALANCE</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-val" id="pf-stat-assets">—</div>
+            <div class="stat-lbl">TOKEN ASSETS</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-val" id="pf-stat-sessions">—</div>
+            <div class="stat-lbl">SESSIONS</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-val" id="pf-stat-validator">—</div>
+            <div class="stat-lbl">VALIDATOR</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:22px;">
+          <div class="card-header">
+            <span class="card-title">WALLET</span>
+            <button class="btn btn-ghost btn-sm" onclick="refreshPortfolio()" title="Refresh" aria-label="Refresh portfolio">↺</button>
+          </div>
+          <div class="card-body" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+            <div>
+              <div style="font-size:11px;color:var(--muted-2);margin-bottom:4px;">ADDRESS</div>
+              <div id="pf-address" style="font-size:12.5px;font-weight:600;font-family:monospace;word-break:break-all;">—</div>
+            </div>
+            <a class="btn btn-outline btn-sm" id="pf-explorer-link" href="https://explorer.a-network.net/explorer" target="_blank" rel="noopener">View on Explorer ↗</a>
+          </div>
+        </div>
+
+        <!-- Token assets -->
+        <div class="section-heading">
+          <h3>TOKEN ASSETS</h3>
+          <div class="line"></div>
+        </div>
+        <div class="card" style="margin-bottom:24px;">
+          <div class="card-body" style="padding:0;">
+            <div id="pf-assets-list"></div>
+          </div>
+        </div>
+
+        <!-- Transaction history -->
+        <div class="section-heading">
+          <h3>TRANSACTION HISTORY</h3>
+          <div class="line"></div>
+          <button class="btn btn-ghost btn-sm" onclick="refreshPortfolio()" title="Refresh history" aria-label="Refresh history">↺</button>
+        </div>
+        <div class="card">
+          <div class="markets-table-wrap">
+            <table class="markets-table" aria-label="Wallet transaction history">
+              <thead>
+                <tr>
+                  <th>TYPE</th>
+                  <th>AMOUNT</th>
+                  <th>COUNTERPARTY</th>
+                  <th>STATUS</th>
+                  <th>TIME</th>
+                  <th>BLOCK / TX</th>
+                </tr>
+              </thead>
+              <tbody id="pf-history-tbody">
+                <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);">Connect your wallet to see history.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted-2);flex-wrap:wrap;gap:8px;">
+            <span id="pf-history-count">—</span>
+            <button class="btn btn-outline btn-sm" id="pf-load-more-btn" onclick="loadMorePortfolioHistory()" style="display:none;">Load more</button>
+          </div>
+        </div>
+
+      </div><!-- /portfolio-connected -->
+
+    </div><!-- /tab-portfolio -->
 
     <!-- ════════════════════════════════════════
          TAB: BRIDGE
@@ -1474,7 +1583,7 @@
   <script src="assets/js/vendor/anet-crypto.bundle.js?v=20260628"></script>
   <script src="assets/js/vendor/anet-solana.bundle.js?v=20260706"></script>
   <script src="assets/js/anet-wallet.js?v=20260628"></script>
-  <script src="assets/js/dex.js?v=20260713-oneclick"></script>
+  <script src="assets/js/dex.js?v=20260731-createwallet"></script>
   <script src="assets/js/dex-onchain.js?v=20260706-v41"></script>
 
 </body>

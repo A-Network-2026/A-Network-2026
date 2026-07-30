@@ -990,6 +990,16 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .lp-pair { font-size: 13px; font-weight: 700; }
 .lp-units { font-size: 13px; color: var(--accent-2); }
 
+/* ── Portfolio: token assets list ───────────── */
+.asset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.asset-row:last-child { border-bottom: none; }
+
 /* ── Markets table ──────────────────────────── */
 .markets-table-wrap {
   overflow-x: auto;
