@@ -8,16 +8,16 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v4.2 | Transparent Unlock Tiers · Verified Token Identity · On-Chain Attestation</title>
+  <title>A-Network Whitepaper v4.3 | Mined-Coin Vesting · Transparent Unlock Tiers · On-Chain Attestation</title>
 
-  <meta name="description" content="The official A-Network v4.2 whitepaper. Documents transparent, code-enforced asset unlock tiers (Locked / P2P / Swap / Bridge / Fully unlocked), a verified chain-ID-and-address-keyed token identity registry, honest advertising-revenue reporting with no assumed eCPM, and an on-chain protocol-update attestation mechanism, on top of the permissionless multi-chain DEX, market-discovered pricing, the disclosed 0.875% interface fee, the non-custodial ANET Wallet extension, and the regulatory review framework." />
+  <meta name="description" content="The official A-Network v4.3 whitepaper. Documents the chain-enforced mined-coin vesting schedule for wANET swap-outs (6-month cliff from first activation, then 25% unlocked every 3 months — P2P transfers unaffected, bridge-backed coins exempt), on top of transparent code-enforced asset unlock tiers, the verified token identity registry, honest advertising-revenue reporting, on-chain protocol-update attestation, the permissionless multi-chain DEX, market-discovered pricing, the disclosed 0.875% interface fee, the non-custodial ANET Wallet extension, and the regulatory review framework." />
 
   <meta name="theme-color" content="#07101a" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
   <meta http-equiv="X-Frame-Options" content="DENY" />
   <meta name="referrer" content="no-referrer" />
 
-  <meta property="og:title" content="A-Network Whitepaper v4.2" />
+  <meta property="og:title" content="A-Network Whitepaper v4.3" />
 
   <meta property="og:description" content="Technical specification for A-Network Layer 1, transparent unlock tiers, verified token identity, real-liquidity audit gates, treasury controls, separate Bitcoin and EVM markets, and compliance review requirements." />
 
@@ -675,7 +675,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v4.2 · JULY 23, 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v4.3 · AUGUST 1, 2026</sub>
 
       </div>
 
@@ -706,6 +706,7 @@
 
     <a class="nav-item" href="#v41-changelog">v4.1 Permissionless &amp; Revenue</a>
     <a class="nav-item" href="#v42-changelog">v4.2 Unlock Tiers &amp; Attestation</a>
+    <a class="nav-item" href="#v43-changelog">v4.3 Mined-Coin Vesting</a>
 
     <a class="nav-item" href="#how-to-trade">How to Trade &amp; Provide Liquidity</a>
 
@@ -958,7 +959,7 @@
         </div>
       </div>
 
-      <div class="hero-badge">Technical Paper v4.2 (Transparent Unlock Tiers · Verified Token Identity · On-Chain Attestation)</div>
+      <div class="hero-badge">Technical Paper v4.3 (Mined-Coin Vesting · Transparent Unlock Tiers · On-Chain Attestation)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
       <p class="hero-sub">A-Network operates a native Layer 1 settlement ledger and a separate EVM market. Version 3.9 defines the controls required before public Layer 1 liquidity can be described as real: every pool contribution must debit a named wallet, the paired reserve asset must be registered and externally verifiable, bootstrap or administrator-created balances cannot be presented as liquidity, and the mobile interface must fail closed when any audit gate is missing. The designated EVM reserve treasury is <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code>. A Bitcoin reserve may support a separately identified ANET/BTC market only after a Bitcoin treasury address and proof transaction are published. Bitcoin reserves, EVM reserves, and native Layer 1 balances are never merged in accounting or represented as interchangeable custody. Layer 1 currently uses fixed protocol operations and has no general-purpose smart-contract virtual machine; any future VM requires a separately specified consensus upgrade, public test environment, independent audit, and explicit activation decision.</p>
       <div class="hero-meta">
@@ -971,6 +972,34 @@
         <div class="hero-meta-item"><strong>Liquidity Rule</strong> &mdash; Wallet-funded &middot; reserve-backed &middot; independently auditable &middot; never bootstrap</div>
       </div>
     </div>
+
+    <section class="wp-section" id="v43-changelog">
+      <div class="section-label">v4.3 Changelog &middot; August 1, 2026</div>
+      <h2>Version 4.3 &mdash; Mined-Coin Vesting: Value Protection for wANET Swap-Outs</h2>
+      <p>Version 4.3 introduces one deliberate economic-policy addition: a <strong>chain-enforced vesting schedule</strong> on moving <em>mined</em> coins out of the Layer&nbsp;1 economy. It exists to protect the value of every miner&apos;s coins from early mass exits through the bridge, and it follows the project&apos;s standing principle &mdash; the rule is fixed, transparent code applied identically to every wallet, never a manual, case-by-case approval.</p>
+
+      <h3>The schedule</h3>
+      <ul>
+        <li><strong>Anchor.</strong> A wallet&apos;s vesting clock starts at its <em>first on-chain activation</em> &mdash; the first sealed <code>SessionActivation</code> block event that credits mined coins to it. The anchor is recorded on-chain in that immutable event and is rebuilt from public block history by every node, so any third party computes the same schedule from the same blocks.</li>
+        <li><strong>Cliff.</strong> For <strong>6 months</strong> from the anchor, 0% of the wallet&apos;s mined coins may leave the L1 economy.</li>
+        <li><strong>Gradual unlock.</strong> After the cliff, <strong>25% unlocks every 3 months</strong>: 25% at 6 months, 50% at 9, 75% at 12, and 100% at 15 months.</li>
+      </ul>
+
+      <h3>What the schedule gates &mdash; and what it never touches</h3>
+      <ul>
+        <li><strong>Gated (swap-out paths only):</strong> the L1&nbsp;&rarr;&nbsp;BSC bridge burn to wANET, wrapping ANET&nbsp;&rarr;&nbsp;WANET on the native DEX, and ANET-outbound swaps on the native DEX. The enforcement rule is simple: the wallet&apos;s balance <em>after</em> the operation must still cover the unvested share of its lifetime mined total.</li>
+        <li><strong>Never gated:</strong> peer-to-peer transfers between A-Network wallets. Once a wallet reaches the unchanged 1,000-session activation threshold and activates its balance, P2P is open immediately &mdash; validators seal every transfer into a block exactly as before.</li>
+        <li><strong>Exempt:</strong> bridge-purchased (backed) coins. Vesting applies only to the wallet&apos;s mined <code>total_activated_ants</code>; coins bought for real value through the bridge remain freely movable, preserving the v3.x bridge-funded exemption byte-for-byte.</li>
+      </ul>
+
+      <h3>Transparency</h3>
+      <p>The public account endpoint (<code>GET /accounts/:address</code>) now reports <code>total_activated_ants</code>, <code>vesting_anchor_ms</code>, <code>swap_vested_bps</code> (basis points currently unlocked), and <code>swap_locked_ants</code>, so any wallet owner &mdash; or any auditor &mdash; can verify their unlock state without trusting the app. Wallets whose first activation predates this upgrade seal their anchor at their next activation sync; until an anchor is sealed, their mined coins remain swap-out locked. Coins are never confiscated: the schedule affects only <em>when</em> mined value may exit to wANET, never ownership or balances.</p>
+
+      <div class="panel panel-green">
+        <h4>What did NOT change</h4>
+        <p style="margin-bottom:0;">The 21,000,000 ANET supply cap, the emission and halving schedule, the 1,000-session activation threshold, P2P transfer enforcement, the bridge-funded exemption, validator selection, and every existing balance are unchanged by this version. v4.3 adds one time-based gate on the mined-coin exit ramp &mdash; nothing else.</p>
+      </div>
+    </section>
 
     <section class="wp-section" id="v42-changelog">
       <div class="section-label">v4.2 Changelog &middot; July 23, 2026</div>
