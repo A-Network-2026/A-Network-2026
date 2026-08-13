@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>A Network DEX | Native Layer 1 Decentralized Exchange</title>
-  <meta name="description" content="Trade on the A Network native Layer 1 DEX. Swap ANET and wrapped EVM tokens, provide liquidity, bridge assets from Ethereum, BNB Chain, Polygon and more.">
+  <meta name="description" content="Trade on the A Network native Layer 1 DEX. Swap ANET, provide liquidity, and use one-way native-to-external bridge workflows under the v4.4 policy.">
   <meta name="theme-color" content="#050b12">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'">
   <meta http-equiv="X-Frame-Options" content="DENY">
@@ -12,7 +12,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="A Network">
   <meta property="og:title" content="A Network DEX | Native Layer 1 Exchange">
-  <meta property="og:description" content="Swap, bridge, and provide liquidity on the A Network native L1 DEX. EVM wallet support for ETH, BNB, Polygon, Base and more.">
+  <meta property="og:description" content="Swap and provide liquidity on the A Network native L1 DEX, with one-way native-to-external bridge policy disclosures.">
   <meta property="og:url" content="https://a-network.net/dex.html">
   <meta property="og:image" content="https://a-network.net/logo.png">
   <link rel="canonical" href="https://a-network.net/dex.html">
@@ -122,9 +122,9 @@
       <ol style="margin:10px 0 0 18px;padding:0;color:var(--muted);font-size:12.5px;line-height:1.55;">
         <li>Complete <strong>1,000 validated ANTS sessions</strong> to unlock cashout eligibility.</li>
         <li>Tap <strong>Connect ANET Wallet</strong> and unlock with your seed phrase or private key — it is encrypted and kept only in this browser (MetaMask-style), never sent to a server.</li>
-        <li>Inside native DEX flow, ANET can wrap 1:1 into <strong>wANET</strong> (BEP-20 on BNB Chain &mdash; the same way Bitcoin wraps into WBTC) for AMM routing, then swap into stable pools such as USDT/USDC.</li>
+        <li>Inside the native DEX, ANET can wrap 1:1 into internal <strong>WANET</strong> accounting units for local pool routing on L1.</li>
         <li>Your stable token settles to your <strong>ANET Layer 1 wallet</strong> first (about 2 seconds).</li>
-        <li>When bridge transfer is enabled, move from ANET L1 to your EVM wallet as Step 3.</li>
+        <li>When outbound bridge transfer is enabled, move eligible native ANET from L1 to external markets as Step 3.</li>
       </ol>
       <p style="margin:10px 0 0;color:var(--muted-2);font-size:11.5px;">
         A Network cashout is DEX-first with wallet authorization and no seed phrase entry on web.
@@ -151,17 +151,17 @@
       <div class="dex-hero-copy">
         <h2>A Network Native DEX</h2>
         <p>
-          Trade ANET natively on A Network Layer 1, with <strong>wANET</strong> used as the 1:1 wrapped routing asset for the AMM (the same Bitcoin-style model as BTC&nbsp;↔&nbsp;WBTC).
+          Trade ANET natively on A Network Layer 1, with internal <strong>WANET</strong> used as a 1:1 L1 accounting wrapper for AMM routing.
           Investor website actions route through the A Network wallet app for secure authorization.
-          Wrapped bridge assets from Ethereum, BNB Chain, Polygon, Base &amp; more land as additional Phase 2 pairs.
+          External market support is one-way from native L1 to external venues under the v4.4 policy.
         </p>
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
           <span class="pill" style="background:rgba(255,176,32,0.14);border:1px solid rgba(255,176,32,0.45);color:#ffcf6a;">ANET = native L1 coin (like BTC)</span>
           <span class="pill" style="background:rgba(57,217,138,0.12);border:1px solid rgba(57,217,138,0.4);color:#9af7ca;">ANTS = smallest unit (like sats) · 1 ANET = 100,000,000 ANTS</span>
-          <span class="pill" style="background:rgba(88,197,255,0.12);border:1px solid rgba(88,197,255,0.4);color:#7fd8ff;">wANET = 1:1 wrapped BEP-20 (like WBTC)</span>
+          <span class="pill" style="background:rgba(88,197,255,0.12);border:1px solid rgba(88,197,255,0.4);color:#7fd8ff;">Internal WANET = L1 wrap accounting only (separate from external BEP-20 wANET)</span>
         </div>
         <p style="margin-top:10px;font-size:12.5px;color:var(--accent-2);">
-          <strong>No MetaMask needed.</strong> Create or import your ANET wallet directly on this page (seed phrase or private key, just like MetaMask) — swaps, liquidity, balances and history all work natively on L1. An EVM wallet is only needed if you're bridging assets in from another chain.
+          <strong>No MetaMask needed.</strong> Create or import your ANET wallet directly on this page (seed phrase or private key, just like MetaMask) — swaps, liquidity, balances and history all work natively on L1. External wallets are used only for outbound market workflows.
         </p>
       </div>
       <div class="hero-stats">
@@ -557,8 +557,8 @@
 
             <!-- Bridge flow description -->
             <div class="info-box">
-              <strong id="bridge-from-label">EVM Chain → Wrapped on ANET L1</strong><br>
-              <span id="bridge-to-label" style="margin-top:4px;display:inline-block;">Receive on ANET wallet</span>
+              <strong id="bridge-from-label">Inbound bridge direction is disabled</strong><br>
+              <span id="bridge-to-label" style="margin-top:4px;display:inline-block;">One-way policy: external assets do not mint native L1 ANET</span>
             </div>
 
             <!-- Token (dynamic per chain) -->
@@ -823,7 +823,7 @@
               <input class="form-input" id="l1-pool-anet" type="number" placeholder="ANET amount" min="0" step="any">
               <input class="form-input" id="l1-pool-pair" type="number" placeholder="wANET amount" min="0" step="any">
             </div>
-            <p id="l1-step3-note" style="font-size:11px;color:var(--muted-2);margin:6px 0 0;">Equal amounts seed a 1:1 starting ratio (matching the peg); the market takes over from there. 0.30% pool fee. Once any pool is live, anyone can buy and sell ANET on the L1 DEX.</p>
+            <p id="l1-step3-note" style="font-size:11px;color:var(--muted-2);margin:6px 0 0;">Equal amounts seed only the starting inventory split. Market value is discovered by trading and is not guaranteed to remain 1:1. 0.30% pool fee. Once any pool is live, anyone can buy and sell ANET on the L1 DEX.</p>
             <button class="btn btn-primary btn-full" id="l1-create-btn" onclick="openL1MarketCreate()" style="margin-top:8px;padding:12px;">Create &amp; Open Market</button>
           </div>
 
@@ -1031,7 +1031,7 @@
           <div class="card-body" style="padding:16px 18px;">
             <div style="font-size:22px;margin-bottom:8px;">⚡</div>
             <div style="font-size:13px;font-weight:700;margin-bottom:4px;">2-Second Settlement</div>
-            <div style="font-size:12px;color:var(--muted);">Once bridged to ANET L1, all swaps settle in 2 seconds — faster than any EVM chain.</div>
+            <div style="font-size:12px;color:var(--muted);">Native L1 swaps settle in about 2 seconds — faster than many EVM chains.</div>
           </div>
         </div>
       </div>
