@@ -8,16 +8,16 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v4.3 | Mined-Coin Vesting · Transparent Unlock Tiers · On-Chain Attestation</title>
+  <title>A-Network Whitepaper v4.4 | One-Way Bridge Policy · Mined-Coin Vesting · On-Chain Attestation</title>
 
-  <meta name="description" content="The official A-Network v4.3 whitepaper. Documents the chain-enforced mined-coin vesting schedule for wANET swap-outs (6-month cliff from first activation, then 25% unlocked every 3 months — P2P transfers unaffected, bridge-backed coins exempt), on top of transparent code-enforced asset unlock tiers, the verified token identity registry, honest advertising-revenue reporting, on-chain protocol-update attestation, the permissionless multi-chain DEX, market-discovered pricing, the disclosed 0.875% interface fee, the non-custodial ANET Wallet extension, and the regulatory review framework." />
+  <meta name="description" content="The official A-Network v4.4 whitepaper. Establishes the one-way bridge policy as a protocol invariant — native L1 ANET originates only from mining and market-acquired wANET is never redeemable into native ANET — on top of the chain-enforced mined-coin vesting schedule (6-month cliff, then 25% every 3 months), transparent code-enforced asset unlock tiers, the verified token identity registry, on-chain protocol-update attestation, the permissionless multi-chain DEX, market-discovered pricing, the disclosed 0.875% interface fee, the non-custodial ANET Wallet extension, and the regulatory review framework." />
 
   <meta name="theme-color" content="#07101a" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
   <meta http-equiv="X-Frame-Options" content="DENY" />
   <meta name="referrer" content="no-referrer" />
 
-  <meta property="og:title" content="A-Network Whitepaper v4.3" />
+  <meta property="og:title" content="A-Network Whitepaper v4.4" />
 
   <meta property="og:description" content="Technical specification for A-Network Layer 1, transparent unlock tiers, verified token identity, real-liquidity audit gates, treasury controls, separate Bitcoin and EVM markets, and compliance review requirements." />
 
@@ -675,7 +675,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v4.3 · AUGUST 1, 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v4.4 · AUGUST 14, 2026</sub>
 
       </div>
 
@@ -706,6 +706,7 @@
 
     <a class="nav-item" href="#v41-changelog">v4.1 Permissionless &amp; Revenue</a>
     <a class="nav-item" href="#v42-changelog">v4.2 Unlock Tiers &amp; Attestation</a>
+    <a class="nav-item" href="#v44-changelog">v4.4 One-Way Bridge</a>
     <a class="nav-item" href="#v43-changelog">v4.3 Mined-Coin Vesting</a>
 
     <a class="nav-item" href="#how-to-trade">How to Trade &amp; Provide Liquidity</a>
@@ -955,11 +956,11 @@
           <strong style="color:#cfcfcf;">Current honest classification:</strong> the <strong>ANET BEP-20 token contract is ownerless</strong>, while the bridge release path remains controlled by its disclosed 2-of-3 signer policy, on-chain caps, and burn-ID dedup. These controls reduce single-key risk but do not make the whole system trustless. The <strong>L1 chain, cash-out escrow, reserve operations, and off-chain services remain operator-run today</strong>. A-Network does not claim system-wide decentralization until the stated milestones are complete and externally verified.
         </div>
         <div style="font-size:0.85rem;line-height:1.55;color:#a8a8a8;margin-top:8px;font-style:italic;">
-          Global supply invariant (enforced across every phase): <code>&Sigma; wANET<sub>all chains</sub> &le; ANET<sub>locked on L1</sub> &le; 21,000,000</code>.
+          Canonical supply invariant (v4.4): native L1 ANET is created <strong>only</strong> by the mining/activation schedule (hard cap 21,000,000) and can only <em>decrease</em> via bridge-out burns — no deposit, purchase, or external burn mints native ANET. The BEP-20 market token (<code>0x791055&hellip;E46A</code>, fixed 21,000,000 supply, pre-minted at token genesis) is a <strong>separate external market asset</strong>: it is released from the bridge vault against verified L1 burns, but holding or buying it confers <strong>no redemption right</strong> into native L1 ANET. The two 21M caps are parallel accounting domains, not one fungible pool. For the portal-generation wANET (mint-on-lock), &Sigma;&nbsp;wANET<sub>portal</sub> &le; ANET burned via portal locks.
         </div>
       </div>
 
-      <div class="hero-badge">Technical Paper v4.3 (Mined-Coin Vesting · Transparent Unlock Tiers · On-Chain Attestation)</div>
+      <div class="hero-badge">Technical Paper v4.4 (One-Way Bridge Policy · Mined-Coin Vesting · On-Chain Attestation)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
       <p class="hero-sub">A-Network operates a native Layer 1 settlement ledger and a separate EVM market. Version 3.9 defines the controls required before public Layer 1 liquidity can be described as real: every pool contribution must debit a named wallet, the paired reserve asset must be registered and externally verifiable, bootstrap or administrator-created balances cannot be presented as liquidity, and the mobile interface must fail closed when any audit gate is missing. The designated EVM reserve treasury is <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code>. A Bitcoin reserve may support a separately identified ANET/BTC market only after a Bitcoin treasury address and proof transaction are published. Bitcoin reserves, EVM reserves, and native Layer 1 balances are never merged in accounting or represented as interchangeable custody. Layer 1 currently uses fixed protocol operations and has no general-purpose smart-contract virtual machine; any future VM requires a separately specified consensus upgrade, public test environment, independent audit, and explicit activation decision.</p>
       <div class="hero-meta">
@@ -972,6 +973,53 @@
         <div class="hero-meta-item"><strong>Liquidity Rule</strong> &mdash; Wallet-funded &middot; reserve-backed &middot; independently auditable &middot; never bootstrap</div>
       </div>
     </div>
+
+    <section class="wp-section" id="v44-changelog">
+      <div class="section-label">v4.4 Changelog &middot; August 14, 2026</div>
+      <h2>Version 4.4 &mdash; One-Way Bridge Economic Policy (Protocol Invariant)</h2>
+      <p>Version 4.4 finalizes the economic relationship between native Layer&nbsp;1 ANET and the external wANET market and removes every prior statement that implied two-way redemption. The rule is now a <strong>core protocol invariant, enforced in chain code</strong>, not a policy document:</p>
+
+      <div class="panel panel-red">
+        <h4>The invariant</h4>
+        <p style="margin-bottom:0;"><strong>No amount of purchasing, transferring, swapping, liquidity activity, wallet movement, or completion of the 1,000-session requirement can turn market-acquired wANET into newly spendable native Layer&nbsp;1 ANET. Native Layer&nbsp;1 ANET originates only from A-Network&apos;s mining/issuance rules.</strong></p>
+      </div>
+
+      <h3>Permitted and prohibited directions</h3>
+      <ul>
+        <li><strong>Permitted:</strong> Mining &rarr; native L1 ANET &rarr; (eligibility + vesting) &rarr; bridge-out burn &rarr; wANET &rarr; open market. wANET then circulates freely: buy, sell, swap, transfer, LP &mdash; none of it creates any claim against native L1 ANET.</li>
+        <li><strong>Prohibited (now technically impossible):</strong> open market &rarr; buy wANET (or deposit BNB/any token) &rarr; native L1 ANET. The Layer&nbsp;1 refuses every external credit: the legacy <code>/admin/bridge/evm/credit</code> route answers <em>410 Gone</em> before any key or environment check, the spoke-portal credit gate is hard-coded off, and the state-layer mint function refuses unconditionally. There is no admin key, environment variable, or signer set that re-enables it.</li>
+      </ul>
+
+      <h3>Worked examples</h3>
+      <ul>
+        <li><strong>User A</strong> &mdash; 1,000 sessions, 5 mined ANET, 100 purchased wANET. Allowed: bridge 5 mined ANET &rarr; 5 wANET (subject to vesting), ending with 105 wANET. Not allowed &mdash; ever: converting the 100 purchased wANET into 100 native ANET. Completing 1,000 sessions gates the use of <em>mined</em> coins; it grants no rights over purchased wANET.</li>
+        <li><strong>User B</strong> &mdash; 0 sessions, 100 purchased wANET. Allowed: hold, transfer, trade, sell, or LP the wANET on the external market. Not allowed: converting any of it into native L1 ANET, or exporting anything from L1 (no eligibility).</li>
+      </ul>
+
+      <h3>Provenance model (why per-coin tracking is not needed)</h3>
+      <p>The invariant is enforced at the <strong>issuance boundary</strong>, which fungibility cannot bypass: with every external credit path closed, the only mint on Layer&nbsp;1 is the mining/activation schedule. Every native coin is therefore mining-originated <em>by construction</em>, no matter how many wallets it passes through &mdash; shuffling coins between wallets changes owners, never origin. Exports are additionally gated per-wallet: only wallets with 1,000+ on-chain sessions (or wallets holding pre-policy, on-chain-recorded bridge credits) can bridge out, and mined coins honor the v4.3 vesting schedule. Historical inbound credits (pre-policy purchases recorded as <code>bridge:evm:&hellip;</code> memos in sealed blocks) remain on-chain, auditable, and spendable by their owners &mdash; the policy is forward-looking and burns no one&apos;s balance.</p>
+
+      <h3>Terminology correction</h3>
+      <p>&ldquo;Wrapped&rdquo; conventionally implies two-way redemption (deposit &harr; unwrap). A-Network&apos;s external wANET is <strong>not</strong> conventionally redeemable and is better described as the <strong>external market representation</strong> of ANET: it enters circulation when miners bridge out (vault releases against verified L1 burns) and thereafter lives its own market life. The name &ldquo;wANET&rdquo; is retained because the deployed BEP-20 metadata is immutable, but every A-Network surface now discloses the one-way restriction. Separately, the Layer&nbsp;1&apos;s internal <code>WANET</code> accounting asset (created only by <code>dex_wrap</code> of native ANET, destroyed by unwrap) is a closed on-chain loop and has no connection to the BEP-20&apos;s supply.</p>
+
+      <h3>What changed operationally</h3>
+      <ul>
+        <li>L1 chain: external credit routes permanently disabled (RPC 410 + hard-coded portal gate + unconditional state-layer refusal); bridge-out now requires miner eligibility, closing the fresh-wallet transfer bypass; consensus capabilities no longer advertise EVM bridge credits as an issuance source.</li>
+        <li>Relayer: the BSC&rarr;L1 credit scanner is disabled; the L1&rarr;BSC release loop (the permitted direction) continues.</li>
+        <li>Interfaces: the mobile bridge-in flow now explains the policy instead of submitting deposits; the AnetSwap deposit contract is being wound down &mdash; do not deposit expecting L1 credit.</li>
+        <li>Historical record: nothing is deleted. Deprecated routes, the AnetSwap contract, and all past inbound credits remain documented and independently verifiable on-chain.</li>
+      </ul>
+
+      <div class="panel panel-red">
+        <h4>Consumer disclosure (read before acquiring wANET)</h4>
+        <p style="margin-bottom:0;">Purchasing wANET does <strong>not</strong> grant any right to redeem it for native Layer&nbsp;1 ANET, any claim on Layer&nbsp;1 supply, or any entitlement from completing mining sessions. A-Network makes <strong>no</strong> guarantee of price parity between wANET and native ANET, and no representation about price, appreciation, liquidity, or returns of either asset. <code>1&nbsp;ANET&nbsp;=&nbsp;100,000,000&nbsp;ANTS</code> is a denomination rule only &mdash; it is not a market-value claim. This architecture is flagged for ongoing legal review under Section&nbsp;15.</p>
+      </div>
+
+      <div class="panel panel-red">
+        <h4>What did NOT change</h4>
+        <p style="margin-bottom:0;">The 21,000,000 native supply cap, the emission and halving schedule, the 1,000-session activation threshold, P2P transfers, the v4.3 vesting schedule, validator selection, all existing balances (including historical bridge-funded wallets), and the freedom to trade wANET on external markets are unchanged. v4.4 closes one inbound door that contradicted the mining-first economy &mdash; nothing else.</p>
+      </div>
+    </section>
 
     <section class="wp-section" id="v43-changelog">
       <div class="section-label">v4.3 Changelog &middot; August 1, 2026</div>
@@ -1042,7 +1090,7 @@
         <li><strong>Ownerless token.</strong> The ANET BEP-20 contract is immutable &mdash; ownership renounced, supply fixed at 21,000,000, and <code>mint</code>/<code>pause</code>/<code>blacklist</code> permanently disabled.</li>
         <li><strong>Permissionless pools.</strong> On the native L1 DEX, creating a pool and adding liquidity require only a signed action from the provider&apos;s own wallet &mdash; there is no admin or operator gate. Any community member can open a market.</li>
         <li><strong>Third-party AMMs.</strong> On-chain trades route through public, permissionless AMMs (PancakeSwap, Uniswap, Jupiter). A-Network provides an interface; it does not operate those venues.</li>
-        <li><strong>Market-discovered price.</strong> A-Network does not set, pre-seed at a chosen price, target, or guarantee any ANET price. Price emerges from free trading, and 1:1 bridge arbitrage keeps L1 and L2 aligned. This restates the commitments in the Economic Architecture and Section&nbsp;15.</li>
+        <li><strong>Market-discovered price.</strong> A-Network does not set, pre-seed at a chosen price, target, or guarantee any ANET price. Price emerges from free trading. Since v4.4 the bridge is <strong>one-way</strong> (mined L1 ANET can exit to the external market; nothing external converts back into native ANET), so arbitrage only operates in one direction: if the external price sits above what miners will sell for, eligible miners can bridge out and sell. <strong>No mechanism guarantees price parity between native ANET and wANET</strong>, and none is claimed. This restates the commitments in the Economic Architecture and Section&nbsp;15.</li>
       </ul>
 
       <h3>Honest decentralization posture (no over-claim)</h3>
@@ -1140,17 +1188,17 @@
 
       <h3 id="how-to-metamask-sell">6. Sell your activated L1 coins via MetaMask</h3>
       <ol>
-        <li>Because MetaMask cannot hold native ANET, first bridge <strong>L1 ANET &rarr; wANET</strong> (BEP-20, 1:1) using the wallet-authorized bridge flow.</li>
+        <li>Because MetaMask cannot hold native ANET, first bridge <strong>L1 ANET &rarr; wANET</strong> (BEP-20) using the wallet-authorized bridge flow. Bridging out requires an eligible miner wallet (1,000+ sessions) and honors the mined-coin vesting schedule; the bridged amount is released 1 wANET per 1 ANET burned. This direction is <strong>one-way</strong> — wANET cannot be bridged back into native ANET (v4.4 policy).</li>
         <li>Once you hold wANET in your EVM wallet, open the DEX on BNB Chain and <strong>Sell</strong> wANET/ANET for BNB or a stablecoin on PancakeSwap with MetaMask.</li>
         <li>Every step is verifiable: the bridge burn/release on-chain and the PancakeSwap swap on BscScan.</li>
       </ol>
 
       <h3 id="how-to-open-l1">7. Open the native L1 market (permissionless &middot; community)</h3>
-      <p>The native L1 DEX follows the Bitcoin principle: <strong>no founder sets the price and no participant is privileged.</strong> Pool creation and liquidity provision on Layer&nbsp;1 are <strong>permissionless</strong> — any wallet can open a pool by signing an on-chain action; there is no admin or operator gate. ANET&apos;s value is discovered by the <strong>free market</strong> — it already trades on the open wANET market, and 1:1 bridge arbitrage keeps L1 and L2 aligned. The project does <strong>not</strong> pre-seed a founder pool at a chosen price; the community opens pools and the market decides. From the DEX <strong>Liquidity</strong> tab &rarr; <strong>Open L1 Market</strong> panel, anyone can:</p>
+      <p>The native L1 DEX follows the Bitcoin principle: <strong>no founder sets the price and no participant is privileged.</strong> Pool creation and liquidity provision on Layer&nbsp;1 are <strong>permissionless</strong> — any eligible wallet can open a pool by signing an on-chain action; there is no admin or operator gate. ANET&apos;s value is discovered by the <strong>free market</strong>. The external wANET market and the native L1 market price independently &mdash; the one-way bridge means no arbitrage loop forces them to match (v4.4). The project does <strong>not</strong> pre-seed a founder pool at a chosen price; the community opens pools and the market decides. From the DEX <strong>Liquidity</strong> tab &rarr; <strong>Open L1 Market</strong> panel, anyone eligible can:</p>
       <ol>
-        <li><strong>Choose the pair.</strong> <em>ANET/wANET</em> is a 1:1 on-ramp (convert wANET&nbsp;&harr;&nbsp;ANET on L1); <em>ANET/USDT</em> or <em>ANET/USDC</em> are dollar-priced markets whose deposit ratio only seeds a starting point — the free market discovers the real price from there.</li>
-        <li><strong>Bring the assets onto L1.</strong> Bridge wANET&nbsp;&rarr;&nbsp;native ANET into your own L1 wallet (or use mined ANET); for a stablecoin pair, also bring reserve-backed USDT/USDC onto L1. Balances appear in the panel&apos;s status line.</li>
-        <li><strong>Wrap (wANET pair only).</strong> Wrap part of your native ANET into L1 wANET so you hold both sides. Signed <code>dex_wrap</code>, recorded on L1.</li>
+        <li><strong>Choose the pair.</strong> <em>ANET/WANET</em> uses the <strong>L1-internal wrapped accounting asset</strong> (created only by wrapping your own native ANET on L1 &mdash; it is <em>not</em> the BSC BEP-20 and cannot be imported from BSC); <em>ANET/USDT</em> or <em>ANET/USDC</em> are dollar-priced markets whose deposit ratio only seeds a starting point — the free market discovers the real price from there.</li>
+        <li><strong>Bring the assets onto L1.</strong> Use your <strong>mined, activated ANET</strong> (external wANET can no longer be bridged in — native ANET is mining-originated only); for a stablecoin pair, also bring reserve-backed USDT/USDC onto L1. Balances appear in the panel&apos;s status line.</li>
+        <li><strong>Wrap (WANET pair only).</strong> Wrap part of your native ANET into the L1 WANET accounting asset so you hold both sides. Signed <code>dex_wrap</code>, recorded on L1; unwrapping returns the same native ANET it debited &mdash; a closed loop that never touches external supply.</li>
         <li><strong>Create &amp; add liquidity.</strong> Enter the amounts and create the pool (signed <code>dex_create_pool</code>), or add to an existing one (<code>dex_add_liquidity</code>). Every action is recorded in an L1 block; sign with the ANET Wallet extension or the in-page wallet.</li>
         <li><strong>Disclose (stablecoin pairs).</strong> Per the v3.9 audit package, publish the funding wallet, deposit transactions, and the paired reserve asset and its backing before advertising a pool as public liquidity.</li>
       </ol>
@@ -2040,11 +2088,11 @@
             <tbody>
               <tr><td><strong>Native Layer 1 coin</strong></td><td><strong>ANET</strong></td><td>BTC</td><td>Fixed supply of 21,000,000. Mined via verified Ant Work sessions. The economic identity of the network.</td></tr>
               <tr><td><strong>Smallest indivisible unit</strong></td><td><strong>ANTS</strong> (Ant)</td><td>Satoshi (sat)</td><td>1 ANET = 100,000,000 ANTS. Native balances, rewards, transfers, and protocol fees are denominated in ANTS.</td></tr>
-              <tr><td><strong>Wrapped representation</strong></td><td><strong>wANET</strong></td><td>WBTC / BTCB</td><td>1:1 wrapped BEP-20 on BNB Chain, used for external liquidity, DEX routing, and cross-chain trading. Not the native coin.</td></tr>
+              <tr><td><strong>Wrapped representation</strong></td><td><strong>wANET</strong></td><td>WBTC / BTCB</td><td>External BEP-20 market asset on BNB Chain (fixed 21,000,000 supply), used for external liquidity, DEX routing, and cross-chain trading. Released from the bridge vault against verified L1 burns. <strong>One-way:</strong> it is NOT redeemable back into native L1 ANET and carries no claim on L1 supply. Not the native coin.</td></tr>
             </tbody>
           </table>
         </div>
-        <p style="margin:12px 0 0; color:var(--muted); font-size:12.5px; line-height:1.55;">The total network supply is fixed at <strong>21,000,000 ANET</strong> forever &mdash; expressed as <strong>2,100,000,000,000,000 ANTS</strong> at the atomic level. wANET exists only as a 1:1 wrapped representation against the same fixed cap; it does not create additional supply.</p>
+        <p style="margin:12px 0 0; color:var(--muted); font-size:12.5px; line-height:1.55;">The native network supply is fixed at <strong>21,000,000 ANET</strong> forever &mdash; expressed as <strong>2,100,000,000,000,000 ANTS</strong> at the atomic level (a denomination rule: 1&nbsp;ANET&nbsp;=&nbsp;100,000,000&nbsp;ANTS). The external wANET BEP-20 has its own fixed 21,000,000 supply, pre-minted at token genesis and distributed via the bridge vault and market operations. The two supplies are accounted <strong>separately</strong>: native ANET is mining-originated and can only decrease via bridge-out burns; wANET is the external market representation with <strong>no redemption right</strong> into native ANET. Neither can inflate the other, and “1 native ANET = 1 wANET market value” is <strong>not guaranteed</strong> — relative value is set by markets.</p>
       </div>
 
       <div class="panel" style="border-left:4px solid #f7931a; margin-top:18px;">

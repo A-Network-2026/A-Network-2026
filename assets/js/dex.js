@@ -1605,6 +1605,20 @@ async function doBridgeEvmToAnet() {
     if (btn) { btn.disabled = disabled; btn.textContent = label; }
   };
 
+  // ONE-WAY BRIDGE POLICY (2026-08-14, whitepaper v4.4): external deposits can
+  // no longer mint native L1 ANET — the L1 refuses every inbound credit (410).
+  // Never submit a deposit that cannot be credited. Pre-policy flow below is
+  // retained for audit history but is unreachable.
+  setStatus(
+    'Bridging INTO A-Network L1 is permanently disabled (one-way bridge policy, ' +
+    'whitepaper v4.4). Native ANET can only be mined — buying wANET or depositing ' +
+    'tokens grants no claim on native L1 ANET. Eligible miners can still bridge ' +
+    'mined ANET OUT to BSC and trade wANET freely on external markets.',
+    'var(--danger, #ff6b6b)'
+  );
+  resetBtn('Bridge-In Disabled — One-Way Policy', true);
+  return;
+
   try {
     // ── 1. Guard: EVM wallet ───────────────────────────────────────────────
     if (!state.evmWallet.address) {

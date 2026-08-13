@@ -804,7 +804,7 @@
           <!-- Step 1 -->
           <div style="border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 12px;">
             <div style="font-size:12.5px;font-weight:600;color:var(--text);"><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:rgba(88,197,255,0.15);color:var(--accent);font-size:11px;margin-right:6px;">1</span> Get the assets onto L1</div>
-            <p id="l1-step1-note" style="font-size:11.5px;color:var(--muted-2);margin:6px 0 0;line-height:1.5;">Bring native ANET onto L1 — bridge wANET&nbsp;&rarr;&nbsp;ANET, or use mined ANET. Anyone can do this with their own wallet; there is no privileged operator.</p>
+            <p id="l1-step1-note" style="font-size:11.5px;color:var(--muted-2);margin:6px 0 0;line-height:1.5;">Bring native ANET onto L1 — use your mined, activated ANET. Bridging wANET into L1 is permanently disabled (one-way bridge policy, whitepaper v4.4); native ANET is mining-originated only.</p>
           </div>
 
           <!-- Step 2: wrap (wANET pair only) -->
@@ -1040,7 +1040,7 @@
       <div class="card" style="margin-bottom:20px;">
         <div class="card-header">
           <span class="card-title">CHAIN × TOKEN MATRIX</span>
-          <span style="font-size:12px;color:var(--muted);">All tokens bridgeable to/from ANET L1</span>
+          <span style="font-size:12px;color:var(--muted);">Bridge-in is disabled (one-way policy · whitepaper v4.4) — mined ANET exits L1 outbound only</span>
         </div>
         <div class="markets-table-wrap">
           <table class="markets-table" aria-label="Multi-chain token matrix">
@@ -1074,8 +1074,9 @@
           <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
             <p style="font-size:13px;color:var(--muted);margin:0;">
               Native USDC from Circle exists on 7 of the 12 supported chains.
-              Bridge any USDC variant to ANET L1 and trade it against ANET in the native DEX
-              — just like USDC/ETH pools on Uniswap.
+              Inbound bridging is currently disabled under the one-way bridge
+              policy (whitepaper v4.4) — L1 stablecoin markets use disclosed,
+              reserve-backed L1 tokens instead.
             </p>
             <div style="display:flex;flex-wrap:wrap;gap:6px;">
               <span class="pill" style="font-size:10.5px;">ETH</span>
@@ -1102,8 +1103,9 @@
           <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
             <p style="font-size:13px;color:var(--muted);margin:0;">
               Tether USDT is the most bridged stablecoin in the world.
-              Bridge USDT from any EVM chain into the ANET L1 — use it
-              to provide liquidity, trade ANET, or withdraw back to any chain.
+              Inbound bridging is currently disabled under the one-way bridge
+              policy (whitepaper v4.4) — L1 stablecoin markets use disclosed,
+              reserve-backed L1 tokens instead.
             </p>
             <div style="display:flex;flex-wrap:wrap;gap:6px;">
               <span class="pill green" style="font-size:10.5px;">ETH</span>
@@ -1583,7 +1585,7 @@
   <script src="assets/js/vendor/anet-crypto.bundle.js?v=20260628"></script>
   <script src="assets/js/vendor/anet-solana.bundle.js?v=20260706"></script>
   <script src="assets/js/anet-wallet.js?v=20260628"></script>
-  <script src="assets/js/dex.js?v=20260731-createwallet"></script>
+  <script src="assets/js/dex.js?v=20260814-oneway"></script>
   <script src="assets/js/dex-onchain.js?v=20260706-v41"></script>
 
 </body>
