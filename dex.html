@@ -666,32 +666,32 @@
                 <div style="display:flex;gap:12px;align-items:flex-start;">
                   <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#050b12;flex-shrink:0;">1</div>
                   <div>
-                    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Lock on EVM</div>
-                    <div style="font-size:12px;color:var(--muted);">Send ETH / BNB / USDT to the A Network bridge contract on the source EVM chain. Your tokens are locked in a non-custodial vault.</div>
+                    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Mine on L1</div>
+                    <div style="font-size:12px;color:var(--muted);">Native L1 ANET originates from mining issuance. External deposits do not mint native ANET.</div>
                   </div>
                 </div>
                 <!-- Step 2 -->
                 <div style="display:flex;gap:12px;align-items:flex-start;">
                   <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#050b12;flex-shrink:0;">2</div>
                   <div>
-                    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Mint on ANET L1</div>
-                    <div style="font-size:12px;color:var(--muted);">The bridge relayer detects the lock event and mints the equivalent wrapped token (WBNB, WETH, WUSDT…) to your ANET wallet on the native L1 chain.</div>
+                    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Export from L1</div>
+                    <div style="font-size:12px;color:var(--muted);">Eligible native ANET can be exported out of L1 to external markets through the bridge release flow.</div>
                   </div>
                 </div>
                 <!-- Step 3 -->
                 <div style="display:flex;gap:12px;align-items:flex-start;">
                   <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#050b12;flex-shrink:0;">3</div>
                   <div>
-                    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Swap on DEX</div>
-                    <div style="font-size:12px;color:var(--muted);">Use your wrapped tokens in the A Network native DEX pools — swap WBNB for ANET, provide liquidity, and earn fees.</div>
+                    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Trade freely on markets</div>
+                    <div style="font-size:12px;color:var(--muted);">wANET can be bought, sold, transferred, swapped, and used in liquidity pools on external markets.</div>
                   </div>
                 </div>
                 <!-- Step 4 -->
                 <div style="display:flex;gap:12px;align-items:flex-start;">
                   <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#050b12;flex-shrink:0;">4</div>
                   <div>
-                    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Withdraw to EVM</div>
-                    <div style="font-size:12px;color:var(--muted);">Burn wrapped tokens on ANET L1 to unlock the originals on the EVM chain at any time.</div>
+                    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">No inbound redemption</div>
+                    <div style="font-size:12px;color:var(--muted);">External-market wANET can never be redeemed, converted, or minted into native L1 ANET.</div>
                   </div>
                 </div>
               </div>
@@ -989,8 +989,8 @@
         <p style="font-size:13px;color:var(--muted);margin:0;max-width:760px;">
           Just like USDT and USDC exist natively across every major EVM chain,
           the A Network bridge will make <strong style="color:var(--accent);">ANET</strong> available on all 12
-          chains below — lock ANET on the L1, receive wANET on any EVM chain, or bridge any
-          stablecoin (USDC · USDT · DAI) directly into the ANET L1 DEX pools.
+          chains below — eligible native ANET can export from L1 to external markets as wANET.
+          Inbound bridging is disabled under the one-way policy; external stablecoins do not mint native L1 ANET.
         </p>
 
         <!-- Honest status: what is live TODAY vs roadmap -->
@@ -999,7 +999,7 @@
           <div style="font-size:12.5px;color:var(--muted);line-height:1.6;">
             <strong style="color:var(--text);">Live today:</strong> wANET on <strong>BNB Chain</strong> only (BEP-20, ownership renounced).
             <strong style="color:var(--text);">Planned:</strong> Ethereum → Base / Arbitrum (L2) → Solana → TRON, in that order, each gated on a third-party security audit of the <code>AnetBridgeVault</code> contract.
-            Global rule: <strong style="color:var(--text);">total wANET across all chains ≤ ANET locked on L1 ≤ 21,000,000</strong>. New chains only mint wANET when an equal amount is burned on an existing chain or freshly locked on L1.
+            Global rule: <strong style="color:var(--text);">native L1 ANET and external wANET are separate accounting domains</strong>. Native ANET is mining-originated only and cannot be minted from external deposits; wANET circulates freely on external markets and is never redeemable into native L1 ANET.
           </div>
         </div>
       </div>
@@ -1016,15 +1016,15 @@
         <div class="card" style="border-color:rgba(34,231,184,0.3);">
           <div class="card-body" style="padding:16px 18px;">
             <div style="font-size:22px;margin-bottom:8px;">💱</div>
-            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Stable Direct Swap</div>
-            <div style="font-size:12px;color:var(--muted);">Bridge USDC or USDT from any chain directly into ANET L1 DEX pools — swap stables for ANET in one step.</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">No Inbound Stablecoin Minting</div>
+            <div style="font-size:12px;color:var(--muted);">Stablecoins are not bridged inbound to mint native L1 ANET under the one-way policy.</div>
           </div>
         </div>
         <div class="card" style="border-color:rgba(255,188,92,0.3);">
           <div class="card-body" style="padding:16px 18px;">
             <div style="font-size:22px;margin-bottom:8px;">🌊</div>
-            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Earn on Any Chain</div>
-            <div style="font-size:12px;color:var(--muted);">Provide USDC/USDT liquidity in ANET L1 pools and earn swap fees — withdraw back to your original chain any time.</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">External Market Liquidity</div>
+            <div style="font-size:12px;color:var(--muted);">Provide liquidity on external markets using wANET where supported. This activity never mints native L1 ANET.</div>
           </div>
         </div>
         <div class="card" style="border-color:rgba(88,197,255,0.2);">
@@ -1091,7 +1091,7 @@
               <span class="pill" style="font-size:10.5px;">Cronos</span>
               <span class="pill" style="font-size:10.5px;">Linea</span>
             </div>
-            <button class="btn btn-outline btn-sm" onclick="setTab('bridge')">Bridge USDC → ANET L1 →</button>
+            <button class="btn btn-outline btn-sm" onclick="setTab('bridge')">View one-way policy →</button>
           </div>
         </div>
 
@@ -1120,7 +1120,7 @@
               <span class="pill green" style="font-size:10.5px;">Cronos</span>
               <span class="pill green" style="font-size:10.5px;">Linea</span>
             </div>
-            <button class="btn btn-outline btn-sm" onclick="setTab('bridge')">Bridge USDT → ANET L1 →</button>
+            <button class="btn btn-outline btn-sm" onclick="setTab('bridge')">View one-way policy →</button>
           </div>
         </div>
       </div>

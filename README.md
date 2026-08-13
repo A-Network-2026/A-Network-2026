@@ -121,7 +121,7 @@ The current product includes a Flutter app, a Node.js/Fastify backend, a Postgre
 <p align="center">
   <img src="https://img.shields.io/badge/Mobile_App-v1.0.21+71_LIVE-1f9d55?style=for-the-badge" alt="Mobile App v1.0.21+71 Live" />
   <img src="https://img.shields.io/badge/Fastify_API-ACTIVE-2563eb?style=for-the-badge" alt="Fastify API Active" />
-  <img src="https://img.shields.io/badge/EVM_Bridge-AnetSwap_LIVE-f59e0b?style=for-the-badge" alt="EVM Bridge AnetSwap Live" />
+  <img src="https://img.shields.io/badge/Bridge_Policy-One_Way_(L1→External)-f59e0b?style=for-the-badge" alt="Bridge Policy One Way" />
   <img src="https://img.shields.io/badge/Layer1_Chain-MAINNET_LIVE-7c3aed?style=for-the-badge" alt="ANTS Mainnet Live" />
 </p>
 
@@ -131,7 +131,7 @@ The current product includes a Flutter app, a Node.js/Fastify backend, a Postgre
 > Node Status        : SYNCHRONIZED
 > App Version        : v1.0.21+71 (Play Store / App Store ready)
 > Mining Sessions    : 6-HOUR VALIDATED CYCLES
-> EVM Bridge         : AnetSwap BSC LIVE (0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8)
+> Bridge Policy      : ONE-WAY (native L1 ANET can export out; external assets never mint native ANET)
 > Web3 Surface       : ANET CONTRACT LOOKUP ENABLED
 > Layer 1 Explorer   : explorer.a-network.net [LIVE]
 > Build State        : CONTINUOUS DELIVERY READY
@@ -175,7 +175,7 @@ The current product includes a Flutter app, a Node.js/Fastify backend, a Postgre
 > Mining Engine     : 6H SESSION + HEARTBEAT + ANTI-GAMING
 > Stats Surface     : GLOBAL STATS + LEADERBOARD ENDPOINTS
 > Wallet Layer      : ON-CHAIN ANET BALANCE + TRANSFER INTENTS
-> EVM Bridge        : IN-APP ANETSWAP (BNB/USDT/USDC -> ANET, NO METAMASK)
+> Bridge Surface    : ONE-WAY DISCLOSURE + EXPORT FLOW (L1 native ANET -> external market)
 > Anti-Abuse        : RISK SCORING + BOT DETECTION + DEVICE BINDING
 > Multi-Language    : EN / HI / UR / ZH / ES AUTO-DETECTED
 > Docs Surface      : WEBSITE + PRIVACY + TERMS + WHITEPAPER + ROADMAP

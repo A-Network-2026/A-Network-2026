@@ -2097,10 +2097,11 @@
 
       <div class="panel" style="border-left:4px solid #f7931a; margin-top:18px;">
         <h4 style="margin-top:0;">wANET Multi-Chain Roadmap</h4>
-        <p style="margin:0 0 12px; color:var(--text);">wANET launches first on <strong>BNB Chain</strong> for the lowest fees, fastest finality, and broadest retail liquidity (PancakeSwap, BSC DEXs). Additional chains are on the roadmap and will only be deployed when each can be secured by the same <strong>AnetBridgeVault + multisig</strong> pattern. The Bitcoin-aligned invariant applies globally:</p>
+        <p style="margin:0 0 12px; color:var(--text);">wANET launches first on <strong>BNB Chain</strong> for the lowest fees, fastest finality, and broadest retail liquidity (PancakeSwap, BSC DEXs). Additional chains are on the roadmap and will only be deployed when each can be secured by the same <strong>AnetBridgeVault + multisig</strong> pattern. Under the v4.4 one-way policy, accounting is explicit:</p>
         <div class="formula-box" style="margin:0 0 12px;">
-<span class="comment">// Global supply invariant across all chains</span>
-<span class="keyword">wANET</span><sub>BNB</sub> + <span class="keyword">wANET</span><sub>ETH</sub> + <span class="keyword">wANET</span><sub>other</sub> &le; <span class="value">ANET</span><sub>locked on L1</sub> &le; <span class="value">21,000,000</span>
+      <span class="comment">// Canonical one-way accounting (v4.4)</span>
+      <span class="keyword">Native L1 ANET</span>: mining-issued, capped at 21,000,000, decreases only via export burns<br/>
+      <span class="keyword">External wANET</span>: separate market asset supply; no redemption path into native L1 ANET
         </div>
         <div class="table-wrap" style="margin:0;">
           <table class="data-table">
@@ -2116,7 +2117,7 @@
             </tbody>
           </table>
         </div>
-        <p style="margin:12px 0 0; color:var(--muted); font-size:12.5px; line-height:1.55;">No new wANET can be issued on a new chain unless an equivalent amount is first burned on an existing chain (or newly locked on L1). Each chain receives a dedicated vault contract; the 21,000,000 cap is enforced globally, not per-chain. Multi-chain deployment will proceed only at a pace that preserves auditability and the bridge security model &mdash; not for marketing.</p>
+        <p style="margin:12px 0 0; color:var(--muted); font-size:12.5px; line-height:1.55;">No chain launch may imply or advertise external-&gt;native redemption. Any future cross-chain expansion must preserve the v4.4 invariant: externally acquired wANET never mints native L1 ANET. Multi-chain deployment proceeds only at a pace that preserves auditability, consumer disclosure, and the bridge security model.</p>
       </div>
 
 

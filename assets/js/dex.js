@@ -3487,15 +3487,15 @@ function setL1MarketPair(sym) {
   if (pairInput) pairInput.placeholder = (isWrap ? 'wANET' : l1MarketPair) + ' amount';
   const note = document.getElementById('l1-pair-note');
   if (note) note.innerHTML = isWrap
-    ? 'wANET pairs 1:1 with ANET — an on-ramp from the open market. The community sets the depth; the market sets the price.'
+    ? 'wANET is the external market asset and native ANET stays mining-originated. This pair is a market bridge-out venue: users set depth and markets set price.'
     : `${l1MarketPair} is a <strong>dollar-priced</strong> pair. The ratio you deposit only seeds a starting point — the <strong>free market</strong> (and arbitrage with the wANET market) discovers the real price. The ${l1MarketPair} side must be a reserve-backed L1 asset (bring it onto L1 first) and is subject to the v3.9 real-liquidity gates.`;
   const step1 = document.getElementById('l1-step1-note');
   if (step1) step1.innerHTML = isWrap
-    ? 'Bring native ANET onto L1 — bridge wANET → ANET, or use mined ANET. Anyone can do this with their own wallet; there is no privileged operator.'
+    ? 'Bring native ANET onto L1 from mining issuance only. External wANET cannot be bridged into native ANET under the one-way policy.'
     : `You need <strong>native ANET</strong> and reserve-backed <strong>${l1MarketPair}</strong> on L1. Bring both onto L1 with your own wallet first; balances are debited when you seed the pool.`;
   const step3 = document.getElementById('l1-step3-note');
   if (step3) step3.innerHTML = isWrap
-    ? 'Equal amounts seed a 1:1 starting ratio (matching the peg); the market takes over from there. 0.30% pool fee. Once any pool is live, anyone can buy and sell ANET on the L1 DEX.'
+    ? 'Equal amounts seed a starting inventory split only. Market price is never guaranteed to stay 1:1. 0.30% pool fee. Once any pool is live, anyone can buy and sell ANET on the L1 DEX.'
     : `The ANET:${l1MarketPair} ratio only seeds a starting point — the free market discovers the price from there. 0.30% pool fee. Disclose reserves per the v3.9 gates.`;
   openL1MarketRefresh();
 }
