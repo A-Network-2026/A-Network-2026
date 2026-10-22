@@ -121,8 +121,8 @@
       return (i === 0 ? "M" : "L") + x.toFixed(1) + "," + y.toFixed(1);
     }).join(" ");
     svg.innerHTML =
-      `<path d="${path}" fill="none" stroke="#6ae7b1" stroke-width="1.6"/>` +
-      `<path d="${path} L ${w},${h} L 0,${h} Z" fill="rgba(106,231,177,0.10)" stroke="none"/>`;
+      `<path d="${path}" fill="none" stroke="#188038" stroke-width="1.6"/>` +
+      `<path d="${path} L ${w},${h} L 0,${h} Z" fill="#e6f4ea" stroke="none"/>`;
   }
 
   /* ── Derive chain stats from a Block[] window ─────── */
@@ -368,7 +368,7 @@
         // Real, on-chain eligible validator set with live status.
         const retired = validatorDir.bootstrap_retired === true;
         const sunsetPill = retired
-          ? `<span class="val-pill" style="color:var(--accent-2,#6ae7b1)">bootstrap retired · fully organic</span>`
+          ? `<span class="val-pill" style="color:var(--accent-2,#188038)">bootstrap retired · fully organic</span>`
           : `<span class="val-pill">${fmt(validatorDir.bootstrap_count)} bootstrap</span>`;
         const summary = `
           <div class="val-summary" style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;">
@@ -383,7 +383,7 @@
           const tag = v.is_bootstrap
             ? `<span style="color:var(--accent-3)">bootstrap</span>`
             : `<span style="color:var(--muted)">organic</span>`;
-          const dot = v.online ? "#6ae7b1" : "#e76a6a";
+          const dot = v.online ? "#188038" : "#c5221f";
           const statusLabel = v.online
             ? "online"
             : (v.last_seen_at ? "offline" : "no heartbeat");
@@ -553,7 +553,7 @@
   function renderAccountResult(acc) {
     const addr = esc(acc.address);
     const validator = acc.is_validator
-      ? `<span class="val-pill" style="color:var(--accent-2,#6ae7b1)">validator</span>`
+      ? `<span class="val-pill" style="color:var(--accent-2,#188038)">validator</span>`
       : `<span class="val-pill">not a validator</span>`;
     const statusLabel = acc.status === "ACTIVATED"
       ? "Activated on-chain"
@@ -562,7 +562,7 @@
         : "Account";
     const sessions = Number(acc.sessions || 0);
     const eligible = acc.is_eligible
-      ? `<span class="val-pill" style="color:var(--accent-2,#6ae7b1)">eligible</span>`
+      ? `<span class="val-pill" style="color:var(--accent-2,#188038)">eligible</span>`
       : `<span class="val-pill">${fmt(Math.max(0, 1000 - sessions))} sessions to eligibility</span>`;
     return `
       <div class="row">

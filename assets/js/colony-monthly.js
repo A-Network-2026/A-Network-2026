@@ -38,8 +38,8 @@
   // surface them as selectable archives.
   const staticArchives = new Set();
   const COLORS = [
-    '#6ce7b1', '#58c5ff', '#ffca6e', '#ff8aa3', '#c79bff',
-    '#7fd1ff', '#9be07f', '#ffb56b', '#ff7a99', '#a288ff',
+    '#188038', '#1a73e8', '#ffca6e', '#ff8aa3', '#c79bff',
+    '#7fd1ff', '#9be07f', '#ffb56b', '#c5221f', '#a288ff',
     '#5ed4d4', '#e8c66b', '#ff9a6b', '#8de8c8', '#7c9eff',
     '#ffa8e0', '#b5e870', '#ffd486', '#74dca8', '#9ec5ff',
   ];
@@ -436,7 +436,7 @@
       label.setAttribute('x', 6); label.setAttribute('y', y + 4);
       label.setAttribute('fill', '#6b7686');
       label.setAttribute('font-size', '10');
-      label.setAttribute('font-family', 'Space Grotesk, sans-serif');
+      label.setAttribute('font-family', 'Roboto, Arial, sans-serif');
       label.textContent = formatNumber(yMax - (yMax * i) / 4);
       grid.appendChild(label);
     }
@@ -450,7 +450,7 @@
       t.setAttribute('fill', '#6b7686');
       t.setAttribute('font-size', '10');
       t.setAttribute('text-anchor', 'middle');
-      t.setAttribute('font-family', 'Space Grotesk, sans-serif');
+      t.setAttribute('font-family', 'Roboto, Arial, sans-serif');
       t.textContent = String(d);
       grid.appendChild(t);
     }
@@ -538,7 +538,7 @@
   function setStatus(text, tone) {
     if (!els.status) return;
     els.status.textContent = text;
-    els.status.style.color = tone === 'err' ? '#ff7a99' : tone === 'ok' ? 'var(--accent)' : '#cbd5e1';
+    els.status.style.color = tone === 'err' ? '#c5221f' : tone === 'ok' ? 'var(--accent)' : '#5f6368';
   }
 
   /**

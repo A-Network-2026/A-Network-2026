@@ -785,7 +785,7 @@
       const yBodyBottom = Math.max(yOpen, yClose);
       const bodyHeight = Math.max(1, yBodyBottom - yBodyTop);
       const isRed = !candle.isBullish;
-      const color = isRed ? '#ff6b6b' : '#6ce7b1';
+      const color = isRed ? '#c5221f' : '#188038';
       const opacityClass = isRed ? 'cp-tpow-candle-idle' : 'cp-tpow-candle-mining';
       const wick = `<line class="cp-tpow-wick" x1="${x.toFixed(2)}" y1="${yHigh.toFixed(2)}" x2="${x.toFixed(2)}" y2="${yLow.toFixed(2)}" stroke="${color}" stroke-width="1.35"></line>`;
       const body = `<rect class="cp-tpow-candle ${opacityClass}" x="${(x - bodyWidth / 2).toFixed(2)}" y="${yBodyTop.toFixed(2)}" width="${bodyWidth.toFixed(2)}" height="${bodyHeight.toFixed(2)}" fill="${color}" opacity="0.92" rx="0.4"></rect>`;
@@ -1076,7 +1076,7 @@
         }
         const bodyHeight = Math.max(minVisibleBody, yBodyBottom - yBodyTop);
 
-        const color = candle.isBullish ? '#6ce7b1' : '#ff6b6b'; // green for up, red for down
+        const color = candle.isBullish ? '#188038' : '#c5221f'; // green for up, red for down
         const opacityClass = candle.isBullish ? 'cp-candle-mining' : 'cp-candle-missed';
 
         const wickSvg = `<line class=\"cp-wick\" x1=\"${x.toFixed(2)}\" y1=\"${yHigh.toFixed(2)}\" x2=\"${x.toFixed(2)}\" y2=\"${yLow.toFixed(2)}\" stroke=\"${color}\" stroke-width=\"1.4\" opacity=\"0.9\"></line>`;
@@ -1104,7 +1104,7 @@
     const lastCandle = ohlc[ohlc.length - 1];
     const lastY = valueToY(lastCandle.close);
     const lastX = leftPad + (ohlc.length - 1) * candleStep + candleStep * 0.5;
-    const lastMarker = `<circle class=\"cp-last-dot\" cx=\"${lastX.toFixed(2)}\" cy=\"${lastY.toFixed(2)}\" r=\"3.5\" fill=\"#58c5ff\" stroke=\"#d9fbff\" stroke-width=\"1.8\"></circle>`;
+    const lastMarker = `<circle class=\"cp-last-dot\" cx=\"${lastX.toFixed(2)}\" cy=\"${lastY.toFixed(2)}\" r=\"3.5\" fill=\"#1a73e8\" stroke=\"#202124\" stroke-width=\"1.8\"></circle>`;
 
     const title = `Live member trend OHLC chart (${timeframe.label}). Green = up, red = down. Last close: ${formatNumber(lastCandle?.close ?? MIN_BASELINE_MEMBERS)}.`;
     refs.bars.innerHTML = `<svg class=\"cp-chart-svg\" width=\"${width}\" height=\"${height}\" viewBox=\"0 0 ${width} ${height}\" role=\"img\" aria-label=\"${title}\"><title>${title}</title>${gridLines}${candleSvgs}${lastMarker}${rightAxisLabels}</svg><div id=\"cp-live-cross-v\" class=\"cp-live-cross-v is-hidden\"></div><div id=\"cp-live-cross-h\" class=\"cp-live-cross-h is-hidden\"></div><div id=\"cp-live-tooltip\" class=\"cp-live-tooltip is-hidden\"></div>`;

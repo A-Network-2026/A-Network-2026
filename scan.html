@@ -21,9 +21,8 @@
   <link rel="manifest" href="site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/scan.css?v=20260528-3">
-  <link rel="stylesheet" href="assets/css/site-light.css">
 </head>
 <body class="page-scan">
 
@@ -92,12 +91,12 @@
   <div class="shell">
     <!-- ── Search results (hidden until a search runs) ── -->
     <section class="twin" id="scanResults" hidden>
-      <div class="card" style="grid-column:1 / -1;">
+      <div class="card" style="grid-column: 1 / -1">
         <div class="card-head">
           <h3 id="scanResultsTitle">Search results</h3>
           <button class="customize" type="button" id="scanResultsClose">✕ Close</button>
         </div>
-        <div id="scanResultsBody" style="padding:0 14px 14px;"></div>
+        <div id="scanResultsBody" style="padding: 0 14px 14px"></div>
       </div>
     </section>
 
@@ -106,7 +105,7 @@
         <div class="stat-row">
           <div class="ico">A</div>
           <div>
-            <p class="lbl">ANET Pool Rate <span style="opacity:.6;font-weight:normal;">(AMM)</span></p>
+            <p class="lbl">ANET Pool Rate <span style="opacity: .6;  font-weight: normal">(AMM)</span></p>
             <div class="val" id="statPrice">—</div>
           </div>
         </div>
@@ -127,7 +126,6 @@
           </div>
         </div>
         <div class="stat-row">
-          <div class="ico">⛽</div>
           <div>
             <p class="lbl">Avg Network Fee</p>
             <div class="val" id="statGas">—</div>
@@ -141,7 +139,6 @@
           </div>
         </div>
         <div class="stat-row">
-          <div class="ico">⚖</div>
           <div>
             <p class="lbl">Voting Power</p>
             <div class="val" id="statVoting">—</div>
@@ -164,7 +161,7 @@
       <div class="card">
         <div class="card-head">
           <h3>Latest Blocks</h3>
-          <button class="customize" type="button">⚙ Customize</button>
+          <button class="customize" type="button">Customize</button>
         </div>
         <div id="latestBlocks"></div>
         <div class="card-foot"><a href="https://explorer.a-network.net/blocks" target="_blank" rel="noopener">View all blocks →</a></div>
@@ -172,7 +169,7 @@
       <div class="card">
         <div class="card-head">
           <h3>Latest Transactions</h3>
-          <button class="customize" type="button">⚙ Customize</button>
+          <button class="customize" type="button">Customize</button>
         </div>
         <div id="latestTxs"></div>
         <div class="card-foot"><a href="https://explorer.a-network.net/blocks" target="_blank" rel="noopener">View all transactions →</a></div>
@@ -181,26 +178,26 @@
 
     <!-- ── Validators anchor ─────────────────────── -->
     <section class="twin" id="validators">
-      <div class="card" style="grid-column:1 / -1;">
+      <div class="card" style="grid-column: 1 / -1">
         <div class="card-head">
           <h3>Validators</h3>
-          <a class="customize" href="whitepaper.html#consensus" style="text-decoration:none;">Read consensus spec →</a>
+          <a class="customize" href="whitepaper.html#consensus" style="text-decoration: none">Read consensus spec →</a>
         </div>
-        <p class="lbl" style="padding:6px 14px 0;color:var(--muted);">Live validator set, derived deterministically on-chain from session counts (sessions DESC). Each seat shows its session weight, voting-power share, bootstrap-vs-organic origin and live online status from validator heartbeats. Phase 2 validator recruitment is open — see the <a href="https://github.com/A-Network-2026/anet-chain/blob/main/VALIDATOR_DEPLOYMENT_GUIDE.md" target="_blank" rel="noopener">Validator Deployment Guide</a>.</p>
-        <div id="latestValidators" style="padding:0 14px 14px;"></div>
+        <p class="lbl" style="padding: 6px 14px 0;  color: var(--muted)">Live validator set, derived deterministically on-chain from session counts (sessions DESC). Each seat shows its session weight, voting-power share, bootstrap-vs-organic origin and live online status from validator heartbeats. Phase 2 validator recruitment is open — see the <a href="https://github.com/A-Network-2026/anet-chain/blob/main/VALIDATOR_DEPLOYMENT_GUIDE.md" target="_blank" rel="noopener">Validator Deployment Guide</a>.</p>
+        <div id="latestValidators" style="padding: 0 14px 14px"></div>
         <div class="card-foot"><a href="https://explorer.a-network.net/explorer/blocks" target="_blank" rel="noopener">Open block producers on explorer node →</a></div>
       </div>
     </section>
 
     <!-- ── Tokens anchor ─────────────────────────── -->
     <section class="twin" id="tokens">
-      <div class="card" style="grid-column:1 / -1;">
+      <div class="card" style="grid-column: 1 / -1">
         <div class="card-head">
           <h3>Tokens</h3>
-          <a class="customize" href="nft-marketplace.html" style="text-decoration:none;">Open Token Factory →</a>
+          <a class="customize" href="nft-marketplace.html" style="text-decoration: none">Open Token Factory →</a>
         </div>
-        <p class="lbl" style="padding:6px 14px 0;color:var(--muted);">ANTS is the native unit of the closed-loop A Network economy. Third-party tokens are deployable via the Token Factory once a holder owns a Public Proof NFT. The Token Factory ships in Phase 4 of the <a href="ROADMAP_2026.md">2026 Roadmap</a>.</p>
-        <div style="padding:0 14px 14px;">
+        <p class="lbl" style="padding: 6px 14px 0;  color: var(--muted)">ANTS is the native unit of the closed-loop A Network economy. Third-party tokens are deployable via the Token Factory once a holder owns a Public Proof NFT. The Token Factory ships in Phase 4 of the <a href="ROADMAP_2026.md">2026 Roadmap</a>.</p>
+        <div style="padding: 0 14px 14px">
           <div class="row">
             <div class="ico-sm">A</div>
             <div class="meta">
@@ -227,7 +224,7 @@
   <footer class="scan-foot">
     <div class="shell">
       <span>© 2026 A Network · Native Layer 1, ANTS closed-loop economy.</span>
-      <span class="spacer" style="flex:1;"></span>
+      <span class="spacer" style="flex: 1"></span>
       <a href="privacy.html">Privacy</a>
       <a href="terms.html">Terms</a>
       <a href="whitepaper.html">Whitepaper</a>

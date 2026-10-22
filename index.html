@@ -28,21 +28,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://api.dexscreener.com" crossorigin>
   <link rel="preconnect" href="https://dexscreener.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #050b12;
-      --bg-2: #091725;
-      --panel: rgba(10, 24, 39, 0.86);
-      --panel-strong: rgba(7, 17, 29, 0.96);
-      --line: rgba(88, 197, 255, 0.18);
-      --line-strong: rgba(88, 197, 255, 0.35);
-      --text: #eff6ff;
-      --muted: #9eb2c9;
-      --accent: #58c5ff;
-      --accent-2: #22e7b8;
-      --warn: #ffbc5c;
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      --bg: #ffffff;
+      --bg-2: #f8f9fa;
+      --panel: #ffffff;
+      --panel-strong: #f8f9fa;
+      --line: #dadce0;
+      --line-strong: #bdc1c6;
+      --text: #202124;
+      --muted: #5f6368;
+      --accent: #1967d2;
+      --accent-2: #188038;
+      --warn: #b06000;
+      --shadow: none;
     }
 
     * { box-sizing: border-box; }
@@ -51,51 +51,19 @@
 
     body {
       margin: 0;
-      font-family: "Space Grotesk", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(34, 231, 184, 0.08), transparent 28%),
-        radial-gradient(circle at top right, rgba(88, 197, 255, 0.18), transparent 24%),
-        radial-gradient(circle at 50% 120%, rgba(255, 188, 92, 0.09), transparent 36%),
-        linear-gradient(180deg, #07101a 0%, var(--bg) 100%);
       line-height: 1.6;
       overflow-x: hidden;
     }
 
     body::before,
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-    }
+    body::after { display: none; }
 
-    body::before {
-      background:
-        radial-gradient(circle at 20% 18%, rgba(88, 197, 255, 0.12), transparent 28%),
-        radial-gradient(circle at 78% 26%, rgba(34, 231, 184, 0.10), transparent 30%),
-        radial-gradient(circle at 48% 76%, rgba(255, 188, 92, 0.07), transparent 26%);
-      filter: blur(6px);
-    }
+    body::before { display: none; }
 
-    body::after {
-      background-image:
-        linear-gradient(rgba(88, 197, 255, 0.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(88, 197, 255, 0.045) 1px, transparent 1px);
-      background-size: 42px 42px;
-      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 92%);
-      opacity: 0.35;
-    }
+    body::after { display: none; }
 
-    canvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      opacity: 0.9;
-    }
 
     .shell {
       position: relative;
@@ -112,17 +80,13 @@
     }
 
     header {
-      margin-top: 18px;
-      padding: 14px 18px;
+      padding: 14px 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      background: rgba(4, 10, 18, 0.68);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      backdrop-filter: blur(18px);
-      box-shadow: var(--shadow);
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
     }
 
     .brand {
@@ -135,32 +99,29 @@
 
     .brand-mark,
     .brand-fallback {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
-      border: 1px solid var(--line-strong);
-      background: linear-gradient(145deg, rgba(34, 231, 184, 0.1), rgba(88, 197, 255, 0.15));
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      width: 40px;
+      height: 42px;
+      border: 0;
     }
 
     .brand-mark {
-      object-fit: cover;
+      object-fit: contain;
       display: block;
     }
 
     .brand-fallback {
       display: none;
       place-items: center;
-      font-family: "Orbitron", sans-serif;
-      font-weight: 800;
+      font-family: Roboto, Arial, sans-serif;
+      font-weight: 700;
       color: var(--accent);
     }
 
     .brand h1 {
       margin: 0;
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: clamp(1rem, 2vw, 1.2rem);
-      letter-spacing: 0.08em;
+      font-weight: 400;
     }
 
     .brand p {
@@ -177,10 +138,14 @@
     }
 
     nav a {
-      color: var(--accent);
+      color: var(--muted);
       text-decoration: none;
-      font-weight: 600;
-      font-size: 0.95rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    nav a:hover {
+      color: var(--accent);
     }
 
     .hero {
@@ -188,36 +153,30 @@
       grid-template-columns: 1.15fr 0.85fr;
       gap: 24px;
       align-items: center;
-      min-height: calc(100vh - 120px);
-      padding: 46px 0 40px;
+      padding: 56px 0 48px;
+      border: 0;
     }
 
     .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--accent-2);
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      display: inline-block;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.875rem;
+      font-weight: 500;
     }
 
     .hero h2 {
       margin: 18px 0 14px;
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(2.4rem, 7vw, 5.2rem);
-      line-height: 1.03;
-      letter-spacing: 0.04em;
+      font-family: Roboto, Arial, sans-serif;
+      font-size: clamp(1.75rem, 3.6vw, 2.5rem);
+      font-weight: 400;
+      line-height: 1.2;
     }
 
     .hero h2 span {
-      color: var(--accent);
-      text-shadow: 0 0 24px rgba(88, 197, 255, 0.25);
+      color: inherit;
     }
 
     .hero p {
@@ -230,18 +189,16 @@
     .text-card,
     .section-copy-card,
     .footer-card {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.04);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      border: 0;
+      background: transparent;
     }
 
     .text-card {
-      padding: 16px 18px;
+      padding: 0;
     }
 
     .section-copy-card {
-      padding: 12px 14px;
+      padding: 0;
       max-width: 860px;
     }
 
@@ -249,6 +206,7 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
+      border: 0;
     }
 
     .cta-row,
@@ -268,39 +226,37 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      min-height: 48px;
-      padding: 12px 20px;
-      border-radius: 999px;
+      min-height: 40px;
+      padding: 8px 20px;
+      border-radius: 4px;
       text-decoration: none;
       cursor: pointer;
-      font-weight: 700;
-      font-size: 0.96rem;
+      font-weight: 500;
+      font-size: 0.9375rem;
       transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
     }
 
     button.btn,
     button.btn-secondary {
       border: none;
-      font-family: inherit;
+      font-family: Roboto, Arial, sans-serif;
     }
 
     .btn {
-      color: #02111d;
-      background: linear-gradient(90deg, var(--accent-2), var(--accent));
-      box-shadow: 0 12px 30px rgba(88, 197, 255, 0.25);
+      color: #ffffff;
+      background: #1a73e8;
     }
 
     .btn-secondary,
     .chip-link {
       color: var(--text);
-      background: rgba(255, 255, 255, 0.05);
+      background: transparent;
       border: 1px solid var(--line);
     }
 
     .btn:hover,
     .btn-secondary:hover,
     .chip-link:hover {
-      transform: translateY(-1px);
       border-color: var(--line-strong);
     }
 
@@ -314,9 +270,7 @@
     .social-card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
+      border-radius: 8px;
     }
 
     .hero-panel {
@@ -334,7 +288,7 @@
     .stat-card {
       padding: 16px;
       min-height: 118px;
-      background: rgba(255, 255, 255, 0.03);
+      background: transparent;
     }
 
     .stat-card h3,
@@ -346,13 +300,12 @@
     .social-card h3 {
       margin: 0 0 10px;
       font-size: 0.86rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
       color: var(--accent);
+      font-weight: 500;
     }
 
     .stat-value {
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: clamp(1.1rem, 2vw, 1.45rem);
       word-break: break-word;
     }
@@ -370,10 +323,10 @@
     .hero-note {
       margin-top: 14px;
       padding: 14px 16px;
-      border-radius: 16px;
-      background: rgba(255, 188, 92, 0.08);
-      border: 1px solid rgba(255, 188, 92, 0.2);
-      color: #ffd6a4;
+      border-radius: 8px;
+      background: #fef7e0;
+      border: 1px solid #dadce0;
+      color: #b06000;
       font-weight: 600;
     }
 
@@ -396,8 +349,9 @@
 
     .section-head h2 {
       margin: 0;
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 400;
     }
 
     .economy-grid,
@@ -420,7 +374,6 @@
     .accent-line {
       height: 1px;
       margin: 14px 0;
-      background: linear-gradient(90deg, transparent, rgba(88, 197, 255, 0.4), transparent);
     }
 
     .market-wrap {
@@ -431,7 +384,7 @@
 
     .chart-box {
       overflow: hidden;
-      border-radius: 18px;
+      border-radius: 8px;
       border: 1px solid var(--line);
       min-height: 540px;
     }
@@ -441,7 +394,7 @@
       height: 100%;
       min-height: 540px;
       border: none;
-      background: #06101a;
+      background: #ffffff;
     }
 
     .social-links a,
@@ -453,8 +406,8 @@
 
     .contract-box {
       padding: 12px 14px;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+      background: transparent;
       border: 1px solid var(--line);
       font-size: 0.92rem;
       color: var(--muted);
@@ -471,12 +424,8 @@
     .ants-map-surface {
       position: relative;
       min-height: 460px;
-      border-radius: 18px;
+      border-radius: 8px;
       border: 1px solid var(--line);
-      background:
-        radial-gradient(circle at 15% 18%, rgba(201, 187, 255, 0.44), transparent 34%),
-        radial-gradient(circle at 84% 78%, rgba(210, 236, 255, 0.34), transparent 38%),
-        linear-gradient(180deg, #eef2fb 0%, #e9edf8 100%);
       overflow: hidden;
       padding: 12px;
     }
@@ -485,11 +434,6 @@
       content: "";
       position: absolute;
       inset: 0;
-      background-image:
-        linear-gradient(rgba(130, 144, 182, 0.07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(130, 144, 182, 0.07) 1px, transparent 1px);
-      background-size: 24px 24px;
-      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.82), transparent 100%);
       pointer-events: none;
     }
 
@@ -515,40 +459,29 @@
     .ants-avatar-bubble {
       position: absolute;
       border: none;
-      border-radius: 999px;
-      background: rgba(172, 162, 255, 0.36);
-      box-shadow:
-        0 12px 24px rgba(120, 115, 210, 0.24),
-        0 0 0 1px rgba(139, 127, 235, 0.26) inset;
+      border-radius: 4px;
+      background: #e8f0fe;
       display: grid;
       place-items: center;
       padding: 0;
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
-      animation: antsFloat var(--float-duration, 9s) ease-in-out infinite;
-      animation-delay: var(--float-delay, 0s);
     }
 
-    .ants-avatar-bubble:hover {
-      transform: translateY(-2px) scale(1.04);
-      box-shadow:
-        0 18px 28px rgba(116, 112, 201, 0.32),
-        0 0 0 1px rgba(139, 127, 235, 0.34) inset;
-    }
+    .ants-avatar-bubble:hover {  }
 
     .ants-avatar-bubble:focus-visible {
-      outline: 2px solid rgba(88, 197, 255, 0.95);
+      outline: 2px solid #1a73e8;
       outline-offset: 2px;
     }
 
     .ants-avatar-core {
       width: 62%;
       height: 62%;
-      border-radius: 999px;
+      border-radius: 4px;
       overflow: hidden;
-      border: 2px solid rgba(255, 255, 255, 0.72);
-      box-shadow: 0 2px 7px rgba(10, 22, 44, 0.2);
-      background: rgba(255, 255, 255, 0.92);
+      border: 2px solid #dadce0;
+      background: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -562,25 +495,20 @@
     }
 
     .ants-cloud-link {
-      stroke: rgba(153, 160, 207, 0.44);
+      stroke: #1a73e8;
       stroke-width: 1.8;
       stroke-linecap: round;
       stroke-dasharray: 6 10;
-      animation: antsChainFlow 9s linear infinite;
       opacity: 0.72;
     }
 
     .ants-cloud-link.active {
-      stroke: rgba(34, 231, 184, 0.9);
+      stroke: #188038;
       stroke-width: 2.4;
       opacity: 1;
-      filter: drop-shadow(0 0 10px rgba(34, 231, 184, 0.45));
     }
 
     .ants-avatar-bubble.is-selected {
-      box-shadow:
-        0 20px 28px rgba(94, 166, 221, 0.28),
-        0 0 0 2px rgba(34, 231, 184, 0.9) inset;
       transform: scale(1.05);
     }
 
@@ -591,17 +519,18 @@
 
     .ants-map-kpi {
       padding: 18px;
-      border-radius: 16px;
+      border-radius: 8px;
       border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.04);
+      background: transparent;
     }
 
     .ants-map-kpi h3 {
       margin: 0 0 8px;
+      font-weight: 500;
     }
 
     .ants-total {
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: clamp(1.35rem, 3vw, 2rem);
       color: var(--accent-2);
     }
@@ -620,9 +549,9 @@
       justify-content: space-between;
       gap: 12px;
       padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(88, 197, 255, 0.2);
-      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      border: 1px solid #dadce0;
+      background: transparent;
       color: var(--muted);
       font-size: 0.9rem;
     }
@@ -649,8 +578,8 @@
     }
 
     .ants-legend li.is-selected {
-      border-color: rgba(34, 231, 184, 0.55);
-      background: rgba(34, 231, 184, 0.08);
+      border-color: #188038;
+      background: #e6f4ea;
     }
 
     .ants-map-detail {
@@ -668,11 +597,10 @@
       position: absolute;
       z-index: 3;
       width: min(240px, calc(100% - 20px));
-      border-radius: 16px;
-      border: 1px solid rgba(138, 128, 235, 0.35);
-      background: rgba(245, 245, 255, 0.95);
-      box-shadow: 0 16px 32px rgba(62, 56, 112, 0.28);
-      color: #2b2a3f;
+      border-radius: 8px;
+      border: 1px solid #dadce0;
+      background: #ffffff;
+      color: #202124;
       padding: 10px 12px;
       pointer-events: none;
       opacity: 0;
@@ -695,24 +623,24 @@
     .ants-hover-head .avatar {
       width: 36px;
       height: 36px;
-      border-radius: 999px;
-      border: 1px solid rgba(138, 128, 235, 0.45);
-      background: rgba(255, 255, 255, 0.92);
+      border-radius: 4px;
+      border: 1px solid #dadce0;
+      background: #ffffff;
       display: grid;
       place-items: center;
       padding: 4px;
     }
 
     .ants-hover-head .title {
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: 0.77rem;
-      letter-spacing: 0.02em;
-      color: #3c3870;
+      color: #1967d2;
+      font-weight: 400;
     }
 
     .ants-hover-head .sub {
       font-size: 0.72rem;
-      color: #68638f;
+      color: #202124;
     }
 
     .ants-hover-grid {
@@ -723,30 +651,28 @@
     }
 
     .ants-hover-stat {
-      border-radius: 10px;
-      background: rgba(121, 112, 208, 0.08);
+      border-radius: 8px;
+      background: #e8f0fe;
       padding: 6px;
     }
 
     .ants-hover-stat small {
       display: block;
       font-size: 0.62rem;
-      color: #7e79a3;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      color: #5f6368;
     }
 
     .ants-hover-stat strong {
       display: block;
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: 0.79rem;
-      color: #3f3a72;
+      color: #1967d2;
     }
 
     .ants-hover-card p {
       margin: 0;
       font-size: 0.72rem;
-      color: #625d89;
+      color: #202124;
       line-height: 1.35;
     }
 
@@ -759,17 +685,16 @@
 
     .decent-card {
       padding: 18px;
-      border-radius: 18px;
+      border-radius: 8px;
       border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.03);
+      background: transparent;
     }
 
     .decent-card h3 {
       margin: 0 0 10px;
       font-size: 0.86rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
       color: var(--accent);
+      font-weight: 500;
     }
 
     .decent-card p {
@@ -786,17 +711,17 @@
 
     .decent-compare-col {
       padding: 16px 18px;
-      border-radius: 16px;
+      border-radius: 8px;
       border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.03);
+      background: transparent;
     }
 
     .decent-compare-col h4 {
       margin: 0 0 10px;
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: 0.82rem;
-      letter-spacing: 0.05em;
       color: var(--accent-2);
+      font-weight: 500;
     }
 
     .decent-compare-col ul {
@@ -816,9 +741,9 @@
 
     .decent-step {
       padding: 14px 16px;
-      border-radius: 14px;
+      border-radius: 8px;
       border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.03);
+      background: transparent;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -826,14 +751,12 @@
 
     .decent-step .step-label {
       font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      font-weight: 500;
       color: var(--accent);
     }
 
     .decent-step .step-title {
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: 0.82rem;
       color: var(--text);
     }
@@ -845,8 +768,8 @@
     }
 
     .decent-step.is-active {
-      border-color: rgba(34, 231, 184, 0.45);
-      background: rgba(34, 231, 184, 0.05);
+      border-color: #dadce0;
+      background: #e6f4ea;
     }
 
     .decent-step.is-active .step-label {
@@ -861,19 +784,13 @@
       }
     }
 
-    @keyframes antsChainFlow {
-      from { stroke-dashoffset: 0; }
-      to { stroke-dashoffset: -140; }
-    }
+    
 
-    @keyframes antsFloat {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-7px); }
-    }
+    
 
     .ants-legend span:last-child {
       color: var(--text);
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: 0.85rem;
     }
 
@@ -926,16 +843,14 @@
       }
 
       .hero {
-        min-height: auto;
         padding-top: 28px;
+        border: 0;
       }
     }
   </style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4393604935823547" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="assets/css/site-light.css">
 </head>
 <body>
-  <canvas id="bg"></canvas>
 
   <div class="shell">
     <header>
@@ -1115,7 +1030,7 @@
         <div class="dev-grid">
           <article class="dev-card">
             <h3>Web3 Utility Token</h3>
-            <p class="dev-copy">The BNB Chain ANET token is the ecosystem utility layer. Fixed supply 21,000,000 ANET, owner role <strong>renounced</strong>, mint/pause/blacklist functions permanently disabled. The allocation is co-stewarded 50/50 between two co-founders (<a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener noreferrer" style="color:#7fb8ff;">@Joel_Dupalco</a> &middot; <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener noreferrer" style="color:#7fb8ff;">@Digitalgold1979</a>) as ordinary holders with no administrative privileges. Joel&rsquo;s 50% is now custodied by <strong>AnetBridgeVault</strong> (2-of-3 EIP-712 multisig) &mdash; see <a href="whitepaper.html#bridge-vault" style="color:#7fb8ff;">whitepaper v3.4</a>.</p>
+            <p class="dev-copy">The BNB Chain ANET token is the ecosystem utility layer. Fixed supply 21,000,000 ANET, owner role <strong>renounced</strong>, mint/pause/blacklist functions permanently disabled. The allocation is co-stewarded 50/50 between two co-founders (<a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener noreferrer" style="color: #1967d2">@Joel_Dupalco</a> &middot; <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener noreferrer" style="color: #1967d2">@Digitalgold1979</a>) as ordinary holders with no administrative privileges. Joel&rsquo;s 50% is now custodied by <strong>AnetBridgeVault</strong> (2-of-3 EIP-712 multisig) &mdash; see <a href="whitepaper.html#bridge-vault" style="color: #1967d2">whitepaper v3.4</a>.</p>
           </article>
           <article class="dev-card">
             <h3>Layer 1 Mining Coin</h3>
@@ -1164,7 +1079,7 @@
             <h2>Decentralization: Participation First</h2>
             <div class="section-copy-card">
               <p class="section-copy">Decentralization is not binary — it is a process. A Network decentralizes who can participate from day one, then progressively decentralizes who validates the ledger.</p>
-              <p class="section-copy" style="margin-top:10px;padding:10px 14px;border-left:3px solid #22e7b8;background:rgba(34,231,184,.06);border-radius:6px;"><strong style="color:#22e7b8;">Latest milestone &middot; May 25, 2026:</strong> AnetBridgeVault (2-of-3 EIP-712 multisig) deployed on BNB Chain and funded with the entire <strong>@Joel_Dupalco</strong> 50% founder allocation (~10.5M wANET). Founder tokens are now custodied on-chain &mdash; no single signer (including the founder himself) can release them. <a href="whitepaper.html#bridge-vault" style="color:#7fb8ff;">Read details in whitepaper v3.4</a> &middot; <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener noreferrer" style="color:#7fb8ff;">Verify on BscScan</a>.</p>
+              <p class="section-copy" style="margin-top: 10px;  padding: 10px 14px;  border-left: 3px solid #dadce0;  background: #f8f9fa;  border-radius: 6px"><strong style="color: #137333">Latest milestone &middot; May 25, 2026:</strong> AnetBridgeVault (2-of-3 EIP-712 multisig) deployed on BNB Chain and funded with the entire <strong>@Joel_Dupalco</strong> 50% founder allocation (~10.5M wANET). Founder tokens are now custodied on-chain &mdash; no single signer (including the founder himself) can release them. <a href="whitepaper.html#bridge-vault" style="color: #1967d2">Read details in whitepaper v3.4</a> &middot; <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener noreferrer" style="color: #1967d2">Verify on BscScan</a>.</p>
             </div>
           </div>
         </div>
@@ -1229,18 +1144,18 @@
           </div>
         </div>
 
-        <div style="margin-top:32px;padding:22px 24px;border:1px solid rgba(34,231,184,.25);border-radius:14px;background:linear-gradient(180deg, rgba(34,231,184,.05), rgba(88,197,255,.04));">
-          <div style="font-size:.78rem;letter-spacing:.16em;font-weight:700;color:#22e7b8;text-transform:uppercase;margin-bottom:10px;">⚡ Consensus &middot; Hybrid TPoW + PoS</div>
-          <p class="section-copy" style="margin:0 0 10px;">A Network follows the Bitcoin precedent: <strong>there is no testnet stage</strong>. The Layer 1 you can query at <a href="https://explorer.a-network.net" target="_blank" rel="noopener" style="color:#58c5ff;">explorer.a-network.net</a> is the live <strong>Mainnet</strong>. Consensus is a hybrid of <strong>Time-Based Proof-of-Work (TPoW)</strong> for participation and <strong>Proof-of-Stake (PoS)</strong> for block finality &mdash; every block references both a TPoW participation root and a PoS signature set, so neither capital nor time can fork the chain alone.</p>
-          <p class="section-copy" style="margin:0;">There is no founder allocation on Layer 1. Every ANET on L1 originates from a mined ANTS session. The path to full decentralization is structural: capital cannot buy in without time, and time cannot ship blocks without stake.</p>
+        <div style="margin-top: 32px;  padding: 22px 24px;  border: 1px solid #dadce0;  border-radius: 8px">
+          <div style="font-size: .78rem;  font-weight: 700;  color: #202124;  margin-bottom: 10px">Consensus &middot; Hybrid TPoW + PoS</div>
+          <p class="section-copy" style="margin: 0 0 10px">A Network follows the Bitcoin precedent: <strong>there is no testnet stage</strong>. The Layer 1 you can query at <a href="https://explorer.a-network.net" target="_blank" rel="noopener" style="color: #1967d2">explorer.a-network.net</a> is the live <strong>Mainnet</strong>. Consensus is a hybrid of <strong>Time-Based Proof-of-Work (TPoW)</strong> for participation and <strong>Proof-of-Stake (PoS)</strong> for block finality &mdash; every block references both a TPoW participation root and a PoS signature set, so neither capital nor time can fork the chain alone.</p>
+          <p class="section-copy" style="margin: 0">There is no founder allocation on Layer 1. Every ANET on L1 originates from a mined ANTS session. The path to full decentralization is structural: capital cannot buy in without time, and time cannot ship blocks without stake.</p>
         </div>
 
-        <div style="margin-top:24px;padding:22px 24px;border:1px solid rgba(127,184,255,.25);border-radius:14px;background:rgba(7,23,40,.55);">
-          <div style="font-size:.78rem;letter-spacing:.16em;font-weight:700;color:#7fb8ff;text-transform:uppercase;margin-bottom:10px;">👥 Accountable Operators &middot; Pre-Validator-Set</div>
-          <p class="section-copy" style="margin:0 0 14px;">Until the open validator set is live, infrastructure is run by <strong>publicly named</strong> operators. There are no anonymous core multisig holders. This is deliberate: the first step in <em>"don't trust, verify"</em> is knowing who to hold accountable.</p>
-          <ul style="margin:0;padding-left:20px;color:var(--muted);font-size:.95rem;line-height:1.7;">
-            <li><strong style="color:#eff6ff;">Joel Dupalco</strong> (Coach Joel) &mdash; co-founder, L1 protocol, backend, bridge signer #1, 50% BEP-20 steward &middot; <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener" style="color:#58c5ff;">@Joel_Dupalco</a></li>
-            <li><strong style="color:#eff6ff;">Khurram Zahid</strong> (Digital Gold) &mdash; co-founder, bridge signer #2, 50% BEP-20 steward, mobile release &amp; iOS/Android signing (Apple Team ID <code style="color:#cfcfcf;">L792KSQ9VC</code>), Play Store / TestFlight delivery &middot; <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener" style="color:#58c5ff;">@Digitalgold1979</a></li>
+        <div style="margin-top: 24px;  padding: 22px 24px;  border: 1px solid #dadce0;  border-radius: 8px;  background: #f8f9fa">
+          <div style="font-size: .78rem;  font-weight: 700;  color: #202124;  margin-bottom: 10px">Accountable Operators &middot; Pre-Validator-Set</div>
+          <p class="section-copy" style="margin: 0 0 14px">Until the open validator set is live, infrastructure is run by <strong>publicly named</strong> operators. There are no anonymous core multisig holders. This is deliberate: the first step in <em>"don't trust, verify"</em> is knowing who to hold accountable.</p>
+          <ul style="margin: 0;  padding-left: 20px;  color: var(--muted);  font-size: .95rem;  line-height: 1.7">
+            <li><strong style="color: #202124">Joel Dupalco</strong> (Coach Joel) &mdash; co-founder, L1 protocol, backend, bridge signer #1, 50% BEP-20 steward &middot; <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener" style="color: #1967d2">@Joel_Dupalco</a></li>
+            <li><strong style="color: #202124">Khurram Zahid</strong> (Digital Gold) &mdash; co-founder, bridge signer #2, 50% BEP-20 steward, mobile release &amp; iOS/Android signing (Apple Team ID <code style="color: #5f6368">L792KSQ9VC</code>), Play Store / TestFlight delivery &middot; <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener" style="color: #1967d2">@Digitalgold1979</a></li>
           </ul>
         </div>
       </div>
@@ -1356,7 +1271,7 @@
     </section>
 
     <footer>
-      <div class="legal-links" style="justify-content:center; margin-bottom: 14px;">
+      <div class="legal-links" style="justify-content: center;  margin-bottom: 14px">
         <a class="chip-link" href="whitepaper.html">Whitepaper</a>
         <a class="chip-link" href="ants-program.html">ANTS Program</a>
         <a class="chip-link" href="web4.html">Web4</a>
@@ -1372,64 +1287,6 @@
   </div>
 
   <script>
-    const c = document.getElementById('bg');
-    const ctx = c.getContext('2d');
-
-    function resize() {
-      c.width = innerWidth;
-      c.height = innerHeight;
-    }
-
-    resize();
-    window.addEventListener('resize', resize);
-
-    const nodes = [];
-    for (let i = 0; i < 90; i++) {
-      nodes.push({
-        x: Math.random() * c.width,
-        y: Math.random() * c.height,
-        vx: (Math.random() - 0.5) * 0.28,
-        vy: (Math.random() - 0.5) * 0.28
-      });
-    }
-
-    function animate() {
-      ctx.fillStyle = 'rgba(5, 11, 18, 0.32)';
-      ctx.fillRect(0, 0, c.width, c.height);
-
-      for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        node.x += node.vx;
-        node.y += node.vy;
-
-        if (node.x < 0 || node.x > c.width) node.vx *= -1;
-        if (node.y < 0 || node.y > c.height) node.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, 1.8, 0, Math.PI * 2);
-        ctx.fillStyle = '#58c5ff';
-        ctx.fill();
-
-        for (let j = i + 1; j < nodes.length; j++) {
-          const other = nodes[j];
-          const dx = node.x - other.x;
-          const dy = node.y - other.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < 120) {
-            ctx.strokeStyle = `rgba(88, 197, 255, ${0.08 * (1 - distance / 120)})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(node.x, node.y);
-            ctx.lineTo(other.x, other.y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      requestAnimationFrame(animate);
-    }
-
-    animate();
 
     async function fetchJsonWithFallback(path) {
       const apiBaseUrls = ['https://api.a-network.net', 'https://rmp-site.onrender.com'];
@@ -1638,7 +1495,7 @@
         const duration = 7 + (index % 5);
         return `
           <button class="ants-avatar-bubble" role="listitem" data-id="${item.id}" data-value="${item.value}" data-zone="${item.zoneName}" aria-label="${item.zoneName} bubble"
-            style="left:${left}%;top:${top}%;width:${item.size}px;height:${item.size}px;--float-delay:${delay}s;--float-duration:${duration}s;">
+            style="left: ${left}%;  top: ${top}%;  width: ${item.size}px;  height: ${item.size}px;  --float-delay: ${delay}s;  --float-duration: ${duration}s">
             <span class="ants-avatar-core">${generateAntSvg(item.colorIndex)}</span>
           </button>`;
       }).join('');

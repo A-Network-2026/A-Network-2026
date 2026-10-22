@@ -1,14 +1,14 @@
 :root {
-  --bg-0: #08101a;
-  --bg-1: #0f2236;
-  --bg-2: #0a1624;
-  --line: rgba(141, 182, 231, 0.28);
-  --text-0: #e9f3ff;
-  --text-1: #bbd3f0;
-  --accent-0: #4dd2ff;
-  --accent-1: #5dffb0;
-  --danger: #ff8a8a;
-  --panel: rgba(8, 20, 34, 0.7);
+  --bg-0: #ffffff;
+  --bg-1: #ffffff;
+  --bg-2: #f8f9fa;
+  --line: #dadce0;
+  --text-0: #202124;
+  --text-1: #202124;
+  --accent-0: #1967d2;
+  --accent-1: #1967d2;
+  --danger: #c5221f;
+  --panel: #ffffff;
 }
 
 * {
@@ -18,27 +18,19 @@
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Chakra Petch", sans-serif;
+  font-family: Roboto, Arial, sans-serif;
   color: var(--text-0);
-  background: radial-gradient(circle at 18% 10%, #163a5f 0%, transparent 40%),
-              radial-gradient(circle at 80% 18%, #103d32 0%, transparent 38%),
-              linear-gradient(160deg, var(--bg-0), var(--bg-1) 55%, var(--bg-2));
 }
 
 .aurora {
   position: fixed;
   inset: -20%;
-  background: conic-gradient(from 180deg at 50% 50%, rgba(77, 210, 255, 0.12), rgba(93, 255, 176, 0.08), rgba(77, 210, 255, 0.12));
-  filter: blur(60px);
   pointer-events: none;
 }
 
 .grid-noise {
   position: fixed;
   inset: 0;
-  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: radial-gradient(circle at 50% 40%, black, transparent 80%);
   pointer-events: none;
 }
 
@@ -67,15 +59,15 @@ body {
 .brand img {
   width: 54px;
   height: 54px;
-  border-radius: 14px;
+  border-radius: 8px;
   border: 1px solid var(--line);
 }
 
 .brand h1 {
   margin: 0;
-  font-family: "Oxanium", sans-serif;
-  letter-spacing: 0.06em;
+  font-family: Roboto, Arial, sans-serif;
   font-size: 1.2rem;
+  font-weight: 400;
 }
 
 .brand p {
@@ -89,6 +81,7 @@ body {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
   gap: 16px;
+  border: 0;
 }
 
 .hero-copy,
@@ -96,23 +89,20 @@ body {
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: 8px;
   padding: 20px;
-  backdrop-filter: blur(6px);
 }
 
 .eyebrow {
   color: var(--accent-1);
   font-size: 0.82rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .hero h2,
 .panel h3 {
   margin: 8px 0 10px;
-  font-family: "Oxanium", sans-serif;
-  letter-spacing: 0.03em;
+  font-family: Roboto, Arial, sans-serif;
+  font-weight: 400;
 }
 
 .hero p,
@@ -124,9 +114,9 @@ body {
   margin-top: 14px;
   display: inline-block;
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: 4px;
   border: 1px solid var(--line);
-  background: rgba(77, 210, 255, 0.08);
+  background: #e8f0fe;
   color: var(--accent-0);
 }
 
@@ -157,7 +147,7 @@ body {
 
 button,
 .ghost {
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid var(--line);
   padding: 10px 14px;
   font: inherit;
@@ -168,18 +158,18 @@ button,
 }
 
 .primary {
-  background: linear-gradient(120deg, #1674a8, #16a873);
-  border-color: rgba(255, 255, 255, 0.22);
+  background: #1a73e8;
+  border-color: #1a73e8;
+  color: #ffffff;
 }
 
 .ghost {
-  background: rgba(255, 255, 255, 0.04);
+  background: transparent;
 }
 
 button:hover,
 .ghost:hover {
-  transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.45);
+  border-color: #dadce0;
 }
 
 .payment-form {
@@ -206,8 +196,8 @@ textarea,
 select {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(1, 7, 14, 0.68);
+  border-radius: 8px;
+  background: #f8f9fa;
   color: var(--text-0);
   padding: 10px;
   font: inherit;
@@ -219,10 +209,10 @@ select {
   white-space: pre-wrap;
   word-break: break-word;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.25);
-  color: #9ae7ff;
+  background: #f8f9fa;
+  color: #1967d2;
   font-size: 0.9rem;
 }
 
@@ -238,6 +228,7 @@ select {
 @media (max-width: 860px) {
   .hero {
     grid-template-columns: 1fr;
+    border: 0;
   }
 
   .payment-form {

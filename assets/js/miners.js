@@ -91,7 +91,7 @@
           <td class="sessions">${formatCount(sessions)} / 1,000</td>
           <td><span class="progress"><i style="width:${percent}%"></i></span><span class="progress-label">${percent.toFixed(1)}%</span></td>
           <td class="date">${escapeHtml(formatDate(latest))}</td>
-          <td><button type="button" class="detail-button" data-miner-index="${originalIndex}">Activity →</button></td>
+          <td><button type="button" class="detail-button" data-miner-index="${originalIndex}">Details</button></td>
         </tr>`;
       }).join('');
     }
@@ -110,8 +110,8 @@
     elements.activity.hidden = false;
     document.getElementById('activity-title').textContent = shortWallet(miner.miner);
     document.getElementById('activity-source').textContent = miner.wallet_address
-      ? 'Mining session history is service-reported. Mainnet proof is checked separately below.'
-      : 'This miner has no linked public wallet. Mining activity is service-reported and has no wallet proof link.';
+      ? 'Session history comes from the mining service. The mainnet record is checked separately.'
+      : 'This miner has no public wallet linked, so there is no mainnet record to check.';
 
     const sessions = document.getElementById('session-list');
     const history = Array.isArray(miner.recent_sessions) ? miner.recent_sessions : [];
@@ -126,14 +126,14 @@
       const wallet = miner.wallet_address;
       const proofUrl = `${MAINNET_API}/sessions/proof/${encodeURIComponent(wallet)}`;
       const activityUrl = `${MAINNET_API}/accounts/${encodeURIComponent(wallet)}/activity?limit=10`;
-      chain.innerHTML = 'Checking the mainnet session commitment…';
+      chain.innerHTML = 'Checking the mainnet record';
       try {
         const response = await fetch(proofUrl, { headers: { Accept: 'application/json' }, cache: 'no-store' });
         if (!response.ok) throw new Error(response.status === 404 ? 'No committed proof is currently available for this wallet.' : `Mainnet returned HTTP ${response.status}.`);
         const proof = await response.json();
-        chain.innerHTML = `<span class="chain-value">${formatCount(proof.sessions)} sessions committed</span><p>Merkle inclusion proof returned by the mainnet node. Root: <span class="date">${escapeHtml(String(proof.root || '').slice(0, 18))}…</span></p><a href="${escapeHtml(proofUrl)}" target="_blank" rel="noopener">View proof ↗</a><a href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener">View wallet activity ↗</a>`;
+        chain.innerHTML = `<span class="chain-value">${formatCount(proof.sessions)} sessions recorded on mainnet</span><p>Mainnet inclusion proof. Root: <span class="date">${escapeHtml(String(proof.root || '').slice(0, 18))}…</span></p><a href="${escapeHtml(proofUrl)}" target="_blank" rel="noopener">View proof</a><a href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener">View wallet activity</a>`;
       } catch (error) {
-        chain.innerHTML = `<p>${escapeHtml(error.message || 'Mainnet proof could not be loaded.')}</p><a href="${escapeHtml(proofUrl)}" target="_blank" rel="noopener">Open proof endpoint ↗</a><a href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener">View wallet activity ↗</a>`;
+        chain.innerHTML = `<p>${escapeHtml(error.message || 'Mainnet proof could not be loaded.')}</p><a href="${escapeHtml(proofUrl)}" target="_blank" rel="noopener">Open proof endpoint ↗</a><a href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener">View wallet activity</a>`;
       }
     }
     elements.activity.scrollIntoView({ behavior: 'smooth', block: 'start' });

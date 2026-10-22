@@ -329,8 +329,8 @@
             <div class="anet-ticker-change neutral" id="anet-ticker-change">—</div>
           </div>
           <svg class="anet-ticker-svg" id="anet-ticker-svg" viewBox="0 0 320 70" preserveAspectRatio="none" role="img" aria-label="Live ANET price chart">
-            <path id="anet-ticker-path" fill="none" stroke="#39d98a" stroke-width="2" d=""></path>
-            <path id="anet-ticker-fill" fill="rgba(57,217,138,0.12)" stroke="none" d=""></path>
+            <path id="anet-ticker-path" fill="none" stroke="#188038" stroke-width="2" d=""></path>
+            <path id="anet-ticker-fill" fill="#e6f4ea" stroke="none" d=""></path>
           </svg>
           <div class="anet-ticker-stats" id="anet-ticker-stats"></div>
         </div>
@@ -411,7 +411,7 @@
               <div class="token-field">
                 <div class="token-field-label">ANET AMOUNT</div>
                 <div class="token-field-row">
-                  <span class="oc-token-fixed" style="color:#58c5ff;">ANET</span>
+                  <span class="oc-token-fixed" style="color:#1a73e8;">ANET</span>
                   <input class="amount-input" id="oc-liq-anet" type="number" placeholder="0.00" min="0" step="any" inputmode="decimal">
                 </div>
                 <div class="token-balance-row"><span id="oc-liq-anet-bal" style="font-size:12px;color:var(--muted-2);">—</span><span class="balance-max" id="oc-liq-anet-max">MAX</span></div>
@@ -626,8 +626,8 @@
     const d = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
     path.setAttribute('d', d);
     const up = vals[vals.length - 1] >= vals[0];
-    path.setAttribute('stroke', up ? '#39d98a' : '#ff5c7c');
-    fill.setAttribute('fill', up ? 'rgba(57,217,138,0.12)' : 'rgba(255,92,124,0.12)');
+    path.setAttribute('stroke', up ? '#188038' : '#c5221f');
+    fill.setAttribute('fill', up ? '#e6f4ea' : '#fce8e6');
     fill.setAttribute('d', `${d} L${W},${H} L0,${H} Z`);
   }
 

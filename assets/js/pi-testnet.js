@@ -259,7 +259,7 @@ function getBackendBaseUrl() {
 function initPiSdk(sandboxMode) {
   if (!window.Pi) {
     sdkStatus.textContent = 'SDK: Pi SDK not available. Open this page in Pi Browser.';
-    sdkStatus.style.color = '#ff8a8a';
+    sdkStatus.style.color = '#c5221f';
     return false;
   }
 
@@ -287,13 +287,13 @@ async function initializePiFromBackendConfig() {
 
   if (!backendBaseUrl) {
     sdkStatus.textContent = `SDK: Ready in ${initialSandboxMode ? 'sandbox' : 'production'} mode (backend URL missing).`;
-    sdkStatus.style.color = '#ff8a8a';
+    sdkStatus.style.color = '#c5221f';
     return;
   }
 
   if (looksLikeLocalhostUrl(backendBaseUrl) && window.location.hostname !== 'localhost') {
     sdkStatus.textContent = 'SDK: Localhost backend not reachable from Pi Browser. Using sandbox mode.';
-    sdkStatus.style.color = '#ff8a8a';
+    sdkStatus.style.color = '#c5221f';
     renderDexAccessState();
     return;
   }
@@ -312,11 +312,11 @@ async function initializePiFromBackendConfig() {
 
     if (backendSandboxMode !== initialSandboxMode) {
       sdkStatus.textContent = `SDK: Running in ${initialSandboxMode ? 'sandbox' : 'production'} mode (backend config suggests ${backendSandboxMode ? 'sandbox' : 'production'}).`;
-      sdkStatus.style.color = '#ffbf73';
+      sdkStatus.style.color = '#b06000';
     }
   } catch (error) {
     sdkStatus.textContent = `SDK: Config fetch failed (${error.message}). Running in ${initialSandboxMode ? 'sandbox' : 'production'} mode.`;
-    sdkStatus.style.color = '#ff8a8a';
+    sdkStatus.style.color = '#c5221f';
   }
 
   updatePaymentMetadataDefaults();

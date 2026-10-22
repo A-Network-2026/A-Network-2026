@@ -18,10 +18,9 @@
   <link rel="manifest" href="site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/ants-program.css?v=20260509-23" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4393604935823547" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="assets/css/site-light.css">
 </head>
 <body>
   <div class="shell">
@@ -48,7 +47,7 @@
     <section class="hero">
       <div class="hero-copy">
         <div class="eyebrow">ANTS Program | Mining Gateway And Colony Access</div>
-        <h2>Enter the network through the <span style="color:var(--accent)">ANTS Program</span> as a miner inside a colony group.</h2>
+        <h2>Enter the network through the <span style="color: var(--accent)">ANTS Program</span> as a miner inside a colony group.</h2>
         <p>
           The ANTS Program is the participation gateway for people who want to help build A Network. Investors, developers, operators, and community contributors do not enter as passive observers. They enter as miners, join a colony group, build a participation record through validated sessions, and then coordinate their role through ant-language identities such as Worker Ants, Builder Ants, Scouts, Soldiers, Farmers, Nurses, Queen Ant, and Swarm Ants.
         </p>
@@ -176,7 +175,7 @@
         </div>
 
         <div class="cp-progress-track" aria-label="Colony member progress toward 1000">
-          <div class="cp-progress-fill" id="cp-progress-fill" style="width:0%"></div>
+          <div class="cp-progress-fill" id="cp-progress-fill" style="width: 0%"></div>
         </div>
         <p class="cp-progress-caption" id="cp-progress-caption">Progress to 1,000-member colony milestone: 0%</p>
 
@@ -216,10 +215,10 @@
               <small>Owner: <strong id="cp-tpow-owner">-</strong> | Last 6 hours</small>
               <small>Use timeframe buttons, mouse wheel to zoom, and drag to pan.</small>
             </div>
-            <label class="cp-select-label" for="cp-tpow-owner-search" style="margin: 0;">Search Owner:</label>
+            <label class="cp-select-label" for="cp-tpow-owner-search" style="margin: 0">Search Owner:</label>
             <input id="cp-tpow-owner-search" class="cp-owner-search" type="text" placeholder="Type owner code..." aria-label="Search owner for TPoW chart">
-            <label class="cp-select-label" for="cp-tpow-owner-select" style="margin: 0;">Select Owner:</label>
-            <select id="cp-tpow-owner-select" class="cp-select" style="min-width: 140px;" aria-label="Select owner for TPoW mining chart">
+            <label class="cp-select-label" for="cp-tpow-owner-select" style="margin: 0">Select Owner:</label>
+            <select id="cp-tpow-owner-select" class="cp-select" aria-label="Select owner for TPoW mining chart">
               <option value="">Top Mining Owner</option>
             </select>
           </div>
@@ -253,35 +252,35 @@
          Per-owner / referral-code line graph (last 30 daily points)
          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <style>
-      #monthly-snapshot .cm-head{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;justify-content:space-between;margin-bottom:12px}
-      #monthly-snapshot .cm-period{font-family:'Orbitron',sans-serif;letter-spacing:.12em;font-size:1.05rem;color:var(--accent-2)}
-      #monthly-snapshot .cm-reset{font-size:.82rem;color:#a8b3c2}
-      #monthly-snapshot .cm-reset strong{color:var(--accent-3)}
-      #monthly-snapshot .cm-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 16px}
-      #monthly-snapshot .cm-controls select,#monthly-snapshot .cm-controls input{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:#e8eef6;border-radius:8px;padding:8px 12px;font-size:.9rem;min-width:160px}
-      #monthly-snapshot .cm-controls button{background:rgba(108,231,177,.10);border:1px solid rgba(108,231,177,.35);color:var(--accent);border-radius:8px;padding:8px 14px;font-size:.85rem;cursor:pointer;transition:all .15s}
-      #monthly-snapshot .cm-controls button:hover{background:rgba(108,231,177,.18)}
-      #monthly-snapshot .cm-controls button.is-active{background:var(--accent);color:#06111d;font-weight:700}
-      #monthly-snapshot .cm-chart-wrap{position:relative;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;margin-bottom:18px}
-      #monthly-snapshot .cm-chart-wrap svg{display:block;width:100%;height:auto}
-      #monthly-snapshot .cm-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:12px;font-size:.82rem;color:#cbd5e1}
-      #monthly-snapshot .cm-legend .cm-swatch{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:middle}
-      #monthly-snapshot .cm-empty{color:#8895a8;font-style:italic;text-align:center;padding:36px 8px}
-      #monthly-snapshot .cm-board{width:100%;border-collapse:collapse;font-size:.88rem}
-      #monthly-snapshot .cm-board th,#monthly-snapshot .cm-board td{text-align:left;padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
-      #monthly-snapshot .cm-board th{font-family:'Orbitron',sans-serif;letter-spacing:.08em;font-size:.72rem;color:#9aa5b8;text-transform:uppercase}
-      #monthly-snapshot .cm-board tr.cm-rank-1 td{color:#ffd86b}
-      #monthly-snapshot .cm-board tr.cm-rank-2 td{color:#d6dbe2}
-      #monthly-snapshot .cm-board tr.cm-rank-3 td{color:#e0a974}
-      #monthly-snapshot .cm-board td.cm-num{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
-      #monthly-snapshot .cm-board-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.06);border-radius:10px}
-      @media (max-width:700px){#monthly-snapshot .cm-board-wrap{box-shadow:inset -12px 0 10px -10px rgba(88,197,255,.25)}}
-      #monthly-snapshot .cm-tooltip{position:absolute;pointer-events:none;background:#0b1726;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 11px;font-size:.78rem;color:#e8eef6;box-shadow:0 6px 24px rgba(0,0,0,.4);transform:translate(-50%,-110%);white-space:nowrap;opacity:0;transition:opacity .12s}
-      #monthly-snapshot .cm-tooltip.is-on{opacity:1}
-      #monthly-snapshot .cm-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
-      #monthly-snapshot .cm-meta div{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px}
-      #monthly-snapshot .cm-meta div small{display:block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#8895a8;margin-bottom:4px}
-      #monthly-snapshot .cm-meta div strong{font-family:'Space Grotesk',sans-serif;font-size:1.15rem;color:#e8eef6}
+      #monthly-snapshot .cm-head{ display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+      #monthly-snapshot .cm-period{ font-family: Roboto, Arial, sans-serif; font-size: 1.05rem; color: var(--accent-2); }
+      #monthly-snapshot .cm-reset{ font-size: .82rem; color: #5f6368; }
+      #monthly-snapshot .cm-reset strong{ color: var(--accent-3); }
+      #monthly-snapshot .cm-controls{ display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 14px 0 16px; }
+      #monthly-snapshot .cm-controls select,#monthly-snapshot .cm-controls input{ background: transparent; border: 1px solid #dadce0; color: #202124; border-radius: 8px; padding: 8px 12px; font-size: .9rem; min-width: 160px; }
+      #monthly-snapshot .cm-controls button{ background: #e6f4ea; border: 1px solid #dadce0; color: var(--accent); border-radius: 8px; padding: 8px 14px; font-size: .85rem; cursor: pointer; transition: all .15s; }
+      #monthly-snapshot .cm-controls button:hover{ background: #e6f4ea; }
+      #monthly-snapshot .cm-controls button.is-active{ background: var(--accent); color: #202124; font-weight: 500; }
+      #monthly-snapshot .cm-chart-wrap{ position: relative; background: #f8f9fa; border: 1px solid #dadce0; border-radius: 8px; padding: 16px; margin-bottom: 18px; }
+      #monthly-snapshot .cm-chart-wrap svg{ display: block; width: 100%; height: auto; }
+      #monthly-snapshot .cm-legend{ display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; font-size: .82rem; color: #5f6368; }
+      #monthly-snapshot .cm-legend .cm-swatch{ display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+      #monthly-snapshot .cm-empty{ color: #5f6368; font-style: italic; text-align: center; padding: 36px 8px; }
+      #monthly-snapshot .cm-board{ width: 100%; border-collapse: collapse; font-size: .88rem; }
+      #monthly-snapshot .cm-board th,#monthly-snapshot .cm-board td{ text-align: left; padding: 9px 10px; border-bottom: 1px solid #dadce0; }
+      #monthly-snapshot .cm-board th{ font-family: Roboto, Arial, sans-serif; font-size: .72rem; color: #5f6368; }
+      #monthly-snapshot .cm-board tr.cm-rank-1 td{ color: #b06000; }
+      #monthly-snapshot .cm-board tr.cm-rank-2 td{ color: #5f6368; }
+      #monthly-snapshot .cm-board tr.cm-rank-3 td{ color: #b06000; }
+      #monthly-snapshot .cm-board td.cm-num{ font-family: Roboto, Arial, sans-serif; font-variant-numeric: tabular-nums; }
+      #monthly-snapshot .cm-board-wrap{ overflow-x: auto; -webkit-overflow-scrolling: touch; background: #f8f9fa; border: 1px solid #dadce0; border-radius: 8px; }
+      @media (max-width:700px){#monthly-snapshot .cm-board-wrap{  }}
+      #monthly-snapshot .cm-tooltip{ position: absolute; pointer-events: none; background: #ffffff; border: 1px solid #dadce0; border-radius: 8px; padding: 8px 11px; font-size: .78rem; color: #202124; transform: translate(-50%,-110%); white-space: nowrap; opacity: 0; transition: opacity .12s; }
+      #monthly-snapshot .cm-tooltip.is-on{ opacity: 1; }
+      #monthly-snapshot .cm-meta{ display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 10px; margin-bottom: 14px; }
+      #monthly-snapshot .cm-meta div{ background: transparent; border: 1px solid #dadce0; border-radius: 8px; padding: 10px 12px; }
+      #monthly-snapshot .cm-meta div small{ display: block; font-size: .7rem; color: #5f6368; margin-bottom: 4px; }
+      #monthly-snapshot .cm-meta div strong{ font-family: Roboto, Arial, sans-serif; font-size: 1.15rem; color: #202124; }
     </style>
     <section class="section" id="monthly-snapshot">
       <div class="section-card">
@@ -308,17 +307,17 @@
         </div>
 
         <div class="cm-controls">
-          <label for="cm-view-select" style="font-size:.82rem;color:#9aa5b8">View:</label>
+          <label for="cm-view-select" style="font-size: .82rem;  color: #5f6368">View:</label>
           <select id="cm-view-select" aria-label="Choose snapshot period">
             <option value="current">Current Month (live)</option>
           </select>
-          <label for="cm-metric-select" style="font-size:.82rem;color:#9aa5b8;margin-left:8px">Metric:</label>
+          <label for="cm-metric-select" style="font-size: .82rem;  color: #5f6368;  margin-left: 8px">Metric:</label>
           <select id="cm-metric-select" aria-label="Choose metric">
             <option value="mining">Active Members (mining)</option>
             <option value="members">Total Members</option>
             <option value="rooms">Verified Members</option>
           </select>
-          <label for="cm-topn-select" style="font-size:.82rem;color:#9aa5b8;margin-left:8px">Show top:</label>
+          <label for="cm-topn-select" style="font-size: .82rem;  color: #5f6368;  margin-left: 8px">Show top:</label>
           <select id="cm-topn-select" aria-label="How many owners to plot">
             <option value="5">5 owners</option>
             <option value="10" selected>10 owners</option>

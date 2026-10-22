@@ -361,7 +361,7 @@ const KNOWN_TOKENS = [
 ];
 
 const TOKEN_COLORS = {
-  ANET: '#58c5ff', WANET:'#8be9ff', WBNB: '#F0B90B', WETH: '#627EEA', USDT: '#26A17B',
+  ANET: '#1a73e8', WANET:'#8be9ff', WBNB: '#F0B90B', WETH: '#627EEA', USDT: '#26A17B',
   USDC: '#2775CA', DAI:  '#F5AC37', BUSD: '#F0B90B', PI:   '#9C4FE6',
   WBTC: '#F7931A', BTCB: '#F7931A', AVAX: '#E84142', MATIC:'#8247E5',
   FTM:  '#1969FF', CRO:  '#002D74', OP:   '#FF0420', ARB:  '#28A0F0',
@@ -529,7 +529,7 @@ function tokenInitials(sym) {
 }
 
 function tokenColor(sym) {
-  return TOKEN_COLORS[sym?.toUpperCase()] || '#58c5ff';
+  return TOKEN_COLORS[sym?.toUpperCase()] || '#1a73e8';
 }
 
 function tokenIconEl(sym, size = 22) {
@@ -1018,7 +1018,7 @@ function renderAnetWalletModal() {
       <button class="btn btn-primary btn-full" type="button" onclick="lockAnetWallet()" style="margin-top:12px;">Lock wallet</button>
       <div style="display:flex;gap:8px;margin-top:8px;">
         <button class="btn btn-outline btn-sm" type="button" onclick="switchAnetWalletMode('reveal')" style="flex:1;">Show private key</button>
-        <button class="btn btn-ghost btn-sm" type="button" onclick="forgetAnetWallet()" style="flex:1;color:#ff8a8a;">Remove from device</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="forgetAnetWallet()" style="flex:1;color:#c5221f;">Remove from device</button>
       </div>
       ${rpcAdvancedHtml()}`;
     return;
@@ -1028,7 +1028,7 @@ function renderAnetWalletModal() {
   if (_anetWalletMode === 'reveal') {
     if (titleEl) titleEl.textContent = 'SHOW PRIVATE KEY';
     body.innerHTML = `
-      <div class="warn-box">⚠ Never share your private key. Anyone with it controls your funds. We only show it to you, locally.</div>
+      <div class="warn-box">Warning: Never share your private key. Anyone with it controls your funds. We only show it to you, locally.</div>
       <div class="form-group">
         <label class="form-label" for="anet-reveal-pw">Password</label>
         <input class="form-input" id="anet-reveal-pw" type="password" autocomplete="off" placeholder="Your wallet password">
@@ -1046,7 +1046,7 @@ function renderAnetWalletModal() {
     if (_anetNewWalletKeyHex) {
       // Step 2: key already generated, encrypted and unlocked — one-time backup reminder.
       body.innerHTML = `
-        <div class="warn-box">⚠ This is your private key. Save it somewhere safe now — it is shown only once and cannot be recovered if lost.</div>
+        <div class="warn-box">Warning: This is your private key. Save it somewhere safe now — it is shown only once and cannot be recovered if lost.</div>
         <div class="info-box" style="word-break:break-all;font-family:monospace;font-size:12.5px;">${escapeHtml(_anetNewWalletKeyHex)}</div>
         <button class="btn btn-outline btn-full" type="button" onclick="copyNewAnetWalletKey()" style="margin-top:10px;">Copy private key</button>
         <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer;margin:12px 0;">
@@ -1088,7 +1088,7 @@ function renderAnetWalletModal() {
       <button class="btn btn-primary btn-full" type="button" onclick="submitAnetUnlock()">Unlock</button>
       <div style="display:flex;gap:8px;margin-top:10px;">
         <button class="btn btn-ghost btn-sm" type="button" onclick="switchAnetWalletMode('import')" style="flex:1;">Use a different wallet</button>
-        <button class="btn btn-ghost btn-sm" type="button" onclick="forgetAnetWallet()" style="flex:1;color:#ff8a8a;">Forget</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="forgetAnetWallet()" style="flex:1;color:#c5221f;">Forget</button>
       </div>
       ${rpcAdvancedHtml()}`;
     return;
@@ -1839,8 +1839,8 @@ async function loadBridgeHistory() {
         <td>${escapeHtml(s.tokenSymbol || 'BNB')} ${escapeHtml(s.grossAmountFormatted || s.grossAmount || '')}</td>
         <td class="mono" style="font-size:10px;">${escapeHtml((s.anetRecipient || '').slice(0, 16))}…</td>
         <td>
-          <span class="pill" style="font-size:10px;background:${s.processed ? 'rgba(34,231,184,0.1)' : 'rgba(240,185,11,0.1)'};color:${s.processed ? '#22e7b8' : '#F0B90B'};">
-            ${s.processed ? '✓ Credited' : '⏳ Pending'}
+          <span class="pill" style="font-size:10px;background:${s.processed ? 'rgba(34,231,184,0.1)' : 'rgba(240,185,11,0.1)'};color:${s.processed ? '#188038' : '#F0B90B'};">
+            ${s.processed ? '✓ Credited' : 'Pending'}
           </span>
         </td>
         <td class="mono" style="font-size:10px;">
@@ -1977,7 +1977,7 @@ function renderPoolsSidebar() {
   if (!container) return;
 
   if (state.pools.length === 0) {
-    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🌊</div><p>No pools found yet.<br>Be the first to create one.</p></div>`;
+    container.innerHTML = `<div class="empty-state"><p>No pools found yet.<br>Be the first to create one.</p></div>`;
     return;
   }
 
@@ -1993,7 +1993,7 @@ function renderPoolsSidebar() {
       <div class="pool-card-header">
         <div class="pool-pair">
           <div class="pool-icons">
-            <div class="token-icon-placeholder" style="background:linear-gradient(135deg,#58c5ff,#58c5ff88);font-size:8px;width:24px;height:24px;">ANT</div>
+            <div class="token-icon-placeholder" style="background:linear-gradient(135deg,#1a73e8,#1a73e888);font-size:8px;width:24px;height:24px;">ANT</div>
             <div class="token-icon-placeholder" style="background:linear-gradient(135deg,${tokenColor(sym)},${tokenColor(sym)}88);font-size:8px;width:24px;height:24px;margin-left:-8px;">${tokenInitials(sym)}</div>
           </div>
           <span class="pool-pair-name">ANET / ${sym}</span>
@@ -2027,7 +2027,7 @@ function renderLiqPoolList() {
   const el = document.getElementById('liq-pool-list');
   if (!el) return;
   if (state.pools.length === 0) {
-    el.innerHTML = '<div class="empty-state" style="padding:24px 0;"><div class="empty-icon">🌊</div><p>No pools yet. Create the first one above.</p></div>';
+    el.innerHTML = '<div class="empty-state" style="padding:24px 0;"><p>No pools yet. Create the first one above.</p></div>';
     return;
   }
   el.innerHTML = state.pools.map(pool => {
@@ -2537,11 +2537,11 @@ function loadMorePortfolioHistory() { loadPortfolioHistory({ reset: false }); }
 // the raw on-chain event_type for these rows).
 const CHAIN_ACTIVITY_LABELS = {
   SwapExecuted: '⇄ Swap',
-  LiquidityAdded: '💧 Add Liquidity',
-  LiquidityRemoved: '💧 Remove Liquidity',
+  LiquidityAdded: 'Add Liquidity',
+  LiquidityRemoved: 'Remove Liquidity',
   PoolCreated: '🆕 Create Pool',
-  TokenTransferred: '🔁 Token Transfer',
-  AppActivity: '📱 App Activity',
+  TokenTransferred: 'Token Transfer',
+  AppActivity: 'App Activity',
 };
 
 function renderPortfolioHistory() {
@@ -2568,7 +2568,7 @@ function renderPortfolioHistory() {
     // a labeled type instead, sourced straight from the on-chain event_type.
     const typeCell = isTransfer
       ? `<span style="font-weight:700;color:${outgoing ? 'var(--danger)' : 'var(--accent-2)'};">${outgoing ? '↑ Sent' : '↓ Received'}</span>`
-      : `<span style="font-weight:700;color:var(--accent);">${CHAIN_ACTIVITY_LABELS[item.transaction_type] || ('⚡ ' + escapeHtml(item.transaction_type || 'Activity'))}</span>`;
+      : `<span style="font-weight:700;color:var(--accent);">${CHAIN_ACTIVITY_LABELS[item.transaction_type] || ('' + escapeHtml(item.transaction_type || 'Activity'))}</span>`;
     const amountCell = isTransfer ? `${outgoing ? '-' : '+'}${fmt(amountAnet, 6)} ANET` : '—';
     const counterpartyCell = isTransfer && counterparty ? shortAddr(counterparty) : '—';
 
@@ -2580,7 +2580,7 @@ function renderPortfolioHistory() {
         </td>
         <td class="mono">${amountCell}</td>
         <td class="mono" style="font-size:11px;">${counterpartyCell}</td>
-        <td><span class="pill ${confirmed ? 'green' : 'amber'}" style="font-size:10px;">${confirmed ? '✓ Confirmed' : '⏳ Pending'}</span></td>
+        <td><span class="pill ${confirmed ? 'green' : 'amber'}" style="font-size:10px;">${confirmed ? '✓ Confirmed' : 'Pending'}</span></td>
         <td style="font-size:11px;color:var(--muted-2);">${item.created_at ? new Date(item.created_at).toLocaleString() : '—'}</td>
         <td>${txCell}</td>
       </tr>`;
@@ -2884,7 +2884,7 @@ function renderMarketMicrostructure() {
   const escapedSym = escapeHtml(sym);
   asksEl.innerHTML = asks.map(r => `
     <tr>
-      <td class="mono" style="color:#ff7d8f;">${fmt(r.price, 6)}</td>
+      <td class="mono" style="color:#c5221f;">${fmt(r.price, 6)}</td>
       <td class="mono">${fmt(r.qty, 4)} ${escapedSym}</td>
       <td class="mono">${fmt(r.total, 4)} ANET</td>
     </tr>
@@ -2892,7 +2892,7 @@ function renderMarketMicrostructure() {
 
   bidsEl.innerHTML = bids.map(r => `
     <tr>
-      <td class="mono" style="color:#22e7b8;">${fmt(r.price, 6)}</td>
+      <td class="mono" style="color:#188038;">${fmt(r.price, 6)}</td>
       <td class="mono">${fmt(r.qty, 4)} ${escapedSym}</td>
       <td class="mono">${fmt(r.total, 4)} ANET</td>
     </tr>
@@ -2936,7 +2936,7 @@ function renderLastTradesTable() {
   }
 
   tbody.innerHTML = merged.map(r => {
-    const sideColor = r.side === 'SELL' ? '#ff7d8f' : (r.side === 'BUY' ? '#22e7b8' : 'var(--muted)');
+    const sideColor = r.side === 'SELL' ? '#c5221f' : (r.side === 'BUY' ? '#188038' : 'var(--muted)');
     return `<tr>
       <td class="mono" style="color:${sideColor};font-weight:700;">${r.side}</td>
       <td class="mono">${r.price != null ? fmt(r.price, 6) : '—'}</td>
@@ -2989,7 +2989,7 @@ function renderMarketsTable() {
       <td>
         <div class="pair-cell">
           <div class="pool-icons" style="display:flex;">
-            <div class="token-icon-placeholder" style="background:linear-gradient(135deg,#58c5ff,#58c5ff88);font-size:8px;width:26px;height:26px;">ANT</div>
+            <div class="token-icon-placeholder" style="background:linear-gradient(135deg,#1a73e8,#1a73e888);font-size:8px;width:26px;height:26px;">ANT</div>
             <div class="token-icon-placeholder" style="background:linear-gradient(135deg,${tokenColor(sym)},${tokenColor(sym)}88);font-size:8px;width:26px;height:26px;margin-left:-8px;">${tokenInitials(sym)}</div>
           </div>
           <span class="mono">ANET / ${sym}</span>
@@ -3204,7 +3204,7 @@ function renderDexChart(history) {
   }));
   const firstClose = ohlc[0].close;
   const lastClose = ohlc[ohlc.length - 1].close;
-  const trendColor = lastClose >= firstClose ? '#22e7b8' : '#ff7d8f';
+  const trendColor = lastClose >= firstClose ? '#188038' : '#c5221f';
   const trendFill = lastClose >= firstClose ? 'rgba(34,231,184,0.14)' : 'rgba(255,125,143,0.14)';
 
   const linePath = points
@@ -3238,7 +3238,7 @@ function renderDexChart(history) {
   const lastCandle = ohlc[ohlc.length - 1];
   const lastY = valueToY(lastCandle.close);
   const lastX = leftPad + (ohlc.length - 1) * candleStep + candleStep * 0.5;
-  const lastMarker = `<circle class="dex-last-dot" cx="${lastX.toFixed(2)}" cy="${lastY.toFixed(2)}" r="2.5" fill="#58c5ff" stroke="rgba(216,251,255,0.6)" stroke-width="1.2"></circle>`;
+  const lastMarker = `<circle class="dex-last-dot" cx="${lastX.toFixed(2)}" cy="${lastY.toFixed(2)}" r="2.5" fill="#1a73e8" stroke="rgba(216,251,255,0.6)" stroke-width="1.2"></circle>`;
 
   const pool = getSelectedMarketPool();
   const sym = pool?.token_symbol || '?';
@@ -3962,7 +3962,7 @@ function renderMultiChainTab() {
       42161: '~1s', 43114: '~2s', 10: '~2s', 324: '~5s', 250: '~1s',
       25: '~6s', 59144: '~3s', 1101: '~2s' };
     const gasLevel = gasMap[cid] || 'Low';
-    const gasColor = { High:'#ff5c7a', Low:'#58c5ff', 'Very Low':'#22e7b8' }[gasLevel];
+    const gasColor = { High:'#ff5c7a', Low:'#1a73e8', 'Very Low':'#188038' }[gasLevel];
     return `<tr>
       <td>
         <div style="display:flex;align-items:center;gap:9px;">

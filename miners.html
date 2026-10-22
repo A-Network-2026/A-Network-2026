@@ -11,67 +11,62 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/miners.css">
   <script src="assets/js/miners.js" defer></script>
-  <link rel="stylesheet" href="assets/css/site-light.css">
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="index.html"><img class="brand-logo" src="logo.png" alt="A Network"><span>A NETWORK <small>MAINNET DATA</small></span></a>
+    <a class="brand" href="index.html"><img class="brand-logo" src="logo.png" alt="" width="36" height="38"><span>A Network</span></a>
     <nav aria-label="Main navigation">
       <a href="scan.html">Explorer</a>
       <a href="web5.html">Network</a>
       <a href="miners.html" aria-current="page">Miners</a>
+      <a href="whitepaper.html">Whitepaper</a>
     </nav>
-    <span class="live"><i></i> PUBLIC DIRECTORY</span>
   </header>
 
   <main>
     <section class="intro">
-      <div>
-        <p class="eyebrow">A Network / Miner index</p>
-        <h1>Work, made visible.</h1>
-        <p class="lede">Explore miner session progress and recent mining activity. Wallet-linked mainnet records are independently viewable on the chain explorer.</p>
-      </div>
-      <div class="chain-mark"><span>ANET</span><strong>MAINNET</strong><small>READ ONLY · LIVE DATA</small></div>
+      <h1>Miners</h1>
+      <p class="lede">Session progress and recent mining activity for A Network miners. Wallet-linked records can be checked against the mainnet explorer.</p>
     </section>
 
-    <section class="metrics" aria-label="Miner network metrics">
-      <div><span>MINERS TRACKED</span><strong id="metric-miners">Loading</strong></div>
-      <div><span>MINING NOW</span><strong id="metric-active">Loading</strong></div>
-      <div><span>SESSIONS REPORTED</span><strong id="metric-sessions">Loading</strong></div>
-      <div><span>DATA REFRESHED</span><strong id="metric-updated">Loading</strong></div>
+    <section class="metrics" aria-label="Network totals">
+      <div><span>Miners</span><strong id="metric-miners">Loading</strong></div>
+      <div><span>Mining now</span><strong id="metric-active">Loading</strong></div>
+      <div><span>Sessions reported</span><strong id="metric-sessions">Loading</strong></div>
+      <div><span>Last updated</span><strong id="metric-updated">Loading</strong></div>
     </section>
 
     <section class="directory" aria-labelledby="directory-title">
       <div class="section-head">
-        <div><p class="eyebrow">Leaderboard + activity</p><h2 id="directory-title">Miner directory</h2></div>
-        <a class="text-link" href="https://explorer.a-network.net/blocks" target="_blank" rel="noopener">Open mainnet blocks ↗</a>
+        <div><h2 id="directory-title">Directory</h2></div>
+        <a class="text-link" href="https://explorer.a-network.net/blocks" target="_blank" rel="noopener">View mainnet blocks</a>
       </div>
       <div class="controls">
-        <label class="search"><span aria-hidden="true">⌕</span><input id="filter-input" type="search" placeholder="Filter this page by wallet or miner ID" autocomplete="off"></label>
+        <label class="search"><input id="filter-input" type="search" placeholder="Filter this page by wallet address" aria-label="Filter this page by wallet address" autocomplete="off"></label>
         <label class="select-wrap"><span class="sr-only">Sort miners</span><select id="sort-select"><option value="sessions">Most sessions</option><option value="active">Mining now</option><option value="recent">Recently started</option></select></label>
-        <button id="refresh-button" class="icon-button" type="button" title="Refresh directory" aria-label="Refresh directory">↻</button>
+        <button id="refresh-button" class="icon-button" type="button" title="Refresh" aria-label="Refresh directory">Refresh</button>
       </div>
 
       <div class="table-wrap">
         <table>
-          <thead><tr><th>RANK / MINER</th><th>STATUS</th><th>SESSIONS</th><th>ELIGIBILITY</th><th>LATEST SESSION</th><th></th></tr></thead>
+          <thead><tr><th scope="col">Rank and miner</th><th scope="col">Status</th><th scope="col">Sessions</th><th scope="col">Eligibility</th><th scope="col">Latest session</th><th scope="col"><span class="sr-only">Details</span></th></tr></thead>
           <tbody id="miners-body"><tr><td colspan="6" class="empty">Loading public miner data…</td></tr></tbody>
         </table>
       </div>
-      <div class="pagination"><span id="page-label">Loading directory</span><div><button id="prev-button" class="page-button" type="button" aria-label="Previous page">←</button><button id="next-button" class="page-button" type="button" aria-label="Next page">→</button></div></div>
+      <div class="pagination"><span id="page-label">Loading directory</span><div><button id="prev-button" class="page-button" type="button" aria-label="Previous page">Previous</button><button id="next-button" class="page-button" type="button" aria-label="Next page">Next</button></div></div>
     </section>
 
     <section id="activity-panel" class="activity-panel" aria-live="polite" hidden>
-      <div class="activity-head"><div><p class="eyebrow">Miner record</p><h2 id="activity-title">Activity</h2></div><button id="close-activity" class="icon-button" type="button" aria-label="Close miner activity">×</button></div>
+      <div class="activity-head"><div><h2 id="activity-title">Activity</h2></div><button id="close-activity" class="icon-button" type="button" aria-label="Close miner activity">Close</button></div>
       <p id="activity-source" class="source-note"></p>
-      <div class="activity-columns"><div><h3>Mining sessions</h3><ol id="session-list" class="activity-list"></ol></div><div><h3>Mainnet record</h3><div id="chain-record" class="chain-record">Select a wallet-linked miner to check its current mainnet session commitment.</div></div></div>
+      <div class="activity-columns"><div><h3>Mining sessions</h3><ol id="session-list" class="activity-list"></ol></div><div><h3>Mainnet record</h3><div id="chain-record" class="chain-record">Select a wallet-linked miner to check its mainnet session record.</div></div></div>
     </section>
 
-    <p class="disclosure">Session totals and recent mining-session timestamps are reported by the mining service and may update before a chain sync. A wallet’s mainnet session proof is shown separately when available. Email addresses, device identifiers, and private account data are not published here.</p>
+    <p class="disclosure">Session totals and recent session times come from the mining service and can update before the next chain sync. A wallet's mainnet session proof is shown separately when available. Email addresses, device identifiers and other private account data are not published.</p>
   </main>
-  <footer><span>A NETWORK · PUBLIC DATA VIEW</span><a href="privacy.html">Privacy</a><span id="load-state">Connecting to network data…</span></footer>
+  <footer><span>A Network</span><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><span id="load-state">Connecting</span></footer>
 </body>
 </html>

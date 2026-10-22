@@ -1,26 +1,22 @@
 ﻿    :root {
-      --bg: #041019;
-      --bg-2: #081827;
-      --panel: rgba(10, 24, 39, 0.9);
-      --line: rgba(89, 201, 255, 0.16);
-      --line-strong: rgba(106, 231, 177, 0.34);
-      --text: #eff6ff;
-      --muted: #9ab3c8;
-      --accent: #6ae7b1;
-      --accent-2: #59c9ff;
-      --accent-3: #d3ff78;
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+      --bg: #ffffff;
+      --bg-2: #f8f9fa;
+      --panel: #ffffff;
+      --line: #dadce0;
+      --line-strong: #bdc1c6;
+      --text: #202124;
+      --muted: #5f6368;
+      --accent: #1967d2;
+      --accent-2: #188038;
+      --accent-3: #b06000;
+      --shadow: none;
     }
 
     * { box-sizing: border-box; }
     body {
       margin: 0;
       color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(106, 231, 177, 0.10), transparent 26%),
-        radial-gradient(circle at top right, rgba(89, 201, 255, 0.12), transparent 24%),
-        linear-gradient(180deg, #07101a 0%, var(--bg) 100%);
+      font-family: Roboto, Arial, sans-serif;
     }
 
     .shell {
@@ -35,9 +31,7 @@
     .table-shell {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
+      border-radius: 8px;
     }
 
     .hero {
@@ -46,32 +40,28 @@
       grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
       gap: 18px;
       margin-bottom: 20px;
+      border: 0;
     }
 
     .eyebrow {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
-      color: var(--accent);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #5f6368;
       font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      font-weight: 500;
     }
 
     h1 {
       margin: 16px 0 12px;
-      font-family: 'Orbitron', sans-serif;
-      font-size: clamp(2rem, 5vw, 4.1rem);
+      font-family: Roboto, Arial, sans-serif;
+      font-size: clamp(1.75rem, 3.6vw, 2.5rem);
       line-height: 1.04;
-      background: linear-gradient(135deg, #ffffff 22%, var(--accent-2) 68%, var(--accent) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #202124;
+      font-weight: 400;
     }
 
     .hero p,
@@ -94,16 +84,16 @@
       justify-content: center;
       min-height: 48px;
       padding: 12px 18px;
-      border-radius: 999px;
+      border-radius: 4px;
       text-decoration: none;
-      font-weight: 700;
+      font-weight: 500;
       border: 1px solid var(--line);
-      color: #041018;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #ffffff;
+      background: #1a73e8;
     }
 
     .btn-ghost {
-      background: rgba(255,255,255,0.04);
+      background: transparent;
       color: var(--text);
     }
 
@@ -115,9 +105,9 @@
 
     .hero-meta div {
       padding: 16px;
-      border-radius: 18px;
+      border-radius: 8px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
+      background: transparent;
     }
 
     .hero-meta span {
@@ -125,14 +115,12 @@
       margin-bottom: 8px;
       color: var(--muted);
       font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
       font-weight: 700;
     }
 
     .hero-meta strong {
       display: block;
-      font-family: 'Orbitron', sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: 1.1rem;
       overflow-wrap: anywhere;
     }
@@ -169,21 +157,23 @@
     .panel-head h2,
     .panel-head h3 {
       margin: 8px 0 0;
-      font-family: 'Orbitron', sans-serif;
+      font-family: Roboto, Arial, sans-serif;
+      font-weight: 400;
     }
 
     .action-card,
     .info-card {
       padding: 18px;
-      border-radius: 20px;
+      border-radius: 8px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
+      background: transparent;
     }
 
     .action-card h3,
     .info-card h3 {
       margin: 0 0 8px;
       font-size: 1rem;
+      font-weight: 500;
     }
 
     .action-card p,
@@ -211,8 +201,6 @@
       color: var(--muted);
       font-size: 0.8rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
     }
 
     .tx-form label.seed-field {
@@ -223,52 +211,51 @@
       align-self: end;
       min-height: 52px;
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 8px;
       padding: 12px 18px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      color: #041018;
-      font-family: 'Space Grotesk', sans-serif;
+      background: #1a73e8;
+      color: #ffffff;
+      font-family: Roboto, Arial, sans-serif;
       font-size: 1rem;
-      font-weight: 700;
+      font-weight: 500;
       cursor: pointer;
     }
 
     .tx-form input {
       min-height: 48px;
-      border-radius: 16px;
+      border-radius: 8px;
       border: 1px solid var(--line);
-      background: rgba(3, 10, 18, 0.72);
+      background: #f8f9fa;
       color: var(--text);
       padding: 12px 14px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: Roboto Mono, ui-monospace, Menlo, Consolas, monospace;
       outline: none;
     }
 
     .tx-form input:focus {
       border-color: var(--line-strong);
-      box-shadow: 0 0 0 3px rgba(106, 231, 177, 0.08);
     }
 
     .tx-result {
       margin-top: 16px;
       padding: 16px;
-      border-radius: 18px;
+      border-radius: 8px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
+      background: transparent;
       color: var(--muted);
       line-height: 1.55;
     }
 
     .tx-result.ok {
-      border-color: rgba(106, 231, 177, 0.32);
-      background: rgba(106, 231, 177, 0.08);
-      color: #dffdf1;
+      border-color: #dadce0;
+      background: #e6f4ea;
+      color: #137333;
     }
 
     .tx-result.error {
-      border-color: rgba(242, 139, 130, 0.32);
-      background: rgba(242, 139, 130, 0.08);
-      color: #ffd4cf;
+      border-color: #dadce0;
+      background: #fce8e6;
+      color: #c5221f;
     }
 
     .stat-card {
@@ -280,14 +267,12 @@
       margin-bottom: 8px;
       color: var(--muted);
       font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
       font-weight: 700;
     }
 
     .stat-card strong {
       display: block;
-      font-family: 'Orbitron', sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: clamp(1.2rem, 4vw, 2.3rem);
       color: var(--text);
       margin-bottom: 8px;
@@ -309,8 +294,9 @@
 
     .table-head h2 {
       margin: 0;
-      font-family: 'Orbitron', sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: clamp(1.2rem, 3vw, 1.8rem);
+      font-weight: 400;
     }
 
     table {
@@ -329,12 +315,10 @@
     th {
       color: var(--accent-2);
       font-size: 0.84rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
     }
 
     tbody tr {
-      background: rgba(255,255,255,0.035);
+      background: transparent;
     }
 
     tbody td:first-child {
@@ -348,22 +332,22 @@
     }
 
     .mono {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: Roboto Mono, ui-monospace, Menlo, Consolas, monospace;
       overflow-wrap: anywhere;
       word-break: break-word;
     }
 
     .kicker {
       color: var(--accent-3);
-      font-weight: 700;
+      font-weight: 500;
     }
 
     .error {
       padding: 16px;
-      border-radius: 16px;
-      border: 1px solid rgba(242, 139, 130, 0.32);
-      background: rgba(242, 139, 130, 0.08);
-      color: #ffd4cf;
+      border-radius: 8px;
+      border: 1px solid #dadce0;
+      background: #fce8e6;
+      color: #c5221f;
     }
 
     @media (max-width: 980px) {
@@ -399,7 +383,7 @@
       }
 
       tbody tr {
-        border-radius: 16px;
+        border-radius: 8px;
         overflow: hidden;
       }
 

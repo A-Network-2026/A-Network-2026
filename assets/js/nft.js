@@ -1432,7 +1432,7 @@
       return `
         <div class="collection-card">
           <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-            <strong style="font-family:'Orbitron',sans-serif; font-size:0.85rem;">${escapeHtml(col.name)}</strong>
+            <strong style="font-size:0.85rem; font-weight:500;">${escapeHtml(col.name)}</strong>
             <span class="${badgeClass}">${escapeHtml(typeLabel)}</span>
           </div>
           <p class="muted" style="font-size:0.8rem;">${escapeHtml((col.description || "").slice(0, 100))}${(col.description || "").length > 100 ? "…" : ""}</p>
@@ -1547,7 +1547,7 @@
 
       const bannerHtml = bannerUri
         ? `<img src="${escapeHtmlAttr(bannerUri)}" class="colony-preview-banner" alt="Colony banner" loading="lazy">`
-        : `<div class="colony-preview-banner" style="background:linear-gradient(120deg,rgba(34,231,184,0.12),rgba(88,197,255,0.08));"></div>`;
+        : `<div class="colony-preview-banner" style="background:linear-gradient(120deg,#e6f4ea,#e8f0fe);"></div>`;
       const logoHtml = logoUri
         ? `<img src="${escapeHtmlAttr(logoUri)}" class="colony-preview-logo" alt="Colony logo" loading="lazy">`
         : imageUri
@@ -1828,9 +1828,9 @@
       const tokenId = String(t.id || t.tokenId || "").trim();
       const logoHtml = logo
         ? `<img src="${escapeHtmlAttr(logo)}" alt="${escapeHtmlAttr(symbol)} logo" style="width:42px;height:42px;border-radius:8px;object-fit:cover;" loading="lazy">`
-        : `<div style="width:42px;height:42px;border-radius:8px;background:rgba(34,231,184,0.12);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;">${escapeHtml(symbol.slice(0,3))}</div>`;
+        : `<div style="width:42px;height:42px;border-radius:8px;background:#e6f4ea;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;">${escapeHtml(symbol.slice(0,3))}</div>`;
       return `
-        <div class="domain-item" data-token-id="${escapeHtmlAttr(tokenId)}" style="display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:8px;">
+        <div class="domain-item" data-token-id="${escapeHtmlAttr(tokenId)}" style="display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #f1f3f4;border-radius:10px;margin-bottom:8px;">
           ${logoHtml}
           <div style="flex:1;">
             <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap;">

@@ -31,42 +31,27 @@
 
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
 
 
   <style>
 
     :root {
-
-      --bg: #050b12;
-
-      --bg-2: #091725;
-
-      --panel: rgba(10, 24, 39, 0.88);
-
-      --panel-strong: rgba(7, 17, 29, 0.97);
-
-      --line: rgba(88, 197, 255, 0.16);
-
-      --line-strong: rgba(88, 197, 255, 0.32);
-
-      --text: #eff6ff;
-
-      --muted: #9eb2c9;
-
-      --accent: #58c5ff;
-
-      --accent-2: #22e7b8;
-
-      --accent-3: #f59e0b;
-
-      --accent-4: #a78bfa;
-
-      --danger: #f87171;
-
-      --shadow: 0 24px 80px rgba(0,0,0,.4);
-
+      --bg: #ffffff;
+      --bg-2: #f8f9fa;
+      --panel: #ffffff;
+      --panel-strong: #f8f9fa;
+      --line: #dadce0;
+      --line-strong: #bdc1c6;
+      --text: #202124;
+      --muted: #5f6368;
+      --accent: #1967d2;
+      --accent-2: #188038;
+      --accent-3: #b06000;
+      --accent-4: #1967d2;
+      --danger: #c5221f;
+      --shadow: none;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -74,17 +59,10 @@
     html { scroll-behavior: smooth; }
 
     body {
-
-      font-family: "Space Grotesk", sans-serif;
-
-      background: linear-gradient(180deg, #07101a 0%, var(--bg) 100%);
-
+      font-family: Roboto, Arial, sans-serif;
       color: var(--text);
-
       line-height: 1.78;
-
       overflow-x: hidden;
-
     }
 
     canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.55; pointer-events: none; }
@@ -100,13 +78,16 @@
     /* â”€â”€ SIDEBAR â”€â”€ */
 
     .sidebar {
-
-      position: sticky; top: 0; width: 280px; min-width: 280px; height: 100vh;
-
-      overflow-y: auto; background: var(--panel-strong);
-
-      border-right: 1px solid var(--line); padding: 28px 0; flex-shrink: 0;
-
+      position: sticky;
+      top: 0;
+      width: 280px;
+      min-width: 280px;
+      height: 100vh;
+      overflow-y: auto;
+      background: var(--panel-strong);
+      border-right: 1px solid var(--line);
+      padding: 28px 0;
+      flex-shrink: 0;
     }
 
     .sidebar::-webkit-scrollbar { width: 4px; }
@@ -114,26 +95,27 @@
     .sidebar::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; }
 
     .sidebar-logo {
-
-      display: flex; align-items: center; gap: 10px;
-
-      padding: 0 24px 22px; border-bottom: 1px solid var(--line); margin-bottom: 18px;
-
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 24px 22px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 18px;
     }
 
-    .sidebar-logo span { font-family: "Orbitron", sans-serif; font-size: 15px; font-weight: 700; color: var(--accent); }
+    .sidebar-logo span { font-family: Roboto, Arial, sans-serif; font-size: 15px; font-weight: 700; color: var(--accent); }
 
-    .sidebar-logo sub { font-size: 9px; color: var(--muted); font-family: "Space Grotesk", sans-serif; display: block; margin-top: 2px; }
+    .sidebar-logo sub { font-size: 9px; color: var(--muted); font-family: Roboto, Arial, sans-serif; display: block; margin-top: 2px; }
 
-    .nav-section { padding: 0 16px 4px; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 14px; }
+    .nav-section { padding: 0 16px 4px; font-size: 10px; font-weight: 700; color: var(--muted); margin-top: 14px; }
 
-    .nav-item { display: block; padding: 7px 24px; font-size: 13px; color: #b0c8e0; text-decoration: none; border-left: 3px solid transparent; transition: all .2s; line-height: 1.4; }
+    .nav-item { display: block; padding: 7px 24px; font-size: 13px; color: #1967d2; text-decoration: none; border-left: 3px solid transparent; transition: all .2s; line-height: 1.4; }
 
-    .nav-item:hover { color: var(--accent); border-left-color: var(--accent); background: rgba(88,197,255,.06); }
+    .nav-item:hover { color: var(--accent); border-left-color: var(--accent); background: #e8f0fe; }
 
-    .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(88,197,255,.10); }
+    .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: #e8f0fe; }
 
-    .nav-item.sub { padding-left: 36px; font-size: 12px; color: #8aa0b8; }
+    .nav-item.sub { padding-left: 36px; font-size: 12px; color: #1967d2; }
 
     .nav-item.sub:hover { color: var(--accent-2); border-left-color: var(--accent-2); }
 
@@ -150,35 +132,33 @@
     /* â”€â”€ HEADER HERO â”€â”€ */
 
     .hero {
-
-      padding: 64px 0 48px; border-bottom: 1px solid var(--line); margin-bottom: 56px;
-
+      padding: 64px 0 48px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 56px;
+      border: 0;
     }
 
     .hero-badge {
-
-      display: inline-flex; align-items: center; gap: 8px;
-
-      background: rgba(88,197,255,.10); border: 1px solid rgba(88,197,255,.25);
-
-      border-radius: 100px; padding: 5px 14px; font-size: 12px; color: var(--accent);
-
-      font-weight: 600; margin-bottom: 22px; letter-spacing: .04em;
-
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #e8f0fe;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 22px;
     }
 
     .hero h1 {
-
-      font-family: "Orbitron", sans-serif; font-size: clamp(34px, 4.6vw, 56px);
-
-      font-weight: 800; line-height: 1.15; color: #fff;
-
-      background: linear-gradient(135deg, #fff 30%, var(--accent) 70%, var(--accent-2) 100%);
-
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-
+      font-family: Roboto, Arial, sans-serif;
+      font-size: clamp(1.75rem, 3.6vw, 2.5rem);
+      font-weight: 400;
+      line-height: 1.15;
+      color: #202124;
       margin-bottom: 18px;
-
     }
 
     .hero-sub { font-size: 21px; color: var(--muted); max-width: 680px; line-height: 1.68; margin-bottom: 28px; }
@@ -196,31 +176,34 @@
     .wp-section { margin-bottom: 72px; scroll-margin-top: 24px; width: 100%; max-width: 100%; min-width: 0; }
 
     .section-label {
-
-      display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .12em;
-
-      text-transform: uppercase; color: var(--accent-2); margin-bottom: 10px;
-
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent-2);
+      margin-bottom: 10px;
     }
 
     .wp-section h2 {
-
-      font-family: "Orbitron", sans-serif; font-size: clamp(30px, 3vw, 38px);
-
-      font-weight: 700; color: #fff; margin-bottom: 18px; line-height: 1.25;
-
+      font-family: Roboto, Arial, sans-serif;
+      font-size: clamp(30px, 3vw, 38px);
+      font-weight: 400;
+      color: #202124;
+      margin-bottom: 18px;
+      line-height: 1.25;
     }
 
     .wp-section h3 {
-
-      font-size: 24px; font-weight: 700; color: var(--accent); margin: 36px 0 14px;
-
+      font-size: 24px;
+      font-weight: 500;
+      color: var(--accent);
+      margin: 36px 0 14px;
     }
 
     .wp-section h4 {
-
-      font-size: 14px; font-weight: 700; color: var(--accent-2); margin: 22px 0 8px; text-transform: uppercase; letter-spacing: .06em;
-
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--accent-2);
+      margin: 22px 0 8px;
     }
 
     .wp-section p { color: var(--muted); margin-bottom: 16px; font-size: 18px; line-height: 1.86; }
@@ -238,86 +221,87 @@
     /* â”€â”€ PANEL â”€â”€ */
 
     .panel {
-
-      background: var(--panel); border: 1px solid var(--line);
-
-      border-radius: 16px; padding: 36px 44px; margin-bottom: 24px; width: 100%; max-width: 100%; min-width: 0;
-
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 36px 44px;
+      margin-bottom: 24px;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
     }
 
-    .panel-accent { border-color: rgba(88,197,255,.3); background: rgba(88,197,255,.05); }
+    .panel-accent { border-color: #dadce0; background: #e8f0fe; }
 
-    .panel-green  { border-color: rgba(34,231,184,.3); background: rgba(34,231,184,.05); }
+    .panel-green  { border-color: #dadce0; background: #e6f4ea; }
 
-    .panel-amber  { border-color: rgba(245,158,11,.3);  background: rgba(245,158,11,.05); }
+    .panel-amber  { border-color: #dadce0; background: #fef7e0; }
 
-    .panel-purple { border-color: rgba(167,139,250,.3); background: rgba(167,139,250,.05); }
+    .panel-purple { border-color: #dadce0; background: #e8f0fe; }
 
-    .panel-red    { border-color: rgba(248,113,113,.3); background: rgba(248,113,113,.05); }
+    .panel-red    { border-color: #dadce0; background: #fce8e6; }
 
 
 
     /* â”€â”€ FORMULA BOX â”€â”€ */
 
     .formula-box {
-
-      background: #040c16; border: 1px solid var(--line-strong);
-
-      border-radius: 12px; padding: 22px 28px; margin: 20px 0;
-
-      font-family: "JetBrains Mono", monospace; font-size: 14px;
-
-      color: var(--accent-2); overflow-x: auto; width: 100%; max-width: 100%; min-width: 0; white-space: pre-wrap; word-break: break-word;
-
+      background: #ffffff;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 22px 28px;
+      margin: 20px 0;
+      font-family: Roboto Mono, ui-monospace, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: var(--accent-2);
+      overflow-x: auto;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
 
-    .formula-box .comment { color: #4a6a85; }
+    .formula-box .comment { color: #1967d2; }
 
     .formula-box .keyword { color: var(--accent); }
 
     .formula-box .value { color: var(--accent-3); }
 
-    .formula-box .fn { color: #c792ea; }
+    .formula-box .fn { color: #1967d2; }
 
 
 
     /* â”€â”€ TABLE â”€â”€ */
 
     .table-scroll {
-
       width: 100%;
-
       max-width: 100%;
-
       overflow-x: auto;
-
       overflow-y: hidden;
-
       -webkit-overflow-scrolling: touch;
-
-      border-radius: 12px;
-
+      border-radius: 8px;
     }
 
     .wp-table { width: 100%; min-width: 640px; border-collapse: collapse; margin: 20px 0; font-size: 14px; display: table; white-space: normal; }
 
     .wp-table.table-wide { min-width: 900px; }
 
-    .wp-table th { background: rgba(88,197,255,.12); color: var(--accent); font-weight: 700; padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line-strong); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+    .wp-table th { background: #e8f0fe; color: var(--accent); font-weight: 700; padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line-strong); font-size: 12px; }
 
     .wp-table td { padding: 11px 16px; border-bottom: 1px solid var(--line); color: var(--muted); vertical-align: top; line-height: 1.55; }
 
-    .wp-table tr:hover td { background: rgba(88,197,255,.04); }
+    .wp-table tr:hover td { background: #e8f0fe; }
 
     .wp-table td strong { color: var(--text); }
 
-    .wp-table td .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+    .wp-table td .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
 
-    .tag-active { background: rgba(34,231,184,.15); color: var(--accent-2); }
+    .tag-active { background: #e6f4ea; color: var(--accent-2); }
 
-    .tag-future { background: rgba(88,197,255,.12); color: var(--accent); }
+    .tag-future { background: #e8f0fe; color: var(--accent); }
 
-    .tag-max    { background: rgba(245,158,11,.15);  color: var(--accent-3); }
+    .tag-max    { background: #fef7e0; color: var(--accent-3); }
 
 
 
@@ -326,30 +310,30 @@
     .card-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 16px; margin: 24px 0; }
 
     .stat-card {
-
-      background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
-
-      padding: 20px 18px; text-align: center;
-
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px 18px;
+      text-align: center;
     }
 
-    .stat-card .sc-val { font-family: "Orbitron", sans-serif; font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
+    .stat-card .sc-val { font-family: Roboto, Arial, sans-serif; font-size: 22px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
 
-    .stat-card .sc-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .stat-card .sc-label { font-size: 12px; color: var(--muted); font-weight: 500; }
 
 
 
     /* â”€â”€ COMPARISON TABLE â”€â”€ */
 
-    .compare-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 24px 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .compare-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 24px 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 
-    .cg-header { background: rgba(88,197,255,.12); padding: 12px 14px; font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+    .cg-header { background: #e8f0fe; padding: 12px 14px; font-size: 12px; font-weight: 700; color: var(--accent); }
 
     .cg-cell { padding: 12px 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); min-width: 0; word-break: break-word; }
 
     .cg-cell strong { color: var(--text); }
 
-    .cg-cell.hi { background: rgba(34,231,184,.05); }
+    .cg-cell.hi { background: #e6f4ea; }
 
     @media (max-width: 700px) {
 
@@ -358,32 +342,19 @@
       .cg-header { display: none; }
 
       .cg-cell {
-
         border: 1px solid var(--line);
-
-        border-radius: 12px;
-
-        background: rgba(88,197,255,.06);
-
+        border-radius: 8px;
+        background: #e8f0fe;
         padding: 14px 16px;
-
       }
 
       .cg-cell:nth-child(4n + 1) {
-
-        background: rgba(88,197,255,.12);
-
+        background: #e8f0fe;
         color: var(--accent);
-
         font-weight: 700;
-
-        text-transform: uppercase;
-
-        letter-spacing: .05em;
-
       }
 
-      .cg-cell.hi { background: rgba(34,231,184,.08); }
+      .cg-cell.hi { background: #e6f4ea; }
 
     }
 
@@ -393,25 +364,26 @@
 
     .roadmap { position: relative; padding-left: 32px; }
 
-    .roadmap::before { content: ''; position: absolute; left: 10px; top: 6px; bottom: 6px; width: 2px; background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 50%, var(--accent-4) 100%); }
+    .roadmap::before { content: ''; position: absolute; left: 10px; top: 6px; bottom: 6px; width: 2px; }
 
     .rm-item { position: relative; margin-bottom: 36px; }
 
     .rm-dot {
-
-      position: absolute; left: -26px; top: 6px;
-
-      width: 14px; height: 14px; border-radius: 50%;
-
-      background: var(--accent); border: 3px solid var(--bg); box-shadow: 0 0 10px var(--accent);
-
+      position: absolute;
+      left: -26px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--bg);
     }
 
-    .rm-dot.done { background: var(--accent-2); box-shadow: 0 0 10px var(--accent-2); }
+    .rm-dot.done { background: var(--accent-2); }
 
-    .rm-dot.future { background: var(--accent-4); box-shadow: 0 0 10px var(--accent-4); }
+    .rm-dot.future { background: var(--accent-4); }
 
-    .rm-phase { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-3); margin-bottom: 4px; }
+    .rm-phase { font-size: 11px; font-weight: 700; color: var(--accent-3); margin-bottom: 4px; }
 
     .rm-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 
@@ -419,43 +391,32 @@
 
     .rm-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 
-    .rm-tag { font-size: 11px; padding: 3px 10px; border-radius: 6px; font-weight: 600; background: rgba(88,197,255,.1); color: var(--accent); border: 1px solid rgba(88,197,255,.2); }
+    .rm-tag { font-size: 11px; padding: 3px 10px; border-radius: 6px; font-weight: 600; background: #e8f0fe; color: var(--accent); border: 1px solid #dadce0; }
 
 
 
     /* â”€â”€ NOTICE â”€â”€ */
 
-    .notice { display: flex; gap: 14px; padding: 18px 22px; border-radius: 12px; margin: 24px 0; font-size: 14px; align-items: flex-start; }
+    .notice { display: flex; gap: 14px; padding: 18px 22px; border-radius: 8px; margin: 24px 0; font-size: 14px; align-items: flex-start; }
 
     .notice-icon {
-
       flex-shrink: 0;
-
       min-width: 44px;
-
       padding-top: 2px;
-
       font-size: 10px;
-
       font-weight: 700;
-
-      letter-spacing: .12em;
-
-      text-transform: uppercase;
-
       color: var(--text);
-
     }
 
     .notice-body { color: var(--muted); }
 
     .notice-body strong { color: var(--text); display: block; margin-bottom: 4px; }
 
-    .notice.warn { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.25); }
+    .notice.warn { background: #fef7e0; border: 1px solid #dadce0; }
 
-    .notice.info { background: rgba(88,197,255,.08); border: 1px solid rgba(88,197,255,.2); }
+    .notice.info { background: #e8f0fe; border: 1px solid #dadce0; }
 
-    .notice.success { background: rgba(34,231,184,.08); border: 1px solid rgba(34,231,184,.2); }
+    .notice.success { background: #e6f4ea; border: 1px solid #dadce0; }
 
 
 
@@ -477,7 +438,7 @@
 
       .main { padding: 0 26px 66px; }
 
-      .hero { padding: 40px 0 32px; }
+      .hero { padding: 40px 0 32px; border: 0; }
 
       .card-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
@@ -534,76 +495,43 @@
     /* â”€â”€ DATA TABLE (used by Decentralization Tracker, Roadmap, Asset Model) â”€â”€ */
 
     .table-wrap {
-
       margin: 14px 0;
-
       overflow-x: auto;
-
       -webkit-overflow-scrolling: touch;
-
       border: 1px solid var(--line);
-
-      border-radius: 10px;
-
-      background: rgba(255,255,255,0.02);
-
+      border-radius: 8px;
+      background: transparent;
     }
 
     .data-table {
-
       width: 100%;
-
       min-width: 640px;
-
       border-collapse: collapse;
-
       font-size: 13.5px;
-
       line-height: 1.55;
-
       color: var(--text);
-
     }
 
     .data-table thead th {
-
-      background: rgba(88,197,255,0.10);
-
+      background: #e8f0fe;
       color: var(--accent);
-
       font-size: 11.5px;
-
       font-weight: 700;
-
-      letter-spacing: 0.07em;
-
-      text-transform: uppercase;
-
       text-align: left;
-
       padding: 12px 16px;
-
       border-bottom: 1px solid var(--line);
-
       white-space: nowrap;
-
     }
 
     .data-table tbody td {
-
       padding: 14px 16px;
-
       border-top: 1px solid var(--line);
-
       color: var(--muted);
-
       vertical-align: top;
-
       word-break: break-word;
-
     }
 
-    .data-table tbody tr:hover td { background: rgba(88,197,255,0.04); }
+    .data-table tbody tr:hover td { background: #e8f0fe; }
 
     .data-table tbody td strong { color: var(--text); }
 
@@ -616,11 +544,7 @@
     @media (max-width: 700px) {
 
       .table-wrap {
-
         position: relative;
-
-        box-shadow: inset -12px 0 10px -10px rgba(88,197,255,0.25);
-
       }
 
       .data-table { font-size: 12.5px; min-width: 560px; }
@@ -635,26 +559,24 @@
 
     /* â”€â”€ INLINE CODE â”€â”€ */
 
-    code { font-family: "JetBrains Mono", monospace; font-size: 12px; background: rgba(88,197,255,.1); color: var(--accent); padding: 2px 6px; border-radius: 4px; word-break: break-all; overflow-wrap: anywhere; }
+    code { font-family: Roboto Mono, ui-monospace, Menlo, Consolas, monospace; font-size: 12px; background: #e8f0fe; color: var(--accent); padding: 2px 6px; border-radius: 4px; word-break: break-all; overflow-wrap: anywhere; }
 
 
 
     /* â”€â”€ SCROLL TO TOP â”€â”€ */
 
-    .back-top { position: fixed; bottom: 28px; right: 28px; z-index: 99; background: var(--accent); color: #000; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; text-decoration: none; box-shadow: 0 4px 20px rgba(88,197,255,.4); opacity: 0.85; transition: opacity .2s; }
+    .back-top { position: fixed; bottom: 28px; right: 28px; z-index: 99; background: var(--accent); color: #ffffff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; text-decoration: none; opacity: 0.85; transition: opacity .2s; }
 
-    .back-top:hover { opacity: 1; }
+    .back-top:hover {  }
 
   </style>
 
-  <link rel="stylesheet" href="assets/css/site-light.css">
 </head>
 
 <body>
 
 
 
-<canvas id="c"></canvas>
 
 
 
@@ -854,17 +776,17 @@
            DECENTRALIZATION MILESTONE BANNER — May 24, 2026
            ANET BEP-20 ownership permanently renounced (owner = 0x0)
            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-      <div style="border:2px solid #f0b90b;background:linear-gradient(135deg,rgba(240,185,11,0.10),rgba(240,185,11,0.02));border-radius:12px;padding:18px 22px;margin-bottom:22px;">
-        <div style="font-size:0.78rem;letter-spacing:0.14em;font-weight:700;color:#f0b90b;text-transform:uppercase;margin-bottom:8px;">🛑 Decentralization Milestone &middot; May 24, 2026</div>
-        <div style="font-size:1.05rem;line-height:1.55;color:#e8e8e8;">
+      <div style="border: 2px solid #f9ab00;  border-radius: 8px;  padding: 18px 22px;  margin-bottom: 22px">
+        <div style="font-size: 0.78rem;  font-weight: 700;  color: #b06000;  margin-bottom: 8px">Decentralization Milestone &middot; May 24, 2026</div>
+        <div style="font-size: 1.05rem;  line-height: 1.55;  color: #202124">
           The ANET BEP-20 contract on BNB Chain has had its ownership <strong>permanently renounced</strong>. The <code>owner</code> slot is now <code>0x0000000000000000000000000000000000000000</code> and cannot be changed. The functions <code>mint()</code>, <code>pause()</code>, <code>unpause()</code>, and <code>setBlacklist()</code> are <strong>permanently disabled</strong>. Maximum supply is locked at <strong>21,000,000 ANET</strong> forever. The contract now obeys only its code, equally for every holder.
         </div>
-        <div style="font-size:0.92rem;line-height:1.6;color:#cfcfcf;margin-top:10px;">
+        <div style="font-size: 0.92rem;  line-height: 1.6;  color: #5f6368;  margin-top: 10px">
           <strong>Contract:</strong> <code>0x791055A7d52AA392eaE8De04250497f33807E46A</code><br/>
-          <strong>Verify:</strong> <a href="https://bscscan.com/token/0x791055A7d52AA392eaE8De04250497f33807E46A#readContract" target="_blank" rel="noopener" style="color:#f0b90b;">BscScan &rarr; Read Contract &rarr; <code>owner()</code></a> &rarr; returns <code>0x0000…0000</code>.<br/>
-          <strong>Co-founder stewardship (50% / 50%):</strong> <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener" style="color:#f0b90b;">@Joel_Dupalco</a> &middot; <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener" style="color:#f0b90b;">@Digitalgold1979</a>. Stewards hold tokens as ordinary holders with <strong>no</strong> on-chain administrative privileges.
+          <strong>Verify:</strong> <a href="https://bscscan.com/token/0x791055A7d52AA392eaE8De04250497f33807E46A#readContract" target="_blank" rel="noopener" style="color: #b06000">BscScan &rarr; Read Contract &rarr; <code>owner()</code></a> &rarr; returns <code>0x0000…0000</code>.<br/>
+          <strong>Co-founder stewardship (50% / 50%):</strong> <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener" style="color: #b06000">@Joel_Dupalco</a> &middot; <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener" style="color: #b06000">@Digitalgold1979</a>. Stewards hold tokens as ordinary holders with <strong>no</strong> on-chain administrative privileges.
         </div>
-        <div style="font-size:0.85rem;line-height:1.55;color:#a8a8a8;margin-top:10px;font-style:italic;">
+        <div style="font-size: 0.85rem;  line-height: 1.55;  color: #5f6368;  margin-top: 10px;  font-style: italic">
           Scope note: this milestone decentralizes the BNB Chain (Layer 2) token contract. As of <strong>May 25, 2026</strong> the bridge itself has also been decentralized &mdash; releases now require a 2-of-3 EIP-712 signature threshold from independent self-hosted signers against the <strong>AnetBridgeVault</strong> contract (<code>0x31438362a7667ce5559500023D025c7c14168B49</code>). The A-Network Layer 1 chain and cash-out escrow remain operator-run today and are scheduled for phased decentralization on the v3.x roadmap.
         </div>
       </div>
@@ -873,13 +795,13 @@
            DECENTRALIZATION STATUS TRACKER — Public scorecard
            Honest accounting of which components are trustless vs operator-run
            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-      <div style="border:2px solid #4a90e2;background:linear-gradient(135deg,rgba(74,144,226,0.08),rgba(74,144,226,0.02));border-radius:12px;padding:18px 22px;margin-bottom:22px;">
-        <div style="font-size:0.78rem;letter-spacing:0.14em;font-weight:700;color:#7fb8ff;text-transform:uppercase;margin-bottom:8px;">📊 Decentralization Status Tracker &middot; Updated May 28, 2026</div>
-        <div style="font-size:0.98rem;line-height:1.55;color:#e8e8e8;margin-bottom:14px;">
+      <div style="border: 2px solid #dadce0;  border-radius: 8px;  padding: 18px 22px;  margin-bottom: 22px">
+        <div style="font-size: 0.78rem;  font-weight: 700;  color: #202124;  margin-bottom: 8px">Decentralization Status Tracker &middot; Updated May 28, 2026</div>
+        <div style="font-size: 0.98rem;  line-height: 1.55;  color: #202124;  margin-bottom: 14px">
           A-Network is on a <strong>phased decentralization roadmap</strong>. This scorecard documents exactly which components are currently trustless versus operator-run. We publish it so the community can hold the project accountable, in line with the Bitcoin principle: <em>"don't trust &mdash; verify."</em>
         </div>
-        <div class="table-wrap" style="margin:0;">
-          <table class="data-table" style="font-size:13px;">
+        <div class="table-wrap" style="margin: 0">
+          <table class="data-table" style="font-size: 13px">
             <thead>
               <tr><th>#</th><th>Milestone</th><th>Status</th><th>What it means</th></tr>
             </thead>
@@ -887,76 +809,76 @@
               <tr>
                 <td>1</td>
                 <td><strong>ANET BEP-20 ownership renounced</strong></td>
-                <td><span style="color:#22e7b8;font-weight:700;">✅ DONE</span><br/><span style="font-size:11.5px;color:#a8a8a8;">May 24, 2026</span></td>
-                <td>Token contract on BNB Chain is immutable. Nobody &mdash; including founders &mdash; can mint, pause, or blacklist. <a href="https://bscscan.com/token/0x791055A7d52AA392eaE8De04250497f33807E46A#readContract" target="_blank" rel="noopener" style="color:#7fb8ff;">Verify on BscScan</a>.</td>
+                <td><span style="color: #137333;  font-weight: 700">Done</span><br/><span style="font-size: 11.5px;  color: #5f6368">May 24, 2026</span></td>
+                <td>Token contract on BNB Chain is immutable. Nobody &mdash; including founders &mdash; can mint, pause, or blacklist. <a href="https://bscscan.com/token/0x791055A7d52AA392eaE8De04250497f33807E46A#readContract" target="_blank" rel="noopener" style="color: #1967d2">Verify on BscScan</a>.</td>
               </tr>
               <tr>
                 <td>2</td>
                 <td><strong>Bridge escrow &rarr; on-chain multi-signer vault</strong></td>
-                <td><span style="color:#22e7b8;font-weight:700;">✅ DONE</span><br/><span style="font-size:11.5px;color:#a8a8a8;">May 25, 2026</span></td>
-                <td>The wANET escrow was migrated from a hot EOA to <strong>AnetBridgeVault</strong> &mdash; a custom one-way-sink contract that is stricter than a Gnosis Safe: admin cannot rescue the vault asset, all releases require an EIP-712 signature threshold, and the bridge submitter wallet has zero signing authority. <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color:#7fb8ff;">View on BscScan</a>.</td>
+                <td><span style="color: #137333;  font-weight: 700">Done</span><br/><span style="font-size: 11.5px;  color: #5f6368">May 25, 2026</span></td>
+                <td>The wANET escrow was migrated from a hot EOA to <strong>AnetBridgeVault</strong> &mdash; a custom one-way-sink contract that is stricter than a Gnosis Safe: admin cannot rescue the vault asset, all releases require an EIP-712 signature threshold, and the bridge submitter wallet has zero signing authority. <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color: #1967d2">View on BscScan</a>.</td>
               </tr>
               <tr>
                 <td>3</td>
                 <td><strong>Deploy AnetBridgeVault with 2-of-3 EIP-712 signatures</strong></td>
-                <td><span style="color:#22e7b8;font-weight:700;">✅ DONE</span><br/><span style="font-size:11.5px;color:#a8a8a8;">May 25, 2026 &middot; deploy tx 0x82da7f2a&hellip;62c7e</span></td>
-                <td>Smart-contract bridge replaces the custodial relayer. On-chain caps (10k / 50k / 250k ANET per tx / per-recipient-24h / global-24h), on-chain burn-ID dedup, EIP-712 2-of-3 multi-signer release. Signatures are collected on L1 via <code>POST&nbsp;/bridge/burns/:id/sigs</code> from three independent self-hosted signer daemons; the relayer holds no signing keys and can only submit gas. <a href="contracts/src/AnetBridgeVault.sol" style="color:#7fb8ff;">Source</a> &middot; <a href="contracts/AUDIT_BRIDGE_2026-05-24.md" style="color:#7fb8ff;">Internal audit</a>.</td>
+                <td><span style="color: #137333;  font-weight: 700">Done</span><br/><span style="font-size: 11.5px;  color: #5f6368">May 25, 2026 &middot; deploy tx 0x82da7f2a&hellip;62c7e</span></td>
+                <td>Smart-contract bridge replaces the custodial relayer. On-chain caps (10k / 50k / 250k ANET per tx / per-recipient-24h / global-24h), on-chain burn-ID dedup, EIP-712 2-of-3 multi-signer release. Signatures are collected on L1 via <code>POST&nbsp;/bridge/burns/:id/sigs</code> from three independent self-hosted signer daemons; the relayer holds no signing keys and can only submit gas. <a href="contracts/src/AnetBridgeVault.sol" style="color: #1967d2">Source</a> &middot; <a href="contracts/AUDIT_BRIDGE_2026-05-24.md" style="color: #1967d2">Internal audit</a>.</td>
               </tr>
               <tr>
                 <td>4</td>
                 <td><strong>Founder treasury custody &rarr; vault (50% deposited)</strong></td>
-                <td><span style="color:#22e7b8;font-weight:700;">✅ DONE</span><br/><span style="font-size:11.5px;color:#a8a8a8;">May 25, 2026</span></td>
-                <td>The <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener" style="color:#7fb8ff;">@Joel_Dupalco</a> 50% founder allocation &mdash; <strong>10,499,798.020348 wANET</strong> &mdash; was moved from a hot EOA (<code>0xB65B30&hellip;6184F</code>) into <strong>AnetBridgeVault</strong>. wANET held by the founder is now custodied by the 2-of-3 EIP-712 multisig: no single signer (including the founder himself) can release the funds. Vault total post-deposit: <strong>~10.5M wANET</strong>. The <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener" style="color:#7fb8ff;">@Digitalgold1979</a> mirror 50% deposit is the next milestone. <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color:#7fb8ff;">Verify vault balance on BscScan</a>.</td>
+                <td><span style="color: #137333;  font-weight: 700">Done</span><br/><span style="font-size: 11.5px;  color: #5f6368">May 25, 2026</span></td>
+                <td>The <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener" style="color: #1967d2">@Joel_Dupalco</a> 50% founder allocation &mdash; <strong>10,499,798.020348 wANET</strong> &mdash; was moved from a hot EOA (<code>0xB65B30&hellip;6184F</code>) into <strong>AnetBridgeVault</strong>. wANET held by the founder is now custodied by the 2-of-3 EIP-712 multisig: no single signer (including the founder himself) can release the funds. Vault total post-deposit: <strong>~10.5M wANET</strong>. The <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener" style="color: #1967d2">@Digitalgold1979</a> mirror 50% deposit is the next milestone. <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color: #1967d2">Verify vault balance on BscScan</a>.</td>
               </tr>
               <tr>
                 <td>5</td>
                 <td><strong>48-hour timelock on vault admin actions</strong></td>
-                <td><span style="color:#22e7b8;font-weight:700;">✅ DONE</span><br/><span style="font-size:11.5px;color:#a8a8a8;">May 25, 2026</span></td>
-                <td>Shipped as part of the May 25 AnetBridgeVault deploy. Every admin parameter change (fee bps, fee recipient, signer-set rotation, threshold change, pauser/operator rotation, unpause) goes through <code>scheduleChange</code> &rarr; <strong>48-hour</strong> wait &rarr; <code>executeChange</code>, with a 14-day grace window and bait-and-switch-resistant arg re-hashing. Cancellable via <code>cancelChange(id)</code>. Source: <code>TIMELOCK_DELAY = 48 hours</code> in <a href="contracts/src/AnetBridgeVault.sol" style="color:#7fb8ff;">AnetBridgeVault.sol</a>.</td>
+                <td><span style="color: #137333;  font-weight: 700">Done</span><br/><span style="font-size: 11.5px;  color: #5f6368">May 25, 2026</span></td>
+                <td>Shipped as part of the May 25 AnetBridgeVault deploy. Every admin parameter change (fee bps, fee recipient, signer-set rotation, threshold change, pauser/operator rotation, unpause) goes through <code>scheduleChange</code> &rarr; <strong>48-hour</strong> wait &rarr; <code>executeChange</code>, with a 14-day grace window and bait-and-switch-resistant arg re-hashing. Cancellable via <code>cancelChange(id)</code>. Source: <code>TIMELOCK_DELAY = 48 hours</code> in <a href="contracts/src/AnetBridgeVault.sol" style="color: #1967d2">AnetBridgeVault.sol</a>.</td>
               </tr>
               <tr>
                 <td>6</td>
                 <td><strong>AnetSwap ownership &rarr; multisig + timelock</strong></td>
-                <td><span style="color:#ffb84a;font-weight:700;">🟡 IN PROGRESS</span><br/><span style="font-size:11.5px;color:#a8a8a8;">Code shipped May 28, 2026 &middot; awaiting v3.6 deploy</span></td>
-                <td>Contract code complete in v3.6: 48h timelock on every parameter change, 3-role split (<code>admin</code> / <code>pauser</code> / <code>operator</code>), 2-step admin handover, withdrawals admin-only with destination hard-wired to <code>admin</code> so a compromised owner key cannot redirect. See <a href="#v36-changelog" style="color:#7fb8ff;">v3.6 changelog</a>. Full deploy runbook published at <a href="contracts/DEPLOY_V36_MIGRATION.md" style="color:#7fb8ff;">contracts/DEPLOY_V36_MIGRATION.md</a>. <strong>Pending:</strong> fresh BSC deploy with Safe multisig as <code>admin</code> + bridge-state migration off the v3.5 contract at <code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>. Renounce remains a separate downstream milestone (analogous to #10).</td>
+                <td><span style="color: #b06000;  font-weight: 700">In progress</span><br/><span style="font-size: 11.5px;  color: #5f6368">Code shipped May 28, 2026 &middot; awaiting v3.6 deploy</span></td>
+                <td>Contract code complete in v3.6: 48h timelock on every parameter change, 3-role split (<code>admin</code> / <code>pauser</code> / <code>operator</code>), 2-step admin handover, withdrawals admin-only with destination hard-wired to <code>admin</code> so a compromised owner key cannot redirect. See <a href="#v36-changelog" style="color: #1967d2">v3.6 changelog</a>. Full deploy runbook published at <a href="contracts/DEPLOY_V36_MIGRATION.md" style="color: #1967d2">contracts/DEPLOY_V36_MIGRATION.md</a>. <strong>Pending:</strong> fresh BSC deploy with Safe multisig as <code>admin</code> + bridge-state migration off the v3.5 contract at <code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>. Renounce remains a separate downstream milestone (analogous to #10).</td>
               </tr>
               <tr>
                 <td>7</td>
                 <td><strong>Public peer-review program</strong></td>
-                <td><span style="color:#ffb84a;font-weight:700;">🟡 IN PROGRESS</span><br/><span style="font-size:11.5px;color:#a8a8a8;">Recognition program open May 28, 2026</span></td>
-                <td>A-Network has neither cash budget for a paid audit firm (USD 15&ndash;60k at this scope) nor a discretionary wANET pool to offer as bounty &mdash; the founder allocation is reserved for its published economic functions and we will not dilute that commitment. Instead we publish the <a href="contracts/AUDIT_PACKAGE.md" style="color:#7fb8ff;">full audit package</a> (1,170 LOC, frozen commit SHA, source hashes, reproducible build, full threat model) and offer external researchers <strong>durable public recognition</strong>: credit in the fix commit, credit in the whitepaper changelog, an entry in <code>SECURITY_FINDINGS.md</code>, a pinned project-account acknowledgement for Critical / High findings, and a signed letter of acknowledgement for portfolios. Rules and severity table in <a href="SECURITY.md" style="color:#7fb8ff;">SECURITY.md</a>. This is the honest stance: a zero-budget project should not pretend to fund what it cannot fund. Milestone flips to &#x2705; DONE when at least one external researcher publishes a finding (or a documented zero-finding clean review) against the frozen commit.</td>
+                <td><span style="color: #b06000;  font-weight: 700">In progress</span><br/><span style="font-size: 11.5px;  color: #5f6368">Recognition program open May 28, 2026</span></td>
+                <td>A-Network has neither cash budget for a paid audit firm (USD 15&ndash;60k at this scope) nor a discretionary wANET pool to offer as bounty &mdash; the founder allocation is reserved for its published economic functions and we will not dilute that commitment. Instead we publish the <a href="contracts/AUDIT_PACKAGE.md" style="color: #1967d2">full audit package</a> (1,170 LOC, frozen commit SHA, source hashes, reproducible build, full threat model) and offer external researchers <strong>durable public recognition</strong>: credit in the fix commit, credit in the whitepaper changelog, an entry in <code>SECURITY_FINDINGS.md</code>, a pinned project-account acknowledgement for Critical / High findings, and a signed letter of acknowledgement for portfolios. Rules and severity table in <a href="SECURITY.md" style="color: #1967d2">SECURITY.md</a>. This is the honest stance: a zero-budget project should not pretend to fund what it cannot fund. Milestone flips to &#x2705; DONE when at least one external researcher publishes a finding (or a documented zero-finding clean review) against the frozen commit.</td>
               </tr>
               <tr>
                 <td>8</td>
                 <td><strong>L1 multi-validator set (3+ independent operators)</strong></td>
-                <td><span style="color:#ffb84a;font-weight:700;">🟡 IN PROGRESS</span><br/><span style="font-size:11.5px;color:#a8a8a8;">Recruitment spec published May 28, 2026</span></td>
-                <td>Public recruitment + technical spec at <a href="https://github.com/A-Network-2026/anet-chain/blob/main/VALIDATOR_RECRUITMENT_SPEC.md" target="_blank" rel="noopener" style="color:#7fb8ff;">anet-chain/VALIDATOR_RECRUITMENT_SPEC.md</a>. Phase 2 target = 3 independent operators on 2-of-3 quorum (closes the scorecard but is honestly not yet BFT). <strong>Phase 2 is volunteer:</strong> no monetary compensation, no wANET grants, no infra reimbursement &mdash; A-Network is a zero-budget project and the founder allocation is reserved for its published economic functions. Phase 2 operators receive public attribution, governance voice, and priority eligibility for Phase 3 protocol-level block rewards when they ship. Phase 3 (4 validators, 3-of-4) is the first BFT-capable configuration and the next planned milestone after #8. <strong>Pending:</strong> two external operators completing onboarding (§6 of the spec).</td>
+                <td><span style="color: #b06000;  font-weight: 700">In progress</span><br/><span style="font-size: 11.5px;  color: #5f6368">Recruitment spec published May 28, 2026</span></td>
+                <td>Public recruitment + technical spec at <a href="https://github.com/A-Network-2026/anet-chain/blob/main/VALIDATOR_RECRUITMENT_SPEC.md" target="_blank" rel="noopener" style="color: #1967d2">anet-chain/VALIDATOR_RECRUITMENT_SPEC.md</a>. Phase 2 target = 3 independent operators on 2-of-3 quorum (closes the scorecard but is honestly not yet BFT). <strong>Phase 2 is volunteer:</strong> no monetary compensation, no wANET grants, no infra reimbursement &mdash; A-Network is a zero-budget project and the founder allocation is reserved for its published economic functions. Phase 2 operators receive public attribution, governance voice, and priority eligibility for Phase 3 protocol-level block rewards when they ship. Phase 3 (4 validators, 3-of-4) is the first BFT-capable configuration and the next planned milestone after #8. <strong>Pending:</strong> two external operators completing onboarding (§6 of the spec).</td>
               </tr>
               <tr>
                 <td>9</td>
                 <td><strong>Open-source bridge relayer &amp; L1 node</strong></td>
-                <td><span style="color:#ffb84a;font-weight:700;">🟡 IN PROGRESS</span><br/><span style="font-size:11.5px;color:#a8a8a8;">License + governance landed May 28, 2026</span></td>
+                <td><span style="color: #b06000;  font-weight: 700">In progress</span><br/><span style="font-size: 11.5px;  color: #5f6368">License + governance landed May 28, 2026</span></td>
                 <td>All three repositories are MIT-licensed (OSI-approved): <code>A-Network-2026/LICENSE</code>, <code>A-Network-2026/pi-backend/LICENSE</code>, <code>anet-chain/LICENSE</code>. Public contribution surface landed: <code>SECURITY.md</code> + <code>CONTRIBUTING.md</code> on both A-Network-2026 and anet-chain, with coordinated-disclosure timelines, safe-harbor language, and per-component scope. <strong>Pending:</strong> publishing signed release-tag binaries of <code>anet-chain</code> and <code>pi-backend</code> on GitHub Releases with SHA-256 sums so non-builders can verify what they run.</td>
               </tr>
               <tr>
                 <td>10</td>
                 <td><strong>Renounce vault admin role</strong></td>
-                <td><span style="color:#a8a8a8;font-weight:700;">⏳ PLANNED</span></td>
+                <td><span style="color: #5f6368;  font-weight: 700">PLANNED</span></td>
                 <td>After 6+ months of clean bridge operation under multisig, the admin role on AnetBridgeVault is renounced. Bridge becomes fully Model-2 (smart-contract, trustless).</td>
               </tr>
               <tr>
                 <td>11</td>
                 <td><strong>AnetSwap hardening pass (v3.5 audit)</strong></td>
-                <td><span style="color:#22e7b8;font-weight:700;">✅ DONE</span><br/><span style="font-size:11.5px;color:#a8a8a8;">May 28, 2026</span></td>
-                <td>Internal &ldquo;Satoshi &amp; Engineer Thanks&rdquo; audit applied: Safe-multisig&ndash;compatible fee/withdraw via <code>.call{value:}</code>, paginated <code>getPendingSwapsPaged()</code> view, withdrawal &amp; fee-forward events, graceful fee-forward fallback. See <a href="#v35-changelog" style="color:#7fb8ff;">v3.5 changelog</a>.</td>
+                <td><span style="color: #137333;  font-weight: 700">Done</span><br/><span style="font-size: 11.5px;  color: #5f6368">May 28, 2026</span></td>
+                <td>Internal &ldquo;Satoshi &amp; Engineer Thanks&rdquo; audit applied: Safe-multisig&ndash;compatible fee/withdraw via <code>.call{value:}</code>, paginated <code>getPendingSwapsPaged()</code> view, withdrawal &amp; fee-forward events, graceful fee-forward fallback. See <a href="#v35-changelog" style="color: #1967d2">v3.5 changelog</a>.</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div style="font-size:0.85rem;line-height:1.6;color:#a8a8a8;margin-top:12px;">
-          <strong style="color:#cfcfcf;">Current honest classification:</strong> the <strong>ANET BEP-20 token contract is ownerless</strong>, while the bridge release path remains controlled by its disclosed 2-of-3 signer policy, on-chain caps, and burn-ID dedup. These controls reduce single-key risk but do not make the whole system trustless. The <strong>L1 chain, cash-out escrow, reserve operations, and off-chain services remain operator-run today</strong>. A-Network does not claim system-wide decentralization until the stated milestones are complete and externally verified.
+        <div style="font-size: 0.85rem;  line-height: 1.6;  color: #5f6368;  margin-top: 12px">
+          <strong style="color: #5f6368">Current honest classification:</strong> the <strong>ANET BEP-20 token contract is ownerless</strong>, while the bridge release path remains controlled by its disclosed 2-of-3 signer policy, on-chain caps, and burn-ID dedup. These controls reduce single-key risk but do not make the whole system trustless. The <strong>L1 chain, cash-out escrow, reserve operations, and off-chain services remain operator-run today</strong>. A-Network does not claim system-wide decentralization until the stated milestones are complete and externally verified.
         </div>
-        <div style="font-size:0.85rem;line-height:1.55;color:#a8a8a8;margin-top:8px;font-style:italic;">
+        <div style="font-size: 0.85rem;  line-height: 1.55;  color: #5f6368;  margin-top: 8px;  font-style: italic">
           Canonical supply invariant (v4.4): native L1 ANET is created <strong>only</strong> by the mining/activation schedule (hard cap 21,000,000) and can only <em>decrease</em> via bridge-out burns — no deposit, purchase, or external burn mints native ANET. The BEP-20 market token (<code>0x791055&hellip;E46A</code>, fixed 21,000,000 supply, pre-minted at token genesis) is a <strong>separate external market asset</strong>: it is released from the bridge vault against verified L1 burns, but holding or buying it confers <strong>no redemption right</strong> into native L1 ANET. The two 21M caps are parallel accounting domains, not one fungible pool. For the portal-generation wANET (mint-on-lock), &Sigma;&nbsp;wANET<sub>portal</sub> &le; ANET burned via portal locks.
         </div>
       </div>
@@ -982,7 +904,7 @@
 
       <div class="panel panel-red">
         <h4>The invariant</h4>
-        <p style="margin-bottom:0;"><strong>No amount of purchasing, transferring, swapping, liquidity activity, wallet movement, or completion of the 1,000-session requirement can turn market-acquired wANET into newly spendable native Layer&nbsp;1 ANET. Native Layer&nbsp;1 ANET originates only from A-Network&apos;s mining/issuance rules.</strong></p>
+        <p style="margin-bottom: 0"><strong>No amount of purchasing, transferring, swapping, liquidity activity, wallet movement, or completion of the 1,000-session requirement can turn market-acquired wANET into newly spendable native Layer&nbsp;1 ANET. Native Layer&nbsp;1 ANET originates only from A-Network&apos;s mining/issuance rules.</strong></p>
       </div>
 
       <h3>Permitted and prohibited directions</h3>
@@ -1013,12 +935,12 @@
 
       <div class="panel panel-red">
         <h4>Consumer disclosure (read before acquiring wANET)</h4>
-        <p style="margin-bottom:0;">Purchasing wANET does <strong>not</strong> grant any right to redeem it for native Layer&nbsp;1 ANET, any claim on Layer&nbsp;1 supply, or any entitlement from completing mining sessions. A-Network makes <strong>no</strong> guarantee of price parity between wANET and native ANET, and no representation about price, appreciation, liquidity, or returns of either asset. <code>1&nbsp;ANET&nbsp;=&nbsp;100,000,000&nbsp;ANTS</code> is a denomination rule only &mdash; it is not a market-value claim. This architecture is flagged for ongoing legal review under Section&nbsp;15.</p>
+        <p style="margin-bottom: 0">Purchasing wANET does <strong>not</strong> grant any right to redeem it for native Layer&nbsp;1 ANET, any claim on Layer&nbsp;1 supply, or any entitlement from completing mining sessions. A-Network makes <strong>no</strong> guarantee of price parity between wANET and native ANET, and no representation about price, appreciation, liquidity, or returns of either asset. <code>1&nbsp;ANET&nbsp;=&nbsp;100,000,000&nbsp;ANTS</code> is a denomination rule only &mdash; it is not a market-value claim. This architecture is flagged for ongoing legal review under Section&nbsp;15.</p>
       </div>
 
       <div class="panel panel-red">
         <h4>What did NOT change</h4>
-        <p style="margin-bottom:0;">The 21,000,000 native supply cap, the emission and halving schedule, the 1,000-session activation threshold, P2P transfers, the v4.3 vesting schedule, validator selection, all existing balances (including historical bridge-funded wallets), and the freedom to trade wANET on external markets are unchanged. v4.4 closes one inbound door that contradicted the mining-first economy &mdash; nothing else.</p>
+        <p style="margin-bottom: 0">The 21,000,000 native supply cap, the emission and halving schedule, the 1,000-session activation threshold, P2P transfers, the v4.3 vesting schedule, validator selection, all existing balances (including historical bridge-funded wallets), and the freedom to trade wANET on external markets are unchanged. v4.4 closes one inbound door that contradicted the mining-first economy &mdash; nothing else.</p>
       </div>
     </section>
 
@@ -1046,7 +968,7 @@
 
       <div class="panel panel-green">
         <h4>What did NOT change</h4>
-        <p style="margin-bottom:0;">The 21,000,000 ANET supply cap, the emission and halving schedule, the 1,000-session activation threshold, P2P transfer enforcement, the bridge-funded exemption, validator selection, and every existing balance are unchanged by this version. v4.3 adds one time-based gate on the mined-coin exit ramp &mdash; nothing else.</p>
+        <p style="margin-bottom: 0">The 21,000,000 ANET supply cap, the emission and halving schedule, the 1,000-session activation threshold, P2P transfer enforcement, the bridge-funded exemption, validator selection, and every existing balance are unchanged by this version. v4.3 adds one time-based gate on the mined-coin exit ramp &mdash; nothing else.</p>
       </div>
     </section>
 
@@ -1077,14 +999,14 @@
 
       <div class="panel panel-green">
         <h4>What did NOT change</h4>
-        <p style="margin-bottom:0;">The 21,000,000 ANET supply cap, the 1,000-session activation threshold, the bridge-funded exemption, the native-DEX and P2P enforcement logic, and every existing balance are unchanged by this version. v4.2 adds visibility and independent verifiability; it does not alter economics or custody.</p>
+        <p style="margin-bottom: 0">The 21,000,000 ANET supply cap, the 1,000-session activation threshold, the bridge-funded exemption, the native-DEX and P2P enforcement logic, and every existing balance are unchanged by this version. v4.2 adds visibility and independent verifiability; it does not alter economics or custody.</p>
       </div>
     </section>
 
     <section class="wp-section" id="v41-changelog">
       <div class="section-label">v4.1 Changelog &middot; July 6, 2026</div>
       <h2>Version 4.1 &mdash; Permissionless DEX, Transparent Revenue &amp; Decentralization Posture</h2>
-      <p>Version 4.1 states the governance and revenue posture of the v4.0 trading surface in plain terms, consistent with the Regulatory and Legal Review Framework in <a href="#legal" style="color:#7fb8ff;">Section&nbsp;15</a>. It introduces no new custody, yield, or price promise.</p>
+      <p>Version 4.1 states the governance and revenue posture of the v4.0 trading surface in plain terms, consistent with the Regulatory and Legal Review Framework in <a href="#legal" style="color: #1967d2">Section&nbsp;15</a>. It introduces no new custody, yield, or price promise.</p>
 
       <h3>Permissionless by design</h3>
       <ul>
@@ -1102,7 +1024,7 @@
 
       <div class="panel panel-red">
         <h4>No investment solicitation</h4>
-        <p style="margin-bottom:0;">Nothing in the DEX, the ANET Wallet extension, or this paper is an offer, solicitation, or recommendation to buy, sell, or hold any asset, nor investment, legal, or tax advice. Trading crypto assets carries risk, including total loss. Do your own research. Features that have not passed the applicable legal, security, reserve, and operational launch gates remain disabled or geographically restricted, and each user is responsible for compliance in their own jurisdiction.</p>
+        <p style="margin-bottom: 0">Nothing in the DEX, the ANET Wallet extension, or this paper is an offer, solicitation, or recommendation to buy, sell, or hold any asset, nor investment, legal, or tax advice. Trading crypto assets carries risk, including total loss. Do your own research. Features that have not passed the applicable legal, security, reserve, and operational launch gates remain disabled or geographically restricted, and each user is responsible for compliance in their own jurisdiction.</p>
       </div>
     </section>
 
@@ -1113,7 +1035,7 @@
 
       <div class="panel panel-red">
         <h4>Scope &amp; market separation</h4>
-        <p style="margin-bottom:0;">The on-chain DEX trades the market representation of ANET &mdash; the ownerless BEP-20 <code>0x791055A7d52AA392eaE8De04250497f33807E46A</code> &mdash; and third-party assets on their own chains. Native Layer 1 balances, the Bitcoin reserve market, and the EVM market remain accounted separately per v3.9. Nothing in this release grants any address authority to mint native Layer 1 ANET.</p>
+        <p style="margin-bottom: 0">The on-chain DEX trades the market representation of ANET &mdash; the ownerless BEP-20 <code>0x791055A7d52AA392eaE8De04250497f33807E46A</code> &mdash; and third-party assets on their own chains. Native Layer 1 balances, the Bitcoin reserve market, and the EVM market remain accounted separately per v3.9. Nothing in this release grants any address authority to mint native Layer 1 ANET.</p>
       </div>
 
       <h3 id="v40-dex">Multi-chain on-chain DEX (<code>dex.html</code>)</h3>
@@ -1139,7 +1061,7 @@
 
       <div class="panel panel-red">
         <h4>MetaMask cannot hold native ANET</h4>
-        <p style="margin-bottom:0;">The A-Network Layer&nbsp;1 is not EVM-compatible, so MetaMask and Phantom cannot sign native L1 transactions. Use the <strong>ANET Wallet extension</strong> for native ANET. To use MetaMask specifically, first bridge L1&nbsp;ANET &rarr; wANET (BEP-20, 1:1) and trade wANET on PancakeSwap; the native L1 side is signed by the ANET Wallet extension or app.</p>
+        <p style="margin-bottom: 0">The A-Network Layer&nbsp;1 is not EVM-compatible, so MetaMask and Phantom cannot sign native L1 transactions. Use the <strong>ANET Wallet extension</strong> for native ANET. To use MetaMask specifically, first bridge L1&nbsp;ANET &rarr; wANET (BEP-20, 1:1) and trade wANET on PancakeSwap; the native L1 side is signed by the ANET Wallet extension or app.</p>
       </div>
     </section>
 
@@ -1150,7 +1072,7 @@
 
       <h3 id="how-to-buy">1. Buy or sell ANET on-chain (BNB Chain)</h3>
       <ol>
-        <li>Open <a href="dex.html" style="color:#7fb8ff;">the DEX</a> and select the <strong>Swap</strong> tab. The on-chain card defaults to <strong>BNB Chain</strong>.</li>
+        <li>Open <a href="dex.html" style="color: #1967d2">the DEX</a> and select the <strong>Swap</strong> tab. The on-chain card defaults to <strong>BNB Chain</strong>.</li>
         <li>Click <strong>Connect Wallet (MetaMask)</strong> and approve; the app switches your wallet to BNB Chain if needed.</li>
         <li>Choose <strong>Buy</strong> (BNB &rarr; ANET) or <strong>Sell</strong> (ANET &rarr; BNB), enter an amount, and review the live quote: rate, the 0.875% treasury fee, minimum received at your slippage, and the PancakeSwap route.</li>
         <li>Set slippage (2% default; raise it for volatile conditions), then click <strong>Buy&nbsp;/&nbsp;Sell</strong>.</li>
@@ -1207,7 +1129,7 @@
 
       <div class="panel panel-red">
         <h4>Safety</h4>
-        <p style="margin-bottom:0;">Never share your seed phrase or private key. A-Network never asks for it. Confirm you are on <code>a-network.net</code>, verify the ANET contract <code>0x791055A7d52AA392eaE8De04250497f33807E46A</code> on BscScan, and start with a small test amount. On-chain transactions are irreversible.</p>
+        <p style="margin-bottom: 0">Never share your seed phrase or private key. A-Network never asks for it. Confirm you are on <code>a-network.net</code>, verify the ANET contract <code>0x791055A7d52AA392eaE8De04250497f33807E46A</code> on BscScan, and start with a small test amount. On-chain transactions are irreversible.</p>
       </div>
     </section>
 
@@ -1218,7 +1140,7 @@
 
       <div class="panel panel-red">
         <h4>Current status: bootstrap liquidity is not real liquidity</h4>
-        <p style="margin-bottom:0;">Any existing pool whose reserves were created from protocol defaults, genesis configuration, administrator top-up, or any source that did not debit a contributor wallet is classified as <strong>bootstrap/test state</strong>. It must not be advertised, priced, counted in total value locked, or opened for additional public deposits. The liquidity interface displays this classification and disables contribution.</p>
+        <p style="margin-bottom: 0">Any existing pool whose reserves were created from protocol defaults, genesis configuration, administrator top-up, or any source that did not debit a contributor wallet is classified as <strong>bootstrap/test state</strong>. It must not be advertised, priced, counted in total value locked, or opened for additional public deposits. The liquidity interface displays this classification and disables contribution.</p>
       </div>
 
       <h3 id="l1-liquidity">Real-liquidity launch gates</h3>
@@ -1283,7 +1205,7 @@
         <li>The vote endpoints are additive and isolated under <code>/governance</code>; no existing mining, wallet, or bridge behavior changes.</li>
       </ul>
 
-      <p style="font-size:0.9rem;color:#a8a8a8;font-style:italic;margin-top:14px;">
+      <p style="font-size: 0.9rem;  color: #5f6368;  font-style: italic;  margin-top: 14px">
         Governance V1 is intentionally minimal: one account, one vote, transparent tally. Future iterations may add proposal threading and on-chain anchoring of finalized results, but the participation-based (non-capital-weighted) principle is foundational and will be preserved.
       </p>
     </section>
@@ -1329,7 +1251,7 @@
       <h3>Security posture</h3>
       <p>The oracle <strong>reduces</strong> trust rather than adding it: the Web2&nbsp;&rarr;&nbsp;chain edge moves from implicit to cryptographically verified and publicly replayable. Any change to a wallet, a session count, the chain-id, or the timestamp invalidates the signature; monotonic application plus the freshness window make stale or duplicated snapshots inert.</p>
 
-      <p style="font-size:0.9rem;color:#a8a8a8;font-style:italic;margin-top:14px;">
+      <p style="font-size: 0.9rem;  color: #5f6368;  font-style: italic;  margin-top: 14px">
         Next: a matching Web2 snapshot signer using the identical eligibility rule; Phase&nbsp;1 on-chain activation events so a follower can rebuild full account state from blocks alone; Phase&nbsp;3 producer-signed multi-producer blocks. Economics/PoS remain deferred (price discovery stays on L2).
       </p>
     </section>
@@ -1345,7 +1267,7 @@
 
       <h3>Governance model (new)</h3>
       <div class="table-wrap">
-        <table class="data-table" style="font-size:13px;">
+        <table class="data-table" style="font-size: 13px">
           <thead>
             <tr><th>Role</th><th>Recommended holder</th><th>What it can do</th><th>What it cannot do</th></tr>
           </thead>
@@ -1399,7 +1321,7 @@
       <h3>Testing</h3>
       <p>37 new Hardhat tests cover the role split (pauser cannot unpause, operator cannot move funds, stranger cannot do anything), 48h timelock on every parameter, bait-and-switch resistance, the 14-day grace window, cancellation, and the 2-step admin handover. Combined with the 33 existing <code>AnetBridgeVault</code> tests, the contracts repository now passes <strong>70/70</strong> green.</p>
 
-      <p style="font-size:0.9rem;color:#a8a8a8;font-style:italic;margin-top:14px;">
+      <p style="font-size: 0.9rem;  color: #5f6368;  font-style: italic;  margin-top: 14px">
         Fee-on-transfer token accounting and entry-side rolling-24h caps remain on the backlog (carried over from v3.5) and will land in v3.7.
       </p>
     </section>
@@ -1415,7 +1337,7 @@
 
       <h3>Fixes applied to AnetSwap.sol (BSC <code>0x1A1AFE5BF1ffDB64aC10958cCe2D06B22Fb47Fb8</code>)</h3>
       <div class="table-wrap">
-        <table class="data-table" style="font-size:13px;">
+        <table class="data-table" style="font-size: 13px">
           <thead>
             <tr><th>Finding</th><th>Severity</th><th>Fix</th></tr>
           </thead>
@@ -1455,7 +1377,7 @@
         <li>pi-backend has strict CSP, rate limits, IP allowlist on admin routes, and timing-safe admin-key comparison.</li>
       </ul>
 
-      <p style="font-size:0.9rem;color:#a8a8a8;font-style:italic;margin-top:14px;">
+      <p style="font-size: 0.9rem;  color: #5f6368;  font-style: italic;  margin-top: 14px">
         The fix commits and the full audit report are tracked in the contracts repository. The next whitepaper bump (v3.6) will record the fee-on-transfer and entry-side cap fixes, and milestone&nbsp;#6 (AnetSwap multisig + timelock) on the decentralization scorecard.
       </p>
     </section>
@@ -2078,11 +2000,11 @@
 
       <p>In Bitcoin, the smallest indivisible unit is called a <em>Satoshi</em> (or <em>Sat</em>), where 1 BTC = 100,000,000 Satoshis. A-Network adopts the identical precision model but with its own cultural identity.</p>
 
-      <div class="panel" style="border:1px solid rgba(255,176,32,0.45); background:rgba(60,40,0,0.25); padding:16px 18px; border-radius:12px; margin:14px 0 18px;">
-        <h4 style="margin:0 0 10px; color:#ffcf6a;">Canonical Asset Model &mdash; Bitcoin-Aligned</h4>
-        <p style="margin:0 0 10px; color:var(--text); font-size:13.5px; line-height:1.55;">A-Network follows the exact same three-tier naming model as Bitcoin. There is one coin, one atomic unit, and one wrapped representation for external markets. These names are <strong>permanent and canonical</strong>.</p>
+      <div class="panel" style="border: 1px solid #dadce0;  background: #fef7e0;  padding: 16px 18px;  border-radius: 8px;  margin: 14px 0 18px">
+        <h4 style="margin: 0 0 10px;  color: #b06000">Canonical Asset Model &mdash; Bitcoin-Aligned</h4>
+        <p style="margin: 0 0 10px;  color: var(--text);  font-size: 13.5px;  line-height: 1.55">A-Network follows the exact same three-tier naming model as Bitcoin. There is one coin, one atomic unit, and one wrapped representation for external markets. These names are <strong>permanent and canonical</strong>.</p>
         <div class="table-scroll">
-          <table class="wp-table" style="margin:0;">
+          <table class="wp-table" style="margin: 0">
             <thead>
               <tr><th>Role</th><th>A-Network</th><th>Bitcoin equivalent</th><th>Notes</th></tr>
             </thead>
@@ -2093,18 +2015,18 @@
             </tbody>
           </table>
         </div>
-        <p style="margin:12px 0 0; color:var(--muted); font-size:12.5px; line-height:1.55;">The native network supply is fixed at <strong>21,000,000 ANET</strong> forever &mdash; expressed as <strong>2,100,000,000,000,000 ANTS</strong> at the atomic level (a denomination rule: 1&nbsp;ANET&nbsp;=&nbsp;100,000,000&nbsp;ANTS). The external wANET BEP-20 has its own fixed 21,000,000 supply, pre-minted at token genesis and distributed via the bridge vault and market operations. The two supplies are accounted <strong>separately</strong>: native ANET is mining-originated and can only decrease via bridge-out burns; wANET is the external market representation with <strong>no redemption right</strong> into native ANET. Neither can inflate the other, and “1 native ANET = 1 wANET market value” is <strong>not guaranteed</strong> — relative value is set by markets.</p>
+        <p style="margin: 12px 0 0;  color: var(--muted);  font-size: 12.5px;  line-height: 1.55">The native network supply is fixed at <strong>21,000,000 ANET</strong> forever &mdash; expressed as <strong>2,100,000,000,000,000 ANTS</strong> at the atomic level (a denomination rule: 1&nbsp;ANET&nbsp;=&nbsp;100,000,000&nbsp;ANTS). The external wANET BEP-20 has its own fixed 21,000,000 supply, pre-minted at token genesis and distributed via the bridge vault and market operations. The two supplies are accounted <strong>separately</strong>: native ANET is mining-originated and can only decrease via bridge-out burns; wANET is the external market representation with <strong>no redemption right</strong> into native ANET. Neither can inflate the other, and “1 native ANET = 1 wANET market value” is <strong>not guaranteed</strong> — relative value is set by markets.</p>
       </div>
 
-      <div class="panel" style="border-left:4px solid #f7931a; margin-top:18px;">
-        <h4 style="margin-top:0;">wANET Multi-Chain Roadmap</h4>
-        <p style="margin:0 0 12px; color:var(--text);">wANET launches first on <strong>BNB Chain</strong> for the lowest fees, fastest finality, and broadest retail liquidity (PancakeSwap, BSC DEXs). Additional chains are on the roadmap and will only be deployed when each can be secured by the same <strong>AnetBridgeVault + multisig</strong> pattern. Under the v4.4 one-way policy, accounting is explicit:</p>
-        <div class="formula-box" style="margin:0 0 12px;">
+      <div class="panel" style="border-left: 4px solid #dadce0;  margin-top: 18px">
+        <h4 style="margin-top: 0">wANET Multi-Chain Roadmap</h4>
+        <p style="margin: 0 0 12px;  color: var(--text)">wANET launches first on <strong>BNB Chain</strong> for the lowest fees, fastest finality, and broadest retail liquidity (PancakeSwap, BSC DEXs). Additional chains are on the roadmap and will only be deployed when each can be secured by the same <strong>AnetBridgeVault + multisig</strong> pattern. Under the v4.4 one-way policy, accounting is explicit:</p>
+        <div class="formula-box" style="margin: 0 0 12px">
       <span class="comment">// Canonical one-way accounting (v4.4)</span>
       <span class="keyword">Native L1 ANET</span>: mining-issued, capped at 21,000,000, decreases only via export burns<br/>
       <span class="keyword">External wANET</span>: separate market asset supply; no redemption path into native L1 ANET
         </div>
-        <div class="table-wrap" style="margin:0;">
+        <div class="table-wrap" style="margin: 0">
           <table class="data-table">
             <thead>
               <tr><th>Phase</th><th>Chain</th><th>Status</th><th>Rationale</th></tr>
@@ -2118,7 +2040,7 @@
             </tbody>
           </table>
         </div>
-        <p style="margin:12px 0 0; color:var(--muted); font-size:12.5px; line-height:1.55;">No chain launch may imply or advertise external-&gt;native redemption. Any future cross-chain expansion must preserve the v4.4 invariant: externally acquired wANET never mints native L1 ANET. Multi-chain deployment proceeds only at a pace that preserves auditability, consumer disclosure, and the bridge security model.</p>
+        <p style="margin: 12px 0 0;  color: var(--muted);  font-size: 12.5px;  line-height: 1.55">No chain launch may imply or advertise external-&gt;native redemption. Any future cross-chain expansion must preserve the v4.4 invariant: externally acquired wANET never mints native L1 ANET. Multi-chain deployment proceeds only at a pace that preserves auditability, consumer disclosure, and the bridge security model.</p>
       </div>
 
 
@@ -2126,9 +2048,9 @@
 
         <h4>Definition: Ant</h4>
 
-        <p style="margin:0; color: var(--text);">An <strong>Ant</strong> is the smallest indivisible unit of $ANET.</p>
+        <p style="margin: 0;  color: var(--text)">An <strong>Ant</strong> is the smallest indivisible unit of $ANET.</p>
 
-        <div class="formula-box" style="margin: 14px 0 0;">
+        <div class="formula-box" style="margin: 14px 0 0">
 
 <span class="comment">// Unit conversion</span>
 
@@ -2158,7 +2080,7 @@
 
         </div>
 
-        <p style="margin-top:12px; margin-bottom:0; font-size:13px; color: var(--muted);">Transaction fees on the Web4 Layer 1 will be denominated in Ants &mdash; enabling sub-cent fee structures even at high ANET valuations. On-chain amounts will always display with full 8-decimal precision.</p>
+        <p style="margin-top: 12px;  margin-bottom: 0;  font-size: 13px;  color: var(--muted)">Transaction fees on the Web4 Layer 1 will be denominated in Ants &mdash; enabling sub-cent fee structures even at high ANET valuations. On-chain amounts will always display with full 8-decimal precision.</p>
 
       </div>
 
@@ -2288,7 +2210,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
         <li>Total supply: <strong>21,000,000 ANET</strong> &mdash; fixed, no minting.</li>
         <li>Listed on DEX (PancakeSwap / BSC ecosystem).</li>
         <li>On-chain market data visible at:
-          <a href="https://dexscreener.com/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b" target="_blank" rel="noopener" style="color:var(--accent);">DexScreener &rarr; ANET/BSC</a>
+          <a href="https://dexscreener.com/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b" target="_blank" rel="noopener" style="color: var(--accent)">DexScreener &rarr; ANET/BSC</a>
         </li>
         <li>The Web3 token provides <strong>external liquidity and market price discovery</strong> for ANET independent of the closed-loop Layer 1 system.</li>
         <li>Web3 token allocation follows a founder-stewardship model distinct from Layer 1 mining distribution.</li>
@@ -2313,11 +2235,11 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <h3 id="value-formation">Value Formation</h3>
       <div class="panel panel-accent">
         <h4>Layer 1 Value Formation</h4>
-        <p style="margin-bottom:0;">Layer 1 utility derives from participation and native settlement activity. Market value, if any, is determined only in separately identified, actually funded markets. The protocol does not claim that usage creates a particular price or return.</p>
+        <p style="margin-bottom: 0">Layer 1 utility derives from participation and native settlement activity. Market value, if any, is determined only in separately identified, actually funded markets. The protocol does not claim that usage creates a particular price or return.</p>
       </div>
       <div class="panel panel-green">
         <h4>Web3 Value Formation</h4>
-        <p style="margin-bottom:0;">The BEP-20 ANET token&rsquo;s value is determined by <strong>open market dynamics</strong>: buyer and seller activity on decentralised exchanges, liquidity depth, market sentiment, and broader BNB Chain ecosystem conditions. A-Network does not set or guarantee the Web3 token price.</p>
+        <p style="margin-bottom: 0">The BEP-20 ANET token&rsquo;s value is determined by <strong>open market dynamics</strong>: buyer and seller activity on decentralised exchanges, liquidity depth, market sentiment, and broader BNB Chain ecosystem conditions. A-Network does not set or guarantee the Web3 token price.</p>
       </div>
 
       <h3 id="user-transparency">User Transparency</h3>
@@ -2368,15 +2290,15 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
       <h3 id="sc-implementation">Future execution upgrade gate</h3>
       <div class="panel panel-accent">
         <h4>No automatic smart-contract activation</h4>
-        <p style="margin-bottom:0;">A future VM is a separate consensus and security decision, not a feature that automatically opens when development reaches an informal percentage. Activation requires a written specification, threat model, deterministic implementation, public test environment, state-transition tests, independent security audit, validator compatibility review, upgrade and rollback procedure, and explicit network activation decision.</p>
+        <p style="margin-bottom: 0">A future VM is a separate consensus and security decision, not a feature that automatically opens when development reaches an informal percentage. Activation requires a written specification, threat model, deterministic implementation, public test environment, state-transition tests, independent security audit, validator compatibility review, upgrade and rollback procedure, and explicit network activation decision.</p>
       </div>
       <div class="panel panel-green">
         <h4>Bitcoin-inspired boundary</h4>
-        <p style="margin-bottom:0;">The intended near-term model is Bitcoin-like in one limited sense: a native coin ledger with a small, consensus-defined transaction surface. A-Network does not claim Bitcoin's proof-of-work, security budget, decentralization, operational history, or network properties.</p>
+        <p style="margin-bottom: 0">The intended near-term model is Bitcoin-like in one limited sense: a native coin ledger with a small, consensus-defined transaction surface. A-Network does not claim Bitcoin's proof-of-work, security budget, decentralization, operational history, or network properties.</p>
       </div>
       <div class="panel panel-purple">
         <h4>Review before production</h4>
-        <p style="margin-bottom:0;">No production user funds may depend on a future execution engine until the exact deployed revision and its upgrade controls have completed independent review. Audit completion does not eliminate risk and must not be described as a guarantee of safety.</p>
+        <p style="margin-bottom: 0">No production user funds may depend on a future execution engine until the exact deployed revision and its upgrade controls have completed independent review. Audit completion does not eliminate risk and must not be described as a guarantee of safety.</p>
       </div>
     </section>
 
@@ -2976,7 +2898,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
         </ul>
 
-        <p style="margin-bottom:0;">At the default threshold of <strong>5 points</strong> (configurable through <code>ANTI_ABUSE_RISK_BLOCK_THRESHOLD</code>), mining actions are blocked and the account is flagged for review.</p>
+        <p style="margin-bottom: 0">At the default threshold of <strong>5 points</strong> (configurable through <code>ANTI_ABUSE_RISK_BLOCK_THRESHOLD</code>), mining actions are blocked and the account is flagged for review.</p>
 
       </div>
 
@@ -3022,7 +2944,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
         </ul>
 
-        <h4 style="margin-top: 16px;">Bot Pattern Detection</h4>
+        <h4 style="margin-top: 16px">Bot Pattern Detection</h4>
 
         <p>The backend scans recent session history for two common automation signatures:</p>
 
@@ -3034,7 +2956,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
         </ul>
 
-        <p style="margin-bottom:0;">A positive match adds risk points and surfaces the account for review.</p>
+        <p style="margin-bottom: 0">A positive match adds risk points and surfaces the account for review.</p>
 
       </div>
 
@@ -3142,7 +3064,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
         </ul>
 
-        <p style="margin-bottom:0;">Cluster appearance is not itself a conviction rule. Results are returned to an admin and require review before enforcement.</p>
+        <p style="margin-bottom: 0">Cluster appearance is not itself a conviction rule. Results are returned to an admin and require review before enforcement.</p>
 
       </div>
 
@@ -3168,7 +3090,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
         </ul>
 
-        <p style="margin-bottom:0;">Execution requires a confirmation token (<code>DELETE_SUSPICIOUS_UNVERIFIED_USERS</code>). Affected accounts are soft-deleted and any active sessions are cancelled.</p>
+        <p style="margin-bottom: 0">Execution requires a confirmation token (<code>DELETE_SUSPICIOUS_UNVERIFIED_USERS</code>). Affected accounts are soft-deleted and any active sessions are cancelled.</p>
 
       </div>
 
@@ -3228,7 +3150,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
         </ul>
 
-        <p style="margin-bottom:0;">A summary panel also reports eligible count, claimed count, banned count, and flagged count.</p>
+        <p style="margin-bottom: 0">A summary panel also reports eligible count, claimed count, banned count, and flagged count.</p>
 
       </div>
 
@@ -3254,7 +3176,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
         </ol>
 
-        <p style="margin-bottom:0;">Results are returned with user context sufficient for enforcement review.</p>
+        <p style="margin-bottom: 0">Results are returned with user context sufficient for enforcement review.</p>
 
       </div>
 
@@ -3306,7 +3228,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
         </ol>
 
-        <h4 style="margin-top: 16px;">What Banned Users Cannot Do</h4>
+        <h4 style="margin-top: 16px">What Banned Users Cannot Do</h4>
 
         <ul>
 
@@ -3320,7 +3242,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
         </ul>
 
-        <p style="margin-bottom:0;">Banned users receive a suspension response on protected mining actions.</p>
+        <p style="margin-bottom: 0">Banned users receive a suspension response on protected mining actions.</p>
 
       </div>
 
@@ -3629,7 +3551,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       </div>
 
-      <div class="panel" style="border-left: 3px solid var(--accent-2); background: rgba(34,231,184,.06);">
+      <div class="panel" style="border-left: 3px solid var(--accent-2);  background: #f8f9fa">
 
         <strong>No MetaMask required.</strong> The entire bridge runs natively inside the A-Network wallet app. Private keys are derived in-app from the user&rsquo;s seed phrase (BIP39/BIP32) and are never transmitted to any server.
 
@@ -3653,7 +3575,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
             <tr><td><strong>L1 Endpoint</strong></td><td><code>POST /bridge/burn</code> &nbsp;|&nbsp; <code>GET /bridge/burns</code> (admin-key gated)</td></tr>
 
-            <tr><td><strong>Bridge Vault (BSC)</strong></td><td><code>0x31438362a7667ce5559500023D025c7c14168B49</code> &mdash; <strong>AnetBridgeVault</strong> smart contract, deployed May 25, 2026. <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color:#7fb8ff;">BscScan</a>.</td></tr>
+            <tr><td><strong>Bridge Vault (BSC)</strong></td><td><code>0x31438362a7667ce5559500023D025c7c14168B49</code> &mdash; <strong>AnetBridgeVault</strong> smart contract, deployed May 25, 2026. <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color: #1967d2">BscScan</a>.</td></tr>
 
             <tr><td><strong>Legacy Escrow (BSC)</strong></td><td><code>0x27766A070e6F55BD832A10aB9c5931FfA2037029</code> &mdash; original hot-EOA escrow. Being drained to the vault; retained here for historical traceability only.</td></tr>
 
@@ -3673,9 +3595,9 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       </div>
 
-      <div class="panel" style="border-left: 3px solid var(--accent-2); background: rgba(34,231,184,.06);">
+      <div class="panel" style="border-left: 3px solid var(--accent-2);  background: #f8f9fa">
 
-        <strong>Operational note (updated May&nbsp;25, 2026).</strong> The founder side of the bridge vault is now funded: <strong>10,499,798.020348 wANET</strong> &mdash; the entire <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener" style="color:#f0b90b;">@Joel_Dupalco</a> 50% founder allocation &mdash; was transferred from <code>0xB65B30&hellip;6184F</code> into <strong>AnetBridgeVault</strong> (<code>0x31438362&hellip;14168B49</code>) and is now custodied under the 2-of-3 EIP-712 multi-signer policy. The vault total (post-deposit) is <strong>~10,499,898.02 wANET</strong>, independently verifiable via <code>vaultBalance()</code> on BscScan. The mirror deposit from <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener" style="color:#f0b90b;">@Digitalgold1979</a> (the other 50%) is the next planned step; the L1 burn endpoint remains gated behind the <code>ANET_BRIDGE_BURN_ENABLED</code> flag pending the mirror deposit and final operational readiness. Until then, users continue to use the BSC&nbsp;&rarr;&nbsp;L1 direction (AnetSwap) only. <a href="https://bscscan.com/address/0xB65B30C96b8A36Ed7cC8ad74B3324585D126184F" target="_blank" rel="noopener" style="color:#7fb8ff;">Founder address activity</a> &middot; <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color:#7fb8ff;">Vault activity</a>.
+        <strong>Operational note (updated May&nbsp;25, 2026).</strong> The founder side of the bridge vault is now funded: <strong>10,499,798.020348 wANET</strong> &mdash; the entire <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener" style="color: #b06000">@Joel_Dupalco</a> 50% founder allocation &mdash; was transferred from <code>0xB65B30&hellip;6184F</code> into <strong>AnetBridgeVault</strong> (<code>0x31438362&hellip;14168B49</code>) and is now custodied under the 2-of-3 EIP-712 multi-signer policy. The vault total (post-deposit) is <strong>~10,499,898.02 wANET</strong>, independently verifiable via <code>vaultBalance()</code> on BscScan. The mirror deposit from <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener" style="color: #b06000">@Digitalgold1979</a> (the other 50%) is the next planned step; the L1 burn endpoint remains gated behind the <code>ANET_BRIDGE_BURN_ENABLED</code> flag pending the mirror deposit and final operational readiness. Until then, users continue to use the BSC&nbsp;&rarr;&nbsp;L1 direction (AnetSwap) only. <a href="https://bscscan.com/address/0xB65B30C96b8A36Ed7cC8ad74B3324585D126184F" target="_blank" rel="noopener" style="color: #1967d2">Founder address activity</a> &middot; <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color: #1967d2">Vault activity</a>.
 
       </div>
 
@@ -3693,7 +3615,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
           <tbody>
 
-            <tr><td><strong>Vault Contract</strong></td><td><code>0x31438362a7667ce5559500023D025c7c14168B49</code> &middot; deployed BSC mainnet, May&nbsp;25, 2026 &middot; <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color:#7fb8ff;">BscScan</a></td></tr>
+            <tr><td><strong>Vault Contract</strong></td><td><code>0x31438362a7667ce5559500023D025c7c14168B49</code> &middot; deployed BSC mainnet, May&nbsp;25, 2026 &middot; <a href="https://bscscan.com/address/0x31438362a7667ce5559500023D025c7c14168B49" target="_blank" rel="noopener" style="color: #1967d2">BscScan</a></td></tr>
 
             <tr><td><strong>Vault Asset</strong></td><td>wANET BEP-20 (<code>0x791055A7d52AA392eaE8De04250497f33807E46A</code>) &mdash; ownership permanently renounced (v3.2 milestone)</td></tr>
 
@@ -3721,7 +3643,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       </div>
 
-      <div class="panel" style="border-left: 3px solid var(--accent-2); background: rgba(34,231,184,.06);">
+      <div class="panel" style="border-left: 3px solid var(--accent-2);  background: #f8f9fa">
 
         <strong>Bitcoin-principle alignment.</strong> The bridge release path now obeys only its code and a public signer policy: <em>don't trust &mdash; verify</em>. Any holder can independently confirm the vault contract source, the signer set, the on-chain caps, and the EIP-712 domain separator on BscScan without relying on any A-Network operator.
 
@@ -3769,24 +3691,24 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       <p>Its <strong>Time-Based Proof-of-Work (TPoW)</strong> replaces computational expenditure with committed time. In the Web2 phase, the work unit is a verified 6-hour session. In the Live ANTS Mainnet, settlement windows are decoupled from that off-chain work interval and reopen every 2 seconds, while blocks are emitted only when transfers or synchronized ANTS supply exist. Validator eligibility continues to derive from real Web2 session activity.</p>
 
-      <div class="panel" style="border-left:3px solid #22e7b8;background:rgba(34,231,184,.06);">
-        <h4 style="margin-top:0;">Hybrid TPoW + PoS &mdash; the Live Mainnet model</h4>
+      <div class="panel" style="border-left: 3px solid #dadce0;  background: #f8f9fa">
+        <h4 style="margin-top: 0">Hybrid TPoW + PoS &mdash; the Live Mainnet model</h4>
         <p>The Layer 1 reachable at <a href="https://explorer.a-network.net" target="_blank" rel="noopener">explorer.a-network.net</a> is identified as the production <strong>Mainnet</strong>. Production status is not a substitute for staged testing. Any material consensus, custody, liquidity, or execution change must first be exercised in an isolated test environment or reproducible local network before mainnet activation. The current design describes two participation signals:</p>
         <ul>
           <li><strong>TPoW (entry)</strong> &mdash; eligibility is earned through verified 6-hour mining sessions on commodity smartphones. ASIC-resistant and capital-resistant by construction.</li>
           <li><strong>PoS (finality)</strong> &mdash; once a participant crosses the 1,000-session genesis threshold, accumulated ANTS &rarr; ANET stake can be bonded to operate a validator and sign settlement blocks. Slashing applies to equivocation and downtime.</li>
         </ul>
-        <p style="margin-bottom:0;">Every block must reference both a TPoW participation root and a PoS signature set. Neither side can fork the chain alone. Layer 1 has <strong>no founder allocation and no premine</strong>; every ANET on L1 originates from a mined ANTS session. This is the structural path to full decentralization: capital cannot buy in without time, and time cannot ship blocks without stake.</p>
+        <p style="margin-bottom: 0">Every block must reference both a TPoW participation root and a PoS signature set. Neither side can fork the chain alone. Layer 1 has <strong>no founder allocation and no premine</strong>; every ANET on L1 originates from a mined ANTS session. This is the structural path to full decentralization: capital cannot buy in without time, and time cannot ship blocks without stake.</p>
       </div>
 
-      <div class="panel" style="border-left:3px solid #7fb8ff;background:rgba(127,184,255,.06);">
-        <h4 style="margin-top:0;">Accountable Operators (Pre-Validator-Set)</h4>
+      <div class="panel" style="border-left: 3px solid #dadce0;  background: #f8f9fa">
+        <h4 style="margin-top: 0">Accountable Operators (Pre-Validator-Set)</h4>
         <p>Until the open validator registry is live (Phase 3, in progress), infrastructure is run by <strong>publicly named</strong> operators. There are no anonymous core multisig holders. The first step in &ldquo;don&rsquo;t trust, verify&rdquo; is knowing who to hold accountable.</p>
         <ul>
           <li><strong>Joel Dupalco</strong> (Coach Joel) &mdash; co-founder, L1 protocol, backend, bridge signer #1, 50% BEP-20 steward &middot; <a href="https://x.com/Joel_Dupalco" target="_blank" rel="noopener">@Joel_Dupalco</a></li>
           <li><strong>Khurram Zahid</strong> (Digital Gold) &mdash; co-founder, bridge signer #2, 50% BEP-20 steward, mobile release &amp; iOS/Android signing (Apple Team ID <code>L792KSQ9VC</code>), Play Store / TestFlight delivery &middot; <a href="https://x.com/Digitalgold1979" target="_blank" rel="noopener">@Digitalgold1979</a></li>
         </ul>
-        <p style="margin-bottom:0;">As validators come online the operator set rotates from named individuals to a permissionless validator registry, and the multisig threshold expands beyond 2-of-3.</p>
+        <p style="margin-bottom: 0">As validators come online the operator set rotates from named individuals to a permissionless validator registry, and the multisig threshold expands beyond 2-of-3.</p>
       </div>
 
 
@@ -3829,7 +3751,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       <h3 id="phase5-proofs">Phase 5 (Roadmap): Decentralized Mining Proofs &mdash; Research Spec</h3>
 
-      <div class="panel" style="border-left: 3px solid #f5a623; background: rgba(245,166,35,.06);">
+      <div class="panel" style="border-left: 3px solid #dadce0;  background: #fef7e0">
 
         <strong>Status: Roadmap / Research &mdash; NOT active in production.</strong> The decentralized signed-proof model described below is the design target for a future protocol upgrade. As of v1.0.61 (123) the production mining flow is exclusively the authenticated server-side attendance check-in (<code>POST&nbsp;/mining/start</code>). The mobile application performs no on-device hashing, proof-of-work, background compute, or cryptocurrency mining. This section is preserved as a forward-looking specification for community review.
 
@@ -4167,7 +4089,7 @@ Block {
 
         </ul>
 
-        <div class="formula-box" style="margin-top:14px;">
+        <div class="formula-box" style="margin-top: 14px">
 
 <span class="comment">// Sync order query (conceptual)</span>
 
@@ -4385,7 +4307,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
         </ul>
 
-        <h4 style="margin-top: 16px;">What the Ant Code Colony System Does NOT Do</h4>
+        <h4 style="margin-top: 16px">What the Ant Code Colony System Does NOT Do</h4>
 
         <ul>
 
@@ -4686,8 +4608,8 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
       <div class="panel panel-accent">
         <h4>Layer 1 Block Explorer</h4>
         <p>Monitor Layer 1 transactions, wallet balances, and block activity on the official A-Network explorer.</p>
-        <p style="margin-bottom:0;">
-          <a href="https://explorer.a-network.net/explorer" target="_blank" rel="noopener" style="color:var(--accent); font-weight:600;">
+        <p style="margin-bottom: 0">
+          <a href="https://explorer.a-network.net/explorer" target="_blank" rel="noopener" style="color: var(--accent);  font-weight: 600">
             https://explorer.a-network.net/explorer &rarr;
           </a>
         </p>
@@ -4696,8 +4618,8 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
       <div class="panel panel-green">
         <h4>Web3 Market &mdash; ANET on BNB Chain (DEX)</h4>
         <p>Real-time price, liquidity, and trade activity for the BEP-20 ANET token on BNB Chain.</p>
-        <p style="margin-bottom:0;">
-          <a href="https://dexscreener.com/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b" target="_blank" rel="noopener" style="color:var(--accent); font-weight:600;">
+        <p style="margin-bottom: 0">
+          <a href="https://dexscreener.com/bsc/0xb90071e377a31a6ea2cfdebe19a4d5226c420b6b" target="_blank" rel="noopener" style="color: var(--accent);  font-weight: 600">
             DexScreener &rarr; ANET/BSC &rarr;
           </a>
         </p>
@@ -4705,11 +4627,11 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
       <div class="panel panel-purple">
         <h4>Website &amp; Documentation</h4>
-        <ul style="margin-bottom:0;">
-          <li><a href="https://a-network.net" target="_blank" rel="noopener" style="color:var(--accent);">https://a-network.net</a> &mdash; Main site</li>
-          <li><a href="https://a-network.net/whitepaper.html" target="_blank" rel="noopener" style="color:var(--accent);">https://a-network.net/whitepaper.html</a> &mdash; This whitepaper</li>
-          <li><a href="https://a-network.net/privacy.html" target="_blank" rel="noopener" style="color:var(--accent);">Privacy Policy</a></li>
-          <li><a href="https://a-network.net/terms.html" target="_blank" rel="noopener" style="color:var(--accent);">Terms of Service</a></li>
+        <ul style="margin-bottom: 0">
+          <li><a href="https://a-network.net" target="_blank" rel="noopener" style="color: var(--accent)">https://a-network.net</a> &mdash; Main site</li>
+          <li><a href="https://a-network.net/whitepaper.html" target="_blank" rel="noopener" style="color: var(--accent)">https://a-network.net/whitepaper.html</a> &mdash; This whitepaper</li>
+          <li><a href="https://a-network.net/privacy.html" target="_blank" rel="noopener" style="color: var(--accent)">Privacy Policy</a></li>
+          <li><a href="https://a-network.net/terms.html" target="_blank" rel="noopener" style="color: var(--accent)">Terms of Service</a></li>
         </ul>
       </div>
     </section>
@@ -4740,7 +4662,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
         <h4>Company Information</h4>
 
-        <p style="margin-bottom: 0;">Project records identify the operator as <strong>A Network LLC</strong>, a California limited liability company, California Entity No. <strong>20260170159</strong>, with an initial business filing dated <strong>April 15, 2026</strong>. Corporate status, beneficial ownership, authority, tax treatment, and required registrations must be independently confirmed during legal due diligence.</p>
+        <p style="margin-bottom: 0">Project records identify the operator as <strong>A Network LLC</strong>, a California limited liability company, California Entity No. <strong>20260170159</strong>, with an initial business filing dated <strong>April 15, 2026</strong>. Corporate status, beneficial ownership, authority, tax treatment, and required registrations must be independently confirmed during legal due diligence.</p>
 
       </div>
 
@@ -4758,7 +4680,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
         <p>Users remain responsible for their own legal and tax obligations, but operator obligations cannot be shifted to users by disclaimer. A-Network does not represent that every feature is lawful or available in every jurisdiction.</p>
 
-        <p style="margin-bottom: 0;"><strong>Features that have not passed the applicable legal, security, reserve, and operational launch gates must remain disabled or geographically restricted.</strong></p>
+        <p style="margin-bottom: 0"><strong>Features that have not passed the applicable legal, security, reserve, and operational launch gates must remain disabled or geographically restricted.</strong></p>
 
       </div>
 
@@ -4793,7 +4715,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
 
 
-      <p>Full legal documents: <a href="https://a-network.net/privacy.html" style="color: var(--accent);">Privacy Policy</a> &middot; <a href="https://a-network.net/terms.html" style="color: var(--accent);">Terms of Service</a> &middot; <a href="https://a-network.net/delete-account.html" style="color: var(--accent);">Account Deletion</a></p>
+      <p>Full legal documents: <a href="https://a-network.net/privacy.html" style="color: var(--accent)">Privacy Policy</a> &middot; <a href="https://a-network.net/terms.html" style="color: var(--accent)">Terms of Service</a> &middot; <a href="https://a-network.net/delete-account.html" style="color: var(--accent)">Account Deletion</a></p>
 
     </section>
 
@@ -4805,13 +4727,13 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <div class="wp-footer">
 
-      <p style="margin-bottom: 8px;"><strong style="color: var(--text); font-family: 'Orbitron', sans-serif; font-size: 14px;">A-NETWORK</strong> &middot; Official Whitepaper v3.9 &middot; June 14, 2026</p>
+      <p style="margin-bottom: 8px"><strong style="color: var(--text);  font-family: Roboto, Arial, sans-serif;  font-size: 14px">A-NETWORK</strong> &middot; Official Whitepaper v3.9 &middot; June 14, 2026</p>
 
       <p>Website: <a href="https://a-network.net">a-network.net</a> &middot; Contract: <a href="https://bscscan.com/address/0x791055A7d52AA392eaE8De04250497f33807E46A">0x791055A7...E46A</a> &middot; App: <a href="https://play.google.com/store/apps/details?id=com.anetwork.app">Google Play</a></p>
 
       <p>A Network LLC &middot; California LLC &middot; Entity No. 20260170159</p>
 
-      <p style="margin-top: 10px;">&copy; 2026 A-Network. All rights reserved. &nbsp;&middot;&nbsp; <a href="https://a-network.net/privacy.html">Privacy</a> &nbsp;&middot;&nbsp; <a href="https://a-network.net/terms.html">Terms</a></p>
+      <p style="margin-top: 10px">&copy; 2026 A-Network. All rights reserved. &nbsp;&middot;&nbsp; <a href="https://a-network.net/privacy.html">Privacy</a> &nbsp;&middot;&nbsp; <a href="https://a-network.net/terms.html">Terms</a></p>
 
     </div>
 
@@ -4828,110 +4750,6 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
 
 <script>
-
-// â”€â”€ PARTICLES â”€â”€
-
-(function() {
-
-  const canvas = document.getElementById('c');
-
-  const ctx = canvas.getContext('2d');
-
-  let W, H, particles = [];
-
-
-
-  function resize() {
-
-    W = canvas.width  = window.innerWidth;
-
-    H = canvas.height = window.innerHeight;
-
-  }
-
-
-
-  function Particle() {
-
-    this.x  = Math.random() * W;
-
-    this.y  = Math.random() * H;
-
-    this.vx = (Math.random() - 0.5) * 0.3;
-
-    this.vy = (Math.random() - 0.5) * 0.3;
-
-    this.r  = Math.random() * 1.5 + 0.4;
-
-    this.a  = Math.random() * 0.55 + 0.1;
-
-    this.c  = Math.random() > 0.6 ? '#22e7b8' : '#58c5ff';
-
-  }
-
-
-
-  Particle.prototype.update = function() {
-
-    this.x += this.vx; this.y += this.vy;
-
-    if (this.x < 0) this.x = W;
-
-    if (this.x > W) this.x = 0;
-
-    if (this.y < 0) this.y = H;
-
-    if (this.y > H) this.y = 0;
-
-  };
-
-
-
-  function init() {
-
-    resize();
-
-    particles = Array.from({length: 80}, () => new Particle());
-
-  }
-
-
-
-  function draw() {
-
-    ctx.clearRect(0, 0, W, H);
-
-    particles.forEach(p => {
-
-      p.update();
-
-      ctx.beginPath();
-
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-
-      ctx.fillStyle = p.c;
-
-      ctx.globalAlpha = p.a;
-
-      ctx.fill();
-
-    });
-
-    ctx.globalAlpha = 1;
-
-    requestAnimationFrame(draw);
-
-  }
-
-
-
-  window.addEventListener('resize', resize);
-
-  init();
-
-  draw();
-
-})();
 
 
 

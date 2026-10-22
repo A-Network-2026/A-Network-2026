@@ -16,83 +16,77 @@
   <link rel="icon" type="image/png" href="logo.png">
   <style>
     :root {
-      --bg: #070f1d;
-      --panel: #0e1a30;
-      --line: rgba(120, 173, 255, 0.2);
-      --text: #f1f6ff;
-      --muted: #a1b2cf;
-      --accent: #59c6ff;
-      --accent2: #2be3b2;
-      --danger: #ff7c9f;
+      --bg: #ffffff;
+      --panel: #ffffff;
+      --line: #dadce0;
+      --text: #202124;
+      --muted: #5f6368;
+      --accent: #1967d2;
+      --accent2: #188038;
+      --danger: #c5221f;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(circle at 15% 15%, rgba(89, 198, 255, 0.15), transparent 26%),
-        radial-gradient(circle at 85% 12%, rgba(43, 227, 178, 0.12), transparent 28%),
-        linear-gradient(180deg, #081427 0%, var(--bg) 100%);
       min-height: 100vh;
       padding: 16px;
     }
     .wrap { max-width: 980px; margin: 0 auto; }
     .card {
-      background: rgba(14, 26, 48, 0.9);
+      background: #e8f0fe;
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 8px;
       padding: 16px;
       margin-top: 14px;
-      backdrop-filter: blur(8px);
     }
     .title {
       margin: 0;
       font-size: clamp(24px, 4vw, 38px);
-      letter-spacing: 0.03em;
-      font-weight: 800;
+      font-weight: 400;
     }
     .muted { color: var(--muted); }
     .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
     input {
       flex: 1;
       min-width: 230px;
-      background: #0a1324;
+      background: #ffffff;
       color: var(--text);
       border: 1px solid var(--line);
-      border-radius: 10px;
+      border-radius: 8px;
       padding: 10px 12px;
       font-size: 14px;
     }
     button, .btn {
       appearance: none;
       border: 1px solid var(--line);
-      border-radius: 10px;
+      border-radius: 8px;
       padding: 10px 14px;
-      color: var(--text);
-      background: #123056;
+      color: #ffffff;
+      background: #1a73e8;
       text-decoration: none;
-      font-weight: 700;
+      font-weight: 500;
       cursor: pointer;
     }
-    .btn.secondary { background: #10243c; }
+    .btn.secondary { background: #ffffff; color: #1a73e8; border: 1px solid #dadce0; }
     .grid { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .pill {
       display: inline-block;
-      padding: 5px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      color: var(--accent2);
+      padding: 0;
+      border: 0;
+      color: #5f6368;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 500;
+      background: transparent;
     }
     .avatar {
       width: 92px;
       height: 92px;
-      border-radius: 999px;
-      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      border: 2px solid #dadce0;
       object-fit: cover;
-      background: #0a1324;
+      background: #ffffff;
     }
     .hidden { display: none !important; }
     .error { color: var(--danger); font-weight: 700; }
@@ -101,7 +95,6 @@
     }
   </style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4393604935823547" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="assets/css/site-light.css">
 </head>
 <body>
   <div class="wrap">
@@ -113,7 +106,7 @@
         <button id="loadBtn" type="button">Load Profile</button>
       </div>
       <p id="statusText" class="muted">Use a valid wallet address to view profile.</p>
-      <div class="row" style="margin-top:8px;">
+      <div class="row" style="margin-top: 8px">
         <a class="btn secondary" id="openAppBtn" href="#" rel="noopener">Open in App</a>
       </div>
     </div>
@@ -127,12 +120,12 @@
         <img id="avatar" class="avatar" alt="avatar" src="logo.png">
         <div>
           <span id="badge" class="pill">VERIFIED</span>
-          <h2 id="name" style="margin:8px 0 0;"></h2>
-          <p id="poweredBy" class="muted" style="margin:4px 0 0;"></p>
-          <p id="wallet" class="muted" style="margin:8px 0 0;"></p>
+          <h2 id="name" style="margin: 8px 0 0"></h2>
+          <p id="poweredBy" class="muted" style="margin: 4px 0 0"></p>
+          <p id="wallet" class="muted" style="margin: 8px 0 0"></p>
         </div>
       </div>
-      <div class="grid" style="margin-top:12px;">
+      <div class="grid" style="margin-top: 12px">
         <div class="card"><strong>Colony Code</strong><div id="colony">-</div></div>
         <div class="card"><strong>Rank</strong><div id="rank">-</div></div>
         <div class="card"><strong>Sessions</strong><div id="sessions">-</div></div>

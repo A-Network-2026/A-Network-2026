@@ -19,33 +19,29 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #050b12;
-      --bg-2: #091725;
-      --panel: rgba(10, 24, 39, 0.86);
-      --line: rgba(88, 197, 255, 0.18);
-      --line-strong: rgba(88, 197, 255, 0.35);
-      --text: #eff6ff;
-      --muted: #9eb2c9;
-      --accent: #58c5ff;
-      --accent-2: #22e7b8;
-      --warn: #ffbc5c;
-      --danger: #ff6b8a;
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      --bg: #ffffff;
+      --bg-2: #f8f9fa;
+      --panel: #ffffff;
+      --line: #dadce0;
+      --line-strong: #bdc1c6;
+      --text: #202124;
+      --muted: #5f6368;
+      --accent: #1967d2;
+      --accent-2: #188038;
+      --warn: #b06000;
+      --danger: #c5221f;
+      --shadow: none;
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: "Space Grotesk", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(circle at 15% 12%, rgba(34, 231, 184, 0.08), transparent 30%),
-        radial-gradient(circle at 78% 22%, rgba(88, 197, 255, 0.16), transparent 28%),
-        linear-gradient(180deg, #07101a 0%, var(--bg) 100%);
       line-height: 1.55;
     }
 
@@ -62,11 +58,9 @@
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      background: rgba(4, 10, 18, 0.72);
+      background: #f8f9fa;
       border: 1px solid var(--line);
-      border-radius: 18px;
-      backdrop-filter: blur(14px);
-      box-shadow: var(--shadow);
+      border-radius: 8px;
     }
 
     .brand {
@@ -80,16 +74,16 @@
     .brand img {
       width: 46px;
       height: 46px;
-      border-radius: 14px;
+      border-radius: 8px;
       border: 1px solid var(--line-strong);
       object-fit: cover;
     }
 
     .brand h1 {
       margin: 0;
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: 1.05rem;
-      letter-spacing: 0.08em;
+      font-weight: 400;
     }
 
     .brand p {
@@ -118,34 +112,32 @@
 
     .hero {
       margin-top: 22px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: var(--panel);
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
       padding: 24px;
-      box-shadow: var(--shadow);
     }
 
     .eyebrow {
       display: inline-block;
-      padding: 6px 10px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      color: var(--accent-2);
+      padding: 0;
+      border: 0;
+      color: #5f6368;
       font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 700;
+      font-weight: 500;
       margin-bottom: 10px;
+      background: transparent;
     }
 
     h2 {
       margin: 0 0 10px;
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-family: Roboto, Arial, sans-serif;
+      font-size: clamp(1.75rem, 3.6vw, 2.5rem);
       line-height: 1.08;
+      font-weight: 400;
     }
 
-    h2 .accent { color: var(--accent); }
+    h2 .accent { color: var(--accent); font-weight: 400; }
 
     .lead {
       color: var(--muted);
@@ -162,14 +154,15 @@
 
     .card {
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 8px;
       padding: 14px;
-      background: rgba(255, 255, 255, 0.03);
+      background: transparent;
     }
 
     .card h3 {
       margin: 0 0 8px;
       font-size: 1rem;
+      font-weight: 500;
     }
 
     .card p {
@@ -181,8 +174,8 @@
     .policy {
       margin-top: 18px;
       border: 1px solid var(--line-strong);
-      border-radius: 14px;
-      background: rgba(88, 197, 255, 0.08);
+      border-radius: 8px;
+      background: #e8f0fe;
       padding: 14px;
     }
 
@@ -208,16 +201,16 @@
 
     .studio-card {
       border: 1px solid var(--line);
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      background: transparent;
       padding: 14px;
     }
 
     .studio-card h3 {
       margin: 0 0 10px;
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: 0.98rem;
-      letter-spacing: 0.04em;
+      font-weight: 500;
     }
 
     .muted {
@@ -247,8 +240,6 @@
     .field label {
       font-size: 0.78rem;
       color: var(--muted);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
       font-weight: 700;
     }
 
@@ -257,10 +248,10 @@
     .select {
       width: 100%;
       border: 1px solid var(--line-strong);
-      border-radius: 10px;
-      background: rgba(3, 10, 17, 0.9);
+      border-radius: 8px;
+      background: #ffffff;
       color: var(--text);
-      font-family: inherit;
+      font-family: Roboto, Arial, sans-serif;
       font-size: 0.9rem;
       padding: 10px 11px;
       outline: none;
@@ -275,7 +266,6 @@
     .textarea:focus,
     .select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(88, 197, 255, 0.2);
     }
 
     .btn {
@@ -285,34 +275,34 @@
     .btn-danger {
       background: transparent;
       color: var(--danger);
-      border-color: rgba(255, 107, 138, 0.55);
+      border-color: #d93025;
     }
 
     .status {
       margin-top: 10px;
       padding: 9px 11px;
-      border-radius: 10px;
+      border-radius: 8px;
       border: 1px solid transparent;
       font-size: 0.86rem;
       line-height: 1.4;
     }
 
     .status.info {
-      color: #dceeff;
-      background: rgba(88, 197, 255, 0.12);
-      border-color: rgba(88, 197, 255, 0.32);
+      color: #1967d2;
+      background: #e8f0fe;
+      border-color: #dadce0;
     }
 
     .status.good {
-      color: #dbffef;
-      background: rgba(34, 231, 184, 0.12);
-      border-color: rgba(34, 231, 184, 0.32);
+      color: #137333;
+      background: #e6f4ea;
+      border-color: #dadce0;
     }
 
     .status.bad {
-      color: #ffdbe4;
-      background: rgba(255, 107, 138, 0.12);
-      border-color: rgba(255, 107, 138, 0.32);
+      color: #c5221f;
+      background: #fce8e6;
+      border-color: #dadce0;
     }
 
     .kpis {
@@ -324,13 +314,13 @@
 
     .kpi {
       border: 1px solid var(--line);
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      background: transparent;
       padding: 10px;
     }
 
     .kpi .value {
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       font-size: 1.1rem;
       line-height: 1;
       margin-bottom: 5px;
@@ -340,15 +330,13 @@
     .kpi .label {
       font-size: 0.74rem;
       color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
       font-weight: 700;
     }
 
     .analytics-card {
       border: 1px solid var(--line);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      background: transparent;
       padding: 12px;
       margin-top: 10px;
     }
@@ -362,13 +350,13 @@
 
     .analytics-mini-kpi {
       border: 1px solid var(--line);
-      border-radius: 10px;
-      background: rgba(88, 197, 255, 0.08);
+      border-radius: 8px;
+      background: #e8f0fe;
       padding: 8px;
     }
 
     .analytics-mini-kpi .value {
-      font-family: "Orbitron", sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       color: var(--accent-2);
       font-size: 1rem;
       line-height: 1;
@@ -378,8 +366,6 @@
     .analytics-mini-kpi .label {
       font-size: 0.72rem;
       color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
       font-weight: 700;
     }
 
@@ -391,14 +377,14 @@
       gap: 6px;
       align-items: end;
       border: 1px solid var(--line);
-      border-radius: 10px;
+      border-radius: 8px;
       padding: 8px;
-      background: rgba(3, 10, 17, 0.82);
+      background: #f8f9fa;
     }
 
     .analytics-bar {
       border-radius: 6px 6px 2px 2px;
-      background: linear-gradient(180deg, var(--accent-2) 0%, var(--accent) 100%);
+      background: #1a73e8;
       min-height: 8px;
     }
 
@@ -418,8 +404,8 @@
     .asset-item,
     .feed-item {
       border: 1px solid var(--line);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      background: transparent;
       padding: 11px;
       overflow: hidden;
     }
@@ -429,8 +415,8 @@
       height: 200px;
       margin: 0 -11px 11px -11px;
       overflow: hidden;
-      border-radius: 12px 12px 0 0;
-      background: #f0f0f0;
+      border-radius: 8px 8px 0 0;
+      background: #f8f9fa;
     }
 
     .feed-image {
@@ -446,8 +432,8 @@
       height: 250px;
       margin: 0 -11px 11px -11px;
       overflow: hidden;
-      border-radius: 12px 12px 0 0;
-      background: #f0f0f0;
+      border-radius: 8px 8px 0 0;
+      background: #f8f9fa;
     }
 
     .market-image {
@@ -466,8 +452,7 @@
       align-items: center;
       justify-content: center;
       padding: 18px;
-      background: rgba(1, 8, 14, 0.88);
-      backdrop-filter: blur(5px);
+      background: #ffffff;
     }
 
     .nft-image-viewer.open {
@@ -478,9 +463,8 @@
       width: min(1100px, 100%);
       max-height: 92vh;
       border: 1px solid var(--line-strong);
-      border-radius: 14px;
-      background: #050b12;
-      box-shadow: var(--shadow);
+      border-radius: 8px;
+      background: #ffffff;
       overflow: hidden;
     }
 
@@ -491,7 +475,7 @@
       gap: 10px;
       padding: 10px 12px;
       border-bottom: 1px solid var(--line);
-      background: rgba(88, 197, 255, 0.06);
+      background: #e8f0fe;
     }
 
     .nft-image-viewer-title {
@@ -521,7 +505,7 @@
       min-height: 240px;
       max-height: calc(92vh - 52px);
       overflow: auto;
-      background: #02070c;
+      background: #ffffff;
     }
 
     .nft-image-viewer-body img {
@@ -542,19 +526,18 @@
     }
 
     .pill {
-      padding: 4px 8px;
-      border-radius: 999px;
+      padding: 0;
       font-size: 0.74rem;
-      border: 1px solid var(--line-strong);
-      color: var(--accent);
+      border: 0;
+      color: #5f6368;
       white-space: nowrap;
-      background: rgba(88, 197, 255, 0.08);
+      background: transparent;
     }
 
     .mono {
-      font-family: Consolas, "Courier New", monospace;
+      font-family: Roboto Mono, ui-monospace, Menlo, Consolas, monospace;
       font-size: 0.8rem;
-      color: #9bc8e8;
+      color: #1967d2;
     }
 
     .asset-actions {
@@ -567,9 +550,9 @@
     .preview {
       margin-top: 12px;
       border: 1px dashed var(--line-strong);
-      border-radius: 12px;
+      border-radius: 8px;
       padding: 12px;
-      background: rgba(10, 24, 39, 0.55);
+      background: #e8f0fe;
     }
 
     .preview-title {
@@ -583,16 +566,16 @@
       align-items: center;
       justify-content: center;
       padding: 10px 14px;
-      border-radius: 10px;
+      border-radius: 8px;
       text-decoration: none;
-      font-weight: 700;
+      font-weight: 500;
       font-size: 0.9rem;
       border: 1px solid transparent;
     }
 
     .btn-main {
-      background: linear-gradient(120deg, var(--accent), #31a9ff);
-      color: #04213a;
+      background: #1a73e8;
+      color: #ffffff;
     }
 
     .btn-alt {
@@ -604,11 +587,11 @@
     footer {
       margin-top: 18px;
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 8px;
       padding: 14px;
       color: var(--muted);
       font-size: 0.9rem;
-      background: rgba(255, 255, 255, 0.03);
+      background: transparent;
     }
 
     .foot-links {
@@ -666,13 +649,12 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 3px 8px;
-      border-radius: 999px;
+      padding: 0;
       font-size: 0.72rem;
-      font-weight: 700;
-      border: 1px solid rgba(34, 231, 184, 0.55);
-      color: var(--accent-2);
-      background: rgba(34, 231, 184, 0.10);
+      font-weight: 500;
+      border: 0;
+      color: #5f6368;
+      background: transparent;
       white-space: nowrap;
     }
 
@@ -680,13 +662,12 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 3px 8px;
-      border-radius: 999px;
+      padding: 0;
       font-size: 0.72rem;
-      font-weight: 700;
-      border: 1px solid rgba(255, 188, 92, 0.6);
-      color: var(--warn);
-      background: rgba(255, 188, 92, 0.10);
+      font-weight: 500;
+      border: 0;
+      color: #5f6368;
+      background: transparent;
       white-space: nowrap;
     }
 
@@ -694,22 +675,21 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 3px 8px;
-      border-radius: 999px;
+      padding: 0;
       font-size: 0.72rem;
-      font-weight: 700;
-      border: 1px solid var(--line-strong);
-      color: var(--muted);
-      background: rgba(255,255,255,0.04);
+      font-weight: 500;
+      border: 0;
+      color: #5f6368;
+      background: transparent;
       white-space: nowrap;
     }
 
     .colony-preview-card {
       margin-top: 10px;
       border: 1px solid var(--line-strong);
-      border-radius: 12px;
+      border-radius: 8px;
       overflow: hidden;
-      background: rgba(5, 14, 24, 0.88);
+      background: #ffffff;
     }
 
     .colony-preview-banner {
@@ -717,7 +697,7 @@
       height: 90px;
       object-fit: cover;
       display: block;
-      background: rgba(34, 231, 184, 0.08);
+      background: #e6f4ea;
     }
 
     .colony-preview-body {
@@ -730,11 +710,11 @@
     .colony-preview-logo {
       width: 44px;
       height: 44px;
-      border-radius: 10px;
+      border-radius: 8px;
       border: 2px solid var(--line-strong);
       object-fit: cover;
       flex-shrink: 0;
-      background: rgba(88, 197, 255, 0.10);
+      background: #e8f0fe;
     }
 
     .colony-preview-info strong {
@@ -758,8 +738,8 @@
 
     .collection-card {
       border: 1px solid var(--line);
-      border-radius: 12px;
-      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      background: transparent;
       padding: 12px;
       display: flex;
       flex-direction: column;
@@ -769,15 +749,15 @@
     .collection-card .supply-bar-track {
       width: 100%;
       height: 6px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+      background: transparent;
       overflow: hidden;
     }
 
     .collection-card .supply-bar-fill {
       height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--accent-2), var(--accent));
+      border-radius: 4px;
+      background: #1a73e8;
       transition: width 0.5s ease;
     }
 
@@ -788,20 +768,16 @@
     }
 
     .domain-item {
-      border: 1px solid rgba(34, 231, 184, 0.25);
-      border-radius: 12px;
-      background: rgba(34, 231, 184, 0.04);
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      background: #e6f4ea;
       padding: 11px;
     }
 
     .proof-section {
       margin-top: 16px;
-      border: 1px solid rgba(34, 231, 184, 0.4);
-      border-radius: 16px;
-      background:
-        radial-gradient(circle at 84% 22%, rgba(34, 231, 184, 0.12), transparent 40%),
-        linear-gradient(135deg, rgba(8, 24, 36, 0.96), rgba(6, 18, 30, 0.96));
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+      border: 1px solid #dadce0;
+      border-radius: 8px;
       padding: 16px;
     }
 
@@ -819,14 +795,12 @@
       align-items: center;
       gap: 8px;
       padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(34, 231, 184, 0.45);
-      background: rgba(34, 231, 184, 0.1);
-      color: #bff9e8;
+      border-radius: 4px;
+      border: 1px solid #dadce0;
+      background: #e6f4ea;
+      color: #137333;
       font-size: 0.78rem;
       font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
     }
 
     .proof-grid {
@@ -837,9 +811,9 @@
 
     .proof-art {
       margin-bottom: 12px;
-      border: 1px solid rgba(88, 197, 255, 0.24);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      background: transparent;
       padding: 10px;
     }
 
@@ -847,10 +821,10 @@
       width: 100%;
       max-height: 340px;
       object-fit: contain;
-      border-radius: 10px;
+      border-radius: 8px;
       display: block;
-      background: rgba(3, 10, 17, 0.9);
-      border: 1px solid rgba(88, 197, 255, 0.2);
+      background: #ffffff;
+      border: 1px solid #dadce0;
     }
 
     .proof-art .caption {
@@ -860,17 +834,15 @@
     }
 
     .proof-tile {
-      border: 1px solid rgba(88, 197, 255, 0.24);
-      border-radius: 12px;
+      border: 1px solid #dadce0;
+      border-radius: 8px;
       padding: 12px;
-      background: rgba(255, 255, 255, 0.02);
+      background: transparent;
     }
 
     .proof-label {
       color: var(--muted);
       font-size: 0.76rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
       margin-bottom: 4px;
     }
 
@@ -893,7 +865,6 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="assets/css/site-light.css">
 </head>
 <body>
   <div class="shell">
@@ -979,8 +950,8 @@
     <section class="proof-section" aria-label="Public proof NFT showcase">
       <div class="proof-header">
         <div>
-          <h3 style="margin:0;font-family:'Orbitron',sans-serif;letter-spacing:0.04em;">Public Proof NFT</h3>
-          <p class="muted" style="margin:4px 0 0;">Always visible on this page as public proof that NFT test flow is successful.</p>
+          <h3 style="margin: 0;  font-family: Roboto, Arial, sans-serif">Public Proof NFT</h3>
+          <p class="muted" style="margin: 4px 0 0">Always visible on this page as public proof that NFT test flow is successful.</p>
         </div>
         <div class="proof-badge">ANT #0001 Reseed</div>
       </div>
@@ -1031,7 +1002,7 @@
 
         <div id="api-status" class="status info">Set your backend URL. If you enter https://a-network.net, this page auto-routes to the live NFT backend.</div>
 
-        <div class="row" style="margin-top:12px;">
+        <div class="row" style="margin-top: 12px">
           <div class="field">
             <label for="miner-login-uid">Miner UID / ANET Profile ID</label>
             <input id="miner-login-uid" class="input" type="text" placeholder="your uid">
@@ -1198,7 +1169,7 @@
         </div>
       </article>
 
-      <article class="studio-card" style="grid-column: 1 / -1;">
+      <article class="studio-card" style="grid-column: 1 / -1">
         <h3>ANET Marketplace - List NFT</h3>
         <p class="muted">Submit your designed NFT to the market as fixed price, timed auction, or .ant domain auction (minimum bid 10000 ANTS).</p>
 
@@ -1252,7 +1223,7 @@
         <div id="market-status" class="status info">Marketplace listing form ready.</div>
       </article>
 
-      <article class="studio-card" style="grid-column: 1 / -1;">
+      <article class="studio-card" style="grid-column: 1 / -1">
         <h3>ANET Auction + Store Floor</h3>
         <p class="muted">Like game item market flow: bid in auctions, buy fixed listings, or close your own listing.</p>
 
@@ -1285,7 +1256,7 @@
           </div>
           <div class="field">
             <label>Domain Rule</label>
-            <div class="status info" style="margin-top:0;">Domain board enforces .ant and minimum bid of 10000 ANTS.</div>
+            <div class="status info" style="margin-top: 0">Domain board enforces .ant and minimum bid of 10000 ANTS.</div>
           </div>
         </div>
 
@@ -1294,7 +1265,7 @@
         </div>
       </article>
 
-      <article class="studio-card" style="grid-column: 1 / -1;">
+      <article class="studio-card" style="grid-column: 1 / -1">
         <h3>Genesis Collection + Live Supply Stats</h3>
         <p class="muted">The first 100 Genesis Ants are capped forever. Track minted supply and remaining slots in real time.</p>
         <div class="asset-actions">
@@ -1305,7 +1276,7 @@
         </div>
       </article>
 
-      <article class="studio-card" style="grid-column: 1 / -1;">
+      <article class="studio-card" style="grid-column: 1 / -1">
         <h3>Colony Domain Studio — Build Your .ant Base</h3>
         <p class="muted">Register your own <strong>.ant</strong> colony domain as an NFT. Full authority: customize your base, set your logo, banner, theme, links — then buy, sell, or auction it on the marketplace.</p>
 
@@ -1368,14 +1339,14 @@
         </div>
       </article>
 
-      <article class="studio-card" style="grid-column: 1 / -1;">
-        <h3>Token Factory — PoS Closed Loop <span class="accent" style="font-size:0.7em;">(ANTS-gas)</span></h3>
+      <article class="studio-card" style="grid-column: 1 / -1">
+        <h3>Token Factory — PoS Closed Loop <span class="accent" style="font-size: 0.7em">(ANTS-gas)</span></h3>
         <p class="muted">
           Same logic as every EVM token factory (deploy your own ERC-20-like asset, set name + symbol + supply, list on the marketplace),
           <strong>except gas + the deploy fee are paid in ANTS</strong>, not BNB/ETH. The ecosystem stays a closed loop:
           ANTS in → ANTS out. ANET is the L1 ticker; ANTS is the in-ecosystem unit of account.
         </p>
-        <p class="muted" style="margin-top:6px;">
+        <p class="muted" style="margin-top: 6px">
           <strong>Identity:</strong> sign-in is <em>not</em> by email or wallet address alone — it's by your
           <strong>ANET Profile NFT</strong>. Your Public Proof NFT is your real, on-chain identity in this
           decentralized ecosystem (minted on first cashout / first swap). Every action below is signed
@@ -1383,15 +1354,15 @@
           a disposable wallet's. If you do not yet have an active Profile NFT, complete your first cashout
           or swap in the A-Network mobile app, then come back and log in here.
         </p>
-        <p class="muted" style="margin-top:6px;">
+        <p class="muted" style="margin-top: 6px">
           <strong>Eligibility (PoS gate):</strong> stake at least
-          <code style="background:rgba(34,231,184,0.10);padding:2px 6px;border-radius:6px;">1,000 ANTS</code>
+          <code style="background: #f8f9fa;  padding: 2px 6px;  border-radius: 6px">1,000 ANTS</code>
           from the wallet your Profile NFT belongs to. Stake is locked for a 7-day cooldown after each deploy,
           and slashed if the deployed token is governance-flagged as malicious — the slash hits the NFT identity,
           not just the wallet, so a bad actor cannot churn through new wallets to escape consequences.
         </p>
 
-        <div class="factory-stake-panel" style="background:rgba(34,231,184,0.06);border:1px solid rgba(34,231,184,0.18);border-radius:12px;padding:14px;margin:14px 0;">
+        <div class="factory-stake-panel" style="background: #f8f9fa;  border: 1px solid #dadce0;  border-radius: 8px;  padding: 14px;  margin: 14px 0">
           <div class="row">
             <div class="field">
               <label for="factory-uid">Your ANET Profile ID</label>
@@ -1451,7 +1422,7 @@
           </div>
         </div>
 
-        <p class="muted" style="font-size:0.78rem;margin:4px 0 12px;">
+        <p class="muted" style="font-size: 0.78rem;  margin: 4px 0 12px">
           Deploy fee: <strong>500 ANTS</strong> (burned to the protocol sink — same role BNB gas plays on BSC, but recycled back as miner rewards).
           The deployed token lives in the closed loop: tradable on the ANET marketplace, payable to other A-Network wallets, never bridged out automatically.
         </p>
@@ -1462,12 +1433,12 @@
         </div>
         <div id="factory-deploy-status" class="status info">Stake first, then deploy your token.</div>
 
-        <div id="factory-tokens-list" class="domain-list" style="margin-top:14px;">
+        <div id="factory-tokens-list" class="domain-list" style="margin-top: 14px">
           <div class="status info">No factory tokens loaded yet.</div>
         </div>
       </article>
 
-      <article class="studio-card" style="grid-column: 1 / -1;">
+      <article class="studio-card" style="grid-column: 1 / -1">
         <h3>Ant Colony Feed</h3>
         <p class="muted">Recent NFT activity from users across the ecosystem.</p>
         <div class="asset-actions">
@@ -1478,8 +1449,8 @@
         </div>
 
         <div class="analytics-card">
-          <h3 style="margin:0 0 4px;">Live NFT Activity Tracker</h3>
-          <p class="muted" style="margin:0;">Tracks real-time image views and interaction clicks on this page.</p>
+          <h3 style="margin: 0 0 4px">Live NFT Activity Tracker</h3>
+          <p class="muted" style="margin: 0">Tracks real-time image views and interaction clicks on this page.</p>
 
           <div class="analytics-mini-kpis">
             <div class="analytics-mini-kpi">
