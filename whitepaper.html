@@ -2077,7 +2077,7 @@
 
 <span class="keyword">1 ANET</span> = <span class="value">100,000,000</span> <span class="fn">Ants</span>
 
-<span class="keyword">1 Ant</span>  = <span class="value">0.00000001</span> ANET  <span class="comment">// (1 &times; 10â»â¸ ANET)</span>
+<span class="keyword">1 Ant</span>  = <span class="value">0.00000001</span> ANET  <span class="comment">// (1 &times; 10^-8 ANET)</span>
 
 
 
@@ -3253,13 +3253,13 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
         <ul>
 
-          <li>âŒ Start a new mining session (<code>POST /mining/start</code>)</li>
+          <li>Not permitted: start a new mining session (<code>POST /mining/start</code>)</li>
 
-          <li>âŒ Complete a mining session (<code>POST /mining/complete</code>)</li>
+          <li>Not permitted: complete a mining session (<code>POST /mining/complete</code>)</li>
 
-          <li>âŒ Claim session rewards to ANTS balance (<code>POST /mining/session/claim</code>)</li>
+          <li>Not permitted: claim session rewards to ANTS balance (<code>POST /mining/session/claim</code>)</li>
 
-          <li>âŒ Convert ANTS to ANET (<code>POST /mining/claim</code>)</li>
+          <li>Not permitted: convert ANTS to ANET (<code>POST /mining/claim</code>)</li>
 
         </ul>
 
@@ -3335,7 +3335,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
       <div class="formula-box">
 
-<span class="comment">// â”€â”€ Risk Scoring â”€â”€</span>
+<span class="comment">// --- Risk Scoring ---</span>
 
 <span class="keyword">ANTI_ABUSE_RISK_BLOCK_THRESHOLD</span> = <span class="value">5</span>      <span class="comment">// Risk score that blocks mining</span>
 
@@ -3349,7 +3349,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
 
 
-<span class="comment">// â”€â”€ Heartbeat â”€â”€</span>
+<span class="comment">// --- Heartbeat ---</span>
 
 <span class="keyword">MINING_HEARTBEAT_MAX_GAP_MINUTES</span> = <span class="value">120</span>  <span class="comment">// Max gap before session invalidation</span>
 
@@ -3357,7 +3357,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
 
 
-<span class="comment">// â”€â”€ Bot Detection â”€â”€</span>
+<span class="comment">// --- Bot Detection ---</span>
 
 <span class="keyword">BOT_PATTERN_LOOKBACK</span>           = <span class="value">8</span>      <span class="comment">// Recent sessions to scan</span>
 
@@ -3367,7 +3367,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
 
 
-<span class="comment">// â”€â”€ Bot Cleanup â”€â”€</span>
+<span class="comment">// --- Bot Cleanup ---</span>
 
 <span class="keyword">BOT_CLEANUP_STALE_UNVERIFIED_HOURS</span>  = <span class="value">72</span>  <span class="comment">// Delete unverified after 72h</span>
 
@@ -3381,7 +3381,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
 
 
-<span class="comment">// â”€â”€ Verified Review â”€â”€</span>
+<span class="comment">// --- Verified Review ---</span>
 
 <span class="keyword">BOT_REVIEW_VERIFIED_IP_CLUSTER_THRESHOLD</span>          = <span class="value">12</span>
 
@@ -3393,7 +3393,7 @@ claimableANET = max(claimableANET, <span class="value">0</span>);
 
 
 
-<span class="comment">// â”€â”€ Admin â”€â”€</span>
+<span class="comment">// --- Admin ---</span>
 
 <span class="keyword">ADMIN_USER_IDS</span>                 = <span class="value">1</span>      <span class="comment">// Comma-separated admin IDs</span>
 
@@ -4332,17 +4332,17 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
         <ul>
 
-          <li>âŒ No coin rewards for referring</li>
+          <li>Not permitted: coin rewards for referring</li>
 
-          <li>âŒ No session credits or session distributions for referring</li>
+          <li>Not permitted: session credits or distributions for referring</li>
 
-          <li>âŒ No recurring session distributions per colony activity</li>
+          <li>Not permitted: recurring session distributions per colony activity</li>
 
-          <li>âŒ No session multipliers</li>
+          <li>Not permitted: session multipliers</li>
 
-          <li>âŒ No multi-level (F2, F3...) chains</li>
+          <li>Not permitted: multi-level (F2, F3...) chains</li>
 
-          <li>âŒ No influence farming via colony counts</li>
+          <li>Not permitted: influence farming via colony counts</li>
 
         </ul>
 
