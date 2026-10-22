@@ -21,9 +21,9 @@
   --danger: #c5221f;
   --success: #137333;
   --shadow: none;
-  --radius: 14px;
-  --radius-sm: 8px;
-  --radius-xs: 6px;
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-xs: 4px;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -61,7 +61,7 @@ a:hover { text-decoration: underline; }
 .shell {
   position: relative;
   z-index: 1;
-  max-width: 1280px;
+  max-width: 1480px;
   margin: 0 auto;
   padding: 0 20px 80px;
 }
@@ -238,8 +238,8 @@ header nav a.active {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 36px 0 28px;
-  gap: 24px;
+  padding: 20px 0 16px;
+  gap: 20px;
   flex-wrap: wrap;
 }
 .dex-hero-copy h2 {
@@ -328,12 +328,13 @@ header nav a.active {
   stroke-linejoin: round;
 }
 .hero-stat {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 14px 20px;
-  text-align: center;
-  min-width: 120px;
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  padding: 4px 18px;
+  text-align: left;
+  min-width: 100px;
 }
 .hero-stat .stat-val {
   font-family: Roboto, Arial, sans-serif;
@@ -1003,6 +1004,70 @@ table.markets-table tr:hover td { background: transparent; }
 .markets-table .down { color: var(--danger); }
 .markets-table .neutral { color: var(--muted); }
 
+.market-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 8px;
+}
+.market-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(100%, 390px);
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  color: var(--muted);
+}
+.market-search-wrap:focus-within { border-color: var(--accent); }
+.market-search-wrap input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: var(--text);
+  background: transparent;
+  font: inherit;
+}
+.market-toolbar-actions { display: flex; align-items: center; gap: 8px; }
+.market-data-note { min-height: 18px; margin: 0 0 8px; color: var(--muted); font-size: 12px; }
+.market-pair-cell { min-width: 190px; }
+.market-pair-cell .pair-cell { gap: 10px; }
+.market-pair-cell strong, .market-pair-cell small { display: block; }
+.market-pair-cell strong { color: var(--text); font-size: 13px; font-weight: 500; }
+.market-pair-cell small { margin-top: 2px; color: var(--muted); font-size: 11px; font-weight: 400; }
+.markets-table tbody tr[data-symbol] { cursor: pointer; }
+.markets-table tbody tr[data-symbol]:hover td { background: #f8f9fa; }
+.table-empty { padding: 36px 16px !important; text-align: center; color: var(--muted); }
+
+.token-studio-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 8px 0 16px;
+}
+.token-studio-heading h3 { font-size: 18px; font-weight: 500; }
+.token-studio-heading p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.chain-label { color: var(--muted); font-size: 12px; }
+.token-studio-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.token-form { display: flex; flex-direction: column; gap: 14px; }
+.token-form .form-group { margin: 0; }
+.token-form-row { display: grid; grid-template-columns: minmax(90px, 0.7fr) minmax(0, 1.3fr); gap: 12px; }
+.token-mintable-option { display: flex; align-items: center; gap: 9px; color: var(--text); font-size: 13px; }
+.token-mintable-option input { width: 16px; height: 16px; accent-color: var(--accent); }
+.token-form-note { margin: -6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.token-directory { margin-top: 16px; }
+.token-registry-name { display: flex; flex-direction: column; gap: 2px; }
+.token-registry-name strong { font-weight: 500; }
+.token-registry-name .mono { color: var(--muted); font-size: 11px; }
+.token-studio-grid .swap-status:not(.show) { display: none; }
+.token-studio-grid .swap-status.show { display: block; }
+.token-studio-grid .btn { min-height: 38px; }
+
 /* ── Loading spinner ────────────────────────── */
 .spinner {
   width: 20px;
@@ -1189,6 +1254,11 @@ footer .copyright { font-size: 12px; color: var(--muted-2); }
   .hero-stats { gap: 12px; }
   .hero-stat { min-width: 90px; padding: 10px 14px; }
   .hero-stat .stat-val { font-size: 15px; }
+  .market-toolbar { align-items: stretch; }
+  .market-search-wrap { flex: 1; }
+  .market-toolbar-actions { flex-shrink: 0; }
+  .token-studio-grid { grid-template-columns: minmax(0, 1fr); }
+  .token-studio-heading { align-items: flex-start; }
   .card-body { padding: 14px; }
   .amount-input { font-size: 20px; }
   footer { flex-direction: column; align-items: flex-start; }

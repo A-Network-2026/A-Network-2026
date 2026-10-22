@@ -375,45 +375,10 @@ const DEX_CHART_TIMEFRAMES = [
   { key: '15m', label: '15m', bucketMs: 15 * 60 * 1000 },
   { key: '1h', label: '1h', bucketMs: 60 * 60 * 1000 },
   { key: '1d', label: '1d', bucketMs: 24 * 60 * 60 * 1000 },
-  { key: '1w', label: '1w', bucketMs: 7 * 24 * 60 * 60 * 1000 },
 ];
 const DEX_CHART_DEFAULT_TIMEFRAME = '1m';
 const DEX_CHART_HISTORY_POINTS = 2880;       // 24h at 30s samples
 const DEX_CHART_MAX_VISIBLE_CANDLES = 150;
-const MARKET_VIEW_MODES = {
-  PRODUCTION: 'production',
-  TEST: 'test',
-};
-const PUBLIC_TEST_POOLS = [
-  {
-    token_symbol: 'WANET',
-    anet_reserve_anet: 25000,
-    token_reserve_units: 25000 * ANTS_PER_ANET,
-    fee_bps: 5,
-    lp_holders: 3,
-  },
-  {
-    token_symbol: 'USDT',
-    anet_reserve_anet: 98000,
-    token_reserve_units: 245000 * 1_000_000,
-    fee_bps: 30,
-    lp_holders: 61,
-  },
-  {
-    token_symbol: 'USDC',
-    anet_reserve_anet: 125000,
-    token_reserve_units: 312500 * 1_000_000,
-    fee_bps: 30,
-    lp_holders: 42,
-  },
-  {
-    token_symbol: 'WBTC',
-    anet_reserve_anet: 76000,
-    token_reserve_units: 118 * ANTS_PER_ANET,
-    fee_bps: 30,
-    lp_holders: 18,
-  },
-];
 
 /* ── App state ──────────────────────────────── */
 const state = {
@@ -439,15 +404,16 @@ const state = {
   slippage: 1.0,       // percent
 
   // UI
-  activeTab: 'swap',
+  activeTab: 'markets',
   bridgeDirection: 'evm_to_anet',  // 'evm_to_anet' | 'anet_to_evm'
   selectedBridgeChain: 56,          // BNB Chain default
   marketPair: '',
-  marketViewMode: MARKET_VIEW_MODES.PRODUCTION,
   recentLocalTrades: [],
+  chainTrades: [],
   chainTxs: [],
   miniPriceSeries: {},
   tokenMeta: {},
+  anrc20Tokens: [],
   
   // DEX Chart state (per-pair price history)
   dexChartPriceHistory: {},         // { [pairKey]: [{t, v}, ...] }
@@ -539,7 +505,8 @@ function tokenIconEl(sym, size = 22) {
   el.style.width = size + 'px';
   el.style.height = size + 'px';
   el.style.fontSize = Math.floor(size * 0.38) + 'px';
-  el.style.background = `linear-gradient(135deg, ${color}, ${color}88)`;
+  el.style.background = '#f1f3f4';
+  el.style.color = '#5f6368';
   el.textContent = tokenInitials(sym);
   return el;
 }
@@ -588,15 +555,15 @@ async function loadPools() {
 async function loadTokenMetadata() {
   try {
     const data = await apiFetch('/tokens/anrc20');
-    state.tokenMeta = Array.isArray(data)
-      ? data.reduce((acc, token) => {
+    state.anrc20Tokens = Array.isArray(data) ? data : [];
+    state.tokenMeta = state.anrc20Tokens.reduce((acc, token) => {
           const symbol = normSym(token.symbol);
           if (symbol) acc[symbol] = token;
           return acc;
-        }, {})
-      : {};
+        }, {});
   } catch (e) {
     console.warn('loadTokenMetadata:', e);
+    state.anrc20Tokens = [];
     state.tokenMeta = {};
   }
 }
@@ -788,6 +755,287 @@ async function createPool({ provider, tokenSymbol, anetAmountAnts, tokenAmountUn
   };
   if (fee != null) body.fee_bps = fee;
   return apiFetch('/dex/pools/create', { method: 'POST', body: JSON.stringify(body) });
+}
+
+function stringifyJsonWithBigInts(value) {
+  if (typeof value === 'bigint') return value.toString();
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) {
+    return `[${value.map(item => stringifyJsonWithBigInts(item) ?? 'null').join(',')}]`;
+  }
+  return `{${Object.keys(value)
+    .filter(key => value[key] !== undefined)
+    .map(key => `${JSON.stringify(key)}:${stringifyJsonWithBigInts(value[key])}`)
+    .join(',')}}`;
+}
+
+function tokenActionAmount(units) {
+  const amount = BigInt(String(units));
+  if (amount < 0n || amount > 18_446_744_073_709_551_615n) {
+    throw new Error('Token amount exceeds the Layer 1 u64 limit.');
+  }
+  return amount.toString();
+}
+
+async function createAnrc20Token({ symbol, name, decimals, initialSupplyUnits, mintable }) {
+  requireAnetSigner();
+  const tokenSymbol = normSym(symbol);
+  const tokenName = String(name || '').trim();
+  const supply = tokenActionAmount(initialSupplyUnits);
+  const payload = {
+    route: 'anrc20_create',
+    symbol: tokenSymbol,
+    name: tokenName,
+    decimals: Number(decimals),
+    initial_supply: supply.toString(),
+    mintable: Boolean(mintable),
+  };
+  const auth = await anetSignAction('anrc20_create', payload);
+  return apiFetch('/tokens/anrc20/create', {
+    method: 'POST',
+    body: stringifyJsonWithBigInts({
+      symbol: tokenSymbol,
+      name: tokenName,
+      decimals: Number(decimals),
+      initial_supply: supply.toString(),
+      mintable: Boolean(mintable),
+      auth,
+    }),
+  });
+}
+
+async function mintAnrc20Token({ to, symbol, amountUnits }) {
+  const caller = requireAnetSigner();
+  const recipient = normSym(to || caller);
+  const tokenSymbol = normSym(symbol);
+  const amount = tokenActionAmount(amountUnits);
+  const payload = {
+    route: 'anrc20_mint',
+    to: recipient,
+    symbol: tokenSymbol,
+    amount: amount.toString(),
+  };
+  const auth = await anetSignAction('anrc20_mint', payload);
+  return apiFetch('/tokens/anrc20/mint', {
+    method: 'POST',
+    body: stringifyJsonWithBigInts({ to: recipient, symbol: tokenSymbol, amount: amount.toString(), auth }),
+  });
+}
+
+async function transferAnrc20Token({ to, symbol, amountUnits }) {
+  const caller = requireAnetSigner();
+  const recipient = normSym(to);
+  const tokenSymbol = normSym(symbol);
+  const amount = tokenActionAmount(amountUnits);
+  const payload = {
+    route: 'anrc20_transfer',
+    to: recipient,
+    symbol: tokenSymbol,
+    amount,
+  };
+  const auth = await anetSignAction('anrc20_transfer', payload);
+  return apiFetch('/tokens/anrc20/transfer', {
+    method: 'POST',
+    body: stringifyJsonWithBigInts({ to: recipient, symbol: tokenSymbol, amount, auth }),
+  });
+}
+
+function tokenAmountToBaseUnits(value, decimals) {
+  const raw = String(value ?? '').trim();
+  if (!/^(?:\d+|\d+\.\d*|\.\d+)$/.test(raw)) throw new Error('Enter a valid token amount.');
+  const [wholePart = '0', fractionPart = ''] = raw.split('.');
+  if (fractionPart.length > decimals && /[1-9]/.test(fractionPart.slice(decimals))) {
+    throw new Error(`This token supports up to ${decimals} decimal places.`);
+  }
+  const scale = 10n ** BigInt(decimals);
+  const whole = BigInt(wholePart || '0');
+  const fraction = BigInt((fractionPart.slice(0, decimals) || '').padEnd(decimals, '0') || '0');
+  const units = whole * scale + fraction;
+  if (units <= 0n) throw new Error('Amount must be greater than zero.');
+  if (units > 18_446_744_073_709_551_615n) throw new Error('Token amount exceeds the Layer 1 u64 limit.');
+  return units;
+}
+
+function formatTokenUnits(unitsValue, decimals) {
+  try {
+    const units = BigInt(String(unitsValue ?? '0'));
+    const scale = 10n ** BigInt(decimals);
+    const whole = units / scale;
+    const fraction = (units % scale).toString().padStart(decimals, '0').slice(0, 6).replace(/0+$/, '');
+    const formattedWhole = new Intl.NumberFormat('en-US').format(whole);
+    return fraction ? `${formattedWhole}.${fraction}` : formattedWhole;
+  } catch (_) {
+    return '0';
+  }
+}
+
+function setTokenFormStatus(id, message, type = 'info') {
+  const status = document.getElementById(id);
+  if (!status) return;
+  status.className = `swap-status show ${type}`;
+  status.textContent = message;
+}
+
+async function refreshAnrc20Tokens() {
+  await loadTokenMetadata();
+  renderAnrc20TokenStudio();
+}
+
+function renderAnrc20TokenStudio() {
+  const tbody = document.getElementById('anrc20-tokens-tbody');
+  const select = document.getElementById('token-mint-symbol');
+  if (!tbody && !select) return;
+
+  const wallet = normSym(state.anetWallet.address);
+  const ownedMintable = state.anrc20Tokens.filter(token =>
+    token.mintable && normSym(token.owner) === wallet && normSym(token.symbol) !== 'WANET'
+  );
+  const transferable = state.anrc20Tokens.filter(token =>
+    normSym(token.symbol) !== 'WANET'
+      && BigInt(String(state.anetWallet.assets[normSym(token.symbol)] || '0')) > 0n
+  );
+  if (select) {
+    const selected = select.value;
+    select.innerHTML = ownedMintable.length
+      ? ownedMintable.map(token => `<option value="${escapeHtml(normSym(token.symbol))}">${escapeHtml(token.name)} (${escapeHtml(normSym(token.symbol))})</option>`).join('')
+      : `<option value="">${wallet ? 'No mintable tokens owned' : 'Connect wallet'}</option>`;
+    if (ownedMintable.some(token => normSym(token.symbol) === selected)) select.value = selected;
+    select.disabled = ownedMintable.length === 0;
+  }
+  const mintButton = document.getElementById('token-mint-btn');
+  if (mintButton) mintButton.disabled = !wallet || ownedMintable.length === 0;
+  const transferSelect = document.getElementById('token-transfer-symbol');
+  if (transferSelect) {
+    const selected = transferSelect.value;
+    transferSelect.innerHTML = transferable.length
+      ? transferable.map(token => `<option value="${escapeHtml(normSym(token.symbol))}">${escapeHtml(token.name)} (${escapeHtml(normSym(token.symbol))})</option>`).join('')
+      : `<option value="">${wallet ? 'No token balances' : 'Connect wallet'}</option>`;
+    if (transferable.some(token => normSym(token.symbol) === selected)) transferSelect.value = selected;
+    transferSelect.disabled = transferable.length === 0;
+  }
+  const transferButton = document.getElementById('token-transfer-btn');
+  if (transferButton) transferButton.disabled = !wallet || transferable.length === 0;
+  if (!tbody) return;
+
+  if (!state.anrc20Tokens.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No tokens registered yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.anrc20Tokens.map(token => {
+    const symbol = normSym(token.symbol);
+    const pool = state.pools.find(item => normSym(item.token_symbol) === symbol);
+    const owner = String(token.owner || '');
+    const supply = token.total_supply_units ?? String(token.total_supply ?? '0');
+    const action = pool
+      ? `<button class="btn btn-ghost btn-sm" type="button" onclick="openTokenMarket('${escapeHtml(symbol)}')">Trade</button>`
+      : `<button class="btn btn-ghost btn-sm" type="button" onclick="openTokenPool('${escapeHtml(symbol)}')">Create pool</button>`;
+    return `<tr>
+      <td><div class="token-registry-name"><strong>${escapeHtml(token.name)}</strong><span class="mono">${escapeHtml(symbol)}</span></div></td>
+      <td class="mono">${escapeHtml(formatTokenUnits(supply, Number(token.decimals) || 0))}</td>
+      <td>${fmt(Number(token.holders || 0), 0)}</td>
+      <td class="mono">${escapeHtml(shortAddr(owner))}</td>
+      <td>${token.mintable ? 'Mintable' : 'Fixed'}</td>
+      <td>${action}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function submitCreateToken(event) {
+  event.preventDefault();
+  if (!ensureAnetSigner()) return;
+  const button = document.getElementById('token-create-btn');
+  const name = document.getElementById('token-create-name').value.trim();
+  const symbol = normSym(document.getElementById('token-create-symbol').value);
+  const decimals = Number(document.getElementById('token-create-decimals').value);
+  const mintable = document.getElementById('token-create-mintable').checked;
+  try {
+    if (!/^[A-Z0-9_-]{1,16}$/.test(symbol)) throw new Error('Symbol must be 1–16 letters, numbers, _ or -.');
+    if (symbol === 'ANET' || symbol === 'WANET') throw new Error(`${symbol} is reserved by the network.`);
+    if (!name || [...name].length > 64) throw new Error('Name must be 1–64 characters.');
+    if (!Number.isInteger(decimals) || decimals < 0 || decimals > 18) throw new Error('Decimals must be between 0 and 18.');
+    if (state.anrc20Tokens.some(token => normSym(token.symbol) === symbol)) throw new Error('That symbol is already registered.');
+    const supply = tokenAmountToBaseUnits(document.getElementById('token-create-supply').value, decimals);
+    if (button) { button.disabled = true; button.textContent = 'Waiting for signature…'; }
+    setTokenFormStatus('token-create-status', 'Approve the token creation in your ANET wallet.');
+    await createAnrc20Token({ symbol, name, decimals, initialSupplyUnits: supply, mintable });
+    setTokenFormStatus('token-create-status', `${symbol} created on A Network L1.`, 'success');
+    toast(`${symbol} created`, 'success');
+    document.getElementById('token-create-form').reset();
+    document.getElementById('token-create-decimals').value = '8';
+    document.getElementById('token-create-supply').value = '1000000';
+    await Promise.all([refreshAnrc20Tokens(), refreshAnetBalance()]);
+  } catch (error) {
+    setTokenFormStatus('token-create-status', error.message || 'Token creation failed.', 'error');
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Create token'; }
+  }
+}
+
+async function submitMintToken(event) {
+  event.preventDefault();
+  if (!ensureAnetSigner()) return;
+  const button = document.getElementById('token-mint-btn');
+  const symbol = normSym(document.getElementById('token-mint-symbol').value);
+  const token = state.anrc20Tokens.find(item => normSym(item.symbol) === symbol);
+  const recipientInput = document.getElementById('token-mint-recipient').value.trim();
+  const recipient = normSym(recipientInput || state.anetWallet.address);
+  try {
+    if (!token || !token.mintable || normSym(token.owner) !== normSym(state.anetWallet.address)) {
+      throw new Error('Only the owner of a mintable token can mint it.');
+    }
+    if (!/^ANET[0-9A-F]{36}$/.test(recipient)) throw new Error('Enter a valid ANET recipient address.');
+    const amount = tokenAmountToBaseUnits(document.getElementById('token-mint-amount').value, Number(token.decimals) || 0);
+    if (button) { button.disabled = true; button.textContent = 'Waiting for signature…'; }
+    setTokenFormStatus('token-mint-status', 'Approve the mint in your ANET wallet.');
+    await mintAnrc20Token({ to: recipient, symbol, amountUnits: amount });
+    setTokenFormStatus('token-mint-status', `${formatTokenUnits(amount, token.decimals)} ${symbol} minted.`, 'success');
+    toast(`${symbol} minted`, 'success');
+    document.getElementById('token-mint-form').reset();
+    await Promise.all([refreshAnrc20Tokens(), refreshAnetBalance()]);
+  } catch (error) {
+    setTokenFormStatus('token-mint-status', error.message || 'Token mint failed.', 'error');
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Mint to wallet'; }
+    renderAnrc20TokenStudio();
+  }
+}
+
+async function submitTransferToken(event) {
+  event.preventDefault();
+  if (!ensureAnetSigner()) return;
+  const button = document.getElementById('token-transfer-btn');
+  const symbol = normSym(document.getElementById('token-transfer-symbol').value);
+  const token = state.anrc20Tokens.find(item => normSym(item.symbol) === symbol);
+  const recipient = normSym(document.getElementById('token-transfer-recipient').value);
+  try {
+    if (!token || BigInt(String(state.anetWallet.assets[symbol] || '0')) <= 0n) throw new Error('No balance available for this token.');
+    if (!/^ANET[0-9A-F]{36}$/.test(recipient)) throw new Error('Enter a valid ANET recipient address.');
+    if (recipient === normSym(state.anetWallet.address)) throw new Error('Choose a different recipient wallet.');
+    const amount = tokenAmountToBaseUnits(document.getElementById('token-transfer-amount').value, Number(token.decimals) || 0);
+    if (button) { button.disabled = true; button.textContent = 'Waiting for signature…'; }
+    setTokenFormStatus('token-transfer-status', 'Approve the transfer in your ANET wallet.');
+    await transferAnrc20Token({ to: recipient, symbol, amountUnits: amount });
+    setTokenFormStatus('token-transfer-status', `${formatTokenUnits(amount, token.decimals)} ${symbol} sent.`, 'success');
+    toast(`${symbol} transferred`, 'success');
+    document.getElementById('token-transfer-form').reset();
+    await Promise.all([refreshAnrc20Tokens(), refreshAnetBalance()]);
+  } catch (error) {
+    setTokenFormStatus('token-transfer-status', error.message || 'Token transfer failed.', 'error');
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Send token'; }
+    renderAnrc20TokenStudio();
+  }
+}
+
+function openTokenMarket(symbol) {
+  setTab('swap');
+  selectPool(symbol);
+}
+
+function openTokenPool(symbol) {
+  setTab('liquidity');
+  const field = document.getElementById('create-token-sym');
+  if (field) field.value = normSym(symbol);
 }
 
 // Wrap native ANET into L1 wANET (1:1). Signed 'dex_wrap' action → recorded on L1.
@@ -1305,6 +1553,7 @@ function updateAnetWalletUI() {
   if (state.activeTab === 'cashout') initCashoutTab();
   // keep the portfolio tab in sync if it's visible (state-only, no re-fetch)
   if (state.activeTab === 'portfolio') renderPortfolioSummary();
+  renderAnrc20TokenStudio();
   // keep the Open L1 Market status current
   openL1MarketRefresh();
 }
@@ -1312,7 +1561,11 @@ function updateAnetWalletUI() {
 /* ── Tab navigation ─────────────────────────── */
 function setTab(name) {
   state.activeTab = name;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.dex-tabs [role="tab"]').forEach(b => {
+    const selected = b.dataset.tab === name;
+    b.classList.toggle('active', selected);
+    b.setAttribute('aria-selected', String(selected));
+  });
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${name}`));
   if (name === 'markets') {
     renderMarketsTable();
@@ -1323,6 +1576,7 @@ function setTab(name) {
   if (name === 'multichain')  renderMultiChainTab();
   if (name === 'cashout')     initCashoutTab();
   if (name === 'portfolio')   refreshPortfolio();
+  if (name === 'tokens')      renderAnrc20TokenStudio();
 }
 
 /* ── Cash Out tab ───────────────────────────── */
@@ -1993,8 +2247,8 @@ function renderPoolsSidebar() {
       <div class="pool-card-header">
         <div class="pool-pair">
           <div class="pool-icons">
-            <div class="token-icon-placeholder" style="background:linear-gradient(135deg,#1a73e8,#1a73e888);font-size:8px;width:24px;height:24px;">ANT</div>
-            <div class="token-icon-placeholder" style="background:linear-gradient(135deg,${tokenColor(sym)},${tokenColor(sym)}88);font-size:8px;width:24px;height:24px;margin-left:-8px;">${tokenInitials(sym)}</div>
+            <div class="token-icon-placeholder" style="font-size:8px;width:24px;height:24px;">ANT</div>
+            <div class="token-icon-placeholder" style="font-size:8px;width:24px;height:24px;margin-left:-8px;">${tokenInitials(sym)}</div>
           </div>
           <span class="pool-pair-name">ANET / ${sym}</span>
         </div>
@@ -2069,7 +2323,8 @@ function renderSwapTokenSelectors() {
     const icon = document.createElement('div');
     icon.className = 'token-icon-placeholder';
     icon.style.width = '22px'; icon.style.height = '22px'; icon.style.fontSize = '8px';
-    icon.style.background = `linear-gradient(135deg, ${tokenColor(sym)}, ${tokenColor(sym)}88)`;
+    icon.style.background = '#f1f3f4';
+    icon.style.color = '#5f6368';
     icon.textContent = tokenInitials(sym);
     const label = document.createElement('span');
     label.textContent = sym || 'Select';
@@ -2376,7 +2631,7 @@ async function doSwap() {
     });
 
     appendLocalTrade({
-      side: isAnetToToken ? 'SELL' : 'BUY',
+      side: isAnetToToken ? 'BUY' : 'SELL',
       pair: `ANET/${tokenSym}`,
       tokenSymbol: tokenSym,
       amountBase: amt,
@@ -2480,7 +2735,7 @@ function renderPortfolioAssets() {
   list.innerHTML = rows.map(r => `
     <div class="asset-row">
       <div style="display:flex;align-items:center;gap:12px;">
-        <div class="token-icon-placeholder" style="width:34px;height:34px;font-size:12px;background:linear-gradient(135deg,${tokenColor(r.symbol)},${tokenColor(r.symbol)}88);">${escapeHtml(r.icon)}</div>
+        <div class="token-icon-placeholder" style="width:34px;height:34px;font-size:12px;">${escapeHtml(r.icon)}</div>
         <div>
           <div style="font-size:13.5px;font-weight:700;">${escapeHtml(r.symbol)}</div>
           <div style="font-size:11px;color:var(--muted-2);">${escapeHtml(r.label)}</div>
@@ -2642,7 +2897,7 @@ function renderTokenDropdownItems(side, filter) {
     const info = KNOWN_TOKENS.find(t => t.symbol === sym) || { name: sym + ' Token', chain: 'DEX' };
     const isSel = side === 'from' ? state.fromToken === sym : state.toToken === sym;
     return `<div class="token-list-item ${isSel ? 'selected' : ''}" onclick="selectToken('${side}','${sym}')">
-      <div class="token-icon-placeholder" style="background:linear-gradient(135deg,${tokenColor(sym)},${tokenColor(sym)}88);font-size:8px;width:28px;height:28px;flex-shrink:0;">${tokenInitials(sym)}</div>
+      <div class="token-icon-placeholder" style="font-size:8px;width:28px;height:28px;flex-shrink:0;">${tokenInitials(sym)}</div>
       <div class="token-info-col">
         <div class="token-sym">${sym}</div>
         <div class="token-name">${info.name}</div>
@@ -2694,7 +2949,9 @@ function sanitizeMemo(memo) {
 }
 
 function appendLocalTrade(trade) {
-  const priceAnetPerToken = trade.amountQuote > 0 ? (trade.amountBase / trade.amountQuote) : null;
+  const amountAnet = trade.anetToToken ? trade.amountBase : trade.amountQuote;
+  const amountToken = trade.anetToToken ? trade.amountQuote : trade.amountBase;
+  const priceAnetPerToken = amountToken > 0 ? amountAnet / amountToken : null;
   state.recentLocalTrades.unshift({
     side: trade.side,
     pair: trade.pair,
@@ -2711,13 +2968,14 @@ function appendLocalTrade(trade) {
 
 async function loadLatestBlocks() {
   try {
-    const data = await apiFetch('/blocks');
+    const data = await apiFetch('/blocks?limit=128');
     let blocks = [];
     if (Array.isArray(data)) blocks = data;
     else if (Array.isArray(data?.blocks)) blocks = data.blocks;
     else if (data && typeof data === 'object') blocks = [data];
 
     const txs = [];
+    const trades = [];
     blocks.forEach((b, bi) => {
       const list = Array.isArray(b.transactions) ? b.transactions : [];
       list.forEach((tx, ti) => {
@@ -2732,6 +2990,41 @@ async function loadLatestBlocks() {
           txRef: tx.txid || tx.hash || tx.id || `${b.block_height || bi}-${ti}`,
         });
       });
+      const events = Array.isArray(b.events) ? b.events : [];
+      events.forEach((event, eventIndex) => {
+        const attributes = event.attributes || {};
+        const pair = String(attributes.pair_id || '');
+        const symbol = pair.startsWith('ANET-') ? pair.slice(5) : '';
+        if (event.event_type !== 'SwapExecuted' || !symbol) return;
+
+        const direction = String(attributes.direction || '');
+        const anetToToken = direction.startsWith('ANET->');
+        const amountIn = Number(attributes.amount_in || 0);
+        const amountOut = Number(attributes.amount_out || 0);
+        const amountAnet = (anetToToken ? amountIn : amountOut) / ANTS_PER_ANET;
+        const amountToken = tokenUnitsToAmount(symbol, anetToToken ? amountOut : amountIn);
+        trades.push({
+          side: anetToToken ? 'BUY' : 'SELL',
+          pair,
+          tokenSymbol: symbol,
+          amountAnet,
+          amountToken,
+          price: amountToken > 0 ? amountAnet / amountToken : null,
+          timestamp: event.timestamp || b.epoch_end || b.epoch_start || null,
+          blockHeight: b.block_height ?? b.height ?? '—',
+          eventIndex,
+        });
+        txs.push({
+          blockHeight: b.block_height ?? b.height ?? '—',
+          from: attributes.trader || '—',
+          to: '—',
+          memo: `${event.event_type} ${pair}`,
+          amountAnts: amountAnet * ANTS_PER_ANET,
+          feeAnts: 0,
+          timestamp: event.timestamp || b.epoch_end || b.epoch_start || null,
+          txRef: `${b.block_height || bi}-event-${eventIndex}`,
+        });
+      });
     });
 
     txs.sort((a, b) => {
@@ -2740,6 +3033,7 @@ async function loadLatestBlocks() {
       return tb - ta;
     });
     state.chainTxs = txs.slice(0, 60);
+    state.chainTrades = trades.sort((a, b) => (Date.parse(b.timestamp || 0) || 0) - (Date.parse(a.timestamp || 0) || 0)).slice(0, 80);
   } catch (e) {
     console.warn('loadLatestBlocks:', e?.message || e);
   }
@@ -2747,43 +3041,27 @@ async function loadLatestBlocks() {
 
 async function refreshMarketActivity() {
   await loadLatestBlocks();
+  if (state.activeTab !== 'markets') return;
+  renderMarketsTable();
   renderChainTxTable();
   renderLastTradesTable();
+  refreshSelectedMarketViews();
 }
 
 function getMarketPoolsForView() {
-  return state.marketViewMode === MARKET_VIEW_MODES.TEST ? PUBLIC_TEST_POOLS : state.pools;
+  return state.pools;
 }
 
 function renderMarketEnvironmentNote() {
   const noteEl = document.getElementById('market-env-note');
   if (!noteEl) return;
 
-  const cashoutLine = 'Cashout unlocks after 1,000 validated ANTS sessions.';
-  if (state.marketViewMode === MARKET_VIEW_MODES.TEST) {
-    noteEl.textContent = `Public Test View shows demo pools for transparent public preview. Production settlement happens only in Production DEX. ${cashoutLine}`;
-    return;
-  }
-
   if (!state.pools.length) {
-    noteEl.textContent = `Production DEX is live but this endpoint currently has no active pools. Switch to Public Test View to preview depth and chart behavior. ${cashoutLine}`;
+    noteEl.textContent = 'No active Layer 1 pools. Create a token, then add liquidity to open its market.';
     return;
   }
 
-  noteEl.textContent = `Production DEX market data is live from active on-chain pools. ${cashoutLine}`;
-}
-
-function syncMarketViewButtons() {
-  const productionBtn = document.getElementById('market-view-production-btn');
-  const testBtn = document.getElementById('market-view-test-btn');
-  if (productionBtn) {
-    productionBtn.classList.toggle('btn-outline', state.marketViewMode !== MARKET_VIEW_MODES.PRODUCTION);
-    productionBtn.classList.toggle('btn', state.marketViewMode === MARKET_VIEW_MODES.PRODUCTION);
-  }
-  if (testBtn) {
-    testBtn.classList.toggle('btn-outline', state.marketViewMode !== MARKET_VIEW_MODES.TEST);
-    testBtn.classList.toggle('btn', state.marketViewMode === MARKET_VIEW_MODES.TEST);
-  }
+  noteEl.textContent = 'Prices and reserves are live from Layer 1; recent swap counts use its latest 128 blocks.';
 }
 
 function refreshSelectedMarketViews() {
@@ -2792,21 +3070,6 @@ function refreshSelectedMarketViews() {
   const history = readDexChartHistory();
   renderDexChart(history);
   renderMarketEnvironmentNote();
-}
-
-function setMarketViewMode(mode) {
-  const nextMode = mode === MARKET_VIEW_MODES.TEST ? MARKET_VIEW_MODES.TEST : MARKET_VIEW_MODES.PRODUCTION;
-  if (nextMode === state.marketViewMode) return;
-
-  state.marketViewMode = nextMode;
-  state.marketPair = '';
-  state.dexChartViewStart = 0;
-  state.dexChartViewCount = 0;
-  state.dexChartLastRender = null;
-
-  syncMarketViewButtons();
-  renderMarketsTable();
-  refreshSelectedMarketViews();
 }
 
 function hydrateMarketPairSelector() {
@@ -2834,70 +3097,6 @@ function getSelectedMarketPool() {
 
 function renderMarketMicrostructure() {
   hydrateMarketPairSelector();
-  const asksEl = document.getElementById('ob-asks');
-  const bidsEl = document.getElementById('ob-bids');
-  const midEl = document.getElementById('ob-mid');
-  if (!asksEl || !bidsEl || !midEl) return;
-
-  const pool = getSelectedMarketPool();
-  if (!pool) {
-    asksEl.innerHTML = '<tr><td colspan="3" style="padding:20px;text-align:center;color:var(--muted);">No market selected.</td></tr>';
-    bidsEl.innerHTML = '<tr><td colspan="3" style="padding:20px;text-align:center;color:var(--muted);">No market selected.</td></tr>';
-    midEl.textContent = 'Mid: —';
-    renderLastTradesTable();
-    return;
-  }
-
-  const sym = pool.token_symbol;
-  const anetRes = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
-  const tokRes = tokenUnitsToAmount(sym, pool.token_reserve_units || 0);
-  const mid = (anetRes > 0 && tokRes > 0) ? (anetRes / tokRes) : 0;
-
-  if (!mid || !Number.isFinite(mid)) {
-    asksEl.innerHTML = '<tr><td colspan="3" style="padding:20px;text-align:center;color:var(--muted);">Pool has no liquidity.</td></tr>';
-    bidsEl.innerHTML = '<tr><td colspan="3" style="padding:20px;text-align:center;color:var(--muted);">Pool has no liquidity.</td></tr>';
-    midEl.textContent = 'Mid: —';
-    renderLastTradesTable();
-    return;
-  }
-
-  midEl.textContent = `Mid: ${fmt(mid, 6)} ANET per ${sym}`;
-
-  const levels = 10;
-  const step = 0.004;
-  const baseSize = Math.max(tokRes * 0.01, 0.001);
-
-  const asks = Array.from({ length: levels }, (_, idx) => {
-    const i = idx + 1;
-    const price = mid * (1 + step * i);
-    const qty = baseSize * (1 + (i * 0.15));
-    return { price, qty, total: price * qty };
-  }).reverse();
-
-  const bids = Array.from({ length: levels }, (_, idx) => {
-    const i = idx + 1;
-    const price = mid * (1 - step * i);
-    const qty = baseSize * (1 + (i * 0.15));
-    return { price, qty, total: price * qty };
-  });
-
-  const escapedSym = escapeHtml(sym);
-  asksEl.innerHTML = asks.map(r => `
-    <tr>
-      <td class="mono" style="color:#c5221f;">${fmt(r.price, 6)}</td>
-      <td class="mono">${fmt(r.qty, 4)} ${escapedSym}</td>
-      <td class="mono">${fmt(r.total, 4)} ANET</td>
-    </tr>
-  `).join('');
-
-  bidsEl.innerHTML = bids.map(r => `
-    <tr>
-      <td class="mono" style="color:#188038;">${fmt(r.price, 6)}</td>
-      <td class="mono">${fmt(r.qty, 4)} ${escapedSym}</td>
-      <td class="mono">${fmt(r.total, 4)} ANET</td>
-    </tr>
-  `).join('');
-
   renderLastTradesTable();
 }
 
@@ -2916,17 +3115,17 @@ function renderLastTradesTable() {
       time: t.timestamp,
     }));
 
-  const chainInferred = state.chainTxs
-    .filter(t => /swap|dex|pool|liquidity|trade/i.test(t.memo))
+  const chainTrades = state.chainTrades
+    .filter(trade => !sym || trade.tokenSymbol === sym)
     .slice(0, 16)
-    .map(t => ({
-      side: /sell|out/i.test(t.memo) ? 'SELL' : (/buy|in/i.test(t.memo) ? 'BUY' : 'CHAIN'),
-      price: null,
-      amountToken: t.amountAnts / ANTS_PER_ANET,
-      time: t.timestamp,
+    .map(trade => ({
+      side: trade.side,
+      price: trade.price,
+      amountToken: trade.amountToken,
+      time: trade.timestamp,
     }));
 
-  const merged = [...local, ...chainInferred]
+  const merged = [...local, ...chainTrades]
     .sort((a, b) => (Date.parse(b.time || 0) || b.time || 0) - (Date.parse(a.time || 0) || a.time || 0))
     .slice(0, 16);
 
@@ -2950,16 +3149,15 @@ function renderChainTxTable() {
   const tbody = document.getElementById('chain-tx-tbody');
   if (!tbody) return;
   if (!state.chainTxs.length) {
-    tbody.innerHTML = '<tr><td colspan="4" style="padding:18px;text-align:center;color:var(--muted);">No chain transactions available.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="table-empty">No chain transactions available.</td></tr>';
     return;
   }
-
   tbody.innerHTML = state.chainTxs.slice(0, 16).map(tx => `
     <tr>
-      <td class="mono" style="color:var(--accent);">#${tx.blockHeight}</td>
-      <td class="mono" style="font-size:11.5px;">${shortAddr(tx.from)}</td>
-      <td style="font-size:11.5px;color:var(--muted);">${sanitizeMemo(tx.memo)}</td>
-      <td style="font-size:11.5px;color:var(--muted-2);">${formatRelativeTime(tx.timestamp)}</td>
+      <td class="mono">#${tx.blockHeight}</td>
+      <td class="mono">${shortAddr(tx.from)}</td>
+      <td>${sanitizeMemo(tx.memo)}</td>
+      <td>${formatRelativeTime(tx.timestamp)}</td>
     </tr>
   `).join('');
 }
@@ -2967,41 +3165,50 @@ function renderChainTxTable() {
 function renderMarketsTable() {
   const tbody = document.getElementById('markets-tbody');
   if (!tbody) return;
-  const pools = getMarketPoolsForView();
-  if (pools.length === 0) {
-    const message = state.marketViewMode === MARKET_VIEW_MODES.PRODUCTION
-      ? 'No production pools found yet. Pools will appear here once created on the live endpoint.'
-      : 'No public test pools configured.';
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">${message}</td></tr>`;
+  const query = String(document.getElementById('market-search')?.value || '').trim().toUpperCase();
+  const pools = getMarketPoolsForView().filter(pool => {
+    const symbol = normSym(pool.token_symbol);
+    const name = String(state.tokenMeta[symbol]?.name || '').toUpperCase();
+    return !query || symbol.includes(query) || name.includes(query) || `ANET-${symbol}`.includes(query);
+  });
+  if (!pools.length) {
+    const message = state.pools.length
+      ? 'No pairs match this search.'
+      : 'No Layer 1 pools yet. Create a token and add liquidity to open a market.';
+    tbody.innerHTML = `<tr><td colspan="9" class="table-empty">${message}</td></tr>`;
     hydrateMarketPairSelector();
-    renderMarketMicrostructure();
     renderMarketEnvironmentNote();
     return;
   }
   tbody.innerHTML = pools.map(pool => {
-    const sym = pool.token_symbol || '';
-    const anetRes = parseFloat(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
-    const tokRes  = tokenUnitsToAmount(sym, pool.token_reserve_units || 0);
-    const price   = tokRes > 0 ? anetRes / tokRes : 0;
-    const fee     = ((pool.fee_bps || 30) / 100).toFixed(2);
-    const holders = pool.lp_holders ?? 0;
-    return `<tr>
-      <td>
-        <div class="pair-cell">
-          <div class="pool-icons" style="display:flex;">
-            <div class="token-icon-placeholder" style="background:linear-gradient(135deg,#1a73e8,#1a73e888);font-size:8px;width:26px;height:26px;">ANT</div>
-            <div class="token-icon-placeholder" style="background:linear-gradient(135deg,${tokenColor(sym)},${tokenColor(sym)}88);font-size:8px;width:26px;height:26px;margin-left:-8px;">${tokenInitials(sym)}</div>
-          </div>
-          <span class="mono">ANET / ${sym}</span>
-        </div>
-      </td>
-      <td class="mono">${fmt(price, 6)} ANET</td>
-      <td class="mono">${fmt(anetRes, 2)} ANET</td>
-      <td class="mono">${fmt(tokRes, 4)} ${sym}</td>
-      <td><span class="pill">${fee}%</span></td>
-      <td>${holders} LP${holders !== 1 ? 's' : ''}</td>
+    const symbol = normSym(pool.token_symbol);
+    const anetReserve = Number(pool.anet_reserve_anet || ants2anet(pool.anet_reserve_ants || 0));
+    const tokenReserve = tokenUnitsToAmount(symbol, pool.token_reserve_units || 0);
+    const price = tokenReserve > 0 ? anetReserve / tokenReserve : 0;
+    const fee = ((pool.fee_bps || 30) / 100).toFixed(2);
+    const recentTrades = state.chainTrades.filter(trade => trade.tokenSymbol === symbol);
+    const volumeAnet = recentTrades.reduce((sum, trade) => sum + (Number(trade.amountAnet) || 0), 0);
+    const token = state.tokenMeta[symbol];
+    const supplyUnits = token?.total_supply_units ?? String(token?.total_supply ?? '0');
+    const fdv = token ? tokenUnitsToAmount(symbol, supplyUnits) * price : null;
+    return `<tr data-symbol="${escapeHtml(symbol)}">
+      <td class="market-pair-cell"><div class="pair-cell"><span class="token-icon-placeholder">${escapeHtml(tokenInitials(symbol))}</span><span><strong>${escapeHtml(token?.name || symbol)}</strong><small class="mono">ANET / ${escapeHtml(symbol)}</small></span></div></td>
+      <td class="mono">${fmt(price, 8)} ANET</td>
+      <td>${recentTrades.length}</td>
+      <td class="mono">${fmt(volumeAnet, 6)}</td>
+      <td class="mono">${fmt(anetReserve, 4)}</td>
+      <td class="mono">${fmt(tokenReserve, 6)} ${escapeHtml(symbol)}</td>
+      <td class="mono">${fdv == null ? '—' : fmt(fdv, 4)}</td>
+      <td>${fee}%</td>
+      <td><button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();openTokenMarket('${escapeHtml(symbol)}')">Trade</button></td>
     </tr>`;
   }).join('');
+  tbody.querySelectorAll('tr[data-symbol]').forEach(row => {
+    row.addEventListener('click', () => {
+      state.marketPair = row.dataset.symbol;
+      refreshSelectedMarketViews();
+    });
+  });
   hydrateMarketPairSelector();
   renderMarketEnvironmentNote();
 }
@@ -3014,7 +3221,7 @@ function getDexChartTimeframe() {
 
 function getDexChartHistoryKey() {
   const pool = getSelectedMarketPool();
-  return pool ? `dex_chart_history_${state.marketViewMode}_${normalizeKey(pool.token_symbol)}` : null;
+  return pool ? `dex_chart_history_${normalizeKey(pool.token_symbol)}` : null;
 }
 
 function normalizeKey(value) {
@@ -3065,13 +3272,7 @@ function captureDexChartSnapshot() {
   const pool = getSelectedMarketPool();
   if (!pool) return;
   
-  let price = getPoolPriceInAnet(pool);
-  if (state.marketViewMode === MARKET_VIEW_MODES.TEST && Number.isFinite(price) && price > 0) {
-    const tick = Math.floor(Date.now() / 30000);
-    const phase = (normalizeKey(pool.token_symbol).charCodeAt(0) % 11) / 7;
-    const pulse = (Math.sin((tick + phase) / 4.8) * 0.012) + (Math.cos((tick + phase) / 8.2) * 0.006);
-    price = Math.max(price * 0.9, price * (1 + pulse));
-  }
+  const price = getPoolPriceInAnet(pool);
   if (price == null || !isFinite(price) || price <= 0) return;
   
   const key = getDexChartHistoryKey();
@@ -3139,9 +3340,7 @@ function renderDexChart(history) {
     if (svg) svg.innerHTML = '';
     if (emptyNoteEl) {
       emptyNoteEl.style.display = 'flex';
-      emptyNoteEl.textContent = state.marketViewMode === MARKET_VIEW_MODES.TEST
-        ? 'Public Test View is preparing demo trend data. Keep this tab open for a few refresh cycles.'
-        : 'No production trend data yet. Create/activate a live pool or switch to Public Test View.';
+      emptyNoteEl.textContent = 'No observed price history yet. Snapshots are collected while this market is open.';
     }
     const startEl = document.getElementById('dex-chart-start');
     const midEl = document.getElementById('dex-chart-mid');
@@ -3168,7 +3367,7 @@ function renderDexChart(history) {
   if (!ohlc.length) {
     if (emptyNoteEl) {
       emptyNoteEl.style.display = 'flex';
-      emptyNoteEl.textContent = 'Not enough points to render the trendline yet.';
+      emptyNoteEl.textContent = 'Not enough observed data points to draw this chart.';
     }
     return;
   }
@@ -3197,7 +3396,7 @@ function renderDexChart(history) {
   const candleStep = Math.max(6, plotWidth / Math.max(1, ohlc.length));
   const valueToY = (value) => topPad + (maxValue - value) / range * plotHeight;
 
-  // Trendline built from close prices (line is clearer for trend than candles)
+  // Draw observed pool-price samples as a single line.
   const points = ohlc.map((candle, index) => ({
     x: leftPad + index * candleStep + candleStep * 0.5,
     y: valueToY(candle.close),
@@ -3242,7 +3441,7 @@ function renderDexChart(history) {
 
   const pool = getSelectedMarketPool();
   const sym = pool?.token_symbol || '?';
-  const title = `DEX market trendline (${timeframe.label}). Green = uptrend, red = downtrend. Last: ${fmt(lastCandle?.close, 6)} ANET per ${sym}.`;
+  const title = `Observed ${timeframe.label} ANET price for ${sym}. Last: ${fmt(lastCandle?.close, 6)} ANET per token.`;
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   svg.setAttribute('aria-label', title);
   svg.innerHTML = `<title>${title}</title>${gridLines}${candleSvgs}${lastMarker}${rightAxisLabels}`;
@@ -4102,7 +4301,6 @@ async function init() {
   renderBridgeUI();
   buildBridgeTokenOptions(state.selectedBridgeChain);
   initCreatePoolHelpers();
-  syncMarketViewButtons();
   refreshSelectedMarketViews();
   refreshMarketActivity();
 
