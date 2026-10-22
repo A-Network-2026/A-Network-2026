@@ -87,7 +87,7 @@ footer a{color:var(--mint);text-decoration:none}
 body{background:#f4f7fb;color:var(--text)}
 .topbar{height:70px;background:#fff;border-bottom:1px solid #e0e6ed;box-shadow:0 2px 10px #1c344f08}
 .brand{gap:11px;color:#18283b;font-size:12px;letter-spacing:.02em}
-.brand-logo{display:block;width:42px;height:42px;object-fit:contain;background:#07101a;border:1px solid #23364a;border-radius:4px;padding:3px}
+.brand-logo{display:block;width:50px;height:52px;object-fit:contain;background:#fff}
 .brand small{color:#718095}
 nav a{color:#526276}
 nav a:hover,nav a[aria-current=page]{color:#145f9c;border-color:#1972b8}
@@ -135,4 +135,4 @@ tbody tr:hover{background:#edf6fc}
 .disclosure{border-color:#dce3ec;color:#6c7b8d}
 footer{background:#fff;border-color:#e0e6ed;color:#6b7b8e}
 footer a{color:#1769aa}
-@media(max-width:760px){.topbar{background:#fff}.brand-logo{width:38px;height:38px}}
+@media(max-width:760px){.topbar{background:#fff}.brand-logo{width:46px;height:48px}}
