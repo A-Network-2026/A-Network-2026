@@ -100,8 +100,8 @@
     const first = total ? offset + 1 : 0;
     const last = Math.min(offset + PAGE_SIZE, total);
     elements.page.textContent = term
-      ? `${visible.length} matches on this page · ${first}–${last} of ${formatCount(total)}`
-      : `${first}–${last} of ${formatCount(total)} miners`;
+      ? `${visible.length} matches on this page · ${first} to ${last} of ${formatCount(total)}`
+      : `${first} to ${last} of ${formatCount(total)} miners`;
     elements.prev.disabled = offset === 0;
     elements.next.disabled = offset + PAGE_SIZE >= total;
   }
@@ -117,7 +117,7 @@
     const history = Array.isArray(miner.recent_sessions) ? miner.recent_sessions : [];
     sessions.innerHTML = history.length
       ? history.map((session) => `<li><span>${session.completed ? 'Session completed' : escapeHtml(session.status || 'Session activity')}</span><time>${escapeHtml(formatDate(session.started_at))}</time></li>`).join('')
-      : '<li><span>No recent session rows</span><time>—</time></li>';
+      : '<li><span>No recent session rows</span><time>No timestamp</time></li>';
 
     const chain = document.getElementById('chain-record');
     if (!miner.wallet_address) {
