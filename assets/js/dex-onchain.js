@@ -596,15 +596,13 @@
     const ch = Number(a.change24h) || 0;
     changeEl.textContent = `${ch >= 0 ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}% (24h)`;
     changeEl.className = 'anet-ticker-change ' + (ch > 0 ? 'up' : ch < 0 ? 'down' : 'neutral');
-    const supply = (prices.anetSupply != null)
-      ? prices.anetSupply
-      : (a.marketCap && a.priceUsd ? a.marketCap / a.priceUsd : null);
+    const supply = prices.anetSupply;
     if (statsEl) {
       statsEl.innerHTML = `
         <div><span>Market Cap</span><b>${fmtUsd(a.marketCap, 0)}</b></div>
         <div><span>24h Vol</span><b>${fmtUsd(a.volume24h, 0)}</b></div>
         <div><span>Liquidity</span><b>${fmtUsd(a.liquidityUsd, 0)}</b></div>
-        <div><span>Total Supply (BEP-20)</span><b>${supply ? fmtNum(supply, 0) + ' ANET' : '—'}</b></div>
+        <div><span>Total Supply (BEP-20)</span><b>${supply != null ? fmtNum(supply, 0) + ' ANET' : 'Unavailable'}</b></div>
         <div><span>1 ANET</span><b>${(ANTS_PER_ANET).toLocaleString()} ANTS</b></div>
         <div><span>1 ANTS</span><b>${a.priceUsd ? fmtUsd(a.priceUsd / ANTS_PER_ANET, 10) : '—'}</b></div>`;
     }
