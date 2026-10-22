@@ -949,6 +949,10 @@ async function submitCreateToken(event) {
   const decimals = Number(document.getElementById('token-create-decimals').value);
   const mintable = document.getElementById('token-create-mintable').checked;
   try {
+    const account = state.anetWallet.account || await getAccount(state.anetWallet.address);
+    if (Number(account.sessions || 0) < 1_000) {
+      throw new Error('Token creation unlocks at 1,000 completed sessions.');
+    }
     if (!/^[A-Z0-9_-]{1,16}$/.test(symbol)) throw new Error('Symbol must be 1–16 letters, numbers, _ or -.');
     if (symbol === 'ANET' || symbol === 'WANET') throw new Error(`${symbol} is reserved by the network.`);
     if (!name || [...name].length > 64) throw new Error('Name must be 1–64 characters.');

@@ -8,16 +8,16 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>A-Network Whitepaper v4.4 | One-Way Bridge Policy · Mined-Coin Vesting · On-Chain Attestation</title>
+  <title>A-Network Whitepaper v4.5 | Session-Gated Native Token Registry</title>
 
-  <meta name="description" content="The official A-Network v4.4 whitepaper. Establishes the one-way bridge policy as a protocol invariant — native L1 ANET originates only from mining and market-acquired wANET is never redeemable into native ANET — on top of the chain-enforced mined-coin vesting schedule (6-month cliff, then 25% every 3 months), transparent code-enforced asset unlock tiers, the verified token identity registry, on-chain protocol-update attestation, the permissionless multi-chain DEX, market-discovered pricing, the disclosed 0.875% interface fee, the non-custodial ANET Wallet extension, and the regulatory review framework." />
+  <meta name="description" content="The official A-Network v4.5 whitepaper documents session-gated native ANRC-20 token issuance, the fixed-function Layer 1 execution model, the one-way bridge invariant, mined-coin vesting, market separation, fees, and current deployment status." />
 
   <meta name="theme-color" content="#ffffff" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
   <meta http-equiv="X-Frame-Options" content="DENY" />
   <meta name="referrer" content="no-referrer" />
 
-  <meta property="og:title" content="A-Network Whitepaper v4.4" />
+  <meta property="og:title" content="A-Network Whitepaper v4.5" />
 
   <meta property="og:description" content="Technical specification for A-Network Layer 1, transparent unlock tiers, verified token identity, real-liquidity audit gates, treasury controls, separate Bitcoin and EVM markets, and compliance review requirements." />
 
@@ -598,7 +598,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v4.4 · AUGUST 14, 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v4.5 · OCTOBER 23, 2026</sub>
 
       </div>
 
@@ -629,6 +629,7 @@
 
     <a class="nav-item" href="#v41-changelog">v4.1 Permissionless &amp; Revenue</a>
     <a class="nav-item" href="#v42-changelog">v4.2 Unlock Tiers &amp; Attestation</a>
+    <a class="nav-item" href="#v45-changelog">v4.5 Native Token Registry</a>
     <a class="nav-item" href="#v44-changelog">v4.4 One-Way Bridge</a>
     <a class="nav-item" href="#v43-changelog">v4.3 Mined-Coin Vesting</a>
 
@@ -883,7 +884,7 @@
         </div>
       </div>
 
-      <div class="hero-badge">Technical Paper v4.4 (One-Way Bridge Policy · Mined-Coin Vesting · On-Chain Attestation)</div>
+      <div class="hero-badge">Technical Paper v4.5 (Session-Gated Native Token Registry)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
       <p class="hero-sub">A-Network operates a native Layer 1 settlement ledger and a separate EVM market. Version 3.9 defines the controls required before public Layer 1 liquidity can be described as real: every pool contribution must debit a named wallet, the paired reserve asset must be registered and externally verifiable, bootstrap or administrator-created balances cannot be presented as liquidity, and the mobile interface must fail closed when any audit gate is missing. The designated EVM reserve treasury is <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code>. A Bitcoin reserve may support a separately identified ANET/BTC market only after a Bitcoin treasury address and proof transaction are published. Bitcoin reserves, EVM reserves, and native Layer 1 balances are never merged in accounting or represented as interchangeable custody. Layer 1 currently uses fixed protocol operations and has no general-purpose smart-contract virtual machine; any future VM requires a separately specified consensus upgrade, public test environment, independent audit, and explicit activation decision.</p>
       <div class="hero-meta">
@@ -896,6 +897,26 @@
         <div class="hero-meta-item"><strong>Liquidity Rule</strong> &mdash; Wallet-funded &middot; reserve-backed &middot; independently auditable &middot; never bootstrap</div>
       </div>
     </div>
+
+    <section class="wp-section" id="v45-changelog">
+      <div class="section-label">v4.5 Changelog &middot; October 23, 2026</div>
+      <h2>Version 4.5 &mdash; Session-Gated Native Token Registry</h2>
+      <p>This addendum defines native ANRC-20 issuance as a fixed-function Layer&nbsp;1 registry operation, not arbitrary smart-contract deployment. It becomes active only after the matching chain release is deployed; the current mainnet must not be described as enforcing this new creator gate until then.</p>
+
+      <h3>Creator eligibility and asset boundary</h3>
+      <ul>
+        <li>Creating a token requires a wallet with at least <strong>1,000 completed sessions</strong>. Genesis bootstrap validator accounts do not qualify solely because their validator seat is seeded.</li>
+        <li>The creator signs the operation locally. The chain receives the public wallet address, token fields, and signature; seed phrases, private keys, passwords, and email are not part of the token transaction.</li>
+        <li>Initial supply is assigned to the creator. The creator must choose fixed supply or explicitly enable owner-only minting. ANRC-20 supply is separate from the 21,000,000 native ANET cap and cannot create, wrap, or redeem native ANET.</li>
+        <li>Opening a pool and swapping remain subject to the existing 1,000-session eligibility and wallet-funded liquidity rules. Registered tokens are Layer&nbsp;1 assets, not portable EVM contracts or public external-market listings.</li>
+        <li>There is no separate token-creation fee in this release. Layer&nbsp;1 has no general-purpose gas market; any future ANTS-denominated creation fee requires a specified, tested, versioned protocol rule before activation.</li>
+      </ul>
+
+      <div class="panel panel-accent">
+        <h4>Fee distribution status</h4>
+        <p style="margin-bottom: 0">Three fee paths remain separate. The 0.875% EVM interface fee is paid on BNB Chain/Ethereum to the disclosed EVM treasury. A native Layer&nbsp;1 AMM pool&apos;s configured swap fee remains in that pool for its liquidity providers. Native L1 transaction fees are divided equally among the addresses recorded in <code>block.miners</code>; any remainder, or all fees when that list is empty, goes to the internal fee-reserve account. Current bootstrap validator seats are seeded to the 1,000-session threshold and are included in <code>block.miners</code>, so their fee shares are currently spendable under the ordinary eligibility check. They are not held in escrow. Organic validators join ahead of bootstrap seats; the current bootstrap sunset retires all bootstrap seats only when 21 organic validators are eligible. Recent live blocks inspected for this release had zero transaction fees. A future policy that withholds bootstrap-era fees for later organic validators requires a separate protocol change and an explicit release rule; it is not current behavior.</p>
+      </div>
+    </section>
 
     <section class="wp-section" id="v44-changelog">
       <div class="section-label">v4.4 Changelog &middot; August 14, 2026</div>
@@ -1011,7 +1032,7 @@
       <h3>Permissionless by design</h3>
       <ul>
         <li><strong>Ownerless token.</strong> The ANET BEP-20 contract is immutable &mdash; ownership renounced, supply fixed at 21,000,000, and <code>mint</code>/<code>pause</code>/<code>blacklist</code> permanently disabled.</li>
-        <li><strong>Permissionless pools.</strong> On the native L1 DEX, creating a pool and adding liquidity require only a signed action from the provider&apos;s own wallet &mdash; there is no admin or operator gate. Any community member can open a market.</li>
+        <li><strong>Permissionless pools.</strong> On the native L1 DEX, creating a pool and adding liquidity require a signed action from the provider&apos;s own eligible wallet &mdash; there is no admin or operator gate. The current eligibility threshold is 1,000 completed sessions.</li>
         <li><strong>Third-party AMMs.</strong> On-chain trades route through public, permissionless AMMs (PancakeSwap, Uniswap, Jupiter). A-Network provides an interface; it does not operate those venues.</li>
         <li><strong>Market-discovered price.</strong> A-Network does not set, pre-seed at a chosen price, target, or guarantee any ANET price. Price emerges from free trading. Since v4.4 the bridge is <strong>one-way</strong> (mined L1 ANET can exit to the external market; nothing external converts back into native ANET), so arbitrage only operates in one direction: if the external price sits above what miners will sell for, eligible miners can bridge out and sell. <strong>No mechanism guarantees price parity between native ANET and wANET</strong>, and none is claimed. This restates the commitments in the Economic Architecture and Section&nbsp;15.</li>
       </ul>
@@ -4727,7 +4748,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <div class="wp-footer">
 
-      <p style="margin-bottom: 8px"><strong style="color: var(--text);  font-family: Roboto, Arial, sans-serif;  font-size: 14px">A-NETWORK</strong> &middot; Official Whitepaper v3.9 &middot; June 14, 2026</p>
+      <p style="margin-bottom: 8px"><strong style="color: var(--text);  font-family: Roboto, Arial, sans-serif;  font-size: 14px">A-NETWORK</strong> &middot; Official Whitepaper v4.5 &middot; October 23, 2026</p>
 
       <p>Website: <a href="https://a-network.net">a-network.net</a> &middot; Contract: <a href="https://bscscan.com/address/0x791055A7d52AA392eaE8De04250497f33807E46A">0x791055A7...E46A</a> &middot; App: <a href="https://play.google.com/store/apps/details?id=com.anetwork.app">Google Play</a></p>
 
