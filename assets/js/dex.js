@@ -2995,33 +2995,58 @@ async function loadLatestBlocks() {
         const attributes = event.attributes || {};
         const pair = String(attributes.pair_id || '');
         const symbol = pair.startsWith('ANET-') ? pair.slice(5) : '';
-        if (event.event_type !== 'SwapExecuted' || !symbol) return;
+        const eventTime = event.timestamp || b.epoch_end || b.epoch_start || null;
+        const blockHeight = b.block_height ?? b.height ?? '—';
+        if (event.event_type === 'SwapExecuted' && symbol) {
+          const direction = String(attributes.direction || '');
+          const anetToToken = direction.startsWith('ANET->');
+          const amountIn = Number(attributes.amount_in || 0);
+          const amountOut = Number(attributes.amount_out || 0);
+          const amountAnet = (anetToToken ? amountIn : amountOut) / ANTS_PER_ANET;
+          const amountToken = tokenUnitsToAmount(symbol, anetToToken ? amountOut : amountIn);
+          trades.push({
+            side: anetToToken ? 'BUY' : 'SELL',
+            pair,
+            tokenSymbol: symbol,
+            amountAnet,
+            amountToken,
+            price: amountToken > 0 ? amountAnet / amountToken : null,
+            timestamp: eventTime,
+            blockHeight,
+            eventIndex,
+          });
+          txs.push({
+            blockHeight,
+            from: attributes.trader || '—',
+            to: '—',
+            memo: `Swap ${pair}`,
+            amountAnts: amountAnet * ANTS_PER_ANET,
+            feeAnts: 0,
+            timestamp: eventTime,
+            txRef: `${b.block_height || bi}-event-${eventIndex}`,
+          });
+          return;
+        }
 
-        const direction = String(attributes.direction || '');
-        const anetToToken = direction.startsWith('ANET->');
-        const amountIn = Number(attributes.amount_in || 0);
-        const amountOut = Number(attributes.amount_out || 0);
-        const amountAnet = (anetToToken ? amountIn : amountOut) / ANTS_PER_ANET;
-        const amountToken = tokenUnitsToAmount(symbol, anetToToken ? amountOut : amountIn);
-        trades.push({
-          side: anetToToken ? 'BUY' : 'SELL',
-          pair,
-          tokenSymbol: symbol,
-          amountAnet,
-          amountToken,
-          price: amountToken > 0 ? amountAnet / amountToken : null,
-          timestamp: event.timestamp || b.epoch_end || b.epoch_start || null,
-          blockHeight: b.block_height ?? b.height ?? '—',
-          eventIndex,
-        });
+        const eventLabels = {
+          PoolCreated: 'Pool created',
+          LiquidityAdded: 'Liquidity added',
+          LiquidityRemoved: 'Liquidity removed',
+          TokenTransferred: attributes.from === 'MINT' ? 'Token issued' : 'Token transfer',
+          AppActivity: 'App activity',
+        };
+        const label = eventLabels[event.event_type];
+        if (!label) return;
+        const asset = String(attributes.token_symbol || attributes.symbol || '');
+        const subject = pair || asset || String(attributes.action || '');
         txs.push({
-          blockHeight: b.block_height ?? b.height ?? '—',
-          from: attributes.trader || '—',
-          to: '—',
-          memo: `${event.event_type} ${pair}`,
-          amountAnts: amountAnet * ANTS_PER_ANET,
+          blockHeight,
+          from: attributes.provider || attributes.trader || (attributes.from === 'MINT' ? attributes.to : attributes.from) || attributes.wallet || '—',
+          to: attributes.to || '—',
+          memo: [label, subject].filter(Boolean).join(' '),
+          amountAnts: Number(attributes.amount_ants || 0),
           feeAnts: 0,
-          timestamp: event.timestamp || b.epoch_end || b.epoch_start || null,
+          timestamp: eventTime,
           txRef: `${b.block_height || bi}-event-${eventIndex}`,
         });
       });

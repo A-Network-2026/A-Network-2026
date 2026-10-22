@@ -1259,6 +1259,12 @@ footer .copyright { font-size: 12px; color: var(--muted-2); }
   .market-toolbar-actions { flex-shrink: 0; }
   .token-studio-grid { grid-template-columns: minmax(0, 1fr); }
   .token-studio-heading { align-items: flex-start; }
+  .onchain-history-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .onchain-history-amounts { grid-column: 1 / -1; grid-row: 2; }
+  .onchain-history-row a { grid-column: 2; grid-row: 1; }
+  .onchain-history-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .onchain-history-amounts { grid-column: 1 / -1; grid-row: 2; }
+  .onchain-history-row a { grid-column: 2; grid-row: 1; }
   .card-body { padding: 14px; }
   .amount-input { font-size: 20px; }
   footer { flex-direction: column; align-items: flex-start; }
@@ -1292,6 +1298,17 @@ footer .copyright { font-size: 12px; color: var(--muted-2); }
    ============================================= */
 .onchain-card { border: 1px solid var(--line-strong); }
 .onchain-body { display: flex; flex-direction: column; gap: 12px; }
+.onchain-history { border-top: 1px solid var(--line); padding-top: 12px; }
+.onchain-history-head { display: flex; justify-content: space-between; gap: 12px; color: var(--text); font-size: 11px; font-weight: 500; }
+.onchain-history-head span:last-child { color: var(--muted); font-weight: 400; }
+.onchain-history-list { display: grid; gap: 8px; margin-top: 8px; color: var(--muted); font-size: 12px; }
+.onchain-history-row { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(180px, 1.5fr) auto; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+.onchain-history-summary strong, .onchain-history-summary small { display: block; }
+.onchain-history-summary strong { color: var(--text); font-weight: 500; }
+.onchain-history-summary small { margin-top: 2px; color: var(--muted); }
+.onchain-history-amounts { color: var(--text); font-family: 'Roboto Mono', monospace; font-size: 11px; }
+.onchain-history-amounts span { color: var(--muted); padding: 0 4px; }
+.onchain-history-row a { white-space: nowrap; font-size: 11px; }
 
 /* Live ANET ticker */
 .anet-ticker {
@@ -1316,6 +1333,12 @@ footer .copyright { font-size: 12px; color: var(--muted-2); }
 .anet-ticker-stats > div { display: flex; flex-direction: column; }
 .anet-ticker-stats span { font-size: 10.5px; color: var(--muted-2); }
 .anet-ticker-stats b { font-size: 13px; color: var(--text); font-weight: 600; }
+
+@media (max-width: 640px) {
+  .onchain-history-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .onchain-history-amounts { grid-column: 1 / -1; grid-row: 2; }
+  .onchain-history-row a { grid-column: 2; grid-row: 1; }
+}
 
 /* Network + side selectors */
 .onchain-net-row, .onchain-side-row { display: flex; gap: 8px; flex-wrap: wrap; }

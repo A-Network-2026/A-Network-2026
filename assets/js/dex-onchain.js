@@ -310,6 +310,7 @@
     lpBalance: 0n,
     quoting: false,
   };
+  const ONCHAIN_HISTORY_KEY = 'anet:dex:onchain-trades:v1';
 
   function mount() {
     const host = $('onchain-trade-mount');
@@ -451,6 +452,10 @@
           <!-- Shared status / receipt / connect -->
           <div class="swap-status" id="oc-status"></div>
           <div class="info-box" id="oc-receipt" style="display:none;font-size:12px;line-height:1.5;"></div>
+          <section class="onchain-history" aria-label="Recent wallet trades">
+            <div class="onchain-history-head"><span>RECENT WALLET TRADES</span><span>Saved on this device</span></div>
+            <div id="oc-history-list" class="onchain-history-list">Connect a wallet to view its saved trades.</div>
+          </section>
           <button class="btn btn-outline btn-full" id="oc-connect-btn" style="padding:12px;">Connect Wallet</button>
 
           <div class="info-box" style="text-align:center;font-size:11.5px;color:var(--muted-2);">
@@ -786,6 +791,7 @@
       btn.textContent = walletState.evm ? `Wallet: ${shortId(walletState.evm)}` : 'Connect Wallet (MetaMask)';
       btn.className = 'btn btn-full ' + (walletState.evm ? 'btn-outline connected' : 'btn-outline');
     }
+    renderOnchainTradeHistory();
   }
   const shortId = (a) => a ? a.slice(0, 6) + '…' + a.slice(-4) : '';
 
@@ -883,6 +889,7 @@
 
   function showReceipt({ chain, explorer, hash, block, q, sig }) {
     const el = $('oc-receipt'); if (!el) return;
+    rememberOnchainTrade({ chain, explorer, hash, block, q, sig });
     const link = sig
       ? `https://solscan.io/tx/${sig}`
       : `${explorer}/tx/${hash}`;
@@ -897,6 +904,68 @@
       <div class="price-row"><span>Received (est.)</span><span class="val">~${fmtNum(q.outHuman, 6)} ${esc(ui.toSym)}</span></div>
       ${block != null ? `<div class="price-row"><span>Block</span><span class="val">${block}</span></div>` : ''}
       <div class="price-row"><span>Tx</span><span class="val"><a href="${link}" target="_blank" rel="noopener">${esc((sig || hash).slice(0, 16))}… ↗</a></span></div>`;
+  }
+
+  function readOnchainTradeHistory() {
+    try {
+      const data = JSON.parse(localStorage.getItem(ONCHAIN_HISTORY_KEY) || '[]');
+      return Array.isArray(data) ? data.filter(item => item && typeof item === 'object') : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function rememberOnchainTrade({ chain, explorer, hash, block, q, sig }) {
+    const account = String(ui.chain === 'solana' ? walletState.sol : walletState.evm || '').trim();
+    const txId = String(sig || hash || '').trim();
+    if (!account || !txId || !q) return;
+    const entry = {
+      id: `${ui.chain}:${txId}`,
+      account,
+      chain: String(chain || ''),
+      chainId: ui.chain,
+      side: ui.side === 'sell' ? 'SELL' : 'BUY',
+      fromSymbol: String(q.fromTok?.symbol || ui.fromSym),
+      toSymbol: String(q.toTok?.symbol || ui.toSym),
+      amountIn: Number(q.inHuman ?? (q.amountIn != null ? fromUnits(q.amountIn, q.fromTok?.decimals || 18) : 0)),
+      amountOut: Number(q.outHuman || 0),
+      hash: txId,
+      explorer: String(explorer || (sig ? 'https://solscan.io' : EVM_DEX[ui.chain]?.explorer || '')),
+      block: block == null ? null : Number(block),
+      timestamp: Date.now(),
+    };
+    try {
+      const history = readOnchainTradeHistory().filter(item => item.id !== entry.id);
+      history.unshift(entry);
+      localStorage.setItem(ONCHAIN_HISTORY_KEY, JSON.stringify(history.slice(0, 100)));
+    } catch (_) { /* a confirmed trade remains valid if local history storage is unavailable */ }
+    renderOnchainTradeHistory();
+  }
+
+  function renderOnchainTradeHistory() {
+    const list = $('oc-history-list');
+    if (!list) return;
+    const account = String(ui.chain === 'solana' ? walletState.sol : walletState.evm || '').trim();
+    if (!account) {
+      list.textContent = 'Connect a wallet to view its saved trades.';
+      return;
+    }
+    const history = readOnchainTradeHistory().filter(item =>
+      item.account.toLowerCase() === account.toLowerCase()
+    ).slice(0, 10);
+    if (!history.length) {
+      list.textContent = 'No confirmed swaps saved on this device.';
+      return;
+    }
+    list.innerHTML = history.map(item => {
+      const txUrl = `${item.explorer}/tx/${encodeURIComponent(item.hash)}`;
+      const date = new Date(item.timestamp).toLocaleString();
+      return `<div class="onchain-history-row">
+        <div class="onchain-history-summary"><strong>${esc(item.side)} ${esc(item.toSymbol)}</strong><small>${esc(item.chain)} · ${esc(date)}</small></div>
+        <div class="onchain-history-amounts">${fmtNum(item.amountIn, 6)} ${esc(item.fromSymbol)} <span>→</span> ~${fmtNum(item.amountOut, 6)} ${esc(item.toSymbol)}</div>
+        <a href="${esc(txUrl)}" target="_blank" rel="noopener noreferrer">${item.block == null ? 'View tx' : `Block ${item.block}`} ↗</a>
+      </div>`;
+    }).join('');
   }
 
   /* ═══════════════════════════════════════════════════════════════════
