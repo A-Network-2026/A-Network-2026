@@ -1,5 +1,5 @@
 /**
- * A Network — Bridge (export) tab
+ * A Network Bridge (export) tab
  * dex-bridge.js  |  2026
  *
  * ANET L1 → wANET (BEP-20) on BNB Chain, the only bridge direction allowed by
@@ -99,7 +99,7 @@
     return null;
   }
 
-  /** Signed payload — must canonicalize identically to the L1's json!() in post_bridge_burn. */
+  /** Signed payload; must canonicalize identically to the L1's json!() in post_bridge_burn. */
   function burnPayload(sender, recipient, amountAnts) {
     return { route: 'bridge_burn', sender: String(sender).trim().toUpperCase(), bsc_recipient: String(recipient).trim().toLowerCase(), amount_ants: amountAnts, token_symbol: 'ANET' };
   }
@@ -185,7 +185,7 @@
       br.active = { burn_id: resp.burn_id, status: resp.status || 'pending', ants: resp.ants_burned ?? amountAnts, bsc_recipient: resp.bsc_recipient || payload.bsc_recipient, created_at: resp.created_at };
       setStatus(`✓ Burned ${esc(resp.anet_burned || fmtAnet(amountAnts, 8))} ANET on L1 · export #${esc(String(resp.burn_id))} · waiting for the vault signers to release wANET on BNB Chain…`, 'loading');
       $('br-amount').value = '';
-      notify(`Export #${resp.burn_id} submitted — release usually lands within minutes.`, 'success', 7000);
+      notify(`Export #${resp.burn_id} submitted. Release usually lands within minutes.`, 'success', 7000);
       if (typeof refreshAnetBalance === 'function') refreshAnetBalance();
       refreshAccount(); refreshHistory();
       startPolling(resp.burn_id);
@@ -296,7 +296,7 @@
               ${step(2, 'Become eligible', `${MIN_SESSIONS.toLocaleString()} on-chain sessions and the mined-coin vesting schedule (6-month cliff, then 25% every 3 months) apply to exports.`)}
               ${step(3, 'Burn on L1', 'You sign a <code>bridge_burn</code> action in your ANET wallet; the L1 destroys the amount and records the export.')}
               ${step(4, 'Release on BNB Chain', 'Independent vault signers verify the burn and release the same amount of wANET to your address (EIP-712, M-of-N).')}
-              ${step(5, 'Trade', 'wANET trades on PancakeSwap — use the <a href="#" id="br-goto-trade">Trade tab</a>.')}
+              ${step(5, 'Trade', 'wANET trades on PancakeSwap; use the <a href="#" id="br-goto-trade">Trade tab</a>.')}
             </div>
           </div>
 
@@ -349,7 +349,7 @@
     } else if (br.gate === 'gated') {
       pill.className = 'pill amber'; pill.textContent = 'Gated';
       note.style.display = '';
-      note.innerHTML = `<strong>Export is switched off on the L1 node.</strong> The node operator enables <code>ANET_BRIDGE_BURN_ENABLED</code> after the vault canary release succeeds (see contracts/AUDIT_BRIDGE_2026-05-24.md §3.3). Everything else — the BNB Chain vault, the signer flow and this page — is ready; the form unlocks automatically once the switch is on. <button class="btn btn-ghost btn-sm" id="br-recheck" type="button" style="font-size:11px;margin-left:6px">Check again</button>`;
+      note.innerHTML = `<strong>Export is switched off on the L1 node.</strong> The node operator enables <code>ANET_BRIDGE_BURN_ENABLED</code> after the vault canary release succeeds (see contracts/AUDIT_BRIDGE_2026-05-24.md §3.3). Everything else (the BNB Chain vault, the signer flow and this page) is ready; the form unlocks automatically once the switch is on. <button class="btn btn-ghost btn-sm" id="br-recheck" type="button" style="font-size:11px;margin-left:6px">Check again</button>`;
       $('br-recheck')?.addEventListener('click', probeGate);
       if (routePill) { routePill.className = 'pill amber'; routePill.textContent = 'Gated'; }
     } else if (br.gate === 'unreachable') {
@@ -403,7 +403,7 @@
     } else box.style.display = 'none';
     const live = br.gate === 'live';
     btn.disabled = !(live && addr && amountAnts > 0 && !err && limits && limits.eligible);
-    btn.textContent = !live ? (br.gate === 'gated' ? 'Export gated — L1 switch off' : br.gate === 'unreachable' ? 'L1 API unreachable' : 'Checking…')
+    btn.textContent = !live ? (br.gate === 'gated' ? 'Export gated: L1 switch off' : br.gate === 'unreachable' ? 'L1 API unreachable' : 'Checking…')
       : !addr ? 'Connect ANET wallet' : amountAnts <= 0 ? 'Enter an amount' : err ? 'Fix the highlighted issue' : (limits && !limits.eligible) ? 'Wallet not eligible yet' : `Export ${fmtAnet(amountAnts, 4)} ANET to BNB Chain`;
   }
 
@@ -431,7 +431,7 @@
       row('Vault contract', `<a href="https://bscscan.com/address/${VAULT}" target="_blank" rel="noopener">${short(VAULT)} ↗</a>`) +
       row('wANET (BEP-20)', `<a href="https://bscscan.com/token/${WANET}" target="_blank" rel="noopener">${short(WANET)} ↗</a>`) +
       row('Release control', 'M-of-N EIP-712 signers') +
-      row('Custody of your funds', 'None — burn on L1, receive on BNB Chain');
+      row('Custody of your funds', 'None: burn on L1, receive on BNB Chain');
   }
 
   function onWalletsChanged() {

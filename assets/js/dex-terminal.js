@@ -1,20 +1,20 @@
 /**
- * A Network — Trading Terminal
+ * A Network Trading Terminal
  * dex-terminal.js  |  2026
  *
  * Exchange-style terminal (markets list · candlestick chart · on-chain trade
  * tape · liquidity depth · order ticket) for the on-chain markets. Pure UI and
- * market data; it never touches wallets or funds — the order ticket is mounted
+ * market data; it never touches wallets or funds. The order ticket is mounted
  * into `#oc-ticket-slot` by dex-onchain.js, which owns every signature.
  *
- *  • ANET markets  — real PancakeSwap V2 `Swap` events (trade tape + candles),
+ *  • ANET markets:  real PancakeSwap V2 `Swap` events (trade tape + candles),
  *                    live DexScreener ticks, pool reserves for exact AMM depth.
- *  • Majors        — Binance public klines/trades as reference market data,
+ *  • Majors:        Binance public klines/trades as reference market data,
  *                    CoinGecko fallback; depth measured with real router quotes.
  *
  * Loaded BEFORE dex-onchain.js. dex-onchain.js registers a data provider
  * (RPC helpers, prices, quotes) via window.AnetTerminal.registerProvider().
- * CSP: script-src 'self' — no CDNs, no eval, no inline handlers.
+ * CSP: script-src 'self' (no CDNs, no eval, no inline handlers).
  */
 'use strict';
 
@@ -406,7 +406,7 @@
   const isAnetMarket = (m) => m && m.base === 'ANET';
 
   /* ═══════════════════════════════════════════════════════════════════
-     Rendering — markets list + header
+     Rendering: markets list + header
      ═══════════════════════════════════════════════════════════════════ */
   function renderMarketsList() {
     const el = $('tm-markets-list'); if (!el) return;
@@ -598,7 +598,7 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     Data — ANET on-chain swaps, reserves, ticks
+     Data: ANET on-chain swaps, reserves, ticks
      ═══════════════════════════════════════════════════════════════════ */
   const SWAP_TOPIC = '0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822';
   const BLOCKS_PER_DAY_BSC = 192_000;   // ~0.45 s blocks (measured)
@@ -747,7 +747,7 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     Data — majors (Binance public market data, CoinGecko fallback)
+     Data: majors (Binance public market data, CoinGecko fallback)
      ═══════════════════════════════════════════════════════════════════ */
   async function fetchMajorCandles(m) {
     if (!m || isAnetMarket(m)) return;
@@ -793,7 +793,7 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     Chart — TradingView Lightweight Charts™ (self-hosted), canvas fallback
+     Chart: TradingView Lightweight Charts™ (self-hosted), canvas fallback
      ═══════════════════════════════════════════════════════════════════ */
   const lwc = { chart: null, candles: null, volume: null, host: null, key: '', byTime: new Map(), minMove: null };
   const tzShift = () => -new Date().getTimezoneOffset() * 60; // LWC renders UTC; shift so labels read local time
@@ -1008,7 +1008,7 @@
     }
     ctx.globalAlpha = 1;
 
-    // Close-price overlay — keeps sparse (mostly carried) candle series readable.
+    // Close-price overlay keeps sparse (mostly carried) candle series readable.
     const filledShare = candles.filter(c => c.filled).length / n;
     if (filledShare > 0.5 && n > 1) {
       ctx.strokeStyle = colAccent; ctx.globalAlpha = 0.55; ctx.lineWidth = 1.25;

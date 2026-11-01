@@ -1,33 +1,33 @@
 /**
- * A Network — On-Chain Trading module
+ * A Network On-Chain Trading module
  * dex-onchain.js  |  v2  |  2026
  *
  * Non-custodial buy/sell + liquidity for ANET and major assets, executed from
  * the user's own wallet on public venues:
  *
- *  • BNB Chain    — PancakeSwap V2 router (window.ethereum / MetaMask).
- *  • Ethereum     — Uniswap V2 router (window.ethereum / MetaMask).
- *  • Solana       — Jupiter aggregator (Phantom + vendored web3.js).
+ *  • BNB Chain:    PancakeSwap V2 router (window.ethereum / MetaMask).
+ *  • Ethereum:     Uniswap V2 router (window.ethereum / MetaMask).
+ *  • Solana:       Jupiter aggregator (Phantom + vendored web3.js).
  *
  * Revenue model (the only one): an interface fee on the swap INPUT, paid to
  * the A Network treasury. A Network never holds user funds.
  *
- *  • EVM, atomic   — when `FEE_ROUTER[chainId]` is set, the swap goes through
+ *  • EVM, atomic:   when `FEE_ROUTER[chainId]` is set, the swap goes through
  *                    the immutable AnetFeeRouter contract (contracts/src/
  *                    AnetFeeRouter.sol): fee → treasury and DEX swap → user in
  *                    ONE transaction; a failed swap takes no fee.
- *  • EVM, fallback — until the router is deployed on a chain, the fee is a
+ *  • EVM, fallback: until the router is deployed on a chain, the fee is a
  *                    separate transfer that is only sent AFTER the swap has been
  *                    simulated successfully (eth_call), and the swap is only
  *                    sent once the fee transfer is confirmed.
- *  • Solana        — Jupiter `platformFeeBps` + `feeAccount` (the treasury's
+ *  • Solana:        Jupiter `platformFeeBps` + `feeAccount` (the treasury's
  *                    token account for the output mint): the fee is settled
  *                    inside the swap transaction itself. Jupiter only accepts
  *                    whole basis points, so Solana charges 0.87 %.
  *
  * Loaded AFTER dex.js and dex-terminal.js. Mounts the order ticket into the
  * terminal's `#oc-ticket-slot` (or straight into `#onchain-trade-mount`).
- * CSP: script-src 'self' — no CDNs, no eval, no inline handlers.
+ * CSP: script-src 'self' (no CDNs, no eval, no inline handlers).
  */
 'use strict';
 
@@ -159,7 +159,7 @@
   };
 
   /* ═══════════════════════════════════════════════════════════════════
-     JSON-RPC (via Ankr) — reads + confirmations
+     JSON-RPC (via Ankr): reads + confirmations
      ═══════════════════════════════════════════════════════════════════ */
   let _rpcId = 1;
   async function rpc(url, method, params = []) {
@@ -386,7 +386,7 @@
   };
 
   /* ═══════════════════════════════════════════════════════════════════
-     Fee router status (atomic path) — verified on-chain at boot
+     Fee router status (atomic path), verified on-chain at boot
      ═══════════════════════════════════════════════════════════════════ */
   const feeRouterState = { 56: { verified: false, address: '' }, 1: { verified: false, address: '' } };
 
@@ -407,7 +407,7 @@
       s.verified = true; s.address = addr;
       return true;
     } catch (e) {
-      console.error(`[fee-router] chain ${chainId}: refusing to use ${addr} — ${e.message}. Falling back to two-step fee flow.`);
+      console.error(`[fee-router] chain ${chainId}: refusing to use ${addr}: ${e.message}. Falling back to two-step fee flow.`);
       return false;
     }
   }
@@ -751,7 +751,7 @@
     if (ui.chain === 'solana') {
       el.innerHTML = `<span class="pill green">in-swap fee</span> ${FEE_PCT_LABEL('solana')} settled inside the Jupiter transaction to the treasury token account.`;
     } else if (f.atomic) {
-      el.innerHTML = `<span class="pill green">atomic fee</span> ${FEE.pct}% collected by the <a href="${EVM_DEX[ui.chain].explorer}/address/${f.router}" target="_blank" rel="noopener">AnetFeeRouter ↗</a> in the same transaction as your swap — a failed swap pays no fee.`;
+      el.innerHTML = `<span class="pill green">atomic fee</span> ${FEE.pct}% collected by the <a href="${EVM_DEX[ui.chain].explorer}/address/${f.router}" target="_blank" rel="noopener">AnetFeeRouter ↗</a> in the same transaction as your swap; a failed swap pays no fee.`;
     } else {
       el.innerHTML = `<span class="pill amber">two-step fee</span> ${FEE.pct}% is sent to the treasury as a separate transfer right before the swap (the swap is simulated first; the atomic fee router is not deployed on this network yet).`;
     }
@@ -1051,7 +1051,7 @@
   const hexVal = (v) => '0x' + BigInt(v).toString(16);
 
   /* ═══════════════════════════════════════════════════════════════════
-     EVM execute — atomic (AnetFeeRouter) or hardened two-step fallback
+     EVM execute: atomic (AnetFeeRouter) or hardened two-step fallback
      ═══════════════════════════════════════════════════════════════════ */
   async function executeOnchain() {
     if (!ui.quote) { notify('Get a quote first', 'error'); return; }
@@ -1134,7 +1134,7 @@
         tx = { from, to: feeRouter, data: call.data, value: hexVal(call.value) };
         setStatus('<span class="spinner"></span> Simulating swap…');
         try { await simulate(ui.chain, tx); }
-        catch (e) { throw new Error('Swap would fail: ' + cleanRevert(e.message) + ' — nothing was sent and no fee was charged.'); }
+        catch (e) { throw new Error('Swap would fail: ' + cleanRevert(e.message) + '. Nothing was sent and no fee was charged.'); }
         setStatus(`<span class="spinner"></span> Confirm the swap in your wallet (fee ${FEE.pct}% + swap in one transaction)…`);
       } else {
         /* ── Fallback: funds check → simulate swap → fee transfer → swap ── */
@@ -1146,7 +1146,7 @@
         tx = { from, to: dex.router, data: call.data, value: hexVal(call.value) };
         setStatus('<span class="spinner"></span> Simulating swap before collecting the fee…');
         try { await simulate(ui.chain, tx); }
-        catch (e) { throw new Error('Swap would fail: ' + cleanRevert(e.message) + ' — nothing was sent and no fee was charged.'); }
+        catch (e) { throw new Error('Swap would fail: ' + cleanRevert(e.message) + '. Nothing was sent and no fee was charged.'); }
 
         if (q.feeUnits > 0n) {
           setStatus(`<span class="spinner"></span> Confirm the ${FEE.pct}% interface fee transfer (1 of 2)…`);
@@ -1157,8 +1157,8 @@
           }
           setStatus(`<span class="spinner"></span> Waiting for the fee transfer… <a href="${dex.explorer}/tx/${feeTx}" target="_blank" rel="noopener">${feeTx.slice(0, 12)}…</a>`);
           const fr = await waitReceipt(ui.chain, feeTx, 40);
-          if (!fr) throw new Error('Fee transfer not confirmed in time — the swap was NOT sent. Check the explorer before retrying.');
-          if (fr.status === '0x0') throw new Error('Fee transfer reverted — the swap was NOT sent.');
+          if (!fr) throw new Error('Fee transfer not confirmed in time; the swap was NOT sent. Check the explorer before retrying.');
+          if (fr.status === '0x0') throw new Error('Fee transfer reverted; the swap was NOT sent.');
         }
         setStatus('<span class="spinner"></span> Confirm the swap in your wallet (2 of 2)…');
       }
@@ -1277,7 +1277,7 @@
       await new Promise(r => setTimeout(r, retries === 2 ? 1200 : 2500));
       return jupGet(url, retries - 1);
     }
-    if (res.status === 429) throw new Error('Jupiter rate limit — please retry in a moment');
+    if (res.status === 429) throw new Error('Jupiter rate limit; please retry in a moment');
     const j = await res.json().catch(() => null);
     if (!j) throw new Error('Jupiter: bad response');
     return j;
@@ -1307,7 +1307,7 @@
     return total;
   }
 
-  /** Associated token account (ATA) of `owner` for `mint` — requires the vendored web3.js. */
+  /** Associated token account (ATA) of `owner` for `mint`; requires the vendored web3.js. */
   function deriveAta(owner, mint) {
     const S = window.AnetSolana; if (!S) return null;
     const [ata] = S.PublicKey.findProgramAddressSync(
@@ -1376,7 +1376,7 @@
   async function executeSolana() {
     const q = ui.quote;
     if (!walletState.sol) return connectPhantom();
-    if (!window.AnetSolana) { notify('Solana module still loading — try again in a moment.', 'error'); return; }
+    if (!window.AnetSolana) { notify('Solana module still loading; try again in a moment.', 'error'); return; }
     const p = phantom();
     if (!p) return connectPhantom();
 
@@ -1481,7 +1481,7 @@
     for (const t of SOL_TOKENS) { const a = await treasuryFeeAccount(t.mint); if (!a?.exists) missing.push(t.symbol); }
     if (!missing.length) return;
     el.style.display = '';
-    el.innerHTML = `<div class="info-box" style="font-size:12px;">Treasury wallet detected. Fee accounts missing for <b>${esc(missing.join(', '))}</b> — Jupiter cannot deposit fees until they exist.
+    el.innerHTML = `<div class="info-box" style="font-size:12px;">Treasury wallet detected. Fee accounts missing for <b>${esc(missing.join(', '))}</b>. Jupiter cannot deposit fees until they exist.
       <button class="btn btn-outline btn-sm" id="oc-sol-setup-btn" style="margin-left:8px;">Initialize fee accounts</button></div>`;
     $('oc-sol-setup-btn').addEventListener('click', async () => {
       const b = $('oc-sol-setup-btn'); b.disabled = true;
@@ -1490,7 +1490,7 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     Liquidity  (real PancakeSwap V2 ANET/BNB pool — anyone can LP)
+     Liquidity  (real PancakeSwap V2 ANET/BNB pool; anyone can LP)
      ═══════════════════════════════════════════════════════════════════ */
   async function getPoolReserves(chainId) {
     const cfg = LP_POOL[chainId];
