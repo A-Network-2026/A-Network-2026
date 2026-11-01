@@ -682,6 +682,26 @@ Files:
   no setters, no admin withdraw; `sweep()` can only pay the treasury).
 - `tests/frontend/` — Node test harness for the browser modules (`node --test 'tests/frontend/*.test.mjs'`).
 
+## Bridge tab (export ANET L1 → wANET on BNB Chain)
+
+`dex.html → Bridge` is wired to the production L1 export API (one-way policy, whitepaper v4.4):
+
+- `POST /bridge/burn` with a wallet-signed `bridge_burn` action burns native ANET on L1;
+  the live `AnetBridgeVault` (`0x31438362a7667ce5559500023D025c7c14168B49`) releases the same
+  amount of wANET on BNB Chain through its M-of-N EIP-712 signer set.
+- The page shows the real eligibility (1,000 sessions, vesting lock, 10,000 ANET per-tx cap,
+  validator fee), live vault balance, release polling (`GET /bridge/burns/:id`) and the wallet's
+  export history (`GET /bridge/burns/by-sender/:address`).
+- The L1 endpoint sits behind the operator switch **`ANET_BRIDGE_BURN_ENABLED`** on the node.
+  The tab probes it and renders **Live / Gated / Offline** honestly; the form unlocks by itself
+  the moment the operator enables the switch — no front-end redeploy needed.
+- Inbound bridging (any chain → L1) is permanently disabled; other spokes (Ethereum, Solana)
+  need the audited mint-burn portal (`contracts/PRODUCTION_LAUNCH.md`) and are not offered.
+
+Operator go-live (per `contracts/AUDIT_BRIDGE_2026-05-24.md` §3.3): run the vault signer set and
+relayer, complete one canary export, then set `ANET_BRIDGE_BURN_ENABLED=true` on the L1 node.
+Code: `assets/js/dex-bridge.js`; tests: `tests/frontend/dex-bridge.test.mjs`.
+
 ### Go-live checklist for the fee engine
 
 1. **Deploy the atomic fee router** (per chain, funded deployer key — see `contracts/hardhat.config.cjs`):

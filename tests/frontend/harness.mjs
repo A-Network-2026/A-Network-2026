@@ -44,6 +44,7 @@ export function loadModules(opts = {}) {
     document: {
       readyState: 'complete',
       getElementById: () => null,
+      querySelector: () => null,
       querySelectorAll: () => [],
       addEventListener: () => {},
       documentElement: {},
@@ -55,8 +56,13 @@ export function loadModules(opts = {}) {
   ctx.devicePixelRatio = 1;
   vm.createContext(ctx);
   if (opts.solana !== false) vm.runInContext(read('assets/js/vendor/anet-solana.bundle.js'), ctx, { filename: 'anet-solana.bundle.js' });
+  if (opts.wallet) {
+    vm.runInContext(read('assets/js/vendor/anet-crypto.bundle.js'), ctx, { filename: 'anet-crypto.bundle.js' });
+    vm.runInContext(read('assets/js/anet-wallet.js'), ctx, { filename: 'anet-wallet.js' });
+  }
   vm.runInContext(read('assets/js/dex-terminal.js'), ctx, { filename: 'dex-terminal.js' });
   vm.runInContext(read('assets/js/dex-onchain.js'), ctx, { filename: 'dex-onchain.js' });
+  if (opts.bridge !== false) vm.runInContext(read('assets/js/dex-bridge.js'), ctx, { filename: 'dex-bridge.js' });
   return ctx;
 }
 

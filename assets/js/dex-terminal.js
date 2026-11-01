@@ -58,7 +58,7 @@
     const badge = badgeSrc ? `<img class="tm-chain-badge" src="${badgeSrc}" alt="${esc(CHAIN_LABEL[chain] || '')}" width="${Math.round(size * 0.5)}" height="${Math.round(size * 0.5)}">` : '';
     const style = `width:${size}px;height:${size}px;font-size:${Math.max(8, Math.round(size * 0.42))}px`;
     if (!src) return `<span class="tm-logo tm-logo-fallback ${cls}" style="${style}">${esc(String(sym || '?').slice(0, 2))}${badge}</span>`;
-    return `<span class="tm-logo ${cls}" style="${style}"><img src="${src}" alt="${esc(sym)} logo" width="${size}" height="${size}" loading="lazy" decoding="async">${badge}</span>`;
+    return `<span class="tm-logo ${cls}" style="${style}"><img src="${src}" alt="${esc(sym)} logo" width="${size}" height="${size}" decoding="sync">${badge}</span>`;
   }
 
   const TIMEFRAMES = [
