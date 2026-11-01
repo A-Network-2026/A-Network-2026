@@ -1,26 +1,43 @@
 /**
  * A Network — On-Chain Trading module
- * dex-onchain.js  |  2026
+ * dex-onchain.js  |  v2  |  2026
  *
- * Adds REAL on-chain buy/sell (PancakeSwap-style) for ANET plus Ethereum and
- * Solana markets to the A Network DEX, on top of the existing native L1 AMM.
+ * Non-custodial buy/sell + liquidity for ANET and major assets, executed from
+ * the user's own wallet on public venues:
  *
- *  • Live prices  — DexScreener (real ANET/WBNB PancakeSwap pair) + CoinGecko majors.
- *  • BNB Chain    — real swaps via PancakeSwap V2 router (window.ethereum / MetaMask).
- *  • Ethereum     — real swaps via Uniswap V2 router (window.ethereum / MetaMask).
- *  • Solana       — real swaps via Jupiter aggregator (Phantom wallet + vendored web3.js).
- *  • Fee model    — MetaMask-style 0.875% swap fee shown in every quote.
- *  • On-chain RPC — Ankr premium endpoints for reads + confirmations.
+ *  • BNB Chain    — PancakeSwap V2 router (window.ethereum / MetaMask).
+ *  • Ethereum     — Uniswap V2 router (window.ethereum / MetaMask).
+ *  • Solana       — Jupiter aggregator (Phantom + vendored web3.js).
  *
- * Loaded AFTER dex.js so it can reuse its globals (state, toast, escapeHtml, fmt…).
- * CSP note: script-src 'self' (no CDNs) — Solana web3.js is vendored; all price
- * feeds and RPC use fetch(), which the site CSP allows via connect-src https:.
+ * Revenue model (the only one): an interface fee on the swap INPUT, paid to
+ * the A Network treasury. A Network never holds user funds.
+ *
+ *  • EVM, atomic   — when `FEE_ROUTER[chainId]` is set, the swap goes through
+ *                    the immutable AnetFeeRouter contract (contracts/src/
+ *                    AnetFeeRouter.sol): fee → treasury and DEX swap → user in
+ *                    ONE transaction; a failed swap takes no fee.
+ *  • EVM, fallback — until the router is deployed on a chain, the fee is a
+ *                    separate transfer that is only sent AFTER the swap has been
+ *                    simulated successfully (eth_call), and the swap is only
+ *                    sent once the fee transfer is confirmed.
+ *  • Solana        — Jupiter `platformFeeBps` + `feeAccount` (the treasury's
+ *                    token account for the output mint): the fee is settled
+ *                    inside the swap transaction itself. Jupiter only accepts
+ *                    whole basis points, so Solana charges 0.87 %.
+ *
+ * Loaded AFTER dex.js and dex-terminal.js. Mounts the order ticket into the
+ * terminal's `#oc-ticket-slot` (or straight into `#onchain-trade-mount`).
+ * CSP: script-src 'self' — no CDNs, no eval, no inline handlers.
  */
 'use strict';
 
 (function () {
 
-  /* ── Ankr RPC (user-provided premium key) ─────────────────────────── */
+  /* ═══════════════════════════════════════════════════════════════════
+     Configuration
+     ═══════════════════════════════════════════════════════════════════ */
+
+  /* ── Ankr RPC (project key) ───────────────────────────────────────── */
   const ANKR_KEY = '3ce3cd9f0dfa278ed38509a065305c94912b7350a2c1e3b4714d0554b60db218';
   const ANKR_RPC = {
     1:      `https://rpc.ankr.com/eth/${ANKR_KEY}`,
@@ -28,12 +45,28 @@
     solana: `https://rpc.ankr.com/solana/${ANKR_KEY}`,
   };
 
-  /* MetaMask charges a 0.875% swap fee — mirror it here. */
-  const MM_FEE_BPS = 87.5;               // 0.875%
-  const MM_FEE_PCT = MM_FEE_BPS / 100;   // 0.875
-  /* Treasury (EVM Reserve Treasury) — every on-chain swap fee is sent here.
-     Same wallet the mobile app / whitepaper use as the fee recipient. */
-  const MM_FEE_RECIPIENT = '0x9C7C1058fdc9b710f688ECb7562924D9AE771417';
+  /* ── Interface fee → treasury ─────────────────────────────────────── */
+  const FEE = {
+    numerator: 875n,            // over FEE.denominator → 0.875 %
+    denominator: 100_000n,
+    pct: 0.875,
+    solanaBps: 87,              // Jupiter accepts integer bps only → 0.87 %
+    evmTreasury: '0x9C7C1058fdc9b710f688ECb7562924D9AE771417',   // EVM Reserve Treasury (BSC + ETH)
+    solTreasury: '7j33RFPkNvaKsPuz2qJ5SzwiwXA4iL12ujqM4g2tRLEz',  // Solana treasury (fee token accounts owner)
+  };
+  const FEE_PCT_LABEL = (chain) => chain === 'solana' ? (FEE.solanaBps / 100).toFixed(2) + '%' : FEE.pct + '%';
+
+  /**
+   * AnetFeeRouter deployments (atomic fee + swap). Deploy with
+   *   cd contracts && npm run deploy:feerouter:bsc   (and :eth)
+   * then paste the printed address here. Leave '' to use the fallback flow.
+   * On boot the module verifies treasury()/feeNumerator() on-chain and refuses
+   * to use a router whose parameters differ from FEE above.
+   */
+  const FEE_ROUTER = {
+    56: '',
+    1:  '',
+  };
 
   /* ── EVM DEX routing config ───────────────────────────────────────── */
   const EVM_DEX = {
@@ -44,6 +77,7 @@
       nativeSymbol: 'BNB',
       explorer: 'https://bscscan.com',
       chainHex: '0x38',
+      poolFeePct: 0.25,
     },
     1: {
       name: 'Uniswap V2',
@@ -52,6 +86,7 @@
       nativeSymbol: 'ETH',
       explorer: 'https://etherscan.io',
       chainHex: '0x1',
+      poolFeePct: 0.30,
     },
   };
 
@@ -78,6 +113,9 @@
     { symbol: 'USDC', name: 'USD Coin',  mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', decimals: 6 },
     { symbol: 'USDT', name: 'Tether USD',mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', decimals: 6 },
   ];
+  const SOL_TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+  const SOL_ATA_PROGRAM   = 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL';
+  const SOL_SYSTEM_PROGRAM = '11111111111111111111111111111111';
 
   /* Real PancakeSwap V2 liquidity pool for ANET (anyone can add/remove LP). */
   const LP_POOL = {
@@ -100,7 +138,8 @@
   };
 
   /* ── Small helpers (reuse dex.js globals when available) ──────────── */
-  const esc  = (s) => (typeof escapeHtml === 'function') ? escapeHtml(s) : String(s == null ? '' : s);
+  const esc  = (s) => (typeof escapeHtml === 'function') ? escapeHtml(s) : String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
   const notify = (m, t, d) => { if (typeof toast === 'function') toast(m, t, d); else console.log(`[${t}] ${m}`); };
   function fmtNum(n, dp = 4) {
     if (n == null || !isFinite(n)) return '—';
@@ -111,6 +150,7 @@
   }
   function fmtUsd(n, dp = 2) { return (n == null || !isFinite(n)) ? '—' : '$' + fmtNum(n, dp); }
   const $ = (id) => document.getElementById(id);
+  const shortId = (a) => a ? a.slice(0, 6) + '…' + a.slice(-4) : '';
 
   /* ═══════════════════════════════════════════════════════════════════
      JSON-RPC (via Ankr) — reads + confirmations
@@ -126,8 +166,18 @@
     if (data.error) throw new Error(data.error.message || 'RPC error');
     return data.result;
   }
-  const evmRpc = (chainId, method, params) => rpc(ANKR_RPC[chainId], method, params);
-  const solRpc = (method, params) => rpc(ANKR_RPC.solana, method, params);
+  /** Batch JSON-RPC: returns results in call order (null for failed entries). */
+  async function rpcBatchUrl(url, calls) {
+    const body = calls.map((c, i) => ({ jsonrpc: '2.0', id: i + 1, method: c.method, params: c.params || [] }));
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await res.json().catch(() => null);
+    if (!Array.isArray(data)) throw new Error('batch unsupported');
+    const byId = new Map(data.map(d => [d.id, d]));
+    return calls.map((_, i) => { const d = byId.get(i + 1); return d && !d.error ? d.result : null; });
+  }
+  const evmRpc   = (chainId, method, params) => rpc(ANKR_RPC[chainId], method, params);
+  const rpcBatch = (chainId, calls) => rpcBatchUrl(ANKR_RPC[chainId], calls);
+  const solRpc   = (method, params) => rpc(ANKR_RPC.solana, method, params);
 
   /* Read-only eth_call routed through Ankr (independent of the wallet). */
   function evmCall(chainId, to, data) {
@@ -135,9 +185,9 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     Minimal ABI encoding (Uniswap/PancakeSwap V2 router + ERC-20)
-     Selectors are the first 4 bytes of keccak256(signature), precomputed
-     (no keccak lib is bundled).
+     Minimal ABI encoding (V2 router + ERC-20 + AnetFeeRouter)
+     Selectors = first 4 bytes of keccak256(signature), precomputed with
+     ethers (no keccak lib is bundled).
      ═══════════════════════════════════════════════════════════════════ */
   const SELECTORS = {
     'getAmountsOut(uint256,address[])':                                          '0xd06ca61f',
@@ -154,12 +204,17 @@
     'token0()':                   '0x0dfe1681',
     'addLiquidityETH(address,uint256,uint256,uint256,address,uint256)':                          '0xf305d719',
     'removeLiquidityETHSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256)': '0xaf2979eb',
+    // AnetFeeRouter
+    'swapExactETHForTokens(uint256,address[],uint256)':             '0xde56a8ff',
+    'swapExactTokensForETH(uint256,uint256,address[],uint256)':     '0x06c738dc',
+    'swapExactTokensForTokens(uint256,uint256,address[],uint256)':  '0x1f263f59',
+    'feeNumerator()':                                                '0xe86dea4a',
+    'treasury()':                                                    '0x61d027b3',
   };
   const pad32 = (hex) => hex.replace(/^0x/, '').toLowerCase().padStart(64, '0');
   const encAddr = (a) => pad32(a);
   const encUint = (v) => pad32((typeof v === 'bigint' ? v : BigInt(v)).toString(16));
   function encAddrArray(addrs, headWords /* words before the array data */) {
-    // returns { head: offset-word, tail: length + entries }
     const offset = encUint(BigInt(headWords * 32));
     let tail = encUint(BigInt(addrs.length));
     addrs.forEach((a) => { tail += encAddr(a); });
@@ -167,12 +222,43 @@
   }
   function sel(sig) { const s = SELECTORS[sig]; if (!s) throw new Error('no selector: ' + sig); return s; }
 
+  /** Calldata for the public V2 router (fallback path). Output always to `to`. */
+  function buildDexRouterCalldata({ fromNative, toNative, swapIn, minOut, path, to, deadline }) {
+    if (fromNative) {
+      const arr = encAddrArray(path, 4);
+      return { data: sel('swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)')
+        + encUint(minOut) + arr.offset + encAddr(to) + encUint(deadline) + arr.tail, value: swapIn };
+    }
+    const arr = encAddrArray(path, 5);
+    const sig = toNative
+      ? 'swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)'
+      : 'swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)';
+    return { data: sel(sig) + encUint(swapIn) + encUint(minOut) + arr.offset + encAddr(to) + encUint(deadline) + arr.tail, value: 0n };
+  }
+
+  /** Calldata for AnetFeeRouter (atomic path). The contract splits the fee itself. */
+  function buildFeeRouterCalldata({ fromNative, toNative, amountIn, minOut, path, deadline }) {
+    if (fromNative) {
+      const arr = encAddrArray(path, 3); // amountOutMin, offset, deadline
+      return { data: sel('swapExactETHForTokens(uint256,address[],uint256)') + encUint(minOut) + arr.offset + encUint(deadline) + arr.tail, value: amountIn };
+    }
+    const arr = encAddrArray(path, 4);   // amountIn, amountOutMin, offset, deadline
+    const sig = toNative ? 'swapExactTokensForETH(uint256,uint256,address[],uint256)' : 'swapExactTokensForTokens(uint256,uint256,address[],uint256)';
+    return { data: sel(sig) + encUint(amountIn) + encUint(minOut) + arr.offset + encUint(deadline) + arr.tail, value: 0n };
+  }
+
+  /** Exact fee split: fee = amountIn * 875 / 100000 (matches the contract). */
+  function splitFee(amountIn) {
+    amountIn = BigInt(amountIn);
+    const feeUnits = amountIn * FEE.numerator / FEE.denominator;
+    return { feeUnits, swapIn: amountIn - feeUnits };
+  }
+
   /* getAmountsOut(amountIn, path) → uint[] (returns last as bigint) */
   async function getAmountsOut(chainId, amountIn, path) {
-    const arr = encAddrArray(path, 2); // params: amountIn(1) + offset(1) = 2 words head
+    const arr = encAddrArray(path, 2);
     const data = sel('getAmountsOut(uint256,address[])') + encUint(amountIn) + arr.offset + arr.tail;
     const out = await evmCall(chainId, EVM_DEX[chainId].router, data);
-    // decode uint[]: [offset][len][v0..vn]
     const body = out.replace(/^0x/, '');
     const len = parseInt(body.slice(64, 128), 16);
     const last = body.slice(128 + (len - 1) * 64, 128 + len * 64);
@@ -180,13 +266,11 @@
   }
 
   async function erc20BalanceOf(chainId, token, owner) {
-    const data = sel('balanceOf(address)') + encAddr(owner);
-    const r = await evmCall(chainId, token, data);
+    const r = await evmCall(chainId, token, sel('balanceOf(address)') + encAddr(owner));
     return BigInt(r || '0x0');
   }
   async function erc20Allowance(chainId, token, owner, spender) {
-    const data = sel('allowance(address,address)') + encAddr(owner) + encAddr(spender);
-    const r = await evmCall(chainId, token, data);
+    const r = await evmCall(chainId, token, sel('allowance(address,address)') + encAddr(owner) + encAddr(spender));
     return BigInt(r || '0x0');
   }
 
@@ -205,25 +289,28 @@
     const frac = (v % base).toString().padStart(decimals, '0').replace(/0+$/, '');
     return frac ? `${whole}.${frac}` : `${whole}`;
   }
+  const slipFloor = (v, slipPct) => BigInt(v) * BigInt(Math.round((100 - slipPct) * 100)) / 10000n;
 
   /* ═══════════════════════════════════════════════════════════════════
-     Live price feed  (real values, drives ticking charts)
+     Live price feed  (real values, drives the terminal)
      ═══════════════════════════════════════════════════════════════════ */
   const prices = {
     usd: {},                 // { SYMBOL: usdPrice }
+    change24h: {},           // { SYMBOL: pct }
+    vol24h: {},              // { SYMBOL: usd }
     anet: null,              // full DexScreener snapshot for ANET
-    anetSeries: [],          // [{ t, v(usd) }] ticking history
+    anetSeries: [],          // [{ t, v(usd) }] ticking history (legacy accessor)
     anetSupply: null,        // exact on-chain BEP-20 total supply (21,000,000)
     updated: 0,
   };
+  const priceListeners = [];
 
-  // ANET BEP-20 total supply is fixed (21M cap); read it once from the contract.
   async function fetchAnetSupply() {
     try {
       const raw = await evmCall(56, ANET_BSC_ADDR, sel('totalSupply()'));
       const supply = Number(BigInt(raw)) / 1e18;
-      if (supply > 0) { prices.anetSupply = supply; renderAnetTicker(); }
-    } catch (e) { /* keep null → ticker falls back to marketCap/price */ }
+      if (supply > 0) prices.anetSupply = supply;
+    } catch (e) { /* keep null */ }
   }
 
   async function pollAnetPrice() {
@@ -231,11 +318,8 @@
       const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${ANET_BSC_ADDR}`);
       const data = await res.json();
       const pairs = Array.isArray(data.pairs) ? data.pairs : [];
-      // pick the deepest-liquidity pair where ANET is the base token
       const anetPairs = pairs.filter(p => (p.baseToken?.address || '').toLowerCase() === ANET_BSC_ADDR.toLowerCase());
-      const best = (anetPairs.length ? anetPairs : pairs).sort(
-        (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
-      )[0];
+      const best = (anetPairs.length ? anetPairs : pairs).sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0];
       if (!best) return;
       const priceUsd = parseFloat(best.priceUsd);
       prices.anet = {
@@ -245,6 +329,7 @@
         change1h: best.priceChange?.h1 ?? 0,
         liquidityUsd: best.liquidity?.usd ?? 0,
         volume24h: best.volume?.h24 ?? 0,
+        txns24h: (best.txns?.h24?.buys || 0) + (best.txns?.h24?.sells || 0),
         marketCap: best.marketCap ?? 0,
         fdv: best.fdv ?? 0,
         pairUrl: best.url,
@@ -252,8 +337,9 @@
         dex: best.dexId,
       };
       prices.usd.ANET = priceUsd;
-      prices.usd.WANET = priceUsd; // wANET is 1:1 with ANET L1
-      // ticking series (cap ~720 points)
+      prices.usd.WANET = priceUsd;
+      prices.change24h.ANET = Number(prices.anet.change24h) || 0;
+      prices.vol24h.ANET = prices.anet.volume24h;
       const now = Date.now();
       const s = prices.anetSeries;
       if (!s.length || Math.abs(s[s.length - 1].v - priceUsd) > 1e-9 || now - s[s.length - 1].t > 10000) {
@@ -267,12 +353,13 @@
   async function pollMajors() {
     try {
       const ids = [...new Set(Object.values(CG_IDS))].join(',');
-      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
+      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true`);
       const data = await res.json();
       for (const [sym, id] of Object.entries(CG_IDS)) {
         if (data[id]?.usd != null) prices.usd[sym] = data[id].usd;
+        if (data[id]?.usd_24h_change != null) prices.change24h[sym] = data[id].usd_24h_change;
+        if (data[id]?.usd_24h_vol != null) prices.vol24h[sym] = data[id].usd_24h_vol;
       }
-      // ANTS = 1e-8 ANET
       if (prices.usd.ANET != null) prices.usd.ANTS = prices.usd.ANET / ANTS_PER_ANET;
     } catch (e) { /* keep last good */ }
   }
@@ -280,11 +367,11 @@
   async function refreshPrices() {
     await Promise.all([pollAnetPrice(), pollMajors()]);
     window.dispatchEvent(new CustomEvent('anet:prices', { detail: { ...prices } }));
-    renderAnetTicker();
-    renderOnchainQuote();  // refresh live quote against new price
+    priceListeners.forEach(cb => { try { cb(prices); } catch (_) {} });
+    renderOnchainQuote();
   }
 
-  /* Public accessor for dex.js / charts */
+  /* Public accessor for dex.js / charts (kept for compatibility) */
   window.AnetPrices = {
     getUsd: (sym) => prices.usd[String(sym || '').toUpperCase()] ?? null,
     getAnet: () => prices.anet,
@@ -293,58 +380,83 @@
   };
 
   /* ═══════════════════════════════════════════════════════════════════
-     UI — live ANET ticker + on-chain buy/sell card
+     Fee router status (atomic path) — verified on-chain at boot
+     ═══════════════════════════════════════════════════════════════════ */
+  const feeRouterState = { 56: { verified: false, address: '' }, 1: { verified: false, address: '' } };
+
+  async function verifyFeeRouter(chainId) {
+    const addr = FEE_ROUTER[chainId];
+    const s = feeRouterState[chainId];
+    s.verified = false; s.address = '';
+    if (!addr || !/^0x[0-9a-fA-F]{40}$/.test(addr)) return false;
+    try {
+      const [numHex, treasHex] = await Promise.all([
+        evmCall(chainId, addr, sel('feeNumerator()')),
+        evmCall(chainId, addr, sel('treasury()')),
+      ]);
+      const num = BigInt(numHex);
+      const treasury = '0x' + treasHex.replace(/^0x/, '').slice(24);
+      if (num !== FEE.numerator) throw new Error(`feeNumerator ${num} ≠ ${FEE.numerator}`);
+      if (treasury.toLowerCase() !== FEE.evmTreasury.toLowerCase()) throw new Error(`treasury ${treasury} ≠ ${FEE.evmTreasury}`);
+      s.verified = true; s.address = addr;
+      return true;
+    } catch (e) {
+      console.error(`[fee-router] chain ${chainId}: refusing to use ${addr} — ${e.message}. Falling back to two-step fee flow.`);
+      return false;
+    }
+  }
+  const atomicRouter = (chainId) => feeRouterState[chainId]?.verified ? feeRouterState[chainId].address : '';
+
+  function feeInfo(chain) {
+    if (chain === 'solana') {
+      return { pct: FEE.solanaBps / 100, label: `${FEE_PCT_LABEL('solana')} · in-swap`, atomic: true, treasury: FEE.solTreasury };
+    }
+    const atomic = !!atomicRouter(chain);
+    return { pct: FEE.pct, label: `${FEE.pct}% · ${atomic ? 'atomic' : 'separate tx'}`, atomic, treasury: FEE.evmTreasury, router: atomicRouter(chain) };
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     UI state + order ticket
      ═══════════════════════════════════════════════════════════════════ */
   const ui = {
     chain: 56,          // 56 | 1 | 'solana'
     mode: 'trade',      // trade | liquidity
-    side: 'buy',        // buy | sell   (buy = spend native/stable → ANET-side token)
+    side: 'buy',        // buy | sell
     liqSub: 'add',      // add | remove
-    liqPct: 100,        // remove percentage
+    liqPct: 100,
     fromSym: 'BNB',
     toSym: 'ANET',
     slippage: 2,
     quote: null,
-    liqAdd: null,       // { anetUnits, bnbUnits }
-    liqRemove: null,    // { lpToRemove, anetOut, bnbOut }
+    liqAdd: null,
+    liqRemove: null,
     lpBalance: 0n,
-    quoting: false,
+    bottomTab: 'balances',
+    syncingFromMarket: false,
   };
   const ONCHAIN_HISTORY_KEY = 'anet:dex:onchain-trades:v1';
+  const walletState = { evm: '', evmChain: null, sol: '' };
 
   function mount() {
     const host = $('onchain-trade-mount');
     if (!host) return;
-    host.innerHTML = `
+    const slots = window.AnetTerminal ? window.AnetTerminal.mount(host) : null;
+    const ticketHost = slots?.ticketSlot || host;
+    const bottomHost = slots?.bottomSlot || null;
+
+    ticketHost.innerHTML = `
       <div class="card onchain-card">
         <div class="card-header">
-          <span class="card-title">BUY / SELL &nbsp;•&nbsp; ON-CHAIN MARKETS</span>
+          <span class="card-title">ORDER TICKET</span>
           <span class="pill live green">LIVE</span>
         </div>
-
-        <!-- Live ANET price ticker -->
-        <div id="anet-ticker" class="anet-ticker">
-          <div class="anet-ticker-main">
-            <div class="anet-ticker-pair">ANET / USD</div>
-            <div class="anet-ticker-price" id="anet-ticker-price">—</div>
-            <div class="anet-ticker-change neutral" id="anet-ticker-change">—</div>
-          </div>
-          <svg class="anet-ticker-svg" id="anet-ticker-svg" viewBox="0 0 320 70" preserveAspectRatio="none" role="img" aria-label="Live ANET price chart">
-            <path id="anet-ticker-path" fill="none" stroke="#188038" stroke-width="2" d=""></path>
-            <path id="anet-ticker-fill" fill="#e6f4ea" stroke="none" d=""></path>
-          </svg>
-          <div class="anet-ticker-stats" id="anet-ticker-stats"></div>
-        </div>
-
         <div class="card-body onchain-body">
-          <!-- Network selector -->
           <div class="onchain-net-row" id="onchain-net-row">
             <button class="net-btn active" data-net="56"><span style="color:#F0B90B;">●</span> BNB Chain</button>
             <button class="net-btn" data-net="1"><span style="color:#627EEA;">●</span> Ethereum</button>
             <button class="net-btn" data-net="solana"><span style="color:#14F195;">●</span> Solana</button>
           </div>
 
-          <!-- Mode: Trade / Liquidity -->
           <div class="onchain-mode-row" id="onchain-mode-row">
             <button class="mode-btn active" data-mode="trade">Trade</button>
             <button class="mode-btn" data-mode="liquidity" id="oc-mode-liq">Liquidity</button>
@@ -352,18 +464,16 @@
 
           <!-- ══ TRADE PANEL ══ -->
           <div id="oc-trade-panel">
-            <!-- Buy / Sell toggle -->
             <div class="onchain-side-row">
               <button class="side-btn buy active" data-side="buy">Buy</button>
               <button class="side-btn sell" data-side="sell">Sell</button>
             </div>
 
-            <!-- From -->
             <div class="token-field">
               <div class="token-field-label">YOU PAY</div>
               <div class="token-field-row">
-                <select class="oc-token-select" id="oc-from-select"></select>
-                <input class="amount-input" id="oc-from-amount" type="number" placeholder="0.00" min="0" step="any" inputmode="decimal">
+                <select class="oc-token-select" id="oc-from-select" aria-label="Token to pay"></select>
+                <input class="amount-input" id="oc-from-amount" type="number" placeholder="0.00" min="0" step="any" inputmode="decimal" aria-label="Amount to pay">
               </div>
               <div class="token-balance-row">
                 <span id="oc-from-balance" style="font-size:12px;color:var(--muted-2);">—</span>
@@ -372,19 +482,17 @@
             </div>
 
             <div class="swap-arrow-row">
-              <button class="swap-arrow-btn" id="oc-flip" title="Reverse">↕</button>
+              <button class="swap-arrow-btn" id="oc-flip" title="Reverse" aria-label="Reverse direction">↕</button>
             </div>
 
-            <!-- To -->
             <div class="token-field">
               <div class="token-field-label">YOU RECEIVE (est.)</div>
               <div class="token-field-row">
-                <select class="oc-token-select" id="oc-to-select"></select>
+                <select class="oc-token-select" id="oc-to-select" aria-label="Token to receive"></select>
                 <div class="amount-input" id="oc-to-amount" style="text-align:right;color:var(--accent-2);min-height:36px;display:flex;align-items:center;justify-content:flex-end;">—</div>
               </div>
             </div>
 
-            <!-- Slippage -->
             <div class="slippage-row" style="padding-top:4px;">
               <label style="font-size:12px;color:var(--muted);">Slippage</label>
               <div class="slippage-btns" id="oc-slip-btns">
@@ -395,10 +503,10 @@
               </div>
             </div>
 
-            <!-- Quote details -->
             <div class="price-info" id="oc-quote-info" style="display:none;flex-direction:column;gap:6px;"></div>
 
             <button class="btn btn-primary btn-full" id="oc-action-btn" disabled style="padding:14px;font-size:15px;">Enter an amount</button>
+            <div id="oc-fee-mode" class="oc-fee-mode"></div>
           </div>
 
           <!-- ══ LIQUIDITY PANEL (PancakeSwap ANET/BNB pool) ══ -->
@@ -413,7 +521,7 @@
                 <div class="token-field-label">ANET AMOUNT</div>
                 <div class="token-field-row">
                   <span class="oc-token-fixed" style="color:#1a73e8;">ANET</span>
-                  <input class="amount-input" id="oc-liq-anet" type="number" placeholder="0.00" min="0" step="any" inputmode="decimal">
+                  <input class="amount-input" id="oc-liq-anet" type="number" placeholder="0.00" min="0" step="any" inputmode="decimal" aria-label="ANET amount">
                 </div>
                 <div class="token-balance-row"><span id="oc-liq-anet-bal" style="font-size:12px;color:var(--muted-2);">—</span><span class="balance-max" id="oc-liq-anet-max">MAX</span></div>
               </div>
@@ -445,39 +553,54 @@
             </div>
 
             <div class="info-box" style="font-size:11.5px;color:var(--muted-2);">
-              You provide liquidity to the real PancakeSwap V2 ANET/BNB pool and receive LP tokens that earn the 0.25% pool trading fee. Withdraw anytime.
+              You provide liquidity to the real PancakeSwap V2 ANET/BNB pool and receive LP tokens that earn the 0.25% pool trading fee. Withdraw anytime. No interface fee on liquidity.
             </div>
           </div>
 
-          <!-- Shared status / receipt / connect -->
           <div class="swap-status" id="oc-status"></div>
           <div class="info-box" id="oc-receipt" style="display:none;font-size:12px;line-height:1.5;"></div>
-          <section class="onchain-history" aria-label="Recent wallet trades">
-            <div class="onchain-history-head"><span>RECENT WALLET TRADES</span><span>Saved on this device</span></div>
-            <div id="oc-history-list" class="onchain-history-list">Connect a wallet to view its saved trades.</div>
-          </section>
           <button class="btn btn-outline btn-full" id="oc-connect-btn" style="padding:12px;">Connect Wallet</button>
+          <div id="oc-sol-setup" style="display:none;"></div>
 
           <div class="info-box" style="text-align:center;font-size:11.5px;color:var(--muted-2);">
-            Permissionless on-chain settlement · ${MM_FEE_PCT}% interface fee → treasury · price is market-discovered.<br>
+            Self-custody · swaps settle on PancakeSwap / Uniswap / Jupiter from your wallet · <span id="oc-fee-footer">${FEE.pct}%</span> interface fee → treasury.<br>
             Not investment advice · trade at your own risk · DYOR. Restricted where required by law.
           </div>
         </div>
       </div>`;
 
+    if (bottomHost) {
+      bottomHost.innerHTML = `
+        <div class="tm-bottom-tabs" id="oc-bottom-tabs" role="tablist">
+          <button class="tm-chip active" data-bt="balances" role="tab">Balances</button>
+          <button class="tm-chip" data-bt="trades" role="tab">My trades</button>
+          <button class="tm-chip" data-bt="policy" role="tab">Fees &amp; custody</button>
+        </div>
+        <div id="oc-bottom-balances" class="tm-bottom-panel"><div class="tm-empty">Connect a wallet to see balances.</div></div>
+        <div id="oc-bottom-trades" class="tm-bottom-panel" style="display:none;">
+          <div class="onchain-history-head"><span>RECENT WALLET TRADES</span><span>Saved on this device</span></div>
+          <div id="oc-history-list" class="onchain-history-list">Connect a wallet to view its saved trades.</div>
+        </div>
+        <div id="oc-bottom-policy" class="tm-bottom-panel" style="display:none;"></div>`;
+      bottomHost.querySelectorAll('#oc-bottom-tabs .tm-chip').forEach(b => b.addEventListener('click', () => setBottomTab(b.dataset.bt)));
+      renderPolicyPanel();
+    } else {
+      // no terminal → keep the trade history inside the ticket
+      const hist = document.createElement('section');
+      hist.className = 'onchain-history';
+      hist.innerHTML = `<div class="onchain-history-head"><span>RECENT WALLET TRADES</span><span>Saved on this device</span></div><div id="oc-history-list" class="onchain-history-list">Connect a wallet to view its saved trades.</div>`;
+      ticketHost.querySelector('.onchain-body')?.appendChild(hist);
+    }
+
     // events
-    host.querySelectorAll('#onchain-net-row .net-btn').forEach(b =>
-      b.addEventListener('click', () => setChain(b.dataset.net)));
-    host.querySelectorAll('#onchain-mode-row .mode-btn').forEach(b =>
-      b.addEventListener('click', () => setMode(b.dataset.mode)));
-    host.querySelectorAll('.onchain-side-row .side-btn').forEach(b =>
-      b.addEventListener('click', () => setSide(b.dataset.side)));
-    host.querySelectorAll('#oc-slip-btns .slip-btn').forEach(b =>
-      b.addEventListener('click', () => {
-        ui.slippage = parseFloat(b.dataset.slip);
-        host.querySelectorAll('#oc-slip-btns .slip-btn').forEach(x => x.classList.toggle('active', x === b));
-        renderOnchainQuote();
-      }));
+    ticketHost.querySelectorAll('#onchain-net-row .net-btn').forEach(b => b.addEventListener('click', () => setChain(b.dataset.net)));
+    ticketHost.querySelectorAll('#onchain-mode-row .mode-btn').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+    ticketHost.querySelectorAll('.onchain-side-row .side-btn').forEach(b => b.addEventListener('click', () => setSide(b.dataset.side)));
+    ticketHost.querySelectorAll('#oc-slip-btns .slip-btn').forEach(b => b.addEventListener('click', () => {
+      ui.slippage = parseFloat(b.dataset.slip);
+      ticketHost.querySelectorAll('#oc-slip-btns .slip-btn').forEach(x => x.classList.toggle('active', x === b));
+      renderOnchainQuote();
+    }));
     $('oc-from-select').addEventListener('change', (e) => { ui.fromSym = e.target.value; syncPair('from'); });
     $('oc-to-select').addEventListener('change', (e) => { ui.toSym = e.target.value; syncPair('to'); });
     $('oc-from-amount').addEventListener('input', debounce(renderOnchainQuote, 350));
@@ -485,58 +608,71 @@
     $('oc-max-btn').addEventListener('click', fillMax);
     $('oc-connect-btn').addEventListener('click', connectForChain);
     $('oc-action-btn').addEventListener('click', executeOnchain);
-    // liquidity events
-    host.querySelectorAll('#oc-liq-sub .liq-sub-btn').forEach(b =>
-      b.addEventListener('click', () => setLiqSub(b.dataset.liq)));
+    ticketHost.querySelectorAll('#oc-liq-sub .liq-sub-btn').forEach(b => b.addEventListener('click', () => setLiqSub(b.dataset.liq)));
     $('oc-liq-anet').addEventListener('input', debounce(renderLiqAdd, 350));
     $('oc-liq-anet-max').addEventListener('click', fillLiqAnetMax);
     $('oc-liq-add-btn').addEventListener('click', executeLiqAdd);
-    host.querySelectorAll('#oc-liq-pct .slip-btn').forEach(b =>
-      b.addEventListener('click', () => {
-        ui.liqPct = parseInt(b.dataset.pct, 10);
-        host.querySelectorAll('#oc-liq-pct .slip-btn').forEach(x => x.classList.toggle('active', x === b));
-        renderLiqRemove();
-      }));
+    ticketHost.querySelectorAll('#oc-liq-pct .slip-btn').forEach(b => b.addEventListener('click', () => {
+      ui.liqPct = parseInt(b.dataset.pct, 10);
+      ticketHost.querySelectorAll('#oc-liq-pct .slip-btn').forEach(x => x.classList.toggle('active', x === b));
+      renderLiqRemove();
+    }));
     $('oc-liq-remove-btn').addEventListener('click', executeLiqRemove);
 
     setChain(56);
-    renderAnetTicker();
+
+    // terminal ↔ ticket sync
+    if (window.AnetTerminal) {
+      window.AnetTerminal.onMarketChange((m) => {
+        ui.syncingFromMarket = true;
+        try {
+          if (String(m.chain) !== String(ui.chain)) setChain(m.chain, { keepPair: true });
+          ui.side = 'buy';
+          ensurePair(m.quote, m.base);
+          document.querySelectorAll('.onchain-side-row .side-btn').forEach(b => b.classList.toggle('active', b.dataset.side === 'buy'));
+          populateTokenSelects(); renderOnchainQuote(); refreshOnchainBalances();
+        } finally { ui.syncingFromMarket = false; }
+      });
+    }
   }
 
   function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+  function tokensForChain() { return ui.chain === 'solana' ? SOL_TOKENS : ONCHAIN_TOKENS[ui.chain]; }
 
-  function tokensForChain() {
-    return ui.chain === 'solana' ? SOL_TOKENS : ONCHAIN_TOKENS[ui.chain];
+  function syncTerminalMarket() {
+    if (!window.AnetTerminal || ui.syncingFromMarket) return;
+    const m = window.AnetTerminal.matchMarket(ui.chain, ui.fromSym, ui.toSym);
+    if (m && m.id !== window.AnetTerminal.currentMarket()?.id) window.AnetTerminal.selectMarket(m.id, { silent: true });
   }
 
-  function setChain(net) {
+  function setChain(net, opts = {}) {
     ui.chain = (net === 'solana') ? 'solana' : parseInt(net, 10);
-    document.querySelectorAll('#onchain-net-row .net-btn').forEach(b =>
-      b.classList.toggle('active', b.dataset.net === String(net)));
-    // default pair per chain
-    if (ui.chain === 'solana') { ui.fromSym = 'USDC'; ui.toSym = 'SOL'; }
-    else if (ui.chain === 1)   { ui.fromSym = 'ETH';  ui.toSym = 'USDC'; }
-    else                       { ui.fromSym = 'BNB';  ui.toSym = 'ANET'; }
-    ui.side = 'buy';
-    // Liquidity mode only exists for chains with a real ANET pool (BSC).
+    document.querySelectorAll('#onchain-net-row .net-btn').forEach(b => b.classList.toggle('active', b.dataset.net === String(net)));
+    if (!opts.keepPair) {
+      if (ui.chain === 'solana') { ui.fromSym = 'USDC'; ui.toSym = 'SOL'; }
+      else if (ui.chain === 1)   { ui.fromSym = 'ETH';  ui.toSym = 'USDC'; }
+      else                       { ui.fromSym = 'BNB';  ui.toSym = 'ANET'; }
+      ui.side = 'buy';
+    }
     const liqBtn = $('oc-mode-liq');
     if (liqBtn) liqBtn.style.display = LP_POOL[ui.chain] ? '' : 'none';
     if (!LP_POOL[ui.chain] && ui.mode === 'liquidity') ui.mode = 'trade';
     populateTokenSelects();
     setMode(ui.mode);
-    setSide('buy');
+    if (!opts.keepPair) setSide('buy');
     refreshOnchainBalances();
     updateConnectBtn();
+    renderFeeMode();
+    renderBalancesPanel();
+    if (!opts.keepPair) syncTerminalMarket();
   }
 
   function setMode(mode) {
     ui.mode = (mode === 'liquidity' && LP_POOL[ui.chain]) ? 'liquidity' : 'trade';
-    document.querySelectorAll('#onchain-mode-row .mode-btn').forEach(b =>
-      b.classList.toggle('active', b.dataset.mode === ui.mode));
+    document.querySelectorAll('#onchain-mode-row .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === ui.mode));
     const tradePanel = $('oc-trade-panel'), liqPanel = $('oc-liq-panel');
     if (tradePanel) tradePanel.style.display = ui.mode === 'trade' ? '' : 'none';
     if (liqPanel) liqPanel.style.display = ui.mode === 'liquidity' ? '' : 'none';
-    // action button belongs to trade panel; liquidity uses its own buttons
     if (ui.mode === 'liquidity') { setLiqSub(ui.liqSub); refreshLiqBalances(); }
     const statusEl = $('oc-status'); if (statusEl) { statusEl.className = 'swap-status'; statusEl.innerHTML = ''; }
     const receiptEl = $('oc-receipt'); if (receiptEl) receiptEl.style.display = 'none';
@@ -544,8 +680,7 @@
 
   function setLiqSub(sub) {
     ui.liqSub = sub === 'remove' ? 'remove' : 'add';
-    document.querySelectorAll('#oc-liq-sub .liq-sub-btn').forEach(b =>
-      b.classList.toggle('active', b.dataset.liq === ui.liqSub));
+    document.querySelectorAll('#oc-liq-sub .liq-sub-btn').forEach(b => b.classList.toggle('active', b.dataset.liq === ui.liqSub));
     const add = $('oc-liq-add'), rem = $('oc-liq-remove');
     if (add) add.style.display = ui.liqSub === 'add' ? '' : 'none';
     if (rem) rem.style.display = ui.liqSub === 'remove' ? '' : 'none';
@@ -555,6 +690,7 @@
   function populateTokenSelects() {
     const toks = tokensForChain();
     const fromSel = $('oc-from-select'), toSel = $('oc-to-select');
+    if (!fromSel || !toSel) return;
     const opts = (arr) => arr.map(t => `<option value="${t.symbol}">${esc(t.symbol)}</option>`).join('');
     fromSel.innerHTML = opts(toks);
     toSel.innerHTML = opts(toks);
@@ -564,22 +700,23 @@
 
   function setSide(side) {
     ui.side = side;
-    document.querySelectorAll('.onchain-side-row .side-btn').forEach(b =>
-      b.classList.toggle('active', b.dataset.side === side));
-    // For BSC ANET markets, "buy" = native/stable → ANET, "sell" = ANET → native/stable
-    if (ui.chain === 56) {
-      if (side === 'buy')  { if (ui.toSym === 'BNB') ui.toSym = 'ANET'; if (ui.fromSym === 'ANET') ui.fromSym = 'BNB'; ensurePair('BNB', 'ANET'); }
-      else                 { ensurePair('ANET', 'BNB'); }
+    document.querySelectorAll('.onchain-side-row .side-btn').forEach(b => b.classList.toggle('active', b.dataset.side === side));
+    // Flip the pair so that "buy" receives the market's base asset and "sell" spends it.
+    const m = window.AnetTerminal?.currentMarket();
+    if (m && String(m.chain) === String(ui.chain)) {
+      if (side === 'buy') ensurePair(m.quote, m.base); else ensurePair(m.base, m.quote);
+    } else if (ui.chain === 56) {
+      if (side === 'buy') ensurePair('BNB', 'ANET'); else ensurePair('ANET', 'BNB');
     }
     populateTokenSelects();
     renderOnchainQuote();
+    refreshOnchainBalances();
   }
-  function ensurePair(from, to) {
-    ui.fromSym = from;
-    ui.toSym = to;
-  }
+  function ensurePair(from, to) { ui.fromSym = from; ui.toSym = to; }
   function flipSide() {
     const f = ui.fromSym; ui.fromSym = ui.toSym; ui.toSym = f;
+    ui.side = ui.side === 'buy' ? 'sell' : 'buy';
+    document.querySelectorAll('.onchain-side-row .side-btn').forEach(b => b.classList.toggle('active', b.dataset.side === ui.side));
     populateTokenSelects(); renderOnchainQuote(); refreshOnchainBalances();
   }
   function syncPair(which) {
@@ -588,59 +725,65 @@
       if (which === 'from') ui.toSym = alt.symbol; else ui.fromSym = alt.symbol;
       populateTokenSelects();
     }
-    renderOnchainQuote(); refreshOnchainBalances();
+    renderOnchainQuote(); refreshOnchainBalances(); syncTerminalMarket();
   }
 
-  /* ── Live ANET ticker rendering ───────────────────────────────────── */
-  function renderAnetTicker() {
-    const a = prices.anet;
-    const priceEl = $('anet-ticker-price'), changeEl = $('anet-ticker-change'), statsEl = $('anet-ticker-stats');
-    if (!priceEl) return;
-    if (!a) { priceEl.textContent = 'loading…'; return; }
-    priceEl.textContent = fmtUsd(a.priceUsd, a.priceUsd < 1 ? 6 : 4);
-    const ch = Number(a.change24h) || 0;
-    changeEl.textContent = `${ch >= 0 ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}% (24h)`;
-    changeEl.className = 'anet-ticker-change ' + (ch > 0 ? 'up' : ch < 0 ? 'down' : 'neutral');
-    const supply = prices.anetSupply;
-    if (statsEl) {
-      statsEl.innerHTML = `
-        <div><span>Market Cap</span><b>${fmtUsd(a.marketCap, 0)}</b></div>
-        <div><span>24h Vol</span><b>${fmtUsd(a.volume24h, 0)}</b></div>
-        <div><span>Liquidity</span><b>${fmtUsd(a.liquidityUsd, 0)}</b></div>
-        <div><span>Total Supply (BEP-20)</span><b>${supply != null ? fmtNum(supply, 0) + ' ANET' : 'Unavailable'}</b></div>
-        <div><span>1 ANET</span><b>${(ANTS_PER_ANET).toLocaleString()} ANTS</b></div>
-        <div><span>1 ANTS</span><b>${a.priceUsd ? fmtUsd(a.priceUsd / ANTS_PER_ANET, 10) : '—'}</b></div>`;
+  function setBottomTab(tab) {
+    ui.bottomTab = tab;
+    document.querySelectorAll('#oc-bottom-tabs .tm-chip').forEach(b => b.classList.toggle('active', b.dataset.bt === tab));
+    for (const t of ['balances', 'trades', 'policy']) { const el = $('oc-bottom-' + t); if (el) el.style.display = t === tab ? '' : 'none'; }
+    if (tab === 'balances') renderBalancesPanel();
+  }
+
+  function renderFeeMode() {
+    const el = $('oc-fee-mode'); if (!el) return;
+    const f = feeInfo(ui.chain);
+    const footer = $('oc-fee-footer'); if (footer) footer.textContent = FEE_PCT_LABEL(ui.chain);
+    if (ui.chain === 'solana') {
+      el.innerHTML = `<span class="pill green">in-swap fee</span> ${FEE_PCT_LABEL('solana')} settled inside the Jupiter transaction to the treasury token account.`;
+    } else if (f.atomic) {
+      el.innerHTML = `<span class="pill green">atomic fee</span> ${FEE.pct}% collected by the <a href="${EVM_DEX[ui.chain].explorer}/address/${f.router}" target="_blank" rel="noopener">AnetFeeRouter ↗</a> in the same transaction as your swap — a failed swap pays no fee.`;
+    } else {
+      el.innerHTML = `<span class="pill amber">two-step fee</span> ${FEE.pct}% is sent to the treasury as a separate transfer right before the swap (the swap is simulated first; the atomic fee router is not deployed on this network yet).`;
     }
-    drawTickerChart();
-  }
-  function drawTickerChart() {
-    const s = prices.anetSeries;
-    const path = $('anet-ticker-path'), fill = $('anet-ticker-fill');
-    if (!path || s.length < 2) return;
-    const W = 320, H = 70, pad = 4;
-    const vals = s.map(p => p.v);
-    const min = Math.min(...vals), max = Math.max(...vals);
-    const span = (max - min) || (max || 1) * 0.001;
-    const pts = s.map((p, i) => {
-      const x = (i / (s.length - 1)) * W;
-      const y = H - pad - ((p.v - min) / span) * (H - pad * 2);
-      return [x, y];
-    });
-    const d = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
-    path.setAttribute('d', d);
-    const up = vals[vals.length - 1] >= vals[0];
-    path.setAttribute('stroke', up ? '#188038' : '#c5221f');
-    fill.setAttribute('fill', up ? '#e6f4ea' : '#fce8e6');
-    fill.setAttribute('d', `${d} L${W},${H} L0,${H} Z`);
   }
 
-  /* ── Balances ─────────────────────────────────────────────────────── */
-  const walletState = { evm: '', evmChain: null, sol: '' };
+  function renderPolicyPanel() {
+    const el = $('oc-bottom-policy'); if (!el) return;
+    const row = (k, v) => `<div class="price-row"><span>${k}</span><span class="val">${v}</span></div>`;
+    const r56 = atomicRouter(56), r1 = atomicRouter(1);
+    el.innerHTML = `
+      <div class="tm-policy-grid">
+        <div>
+          <h4>Self-custody</h4>
+          <p>Every trade is signed in your own wallet and settled directly on PancakeSwap V2, Uniswap V2 or Jupiter. A Network never receives, holds or forwards your funds and cannot pause, freeze or reverse a trade.</p>
+        </div>
+        <div>
+          <h4>Interface fee (our only revenue)</h4>
+          ${row('BNB Chain / Ethereum', `${FEE.pct}% of the input amount`)}
+          ${row('Solana', `${FEE_PCT_LABEL('solana')} of the output (Jupiter integer bps)`)}
+          ${row('EVM treasury', `<a href="https://bscscan.com/address/${FEE.evmTreasury}" target="_blank" rel="noopener">${shortId(FEE.evmTreasury)} ↗</a>`)}
+          ${row('Solana treasury', `<a href="https://solscan.io/account/${FEE.solTreasury}" target="_blank" rel="noopener">${shortId(FEE.solTreasury)} ↗</a>`)}
+          ${row('Fee router · BSC', r56 ? `<a href="https://bscscan.com/address/${r56}" target="_blank" rel="noopener">${shortId(r56)} ↗</a>` : 'not deployed → two-step fee')}
+          ${row('Fee router · ETH', r1 ? `<a href="https://etherscan.io/address/${r1}" target="_blank" rel="noopener">${shortId(r1)} ↗</a>` : 'not deployed → two-step fee')}
+        </div>
+        <div>
+          <h4>Pool fees (not ours)</h4>
+          ${row('PancakeSwap V2', '0.25% → liquidity providers')}
+          ${row('Uniswap V2', '0.30% → liquidity providers')}
+          ${row('Jupiter routes', 'per-pool fees → liquidity providers')}
+          ${row('Liquidity add/remove', 'no interface fee')}
+        </div>
+      </div>`;
+  }
 
+  /* ═══════════════════════════════════════════════════════════════════
+     Balances
+     ═══════════════════════════════════════════════════════════════════ */
   async function refreshOnchainBalances() {
     const el = $('oc-from-balance');
     if (!el) return;
-    el.textContent = '—';
+    el.textContent = '—'; delete el.dataset.raw;
     try {
       const tok = tokensForChain().find(t => t.symbol === ui.fromSym);
       if (!tok) return;
@@ -648,6 +791,7 @@
         if (!walletState.sol) { el.textContent = 'Connect Phantom to see balance'; return; }
         const bal = await solBalanceOf(walletState.sol, tok);
         el.textContent = `Balance: ${fmtNum(bal, 4)} ${tok.symbol}`;
+        el.dataset.human = String(bal);
       } else {
         if (!walletState.evm) { el.textContent = 'Connect wallet to see balance'; return; }
         let raw;
@@ -661,61 +805,124 @@
 
   async function fillMax() {
     const el = $('oc-from-balance');
-    const raw = el?.dataset?.raw;
     const tok = tokensForChain().find(t => t.symbol === ui.fromSym);
     if (!tok) return;
-    if (ui.chain !== 'solana' && raw) {
-      let v = BigInt(raw);
-      if (tok.native) v = v > 3000000000000000n ? v - 3000000000000000n : 0n; // keep ~0.003 for gas
-      $('oc-from-amount').value = fromUnits(v, tok.decimals);
+    if (ui.chain === 'solana') {
+      const h = parseFloat(el?.dataset?.human || '0');
+      if (!(h > 0)) return;
+      const v = tok.native ? Math.max(0, h - 0.01) : h; // keep ~0.01 SOL for fees/rent
+      $('oc-from-amount').value = String(v);
       renderOnchainQuote();
+      return;
     }
+    const raw = el?.dataset?.raw;
+    if (!raw) return;
+    let v = BigInt(raw);
+    if (tok.native) { const reserve = await gasReserve(ui.chain, 3); v = v > reserve ? v - reserve : 0n; } // keep gas for fee + approve/swap
+    $('oc-from-amount').value = fromUnits(v, tok.decimals);
+    renderOnchainQuote();
+  }
+
+  async function renderBalancesPanel() {
+    const el = $('oc-bottom-balances'); if (!el || ui.bottomTab !== 'balances') return;
+    const toks = tokensForChain();
+    const acct = ui.chain === 'solana' ? walletState.sol : walletState.evm;
+    if (!acct) { el.innerHTML = '<div class="tm-empty">Connect a wallet to see balances on this network.</div>'; return; }
+    el.innerHTML = '<div class="tm-empty"><span class="spinner"></span> Loading balances…</div>';
+    const rows = [];
+    try {
+      if (ui.chain === 'solana') {
+        for (const t of toks) {
+          const bal = await solBalanceOf(acct, t).catch(() => 0);
+          rows.push({ sym: t.symbol, bal, usd: prices.usd[t.symbol] != null ? bal * prices.usd[t.symbol] : null });
+        }
+      } else {
+        const calls = toks.map(t => t.native
+          ? { method: 'eth_getBalance', params: [acct, 'latest'] }
+          : { method: 'eth_call', params: [{ to: t.addr, data: sel('balanceOf(address)') + encAddr(acct) }, 'latest'] });
+        let res;
+        try { res = await rpcBatch(ui.chain, calls); } catch (_) { res = await Promise.all(calls.map(c => evmRpc(ui.chain, c.method, c.params).catch(() => null))); }
+        toks.forEach((t, i) => {
+          const raw = res[i] ? BigInt(res[i]) : 0n;
+          const bal = parseFloat(fromUnits(raw, t.decimals));
+          rows.push({ sym: t.symbol, bal, usd: prices.usd[t.symbol] != null ? bal * prices.usd[t.symbol] : null });
+        });
+      }
+    } catch (_) {}
+    if (ui.bottomTab !== 'balances') return;
+    const total = rows.reduce((a, r) => a + (r.usd || 0), 0);
+    el.innerHTML = `
+      <div class="tm-bal-head"><span>Asset</span><span>Balance</span><span>Value</span><span></span></div>
+      ${rows.map(r => `<div class="tm-bal-row">
+          <span><b>${esc(r.sym)}</b></span>
+          <span class="tm-mono">${fmtNum(r.bal, 6)}</span>
+          <span class="tm-mono">${r.usd != null ? fmtUsd(r.usd) : '—'}</span>
+          <span><button class="btn btn-ghost btn-sm" data-trade="${esc(r.sym)}">Trade</button></span>
+        </div>`).join('')}
+      <div class="tm-bal-total"><span>Total (${esc(String(ui.chain === 'solana' ? 'Solana' : EVM_DEX[ui.chain].name.split(' ')[0]))})</span><b>${fmtUsd(total)}</b></div>`;
+    el.querySelectorAll('[data-trade]').forEach(b => b.addEventListener('click', () => {
+      const sym = b.dataset.trade;
+      const other = toks.find(t => t.symbol !== sym);
+      ensurePair(sym, other.symbol); ui.side = 'sell';
+      document.querySelectorAll('.onchain-side-row .side-btn').forEach(x => x.classList.toggle('active', x.dataset.side === 'sell'));
+      setMode('trade'); populateTokenSelects(); renderOnchainQuote(); refreshOnchainBalances(); syncTerminalMarket();
+      $('oc-from-amount')?.focus();
+    }));
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     Quoting  (real, chain-specific)  + MetaMask 0.875% fee
+     Quoting  (real, chain-specific) + interface fee
      ═══════════════════════════════════════════════════════════════════ */
   async function renderOnchainQuote() {
     const amtStr = $('oc-from-amount')?.value;
     const infoEl = $('oc-quote-info'), outEl = $('oc-to-amount'), actionBtn = $('oc-action-btn');
+    if (!infoEl || !outEl || !actionBtn) return;
     ui.quote = null;
     if (!amtStr || parseFloat(amtStr) <= 0 || ui.fromSym === ui.toSym) {
-      if (infoEl) infoEl.style.display = 'none';
-      if (outEl) outEl.textContent = '—';
-      if (actionBtn) { actionBtn.disabled = true; actionBtn.textContent = ui.fromSym === ui.toSym ? 'Pick two tokens' : 'Enter an amount'; }
+      infoEl.style.display = 'none';
+      outEl.textContent = '—';
+      actionBtn.disabled = true; actionBtn.textContent = ui.fromSym === ui.toSym ? 'Pick two tokens' : 'Enter an amount';
       return;
     }
-    if (outEl) outEl.textContent = '…';
+    outEl.textContent = '…';
+    const seq = (renderOnchainQuote._seq = (renderOnchainQuote._seq || 0) + 1);
     try {
       const q = (ui.chain === 'solana') ? await quoteSolana(amtStr) : await quoteEvm(amtStr);
+      if (seq !== renderOnchainQuote._seq) return; // stale
       ui.quote = q;
-      if (outEl) outEl.textContent = fmtNum(q.outHuman, 6);
+      outEl.textContent = fmtNum(q.outHuman, 6);
       const feeUsd = q.feeUsd != null ? ` (~${fmtUsd(q.feeUsd)})` : '';
+      const f = feeInfo(ui.chain);
+      let feeLine;
+      if (q.feeWaived) {
+        feeLine = `<div class="price-row warn"><span>Interface fee</span><span class="val">waived · treasury fee account not initialized</span></div>`;
+      } else {
+        feeLine = `<div class="price-row"><span>Fee ${FEE_PCT_LABEL(ui.chain)} → treasury${ui.chain === 'solana' ? '' : (f.atomic ? ' (atomic)' : ' (separate tx)')}</span><span class="val">${fmtNum(q.feeHuman, 6)} ${esc(q.feeSym)}${feeUsd}</span></div>`;
+      }
       infoEl.style.display = 'flex';
       infoEl.innerHTML = `
         <div class="price-row"><span>Rate</span><span class="val">1 ${esc(ui.fromSym)} ≈ ${fmtNum(q.rate, 6)} ${esc(ui.toSym)}</span></div>
         <div class="price-row"><span>You receive (est.)</span><span class="val">${fmtNum(q.outHuman, 6)} ${esc(ui.toSym)}</span></div>
-        <div class="price-row"><span>Fee ${MM_FEE_PCT}% → treasury</span><span class="val">${fmtNum(q.feeHuman, 6)} ${esc(ui.fromSym)}${feeUsd}</span></div>
+        ${feeLine}
         <div class="price-row"><span>Min received (${ui.slippage}% slip.)</span><span class="val">${fmtNum(q.minOutHuman, 6)} ${esc(ui.toSym)}</span></div>
+        ${q.priceImpactPct != null ? `<div class="price-row${q.priceImpactPct > 3 ? ' warn' : ''}"><span>Price impact</span><span class="val">${q.priceImpactPct.toFixed(2)}%</span></div>` : ''}
         <div class="price-row"><span>Route</span><span class="val">${esc(q.routeLabel)}</span></div>`;
       const connected = ui.chain === 'solana' ? walletState.sol : walletState.evm;
       actionBtn.disabled = false;
-      actionBtn.textContent = connected
-        ? `${ui.side === 'sell' ? 'Sell' : 'Buy'} ${esc(ui.toSym)}`
-        : 'Connect wallet to trade';
+      actionBtn.textContent = connected ? `${ui.side === 'sell' ? 'Sell' : 'Buy'} ${esc(ui.side === 'sell' ? ui.fromSym : ui.toSym)}` : 'Connect wallet to trade';
     } catch (e) {
-      if (infoEl) { infoEl.style.display = 'flex'; infoEl.innerHTML = `<div class="price-row warn"><span>Quote</span><span class="val">${esc(e.message || 'unavailable')}</span></div>`; }
-      if (outEl) outEl.textContent = '—';
-      if (actionBtn) { actionBtn.disabled = true; actionBtn.textContent = 'No route / liquidity'; }
+      if (seq !== renderOnchainQuote._seq) return;
+      infoEl.style.display = 'flex'; infoEl.innerHTML = `<div class="price-row warn"><span>Quote</span><span class="val">${esc(e.message || 'unavailable')}</span></div>`;
+      outEl.textContent = '—';
+      actionBtn.disabled = true; actionBtn.textContent = 'No route / liquidity';
     }
   }
 
-  function evmPath(fromTok, toTok) {
-    const w = EVM_DEX[ui.chain].wrapped;
+  function evmPath(chainId, fromTok, toTok) {
+    const w = EVM_DEX[chainId].wrapped;
     const a = fromTok.native ? w : fromTok.addr;
     const b = toTok.native ? w : toTok.addr;
     if (a.toLowerCase() === b.toLowerCase()) return [a];
-    // direct if one side is the wrapped native, else route via wrapped native
     if (a.toLowerCase() === w.toLowerCase() || b.toLowerCase() === w.toLowerCase()) return [a, b];
     return [a, w, b];
   }
@@ -725,22 +932,27 @@
     const toTok   = ONCHAIN_TOKENS[ui.chain].find(t => t.symbol === ui.toSym);
     const amountIn = toUnits(amtStr, fromTok.decimals);
     if (amountIn <= 0n) throw new Error('enter amount');
-    const feeUnits = amountIn * 875n / 100000n; // exact 0.875%
-    const swapIn = amountIn - feeUnits;
-    const path = evmPath(fromTok, toTok);
+    const { feeUnits, swapIn } = splitFee(amountIn);
+    if (swapIn <= 0n) throw new Error('amount too small');
+    const path = evmPath(ui.chain, fromTok, toTok);
     const outRaw = await getAmountsOut(ui.chain, swapIn, path);
     const outHuman = parseFloat(fromUnits(outRaw, toTok.decimals));
-    const minOutRaw = outRaw * BigInt(Math.round((100 - ui.slippage) * 100)) / 10000n;
+    const minOutRaw = slipFloor(outRaw, ui.slippage);
     const inHuman = parseFloat(amtStr);
-    const fromUsd = priceUsdFor(fromTok.symbol);
+    const fromUsd = priceUsdFor(fromTok.symbol), toUsd = priceUsdFor(toTok.symbol);
+    const feeHuman = parseFloat(fromUnits(feeUnits, fromTok.decimals));
+    let priceImpactPct = null;
+    if (fromUsd && toUsd) {
+      const spotOut = (parseFloat(fromUnits(swapIn, fromTok.decimals)) * fromUsd) / toUsd;
+      if (spotOut > 0) priceImpactPct = Math.max(0, (1 - outHuman / spotOut) * 100 - EVM_DEX[ui.chain].poolFeePct * (path.length - 1));
+    }
     return {
-      kind: 'evm', fromTok, toTok, amountIn, swapIn, feeUnits, path,
-      outRaw, outHuman, minOutRaw,
+      kind: 'evm', fromTok, toTok, amountIn, swapIn, feeUnits, path, outRaw, outHuman, minOutRaw,
       minOutHuman: parseFloat(fromUnits(minOutRaw, toTok.decimals)),
-      feeHuman: parseFloat(fromUnits(feeUnits, fromTok.decimals)),
-      feeUsd: fromUsd != null ? parseFloat(fromUnits(feeUnits, fromTok.decimals)) * fromUsd : null,
-      rate: outHuman / inHuman,
-      routeLabel: `${EVM_DEX[ui.chain].name} · ${path.length === 2 ? 'direct' : 'via ' + EVM_DEX[ui.chain].nativeSymbol}`,
+      inHuman, feeHuman, feeSym: fromTok.symbol,
+      feeUsd: fromUsd != null ? feeHuman * fromUsd : null,
+      rate: outHuman / inHuman, priceImpactPct,
+      routeLabel: `${EVM_DEX[ui.chain].name} · ${path.length === 2 ? 'direct' : 'via ' + EVM_DEX[ui.chain].nativeSymbol}${atomicRouter(ui.chain) ? ' · AnetFeeRouter' : ''}`,
     };
   }
 
@@ -749,8 +961,23 @@
     return (p != null && isFinite(p)) ? p : null;
   }
 
+  /** Raw market quote (no interface fee) used by the terminal's depth ladder. Returns human output. */
+  async function quoteOut(chain, fromSym, toSym, amountHuman) {
+    if (chain === 'solana') {
+      const f = SOL_TOKENS.find(t => t.symbol === fromSym), t = SOL_TOKENS.find(x => x.symbol === toSym);
+      const amount = toUnits(Number(amountHuman).toFixed(f.decimals), f.decimals);
+      const j = await jupGet(`${JUP}/quote?inputMint=${f.mint}&outputMint=${t.mint}&amount=${amount}&slippageBps=50&restrictIntermediateTokens=true`, 0);
+      if (!j || !j.outAmount) throw new Error('no route');
+      return Number(j.outAmount) / 10 ** t.decimals;
+    }
+    const f = ONCHAIN_TOKENS[chain].find(x => x.symbol === fromSym), t = ONCHAIN_TOKENS[chain].find(x => x.symbol === toSym);
+    const amountIn = toUnits(Number(amountHuman).toFixed(f.decimals), f.decimals);
+    const out = await getAmountsOut(chain, amountIn, evmPath(chain, f, t));
+    return parseFloat(fromUnits(out, t.decimals));
+  }
+
   /* ═══════════════════════════════════════════════════════════════════
-     EVM connect + execute (real PancakeSwap/Uniswap swap)
+     EVM connect
      ═══════════════════════════════════════════════════════════════════ */
   async function connectForChain() {
     if (ui.chain === 'solana') return connectPhantom();
@@ -766,7 +993,7 @@
       walletState.evmChain = cid;
       if (cid !== ui.chain) await switchChain(ui.chain);
       notify('EVM wallet connected', 'success');
-      updateConnectBtn(); refreshOnchainBalances(); renderOnchainQuote();
+      updateConnectBtn(); refreshOnchainBalances(); renderOnchainQuote(); renderBalancesPanel();
       if (ui.mode === 'liquidity') { refreshLiqBalances(); setLiqSub(ui.liqSub); }
     } catch (e) { notify(e.message || 'Connect failed', 'error'); }
   }
@@ -792,8 +1019,8 @@
       btn.className = 'btn btn-full ' + (walletState.evm ? 'btn-outline connected' : 'btn-outline');
     }
     renderOnchainTradeHistory();
+    renderSolanaSetupHint();
   }
-  const shortId = (a) => a ? a.slice(0, 6) + '…' + a.slice(-4) : '';
 
   async function sendTx(tx) {
     return window.ethereum.request({ method: 'eth_sendTransaction', params: [tx] });
@@ -806,11 +1033,66 @@
     }
     return null;
   }
+  /** Simulate a call from the user's address; throws with the revert reason. */
+  async function simulate(chainId, tx) {
+    const call = { from: tx.from, to: tx.to, data: tx.data };
+    if (tx.value && tx.value !== '0x0') call.value = tx.value;
+    await evmRpc(chainId, 'eth_call', [call, 'latest']);
+  }
+  const hexVal = (v) => '0x' + BigInt(v).toString(16);
 
+  /* ═══════════════════════════════════════════════════════════════════
+     EVM execute — atomic (AnetFeeRouter) or hardened two-step fallback
+     ═══════════════════════════════════════════════════════════════════ */
   async function executeOnchain() {
     if (!ui.quote) { notify('Get a quote first', 'error'); return; }
     if (ui.chain === 'solana') return executeSolana();
     return executeEvm();
+  }
+
+  async function ensureAllowance(chainId, token, owner, spender, amount, label, setStatus) {
+    const allowance = await erc20Allowance(chainId, token, owner, spender);
+    if (allowance >= amount) return;
+    const approve = async (value, step) => {
+      setStatus(`<span class="spinner"></span> ${step} ${esc(label)} in your wallet…`);
+      const aTx = await sendTx({ from: owner, to: token, data: sel('approve(address,uint256)') + encAddr(spender) + encUint(value) });
+      const r = await waitReceipt(chainId, aTx, 60);
+      if (!r || r.status === '0x0') throw new Error('Approval was not confirmed. Nothing else was sent.');
+    };
+    // Tokens like Ethereum USDT reject a non-zero → non-zero approve; reset first.
+    if (allowance > 0n) await approve(0n, 'Reset the previous approval for');
+    await approve(amount, 'Approve');
+  }
+
+  /** Gas headroom for `txCount` transactions on this chain, from the live gas price (with a floor). */
+  async function gasReserve(chainId, txCount = 2) {
+    const floor = chainId === 1 ? 4_000_000_000_000_000n : 1_000_000_000_000_000n; // 0.004 ETH / 0.001 BNB
+    try {
+      const gasPrice = BigInt(await evmRpc(chainId, 'eth_gasPrice', []));
+      const est = gasPrice * 350_000n * BigInt(txCount) * 3n / 2n; // 350k gas per tx, 1.5× safety
+      return est > floor ? est : floor;
+    } catch (_) { return floor * BigInt(txCount); }
+  }
+
+  /**
+   * Refuse to start a trade the wallet cannot finish. Critical for the two-step
+   * fallback: the fee leaves the wallet first, so the swap (+ its gas) must be
+   * affordable from what remains. Throws with "nothing was sent" wording.
+   */
+  async function assertFunds(chainId, owner, fromTok, amountIn, txCount) {
+    const native = BigInt(await evmRpc(chainId, 'eth_getBalance', [owner, 'latest']));
+    const reserve = await gasReserve(chainId, txCount);
+    const sym = EVM_DEX[chainId].nativeSymbol;
+    if (fromTok.native) {
+      if (native < amountIn + reserve) {
+        const max = native > reserve ? fromUnits(native - reserve, 18) : '0';
+        throw new Error(`Insufficient ${sym}: ${fmtNum(parseFloat(fromUnits(amountIn, 18)), 6)} + gas for ${txCount} transaction(s) exceeds your balance. Max ≈ ${fmtNum(parseFloat(max), 6)} ${sym}. Nothing was sent.`);
+      }
+    } else {
+      const bal = await erc20BalanceOf(chainId, fromTok.addr, owner);
+      if (bal < amountIn) throw new Error(`Insufficient ${fromTok.symbol} balance (${fmtNum(parseFloat(fromUnits(bal, fromTok.decimals)), 6)} available). Nothing was sent.`);
+      if (native < reserve) throw new Error(`Not enough ${sym} for gas (${txCount} transaction(s) needed). Nothing was sent.`);
+    }
   }
 
   async function executeEvm() {
@@ -823,85 +1105,106 @@
     btn.disabled = true;
     const dex = EVM_DEX[ui.chain];
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 1200);
-    const to = walletState.evm;
+    const from = walletState.evm;
+    const feeRouter = atomicRouter(ui.chain);
+    let feeTx = null, swapSent = false;
 
     try {
-      // Real fee collection → treasury (native BNB/ETH or the ERC-20 being sold).
-      if (MM_FEE_RECIPIENT && q.feeUnits > 0n) {
-        setStatus('<span class="spinner"></span> Sending ' + MM_FEE_PCT + '% fee to treasury…');
-        let feeTx;
-        if (q.fromTok.native) {
-          feeTx = await sendTx({ from: to, to: MM_FEE_RECIPIENT, value: '0x' + q.feeUnits.toString(16) });
-        } else {
-          const feeData = sel('transfer(address,uint256)') + encAddr(MM_FEE_RECIPIENT) + encUint(q.feeUnits);
-          feeTx = await sendTx({ from: to, to: q.fromTok.addr, data: feeData });
-        }
-        await waitReceipt(ui.chain, feeTx, 40);
-      }
+      // Re-quote right before sending so minOut reflects the current pool state.
+      const fresh = await quoteEvm($('oc-from-amount').value).catch(() => null);
+      if (fresh) ui.quote = Object.assign(q, fresh);
 
-      // ERC-20 sells need approval to the router
-      if (!q.fromTok.native) {
-        const allowance = await erc20Allowance(ui.chain, q.fromTok.addr, to, dex.router);
-        if (allowance < q.swapIn) {
-          setStatus('<span class="spinner"></span> Approve ' + esc(q.fromTok.symbol) + ' in your wallet…');
-          const approveData = sel('approve(address,uint256)') + encAddr(dex.router) + encUint((1n << 256n) - 1n);
-          const aTx = await sendTx({ from: to, to: q.fromTok.addr, data: approveData });
-          await waitReceipt(ui.chain, aTx, 60);
+      let tx;
+      if (feeRouter) {
+        /* ── Atomic: fee + swap in one tx via AnetFeeRouter ──────────── */
+        await assertFunds(ui.chain, from, q.fromTok, q.amountIn, q.fromTok.native ? 1 : 2);
+        if (!q.fromTok.native) {
+          await ensureAllowance(ui.chain, q.fromTok.addr, from, feeRouter, q.amountIn, q.fromTok.symbol, setStatus);
         }
-      }
-
-      setStatus('<span class="spinner"></span> Confirm the swap in your wallet…');
-      let data, value = '0x0';
-      if (q.fromTok.native) {
-        // swapExactETHForTokensSupportingFeeOnTransferTokens(amountOutMin, path, to, deadline)
-        const arr = encAddrArray(q.path, 4); // head: amountOutMin, offset, to, deadline => 4 words
-        data = sel('swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)')
-          + encUint(q.minOutRaw) + arr.offset + encAddr(to) + encUint(deadline) + arr.tail;
-        value = '0x' + q.swapIn.toString(16);
-      } else if (q.toTok.native) {
-        // swapExactTokensForETHSupportingFeeOnTransferTokens(amountIn, amountOutMin, path, to, deadline)
-        const arr = encAddrArray(q.path, 5);
-        data = sel('swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)')
-          + encUint(q.swapIn) + encUint(q.minOutRaw) + arr.offset + encAddr(to) + encUint(deadline) + arr.tail;
+        const call = buildFeeRouterCalldata({ fromNative: !!q.fromTok.native, toNative: !!q.toTok.native, amountIn: q.amountIn, minOut: q.minOutRaw, path: q.path, deadline });
+        tx = { from, to: feeRouter, data: call.data, value: hexVal(call.value) };
+        setStatus('<span class="spinner"></span> Simulating swap…');
+        try { await simulate(ui.chain, tx); }
+        catch (e) { throw new Error('Swap would fail: ' + cleanRevert(e.message) + ' — nothing was sent and no fee was charged.'); }
+        setStatus(`<span class="spinner"></span> Confirm the swap in your wallet (fee ${FEE.pct}% + swap in one transaction)…`);
       } else {
-        const arr = encAddrArray(q.path, 5);
-        data = sel('swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)')
-          + encUint(q.swapIn) + encUint(q.minOutRaw) + arr.offset + encAddr(to) + encUint(deadline) + arr.tail;
+        /* ── Fallback: funds check → simulate swap → fee transfer → swap ── */
+        await assertFunds(ui.chain, from, q.fromTok, q.amountIn, q.fromTok.native ? 2 : 3);
+        if (!q.fromTok.native) {
+          await ensureAllowance(ui.chain, q.fromTok.addr, from, dex.router, q.swapIn, q.fromTok.symbol, setStatus);
+        }
+        const call = buildDexRouterCalldata({ fromNative: !!q.fromTok.native, toNative: !!q.toTok.native, swapIn: q.swapIn, minOut: q.minOutRaw, path: q.path, to: from, deadline });
+        tx = { from, to: dex.router, data: call.data, value: hexVal(call.value) };
+        setStatus('<span class="spinner"></span> Simulating swap before collecting the fee…');
+        try { await simulate(ui.chain, tx); }
+        catch (e) { throw new Error('Swap would fail: ' + cleanRevert(e.message) + ' — nothing was sent and no fee was charged.'); }
+
+        if (q.feeUnits > 0n) {
+          setStatus(`<span class="spinner"></span> Confirm the ${FEE.pct}% interface fee transfer (1 of 2)…`);
+          if (q.fromTok.native) {
+            feeTx = await sendTx({ from, to: FEE.evmTreasury, value: hexVal(q.feeUnits) });
+          } else {
+            feeTx = await sendTx({ from, to: q.fromTok.addr, data: sel('transfer(address,uint256)') + encAddr(FEE.evmTreasury) + encUint(q.feeUnits) });
+          }
+          setStatus(`<span class="spinner"></span> Waiting for the fee transfer… <a href="${dex.explorer}/tx/${feeTx}" target="_blank" rel="noopener">${feeTx.slice(0, 12)}…</a>`);
+          const fr = await waitReceipt(ui.chain, feeTx, 40);
+          if (!fr) throw new Error('Fee transfer not confirmed in time — the swap was NOT sent. Check the explorer before retrying.');
+          if (fr.status === '0x0') throw new Error('Fee transfer reverted — the swap was NOT sent.');
+        }
+        setStatus('<span class="spinner"></span> Confirm the swap in your wallet (2 of 2)…');
       }
 
-      const txHash = await sendTx({ from: to, to: dex.router, data, value });
+      const txHash = await sendTx(tx);
+      swapSent = true;
       setStatus(`<span class="spinner"></span> Broadcasting… <a href="${dex.explorer}/tx/${txHash}" target="_blank" rel="noopener">${txHash.slice(0, 12)}…</a>`);
       const receipt = await waitReceipt(ui.chain, txHash, 80);
-      if (!receipt || receipt.status === '0x0') {
-        setStatus('✕ Transaction reverted on-chain. No funds moved (try higher slippage).', 'error');
+      if (!receipt) { setStatus(`⏳ Not confirmed yet. Track it on the <a href="${dex.explorer}/tx/${txHash}" target="_blank" rel="noopener">explorer ↗</a>.`, 'loading'); btn.disabled = false; return; }
+      if (receipt.status === '0x0') {
+        setStatus(feeRouter
+          ? '✕ Transaction reverted on-chain. No funds moved and no fee was charged (try higher slippage).'
+          : `✕ Swap reverted on-chain (try higher slippage).${feeTx ? ` The ${FEE.pct}% fee transfer <a href="${dex.explorer}/tx/${feeTx}" target="_blank" rel="noopener">${feeTx.slice(0, 10)}… ↗</a> had already confirmed.` : ''}`, 'error');
         btn.disabled = false; return;
       }
-      setStatus(`✓ ${ui.side === 'sell' ? 'Sold' : 'Bought'} ${esc(ui.toSym)} · confirmed in block ${parseInt(receipt.blockNumber, 16)}`, 'success');
-      showReceipt({ chain: dex.name, explorer: dex.explorer, hash: txHash, block: parseInt(receipt.blockNumber, 16), q });
-      $('oc-from-amount').value = ''; renderOnchainQuote(); refreshOnchainBalances();
+      setStatus(`✓ ${ui.side === 'sell' ? 'Sold' : 'Bought'} ${esc(ui.side === 'sell' ? ui.fromSym : ui.toSym)} · confirmed in block ${parseInt(receipt.blockNumber, 16)}${feeRouter ? ' · fee settled atomically' : ''}`, 'success');
+      showReceipt({ chain: dex.name, explorer: dex.explorer, hash: txHash, block: parseInt(receipt.blockNumber, 16), q, feeTx, atomic: !!feeRouter });
+      $('oc-from-amount').value = ''; renderOnchainQuote(); refreshOnchainBalances(); renderBalancesPanel();
       notify('Swap confirmed on-chain', 'success', 5000);
     } catch (e) {
-      setStatus('✕ ' + esc(e.message || 'Swap failed'), 'error');
+      const rejectedAfterFee = feeTx && !swapSent;
+      const feeNote = rejectedAfterFee
+        ? ` The ${FEE.pct}% fee transfer <a href="${dex.explorer}/tx/${feeTx}" target="_blank" rel="noopener">${feeTx.slice(0, 10)}… ↗</a> had already confirmed; the swap was not sent.`
+        : '';
+      setStatus('✕ ' + esc(e.message || 'Swap failed') + feeNote, 'error');
       notify(e.message || 'Swap failed', 'error');
       btn.disabled = false;
     }
   }
 
-  function showReceipt({ chain, explorer, hash, block, q, sig }) {
+  function cleanRevert(msg) {
+    const m = String(msg || '');
+    const i = m.indexOf('execution reverted');
+    let s = i >= 0 ? m.slice(i) : m;
+    s = s.replace(/^execution reverted:?\s*/i, '').trim();
+    return s || 'execution reverted';
+  }
+
+  function showReceipt({ chain, explorer, hash, block, q, sig, feeTx, atomic }) {
     const el = $('oc-receipt'); if (!el) return;
     rememberOnchainTrade({ chain, explorer, hash, block, q, sig });
-    const link = sig
-      ? `https://solscan.io/tx/${sig}`
-      : `${explorer}/tx/${hash}`;
+    const link = sig ? `https://solscan.io/tx/${sig}` : `${explorer}/tx/${hash}`;
+    const feeRow = sig
+      ? `<div class="price-row"><span>Interface fee</span><span class="val">${q.feeWaived ? 'waived' : `${fmtNum(q.feeHuman, 6)} ${esc(q.feeSym)} · in-swap`}</span></div>`
+      : `<div class="price-row"><span>Interface fee</span><span class="val">${fmtNum(q.feeHuman, 6)} ${esc(q.feeSym)} · ${atomic ? 'atomic' : feeTx ? `<a href="${explorer}/tx/${feeTx}" target="_blank" rel="noopener">separate tx ↗</a>` : 'none'}</span></div>`;
     el.style.display = 'block';
     el.innerHTML = `
       <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;">
         <strong>On-chain receipt</strong><span style="color:var(--muted-2);">${new Date().toLocaleString()}</span>
       </div>
       <div class="price-row"><span>Venue</span><span class="val">${esc(chain)}</span></div>
-      <div class="price-row"><span>Side</span><span class="val">${ui.side === 'sell' ? 'SELL' : 'BUY'} ${esc(ui.toSym)}</span></div>
-      <div class="price-row"><span>Paid</span><span class="val">${fmtNum(parseFloat($('oc-from-amount').value || q.inHuman || 0), 6)} ${esc(ui.fromSym)}</span></div>
-      <div class="price-row"><span>Received (est.)</span><span class="val">~${fmtNum(q.outHuman, 6)} ${esc(ui.toSym)}</span></div>
+      <div class="price-row"><span>Side</span><span class="val">${ui.side === 'sell' ? 'SELL' : 'BUY'} ${esc(ui.side === 'sell' ? q.fromTok.symbol : q.toTok.symbol)}</span></div>
+      <div class="price-row"><span>Paid</span><span class="val">${fmtNum(q.inHuman || 0, 6)} ${esc(q.fromTok.symbol)}</span></div>
+      <div class="price-row"><span>Received (est.)</span><span class="val">~${fmtNum(q.outHuman, 6)} ${esc(q.toTok.symbol)}</span></div>
+      ${feeRow}
       ${block != null ? `<div class="price-row"><span>Block</span><span class="val">${block}</span></div>` : ''}
       <div class="price-row"><span>Tx</span><span class="val"><a href="${link}" target="_blank" rel="noopener">${esc((sig || hash).slice(0, 16))}… ↗</a></span></div>`;
   }
@@ -910,9 +1213,7 @@
     try {
       const data = JSON.parse(localStorage.getItem(ONCHAIN_HISTORY_KEY) || '[]');
       return Array.isArray(data) ? data.filter(item => item && typeof item === 'object') : [];
-    } catch (_) {
-      return [];
-    }
+    } catch (_) { return []; }
   }
 
   function rememberOnchainTrade({ chain, explorer, hash, block, q, sig }) {
@@ -920,25 +1221,20 @@
     const txId = String(sig || hash || '').trim();
     if (!account || !txId || !q) return;
     const entry = {
-      id: `${ui.chain}:${txId}`,
-      account,
-      chain: String(chain || ''),
-      chainId: ui.chain,
+      id: `${ui.chain}:${txId}`, account, chain: String(chain || ''), chainId: ui.chain,
       side: ui.side === 'sell' ? 'SELL' : 'BUY',
-      fromSymbol: String(q.fromTok?.symbol || ui.fromSym),
-      toSymbol: String(q.toTok?.symbol || ui.toSym),
+      fromSymbol: String(q.fromTok?.symbol || ui.fromSym), toSymbol: String(q.toTok?.symbol || ui.toSym),
       amountIn: Number(q.inHuman ?? (q.amountIn != null ? fromUnits(q.amountIn, q.fromTok?.decimals || 18) : 0)),
       amountOut: Number(q.outHuman || 0),
-      hash: txId,
-      explorer: String(explorer || (sig ? 'https://solscan.io' : EVM_DEX[ui.chain]?.explorer || '')),
-      block: block == null ? null : Number(block),
-      timestamp: Date.now(),
+      fee: Number(q.feeHuman || 0), feeSymbol: String(q.feeSym || ''),
+      hash: txId, explorer: String(explorer || (sig ? 'https://solscan.io' : EVM_DEX[ui.chain]?.explorer || '')),
+      block: block == null ? null : Number(block), timestamp: Date.now(),
     };
     try {
       const history = readOnchainTradeHistory().filter(item => item.id !== entry.id);
       history.unshift(entry);
       localStorage.setItem(ONCHAIN_HISTORY_KEY, JSON.stringify(history.slice(0, 100)));
-    } catch (_) { /* a confirmed trade remains valid if local history storage is unavailable */ }
+    } catch (_) {}
     renderOnchainTradeHistory();
   }
 
@@ -946,32 +1242,37 @@
     const list = $('oc-history-list');
     if (!list) return;
     const account = String(ui.chain === 'solana' ? walletState.sol : walletState.evm || '').trim();
-    if (!account) {
-      list.textContent = 'Connect a wallet to view its saved trades.';
-      return;
-    }
-    const history = readOnchainTradeHistory().filter(item =>
-      item.account.toLowerCase() === account.toLowerCase()
-    ).slice(0, 10);
-    if (!history.length) {
-      list.textContent = 'No confirmed swaps saved on this device.';
-      return;
-    }
+    if (!account) { list.textContent = 'Connect a wallet to view its saved trades.'; return; }
+    const history = readOnchainTradeHistory().filter(item => String(item.account || '').toLowerCase() === account.toLowerCase()).slice(0, 10);
+    if (!history.length) { list.textContent = 'No confirmed swaps saved on this device.'; return; }
     list.innerHTML = history.map(item => {
       const txUrl = `${item.explorer}/tx/${encodeURIComponent(item.hash)}`;
       const date = new Date(item.timestamp).toLocaleString();
       return `<div class="onchain-history-row">
-        <div class="onchain-history-summary"><strong>${esc(item.side)} ${esc(item.toSymbol)}</strong><small>${esc(item.chain)} · ${esc(date)}</small></div>
-        <div class="onchain-history-amounts">${fmtNum(item.amountIn, 6)} ${esc(item.fromSymbol)} <span>→</span> ~${fmtNum(item.amountOut, 6)} ${esc(item.toSymbol)}</div>
+        <div class="onchain-history-summary"><strong>${esc(item.side)} ${esc(item.side === 'SELL' ? item.fromSymbol : item.toSymbol)}</strong><small>${esc(item.chain)} · ${esc(date)}</small></div>
+        <div class="onchain-history-amounts">${fmtNum(item.amountIn, 6)} ${esc(item.fromSymbol)} <span>→</span> ~${fmtNum(item.amountOut, 6)} ${esc(item.toSymbol)}${item.fee ? ` <span>·</span> fee ${fmtNum(item.fee, 6)} ${esc(item.feeSymbol)}` : ''}</div>
         <a href="${esc(txUrl)}" target="_blank" rel="noopener noreferrer">${item.block == null ? 'View tx' : `Block ${item.block}`} ↗</a>
       </div>`;
     }).join('');
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     Solana  (Phantom + Jupiter aggregator)
+     Solana  (Phantom + Jupiter aggregator, in-swap interface fee)
      ═══════════════════════════════════════════════════════════════════ */
   const JUP = 'https://lite-api.jup.ag/swap/v1';
+
+  /** GET a Jupiter endpoint; retries once on the public endpoint's rate limit. */
+  async function jupGet(url, retries = 2) {
+    const res = await fetch(url);
+    if (res.status === 429 && retries > 0) {
+      await new Promise(r => setTimeout(r, retries === 2 ? 1200 : 2500));
+      return jupGet(url, retries - 1);
+    }
+    if (res.status === 429) throw new Error('Jupiter rate limit — please retry in a moment');
+    const j = await res.json().catch(() => null);
+    if (!j) throw new Error('Jupiter: bad response');
+    return j;
+  }
 
   function phantom() { return window.solana && window.solana.isPhantom ? window.solana : null; }
 
@@ -982,7 +1283,7 @@
       const resp = await p.connect();
       walletState.sol = resp.publicKey.toString();
       notify('Phantom connected', 'success');
-      updateConnectBtn(); refreshOnchainBalances(); renderOnchainQuote();
+      updateConnectBtn(); refreshOnchainBalances(); renderOnchainQuote(); renderBalancesPanel();
     } catch (e) { notify(e.message || 'Phantom connect failed', 'error'); }
   }
 
@@ -993,10 +1294,43 @@
     }
     const res = await solRpc('getTokenAccountsByOwner', [owner, { mint: tok.mint }, { encoding: 'jsonParsed' }]);
     let total = 0;
-    for (const acc of (res?.value || [])) {
-      total += acc.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0;
-    }
+    for (const acc of (res?.value || [])) total += acc.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0;
     return total;
+  }
+
+  /** Associated token account (ATA) of `owner` for `mint` — requires the vendored web3.js. */
+  function deriveAta(owner, mint) {
+    const S = window.AnetSolana; if (!S) return null;
+    const [ata] = S.PublicKey.findProgramAddressSync(
+      [new S.PublicKey(owner).toBytes(), new S.PublicKey(SOL_TOKEN_PROGRAM).toBytes(), new S.PublicKey(mint).toBytes()],
+      new S.PublicKey(SOL_ATA_PROGRAM));
+    return ata.toBase58();
+  }
+
+  /** Existence cache for the treasury's fee token accounts: mint → { ata, exists, t }. */
+  const solFeeAccounts = {};
+  async function treasuryFeeAccount(mint) {
+    const c = solFeeAccounts[mint];
+    if (c && Date.now() - c.t < 600_000) return c;
+    const ata = deriveAta(FEE.solTreasury, mint);
+    if (!ata) return null;
+    let exists = false;
+    try { const info = await solRpc('getAccountInfo', [ata, { encoding: 'base64' }]); exists = !!(info && info.value); } catch (_) { exists = c ? c.exists : false; }
+    solFeeAccounts[mint] = { ata, exists, t: Date.now() };
+    return solFeeAccounts[mint];
+  }
+
+  /**
+   * Pick the fee account for a swap: Jupiter takes the fee on the OUTPUT mint
+   * for ExactIn swaps when the fee account's mint is the output mint, which is
+   * also how its quote reports `platformFee`. Falls back to the input mint.
+   */
+  async function pickSolFeeAccount(fromTok, toTok) {
+    const out = await treasuryFeeAccount(toTok.mint);
+    if (out?.exists) return { ata: out.ata, mint: toTok.mint, tok: toTok, onOutput: true };
+    const inp = await treasuryFeeAccount(fromTok.mint);
+    if (inp?.exists) return { ata: inp.ata, mint: fromTok.mint, tok: fromTok, onOutput: false };
+    return null;
   }
 
   async function quoteSolana(amtStr) {
@@ -1005,20 +1339,27 @@
     const amount = toUnits(amtStr, fromTok.decimals);
     if (amount <= 0n) throw new Error('enter amount');
     const slipBps = Math.round(ui.slippage * 100);
-    const url = `${JUP}/quote?inputMint=${fromTok.mint}&outputMint=${toTok.mint}&amount=${amount.toString()}&slippageBps=${slipBps}`;
-    const res = await fetch(url);
-    const jq = await res.json();
+    const feeAcct = await pickSolFeeAccount(fromTok, toTok);
+    const url = `${JUP}/quote?inputMint=${fromTok.mint}&outputMint=${toTok.mint}&amount=${amount.toString()}&slippageBps=${slipBps}&restrictIntermediateTokens=true`
+      + (feeAcct ? `&platformFeeBps=${FEE.solanaBps}` : '');
+    const jq = await jupGet(url);
     if (!jq || jq.error || !jq.outAmount) throw new Error(jq?.error || 'no route');
     const outHuman = Number(jq.outAmount) / (10 ** toTok.decimals);
     const inHuman = parseFloat(amtStr);
-    const feeHuman = inHuman * MM_FEE_PCT / 100;
-    const fromUsd = priceUsdFor(fromTok.symbol);
     const otherAmountThreshold = Number(jq.otherAmountThreshold || jq.outAmount);
+    let feeHuman = 0, feeSym = toTok.symbol, feeUsd = null;
+    if (feeAcct) {
+      const pf = jq.platformFee && jq.platformFee.amount != null ? Number(jq.platformFee.amount) : null;
+      if (pf != null) { feeHuman = pf / 10 ** feeAcct.tok.decimals; feeSym = feeAcct.tok.symbol; }
+      else { feeHuman = (feeAcct.onOutput ? outHuman : inHuman) * FEE.solanaBps / 10_000; feeSym = feeAcct.tok.symbol; }
+      const usd = priceUsdFor(feeSym); feeUsd = usd != null ? feeHuman * usd : null;
+    }
     return {
-      kind: 'solana', fromTok, toTok, jupQuote: jq,
-      outHuman, rate: outHuman / inHuman,
+      kind: 'solana', fromTok, toTok, jupQuote: jq, feeAccount: feeAcct ? feeAcct.ata : null, feeWaived: !feeAcct,
+      inHuman, outHuman, rate: outHuman / inHuman,
       minOutHuman: otherAmountThreshold / (10 ** toTok.decimals),
-      feeHuman, feeUsd: fromUsd != null ? feeHuman * fromUsd : null,
+      feeHuman, feeSym, feeUsd,
+      priceImpactPct: jq.priceImpactPct != null ? Math.abs(parseFloat(jq.priceImpactPct)) * 100 : null,
       routeLabel: 'Jupiter · ' + (jq.routePlan?.length || 1) + ' hop(s)',
     };
   }
@@ -1035,33 +1376,31 @@
     btn.disabled = true;
     try {
       setStatus('<span class="spinner"></span> Building Jupiter swap…');
-      const swapRes = await fetch(`${JUP}/swap`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          quoteResponse: q.jupQuote,
-          userPublicKey: walletState.sol,
-          wrapAndUnwrapSol: true,
-          dynamicComputeUnitLimit: true,
-          prioritizationFeeLamports: 'auto',
-        }),
-      });
+      const body = {
+        quoteResponse: q.jupQuote,
+        userPublicKey: walletState.sol,
+        wrapAndUnwrapSol: true,
+        dynamicComputeUnitLimit: true,
+        prioritizationFeeLamports: 'auto',
+      };
+      if (q.feeAccount) body.feeAccount = q.feeAccount;
+      const swapRes = await fetch(`${JUP}/swap`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const swapJson = await swapRes.json();
       if (!swapJson.swapTransaction) throw new Error(swapJson.error || 'swap build failed');
 
       const bytes = Uint8Array.from(atob(swapJson.swapTransaction), c => c.charCodeAt(0));
       const tx = window.AnetSolana.VersionedTransaction.deserialize(bytes);
 
-      setStatus('<span class="spinner"></span> Approve the swap in Phantom…');
+      setStatus(`<span class="spinner"></span> Approve the swap in Phantom${q.feeAccount ? ` (includes the ${FEE_PCT_LABEL('solana')} fee)` : ''}…`);
       const { signature } = await p.signAndSendTransaction(tx);
 
       setStatus(`<span class="spinner"></span> Confirming… <a href="https://solscan.io/tx/${signature}" target="_blank" rel="noopener">${signature.slice(0, 12)}…</a>`);
       const ok = await confirmSol(signature, 40);
-      if (!ok) { setStatus('✕ Not confirmed in time. Check Solscan.', 'error'); btn.disabled = false; return; }
+      if (!ok) { setStatus(`✕ Not confirmed in time. Check <a href="https://solscan.io/tx/${signature}" target="_blank" rel="noopener">Solscan ↗</a>.`, 'error'); btn.disabled = false; return; }
 
-      setStatus(`✓ Swapped on Solana via Jupiter · confirmed`, 'success');
+      setStatus(`✓ Swapped on Solana via Jupiter · confirmed${q.feeAccount ? ' · fee settled in-swap' : ''}`, 'success');
       showReceipt({ chain: 'Jupiter (Solana)', sig: signature, q });
-      $('oc-from-amount').value = ''; renderOnchainQuote(); refreshOnchainBalances();
+      $('oc-from-amount').value = ''; renderOnchainQuote(); refreshOnchainBalances(); renderBalancesPanel();
       notify('Solana swap confirmed', 'success', 5000);
     } catch (e) {
       setStatus('✕ ' + esc(e.message || 'Swap failed'), 'error');
@@ -1081,6 +1420,66 @@
     return false;
   }
 
+  /* ── Operator helper: initialize the treasury's fee token accounts ──
+     Creating an ATA owned by the treasury is permissionless (the payer only
+     funds rent, ~0.002 SOL each). Jupiter requires these accounts to exist
+     before it can deposit fees. Exposed as AnetDexOnchain.setupSolanaFeeAccounts();
+     a button also appears in the ticket when the connected Phantom wallet IS the treasury. */
+  function ataCreateIdempotentIx(payer, owner, mint) {
+    const S = window.AnetSolana;
+    const ata = deriveAta(owner, mint);
+    return {
+      programId: new S.PublicKey(SOL_ATA_PROGRAM),
+      keys: [
+        { pubkey: new S.PublicKey(payer), isSigner: true,  isWritable: true },
+        { pubkey: new S.PublicKey(ata),   isSigner: false, isWritable: true },
+        { pubkey: new S.PublicKey(owner), isSigner: false, isWritable: false },
+        { pubkey: new S.PublicKey(mint),  isSigner: false, isWritable: false },
+        { pubkey: new S.PublicKey(SOL_SYSTEM_PROGRAM), isSigner: false, isWritable: false },
+        { pubkey: new S.PublicKey(SOL_TOKEN_PROGRAM),  isSigner: false, isWritable: false },
+      ],
+      data: Uint8Array.from([1]), // CreateIdempotent
+    };
+  }
+
+  async function setupSolanaFeeAccounts() {
+    const S = window.AnetSolana, p = phantom();
+    if (!S || !p) throw new Error('Phantom + Solana module required');
+    if (!walletState.sol) await connectPhantom();
+    if (!walletState.sol) throw new Error('Connect Phantom first');
+    const missing = [];
+    for (const t of SOL_TOKENS) { const a = await treasuryFeeAccount(t.mint); if (!a?.exists) missing.push(t); }
+    if (!missing.length) { notify('All treasury fee accounts already exist.', 'success'); return []; }
+    const tx = new S.Transaction();
+    tx.feePayer = new S.PublicKey(walletState.sol);
+    const bh = await solRpc('getLatestBlockhash', [{ commitment: 'finalized' }]);
+    tx.recentBlockhash = bh?.value?.blockhash || bh?.blockhash;
+    for (const t of missing) tx.add(ataCreateIdempotentIx(walletState.sol, FEE.solTreasury, t.mint));
+    const { signature } = await p.signAndSendTransaction(tx);
+    const ok = await confirmSol(signature, 40);
+    if (!ok) throw new Error('Fee account creation not confirmed: ' + signature);
+    for (const t of missing) delete solFeeAccounts[t.mint];
+    notify(`Created ${missing.length} treasury fee account(s)`, 'success', 6000);
+    renderSolanaSetupHint(); renderOnchainQuote();
+    return missing.map(t => ({ symbol: t.symbol, ata: deriveAta(FEE.solTreasury, t.mint), signature }));
+  }
+
+  async function renderSolanaSetupHint() {
+    const el = $('oc-sol-setup'); if (!el) return;
+    el.style.display = 'none'; el.innerHTML = '';
+    if (ui.chain !== 'solana' || !walletState.sol || walletState.sol !== FEE.solTreasury || !window.AnetSolana) return;
+    const missing = [];
+    for (const t of SOL_TOKENS) { const a = await treasuryFeeAccount(t.mint); if (!a?.exists) missing.push(t.symbol); }
+    if (!missing.length) return;
+    el.style.display = '';
+    el.innerHTML = `<div class="info-box" style="font-size:12px;">Treasury wallet detected. Fee accounts missing for <b>${esc(missing.join(', '))}</b> — Jupiter cannot deposit fees until they exist.
+      <button class="btn btn-outline btn-sm" id="oc-sol-setup-btn" style="margin-left:8px;">Initialize fee accounts</button></div>`;
+    $('oc-sol-setup-btn').addEventListener('click', async () => {
+      const b = $('oc-sol-setup-btn'); b.disabled = true;
+      try { await setupSolanaFeeAccounts(); } catch (e) { notify(e.message || 'setup failed', 'error'); b.disabled = false; }
+    });
+  }
+
   /* ═══════════════════════════════════════════════════════════════════
      Liquidity  (real PancakeSwap V2 ANET/BNB pool — anyone can LP)
      ═══════════════════════════════════════════════════════════════════ */
@@ -1098,7 +1497,7 @@
     return { anetReserve: anetIsToken0 ? r0 : r1, bnbReserve: anetIsToken0 ? r1 : r0 };
   }
 
-  function slipDown(v) { return v * BigInt(Math.round((100 - ui.slippage) * 100)) / 10000n; }
+  function slipDown(v) { return slipFloor(v, ui.slippage); }
 
   async function renderLiqAdd() {
     const cfg = LP_POOL[ui.chain]; if (!cfg) return;
@@ -1129,9 +1528,8 @@
         ${totalUsd ? `<div class="price-row"><span>Value</span><span class="val">${fmtUsd(totalUsd)}</span></div>` : ''}
         <div class="price-row"><span>Pool share (after)</span><span class="val">~${sharePct < 0.01 ? '<0.01' : fmtNum(sharePct, 3)}%</span></div>
         <div class="price-row"><span>Pool</span><span class="val">PancakeSwap V2 · earns 0.25%</span></div>`;
-      const connected = !!walletState.evm;
       btn.disabled = false;
-      btn.textContent = connected ? 'Add Liquidity' : 'Connect wallet to add';
+      btn.textContent = walletState.evm ? 'Add Liquidity' : 'Connect wallet to add';
     } catch (e) {
       if (bnbEl) bnbEl.textContent = '—';
       if (infoEl) { infoEl.style.display = 'flex'; infoEl.innerHTML = `<div class="price-row warn"><span>Pool</span><span class="val">${esc(e.message || 'unavailable')}</span></div>`; }
@@ -1232,21 +1630,14 @@
     const { anetUnits, bnbUnits } = ui.liqAdd;
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 1200);
     try {
-      // approve ANET → router
-      const allowance = await erc20Allowance(ui.chain, cfg.token, to, dex.router);
-      if (allowance < anetUnits) {
-        setStatus('<span class="spinner"></span> Approve ANET in your wallet…');
-        const approveData = sel('approve(address,uint256)') + encAddr(dex.router) + encUint((1n << 256n) - 1n);
-        const aTx = await sendTx({ from: to, to: cfg.token, data: approveData });
-        await waitReceipt(ui.chain, aTx, 60);
-      }
+      await ensureAllowance(ui.chain, cfg.token, to, dex.router, anetUnits, 'ANET', setStatus);
       setStatus('<span class="spinner"></span> Confirm Add Liquidity in your wallet…');
       const data = sel('addLiquidityETH(address,uint256,uint256,uint256,address,uint256)')
         + encAddr(cfg.token) + encUint(anetUnits) + encUint(slipDown(anetUnits)) + encUint(slipDown(bnbUnits)) + encAddr(to) + encUint(deadline);
-      const txHash = await sendTx({ from: to, to: dex.router, data, value: '0x' + bnbUnits.toString(16) });
+      const txHash = await sendTx({ from: to, to: dex.router, data, value: hexVal(bnbUnits) });
       setStatus(`<span class="spinner"></span> Adding liquidity… <a href="${dex.explorer}/tx/${txHash}" target="_blank" rel="noopener">${txHash.slice(0, 12)}…</a>`);
       const receipt = await waitReceipt(ui.chain, txHash, 80);
-      if (!receipt || receipt.status === '0x0') { setStatus('✕ Add Liquidity reverted (try higher slippage).', 'error'); btn.disabled = false; return; }
+      if (!receipt || receipt.status === '0x0') { setStatus('✕ Add Liquidity reverted or not confirmed (try higher slippage).', 'error'); btn.disabled = false; return; }
       setStatus(`✓ Liquidity added · confirmed in block ${parseInt(receipt.blockNumber, 16)}`, 'success');
       liqReceipt('Liquidity added', `
         <div class="price-row"><span>Deposited</span><span class="val">${fmtNum(parseFloat(fromUnits(anetUnits, cfg.tokenDec)), 4)} ANET + ${fmtNum(parseFloat(fromUnits(bnbUnits, 18)), 6)} BNB</span></div>
@@ -1274,21 +1665,14 @@
     const { lpToRemove, anetOut, bnbOut } = ui.liqRemove;
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 1200);
     try {
-      // approve LP (pair) → router
-      const allowance = await erc20Allowance(ui.chain, cfg.pair, to, dex.router);
-      if (allowance < lpToRemove) {
-        setStatus('<span class="spinner"></span> Approve LP token in your wallet…');
-        const approveData = sel('approve(address,uint256)') + encAddr(dex.router) + encUint((1n << 256n) - 1n);
-        const aTx = await sendTx({ from: to, to: cfg.pair, data: approveData });
-        await waitReceipt(ui.chain, aTx, 60);
-      }
+      await ensureAllowance(ui.chain, cfg.pair, to, dex.router, lpToRemove, 'LP token', setStatus);
       setStatus('<span class="spinner"></span> Confirm Remove Liquidity in your wallet…');
       const data = sel('removeLiquidityETHSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256)')
         + encAddr(cfg.token) + encUint(lpToRemove) + encUint(slipDown(anetOut)) + encUint(slipDown(bnbOut)) + encAddr(to) + encUint(deadline);
       const txHash = await sendTx({ from: to, to: dex.router, data });
       setStatus(`<span class="spinner"></span> Removing liquidity… <a href="${dex.explorer}/tx/${txHash}" target="_blank" rel="noopener">${txHash.slice(0, 12)}…</a>`);
       const receipt = await waitReceipt(ui.chain, txHash, 80);
-      if (!receipt || receipt.status === '0x0') { setStatus('✕ Remove Liquidity reverted (try higher slippage).', 'error'); btn.disabled = false; return; }
+      if (!receipt || receipt.status === '0x0') { setStatus('✕ Remove Liquidity reverted or not confirmed (try higher slippage).', 'error'); btn.disabled = false; return; }
       setStatus(`✓ Liquidity removed · confirmed in block ${parseInt(receipt.blockNumber, 16)}`, 'success');
       liqReceipt('Liquidity removed', `
         <div class="price-row"><span>Received (est.)</span><span class="val">${fmtNum(parseFloat(fromUnits(anetOut, cfg.tokenDec)), 4)} ANET + ${fmtNum(parseFloat(fromUnits(bnbOut, 18)), 6)} BNB</span></div>
@@ -1305,17 +1689,47 @@
   /* ═══════════════════════════════════════════════════════════════════
      Boot
      ═══════════════════════════════════════════════════════════════════ */
-  function boot() {
+  async function boot() {
     mount();
+    // Verify atomic fee routers (if configured) before the first quote renders a fee mode.
+    await Promise.all(Object.keys(FEE_ROUTER).map(c => verifyFeeRouter(parseInt(c, 10))));
+    renderFeeMode(); renderPolicyPanel();
+
+    if (window.AnetTerminal) {
+      window.AnetTerminal.registerProvider({
+        evmCall, evmRpc, rpcBatch,
+        getUsd: (sym) => prices.usd[String(sym || '').toUpperCase()] ?? null,
+        getAnet: () => prices.anet,
+        getChange24h: (sym) => prices.change24h[String(sym || '').toUpperCase()] ?? null,
+        getVolume24h: (sym) => prices.vol24h[String(sym || '').toUpperCase()] ?? null,
+        onPrices: (cb) => priceListeners.push(cb),
+        feeInfo, quoteOut,
+      });
+    }
+
     refreshPrices();
     fetchAnetSupply();
     setInterval(refreshPrices, 20_000);
-    // react to EVM wallet/account/chain changes
+
     if (window.ethereum) {
-      window.ethereum.on?.('accountsChanged', (a) => { walletState.evm = a?.[0] || ''; updateConnectBtn(); refreshOnchainBalances(); if (ui.mode === 'liquidity') { refreshLiqBalances(); setLiqSub(ui.liqSub); } });
+      window.ethereum.on?.('accountsChanged', (a) => { walletState.evm = a?.[0] || ''; updateConnectBtn(); refreshOnchainBalances(); renderBalancesPanel(); if (ui.mode === 'liquidity') { refreshLiqBalances(); setLiqSub(ui.liqSub); } });
       window.ethereum.on?.('chainChanged', (c) => { walletState.evmChain = parseInt(c, 16); refreshOnchainBalances(); if (ui.mode === 'liquidity') refreshLiqBalances(); });
     }
   }
+
+  /* Public surface: operator helper + pure functions for the Node test harness. */
+  window.AnetDexOnchain = {
+    FEE, FEE_ROUTER, EVM_DEX, ONCHAIN_TOKENS, SOL_TOKENS,
+    setupSolanaFeeAccounts,
+    feeInfo,
+    __test: {
+      toUnits, fromUnits, splitFee, slipFloor, encAddrArray, encAddr, encUint,
+      buildDexRouterCalldata, buildFeeRouterCalldata, evmPath, cleanRevert, deriveAta, ataCreateIdempotentIx,
+      SELECTORS, SOL_TOKEN_PROGRAM, SOL_ATA_PROGRAM,
+      verifyFeeRouter, feeRouterState,
+      ensureAllowance, assertFunds, gasReserve,
+    },
+  };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

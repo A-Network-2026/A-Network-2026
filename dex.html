@@ -23,7 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://explorer.a-network.net" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/dex.css?v=20261023-activity-history">
+  <link rel="stylesheet" href="assets/css/dex.css?v=20261101-terminal">
 </head>
 <body>
 
@@ -130,13 +130,17 @@
 
     <!-- ── Tab navigation ─────────────────────── -->
     <div class="dex-tabs" role="tablist" aria-label="DEX sections">
-            <button class="tab-btn active" role="tab" data-tab="markets"
-              onclick="setTab('markets')" aria-selected="true">
-        Markets
+            <button class="tab-btn active" role="tab" data-tab="trade"
+              onclick="setTab('trade')" aria-selected="true">
+        <span class="tab-icon">◈</span> Trade
+            </button>
+            <button class="tab-btn" role="tab" data-tab="markets"
+              onclick="setTab('markets')" aria-selected="false">
+        L1 Markets
             </button>
             <button class="tab-btn" role="tab" data-tab="swap"
               onclick="setTab('swap')" aria-selected="false">
-        <span class="tab-icon">⇄</span> Swap
+        <span class="tab-icon">⇄</span> L1 Swap
       </button>
             <button class="tab-btn" role="tab" data-tab="tokens"
               onclick="setTab('tokens')" aria-selected="false">
@@ -162,12 +166,19 @@ Cash Out
     </div>
 
     <!-- ════════════════════════════════════════
-         TAB: SWAP
+         TAB: TRADE (on-chain terminal — BSC / Ethereum / Solana)
+         ════════════════════════════════════════ -->
+    <div class="tab-panel active" id="tab-trade" role="tabpanel">
+      <!-- Self-custody trading terminal: PancakeSwap V2 / Uniswap V2 / Jupiter.
+           Layout + market data: assets/js/dex-terminal.js · wallets, order ticket
+           and the interface-fee engine: assets/js/dex-onchain.js -->
+      <div id="onchain-trade-mount"></div>
+    </div><!-- /tab-trade -->
+
+    <!-- ════════════════════════════════════════
+         TAB: SWAP (native Layer 1 AMM)
          ════════════════════════════════════════ -->
     <div class="tab-panel" id="tab-swap" role="tabpanel">
-
-      <!-- Real on-chain Buy/Sell (PancakeSwap V2 / Uniswap V2 / Jupiter) + live ANET price -->
-      <div id="onchain-trade-mount" style="margin-bottom: 22px"></div>
 
       <div class="dex-main-grid">
 
@@ -1394,7 +1405,7 @@ Cash Out
                 <summary style="cursor: pointer;  font-weight: 600;  color: var(--fg);  list-style: none;  display: flex;  justify-content: space-between">
                   What is the swap fee? <span style="color: var(--muted)">▾</span>
                 </summary>
-                <p style="color: var(--muted);  margin: 8px 0 0">0.30% LP fee per swap — goes entirely to liquidity providers. No additional platform fee.</p>
+                <p style="color: var(--muted);  margin: 8px 0 0">On the native L1 AMM: 0.30% LP fee per swap — goes entirely to liquidity providers, no platform fee. On the <strong>Trade</strong> tab (BNB Chain / Ethereum / Solana) a 0.875% interface fee (0.87% on Solana) is paid to the A Network treasury in the same transaction as your swap; pool fees there go to the venue's liquidity providers. A Network never holds your funds.</p>
               </details>
             </div>
           </div>
@@ -1407,7 +1418,7 @@ Cash Out
     <!-- ════════════════════════════════════════
          TAB: MARKETS
          ════════════════════════════════════════ -->
-    <div class="tab-panel active" id="tab-markets" role="tabpanel">
+    <div class="tab-panel" id="tab-markets" role="tabpanel">
 
       <div class="market-toolbar">
         <label class="market-search-wrap">
@@ -1600,8 +1611,9 @@ Cash Out
   <script src="assets/js/vendor/anet-crypto.bundle.js?v=20260628"></script>
   <script src="assets/js/vendor/anet-solana.bundle.js?v=20260706"></script>
   <script src="assets/js/anet-wallet.js?v=20260628"></script>
-  <script src="assets/js/dex.js?v=20261023-activity-history"></script>
-  <script src="assets/js/dex-onchain.js?v=20261023-activity-history"></script>
+  <script src="assets/js/dex.js?v=20261101-terminal"></script>
+  <script src="assets/js/dex-terminal.js?v=20261101-terminal"></script>
+  <script src="assets/js/dex-onchain.js?v=20261101-terminal"></script>
 
 </body>
 </html>

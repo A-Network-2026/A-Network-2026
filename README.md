@@ -638,6 +638,7 @@ NFT policy knowledge (production):
 Public pages live in the repository root (served via GitHub Pages / CNAME):
 
 - `index.html` — Main website
+- `dex.html` — DEX: on-chain **Trade** terminal (BNB Chain / Ethereum / Solana) + native Layer 1 AMM tabs
 - `whitepaper.html` — Official Whitepaper v2.2 (May 2026)
 - `privacy.html` — Privacy Policy
 - `terms.html` — Terms of Service
@@ -647,10 +648,61 @@ Public pages live in the repository root (served via GitHub Pages / CNAME):
 Public URLs:
 
 - `https://a-network.net/`
+- `https://a-network.net/dex.html`
 - `https://a-network.net/whitepaper.html`
 - `https://a-network.net/privacy.html`
 - `https://a-network.net/terms.html`
 - `https://a-network.net/delete-account.html`
+
+## On-Chain Trade Terminal (dex.html → Trade)
+
+The Trade tab is a self-custody, exchange-style terminal. Nothing is custodial:
+every swap is signed in the user's own wallet and settled on a public venue
+(PancakeSwap V2 on BNB Chain, Uniswap V2 on Ethereum, Jupiter on Solana).
+A Network's **only** revenue is an interface fee on the swap input, paid to the
+treasury inside the same flow as the swap.
+
+| Network | Venue | Interface fee | How it is collected |
+|---|---|---|---|
+| BNB Chain / Ethereum | PancakeSwap V2 / Uniswap V2 | 0.875 % of input | **Atomic** via `AnetFeeRouter` once deployed (fee → treasury and DEX swap → user in one tx; a failed swap pays no fee). Until then: the swap is simulated with `eth_call`, the fee transfer is sent and confirmed, then the swap is sent. |
+| Solana | Jupiter | 0.87 % (Jupiter accepts whole bps) | In-swap via `platformFeeBps` + `feeAccount` = the treasury's token account for the output mint. If that account does not exist yet the fee is **waived and shown as waived** (Jupiter would otherwise fail the swap). |
+
+Treasury wallets (hard-coded in `assets/js/dex-onchain.js` → `FEE`):
+
+- EVM (BSC + ETH): `0x9C7C1058fdc9b710f688ECb7562924D9AE771417`
+- Solana: `7j33RFPkNvaKsPuz2qJ5SzwiwXA4iL12ujqM4g2tRLEz`
+
+Files:
+
+- `assets/js/dex-terminal.js` — layout + market data (markets list, candlestick chart, on-chain
+  trade tape from the ANET/WBNB pair's `Swap` events, exact constant-product depth ladder,
+  Binance/CoinGecko reference data for majors). No wallet access.
+- `assets/js/dex-onchain.js` — wallets, order ticket, quoting, fee engine, liquidity, Solana.
+- `contracts/src/AnetFeeRouter.sol` — immutable, ownerless fee-on-top forwarder (no pause,
+  no setters, no admin withdraw; `sweep()` can only pay the treasury).
+- `tests/frontend/` — Node test harness for the browser modules (`node --test 'tests/frontend/*.test.mjs'`).
+
+### Go-live checklist for the fee engine
+
+1. **Deploy the atomic fee router** (per chain, funded deployer key — see `contracts/hardhat.config.cjs`):
+   ```bash
+   cd contracts
+   FEE_ROUTER_TREASURY=0x9C7C1058fdc9b710f688ECb7562924D9AE771417 FEE_ROUTER_NUMERATOR=875 npm run deploy:feerouter:bsc
+   FEE_ROUTER_TREASURY=0x9C7C1058fdc9b710f688ECb7562924D9AE771417 FEE_ROUTER_NUMERATOR=875 npm run deploy:feerouter:eth
+   ```
+   Paste the printed addresses into `FEE_ROUTER` in `assets/js/dex-onchain.js`, bump the
+   `?v=` cache-buster on the three DEX assets in `dex.html`, and redeploy. On boot the page
+   reads `feeNumerator()` / `treasury()` from the router and refuses to use it if either
+   differs from the UI config (it falls back to the two-step flow and logs the reason).
+2. **Initialize the Solana treasury fee accounts** (one-time, ~0.002 SOL rent each; any payer):
+   open `dex.html` → Trade → Solana, connect Phantom **with the treasury wallet** and click
+   *Initialize fee accounts*, or run `AnetDexOnchain.setupSolanaFeeAccounts()` in the console
+   while connected with any funded Phantom wallet. Expected accounts:
+   wSOL `DNLFjU4yTt2W9HbEj2f5TsYLHGiVV5TCdxopw479AFhZ`, USDC `2cVCwf4beGya6KMJG4wMfp6ufdkdUYoFdrULqDAjwWax`,
+   USDT `D9PEa91U4QhiBE72J4dnvoWNpMs8arCJVrtFHGbhws6Q`.
+3. Tests: `cd contracts && npm test` (Hardhat, includes `AnetFeeRouter.test.cjs`) and
+   `node --test 'tests/frontend/*.test.mjs'` from the repository root (needs `contracts/node_modules`
+   and a compiled `contracts/artifacts` — run `cd contracts && npm ci && npx hardhat compile` once).
 
 ## Policy-Safe Messaging Guidelines
 
