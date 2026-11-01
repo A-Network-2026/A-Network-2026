@@ -61,3 +61,22 @@ The ANET L1 derives addresses and verifies signed actions as:
 This must stay byte‑for‑byte compatible with `anet-chain/src/transaction.rs`
 (`verify_signed_action_authorization`) and the mobile app
 (`main.dart` `_buildSignedActionAuthFromKey`).
+
+---
+
+## `lightweight-charts.standalone.production.js` — TradingView Lightweight Charts™
+
+| Package              | Version | License    | Upstream |
+|----------------------|---------|------------|----------|
+| `lightweight-charts` | 5.2.1   | Apache-2.0 | https://github.com/tradingview/lightweight-charts |
+
+Self-hosted (site CSP is `script-src 'self'`) and used by `assets/js/dex-terminal.js`
+for the Trade tab's candlestick/volume chart. Exposes `window.LightweightCharts`.
+
+Attribution (required by the license): the chart keeps the built-in
+`layout.attributionLogo` link to https://www.tradingview.com/ and the page
+shows "Charts by TradingView Lightweight Charts™". See
+`LICENSE-lightweight-charts.txt` and `NOTICE-lightweight-charts.txt`.
+
+Rebuild / update: `npm pack lightweight-charts@<version>` and copy
+`package/dist/lightweight-charts.standalone.production.js` here.

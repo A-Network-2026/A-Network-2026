@@ -45,7 +45,21 @@
     { id: 'solana:SOL/USDT', chain: 'solana', base: 'SOL', quote: 'USDT', klines: 'SOLUSDT', cg: 'solana' },
   ];
   const CHAIN_LABEL = { 56: 'BNB Chain', 1: 'Ethereum', solana: 'Solana' };
-  const CHAIN_DOT = { 56: '#F0B90B', 1: '#627EEA', solana: '#14F195' };
+
+  /* Official logos, self-hosted (see assets/img/tokens, assets/img/chains). */
+  const TOKEN_LOGOS = { ANET: 'anet', WANET: 'anet', BNB: 'bnb', WBNB: 'bnb', ETH: 'eth', WETH: 'eth', SOL: 'sol', USDT: 'usdt', USDC: 'usdc', BTCB: 'btcb', WBTC: 'wbtc' };
+  const CHAIN_LOGOS = { 56: 'bnb', 1: 'eth', solana: 'sol' };
+  const tokenLogo = (sym) => { const k = TOKEN_LOGOS[String(sym || '').toUpperCase()]; return k ? `assets/img/tokens/${k}.png` : null; };
+  const chainLogo = (chain) => { const k = CHAIN_LOGOS[chain]; return k ? `assets/img/chains/${k}.png` : null; };
+  /** Round token logo (with optional network badge); falls back to initials. */
+  function logoHtml(sym, { size = 20, chain = null, cls = '' } = {}) {
+    const src = tokenLogo(sym);
+    const badgeSrc = chain != null ? chainLogo(chain) : null;
+    const badge = badgeSrc ? `<img class="tm-chain-badge" src="${badgeSrc}" alt="${esc(CHAIN_LABEL[chain] || '')}" width="${Math.round(size * 0.5)}" height="${Math.round(size * 0.5)}">` : '';
+    const style = `width:${size}px;height:${size}px;font-size:${Math.max(8, Math.round(size * 0.42))}px`;
+    if (!src) return `<span class="tm-logo tm-logo-fallback ${cls}" style="${style}">${esc(String(sym || '?').slice(0, 2))}${badge}</span>`;
+    return `<span class="tm-logo ${cls}" style="${style}"><img src="${src}" alt="${esc(sym)} logo" width="${size}" height="${size}" loading="lazy" decoding="async">${badge}</span>`;
+  }
 
   const TIMEFRAMES = [
     { id: '1m',  ms: 60_000,         binance: '1m',  limit: 240 },
@@ -248,7 +262,7 @@
         <div class="terminal-header card" id="tm-header">
           <div class="tm-pair-block">
             <button class="tm-pair-btn" id="tm-pair-btn" aria-haspopup="listbox" aria-expanded="false" title="Change market">
-              <span class="tm-pair-dot" id="tm-pair-dot"></span>
+              <span class="tm-pair-logo" id="tm-pair-logo"></span>
               <span class="tm-pair-name" id="tm-pair-name">ANET / BNB</span>
               <span class="tm-pair-chain" id="tm-pair-chain">BNB Chain</span>
               <span class="tm-caret">▾</span>
@@ -277,9 +291,11 @@
             </div>
             <div class="tm-chart-wrap" id="tm-chart-wrap">
               <canvas id="tm-chart" aria-label="Price chart" role="img"></canvas>
+              <div class="tm-legend" id="tm-legend"></div>
               <div class="tm-chart-tooltip is-hidden" id="tm-chart-tooltip"></div>
               <div class="tm-chart-empty" id="tm-chart-empty">Loading chart…</div>
             </div>
+            <div class="tm-chart-credit">Charts by <a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer">TradingView Lightweight Charts™</a></div>
           </div>
           <div class="tm-lower">
             <div class="card tm-tape-card">
@@ -400,7 +416,7 @@
       const px = marketPriceUsd(m), ch = marketChange24h(m);
       const chCls = ch == null ? 'neutral' : ch > 0 ? 'up' : ch < 0 ? 'down' : 'neutral';
       return `<button class="tm-market-row${m.id === st.market.id ? ' active' : ''}" role="option" aria-selected="${m.id === st.market.id}" data-id="${esc(m.id)}">
-        <span class="tm-mr-pair"><span class="tm-pair-dot" style="background:${CHAIN_DOT[m.chain]}"></span>${esc(m.base)}<small>/${esc(m.quote)}</small>${m.featured ? '<em class="tm-star" title="Native token">★</em>' : ''}</span>
+        <span class="tm-mr-pair">${logoHtml(m.base, { size: 18, chain: m.chain })}<span class="tm-mr-sym">${esc(m.base)}<small>/${esc(m.quote)}</small>${m.featured ? '<em class="tm-star" title="Native token">★</em>' : ''}</span></span>
         <span class="tm-mr-price">${px != null ? fmtUsd(px) : '—'}</span>
         <span class="tm-mr-change ${chCls}">${ch == null ? '—' : (ch > 0 ? '+' : '') + ch.toFixed(2) + '%'}</span>
       </button>`;
@@ -424,7 +440,8 @@
     const m = st.market; if (!$('tm-pair-name')) return;
     $('tm-pair-name').textContent = `${m.base} / ${m.quote}`;
     $('tm-pair-chain').textContent = CHAIN_LABEL[m.chain];
-    $('tm-pair-dot').style.background = CHAIN_DOT[m.chain];
+    const logoEl = $('tm-pair-logo');
+    if (logoEl) logoEl.innerHTML = logoHtml(m.base, { size: 26, chain: m.chain }) + logoHtml(m.quote, { size: 26, cls: 'tm-logo-quote' });
     const px = marketPriceUsd(m), qUsd = marketQuoteUsd(m);
     const priceEl = $('tm-price');
     priceEl.textContent = px != null ? fmtUsd(px) : '—';
@@ -776,9 +793,124 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     Chart (canvas candlesticks)
+     Chart — TradingView Lightweight Charts™ (self-hosted), canvas fallback
      ═══════════════════════════════════════════════════════════════════ */
+  const lwc = { chart: null, candles: null, volume: null, host: null, key: '', byTime: new Map(), minMove: null };
+  const tzShift = () => -new Date().getTimezoneOffset() * 60; // LWC renders UTC; shift so labels read local time
+
+  function themeColors() {
+    const css = getComputedStyle(document.documentElement);
+    const v = (name, fb) => css.getPropertyValue(name).trim() || fb;
+    return { up: v('--success', '#137333'), down: v('--danger', '#c5221f'), line: v('--line', '#dadce0'), muted: v('--muted', '#5f6368'), text: v('--text', '#202124'), accent: v('--accent', '#1967d2') };
+  }
+
   function initChart() {
+    const wrap = $('tm-chart-wrap'); if (!wrap) return;
+    const L = window.LightweightCharts;
+    if (L && typeof L.createChart === 'function') { try { initLwc(wrap, L); return; } catch (e) { console.warn('[terminal] Lightweight Charts init failed, using canvas fallback', e); } }
+    initCanvasChart();
+  }
+
+  function initLwc(wrap, L) {
+    const c = themeColors();
+    const host = document.createElement('div');
+    host.className = 'tm-lwc'; host.id = 'tm-lwc';
+    wrap.insertBefore(host, wrap.firstChild);
+    $('tm-chart')?.remove();
+    $('tm-chart-tooltip')?.remove();
+    const chart = L.createChart(host, {
+      autoSize: true,
+      layout: { background: { type: 'solid', color: '#ffffff' }, textColor: c.muted, fontFamily: "'Roboto Mono', monospace", fontSize: 11, attributionLogo: true },
+      grid: { vertLines: { color: '#f1f3f4' }, horzLines: { color: '#f1f3f4' } },
+      rightPriceScale: { borderColor: c.line, scaleMargins: { top: 0.08, bottom: 0.24 } },
+      timeScale: { borderColor: c.line, timeVisible: true, secondsVisible: false, rightOffset: 5, barSpacing: 8, minBarSpacing: 2 },
+      crosshair: { mode: L.CrosshairMode ? L.CrosshairMode.Normal : 0, vertLine: { labelBackgroundColor: c.accent }, horzLine: { labelBackgroundColor: c.accent } },
+      localization: { priceFormatter: (p) => fmtPrice(p) },
+      handleScroll: true, handleScale: true,
+    });
+    const candleOpts = {
+      upColor: c.up, downColor: c.down, borderUpColor: c.up, borderDownColor: c.down, wickUpColor: c.up, wickDownColor: c.down,
+      priceLineVisible: true, lastValueVisible: true, priceLineColor: c.accent, priceLineStyle: 2,
+      priceFormat: { type: 'custom', formatter: (p) => fmtPrice(p), minMove: 0.0001 },
+    };
+    const volOpts = { priceFormat: { type: 'volume' }, priceScaleId: 'vol', lastValueVisible: false, priceLineVisible: false, color: 'rgba(25,103,210,0.25)' };
+    const candles = chart.addSeries ? chart.addSeries(L.CandlestickSeries, candleOpts) : chart.addCandlestickSeries(candleOpts);
+    const volume  = chart.addSeries ? chart.addSeries(L.HistogramSeries, volOpts)  : chart.addHistogramSeries(volOpts);
+    chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
+    chart.subscribeCrosshairMove((param) => {
+      const bar = param && param.time != null ? lwc.byTime.get(param.time) : null;
+      renderLegend(bar || null);
+    });
+    Object.assign(lwc, { chart, candles, volume, host, L });
+    st.chart = null; // canvas renderer disabled
+  }
+
+  function minMoveFor(price) {
+    const a = Math.abs(price || 0);
+    return a >= 1000 ? 0.01 : a >= 1 ? 0.0001 : a >= 0.01 ? 0.000001 : 0.00000001;
+  }
+
+  function renderLegend(bar) {
+    const el = $('tm-legend'); if (!el) return;
+    const candles = candlesForCurrent();
+    const c = bar || candles[candles.length - 1];
+    if (!c) { el.innerHTML = ''; return; }
+    const up = c.c >= c.o;
+    const cls = up ? 'up' : 'down';
+    const chg = c.o ? ((c.c - c.o) / c.o) * 100 : 0;
+    el.innerHTML = `<b>${esc(st.market.base)}/${esc(st.market.quote)}</b> · ${esc(st.tf)}` +
+      ` <span>O <i class="${cls}">${fmtPrice(c.o)}</i></span><span>H <i class="${cls}">${fmtPrice(c.h)}</i></span>` +
+      `<span>L <i class="${cls}">${fmtPrice(c.l)}</i></span><span>C <i class="${cls}">${fmtPrice(c.c)}</i></span>` +
+      `<span><i class="${cls}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</i></span>` +
+      (c.v ? `<span>Vol <i>${isAnetMarket(st.market) ? fmtCompactUsd(c.v) : fmtNum(c.v, 2)}</i></span>` : '') +
+      (c.n ? `<span>Trades <i>${c.n}</i></span>` : '') +
+      (c.filled ? `<span class="tm-muted">no trades · carried</span>` : '');
+  }
+
+  function drawChart() {
+    if (lwc.chart) return drawLwc();
+    return drawCanvasChart();
+  }
+
+  function drawLwc() {
+    const candles = candlesForCurrent();
+    const empty = $('tm-chart-empty');
+    if (!candles.length) {
+      if (empty) { empty.style.display = 'flex'; empty.textContent = provider ? 'Waiting for market data…' : 'Loading chart…'; }
+      lwc.candles.setData([]); lwc.volume.setData([]); lwc.byTime.clear(); renderLegend(null);
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    const c = themeColors();
+    const shift = tzShift();
+    const carried = { color: '#c7d7ee', border: '#c7d7ee', wick: '#c7d7ee' };
+    lwc.byTime.clear();
+    const data = [], vol = [];
+    for (const k of candles) {
+      const time = Math.floor(k.t / 1000) + shift;
+      lwc.byTime.set(time, k);
+      const bar = { time, open: k.o, high: k.h, low: k.l, close: k.c };
+      if (k.filled) { bar.color = carried.color; bar.borderColor = carried.border; bar.wickColor = carried.wick; }
+      data.push(bar);
+      if (k.v > 0) vol.push({ time, value: k.v, color: k.c >= k.o ? 'rgba(19,115,51,0.32)' : 'rgba(197,34,31,0.32)' });
+    }
+    const last = candles[candles.length - 1];
+    const mm = minMoveFor(last.c);
+    if (mm !== lwc.minMove) { lwc.minMove = mm; lwc.candles.applyOptions({ priceFormat: { type: 'custom', formatter: (p) => fmtPrice(p), minMove: mm } }); }
+    lwc.candles.setData(data);
+    lwc.volume.setData(vol);
+    const key = `${st.market.id}:${st.tf}`;
+    if (key !== lwc.key) {
+      lwc.key = key;
+      const n = data.length;
+      lwc.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - 110), to: n + 4 });
+    }
+    renderLegend(null);
+    void c;
+  }
+
+  /* ── Canvas fallback (used only if the vendored library fails to load) ── */
+  function initCanvasChart() {
     const canvas = $('tm-chart'), wrap = $('tm-chart-wrap');
     if (!canvas || !wrap) return;
     st.chart = { canvas, ctx: canvas.getContext('2d'), wrap, layout: null };
@@ -800,7 +932,7 @@
     return step * pow;
   }
 
-  function drawChart() {
+  function drawCanvasChart() {
     const ch = st.chart; if (!ch) return;
     const { canvas, ctx, wrap } = ch;
     const W = Math.max(200, wrap.clientWidth), H = Math.max(180, wrap.clientHeight);
@@ -952,10 +1084,11 @@
   }
 
   window.AnetTerminal = {
-    MARKETS, TIMEFRAMES,
+    MARKETS, TIMEFRAMES, CHAIN_LABEL,
     mount, registerProvider, selectMarket, matchMarket, setTimeframe,
+    tokenLogo, chainLogo, logoHtml,
     onMarketChange: (cb) => { if (typeof cb === 'function') listeners.push(cb); },
     currentMarket: () => st.market,
-    __test: { buildCandles, klinesToCandles, cpmmOut, decodeSwapLog, interpolate, bucketStart, toUnits, fromUnits, fmtUsd, fmtPrice, fmtCompactUsd, niceStep, matchMarket, MARKETS },
+    __test: { buildCandles, klinesToCandles, cpmmOut, decodeSwapLog, interpolate, bucketStart, toUnits, fromUnits, fmtUsd, fmtPrice, fmtCompactUsd, niceStep, matchMarket, MARKETS, tokenLogo, chainLogo, logoHtml, TOKEN_LOGOS, CHAIN_LOGOS, minMoveFor },
   };
 })();

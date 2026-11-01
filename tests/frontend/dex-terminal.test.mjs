@@ -114,3 +114,49 @@ test('formatters are stable', () => {
   assert.equal(T.bucketStart(1_700_000_059_999, 60_000), 1_700_000_040_000);
   assert.ok(T.niceStep(100, 5) === 20);
 });
+
+/* ── Official logos + TradingView chart helpers ─────────────────────────── */
+import fs from 'node:fs';
+import path from 'node:path';
+import { ROOT } from './harness.mjs';
+
+test('every market asset and network has a self-hosted official logo file', () => {
+  const seen = new Set();
+  for (const m of Tm.MARKETS) {
+    for (const sym of [m.base, m.quote]) {
+      const src = T.tokenLogo(sym);
+      assert.ok(src, `no logo mapped for ${sym}`);
+      assert.ok(fs.existsSync(path.join(ROOT, src)), `missing file ${src}`);
+      seen.add(src);
+    }
+    const c = T.chainLogo(m.chain);
+    assert.ok(c && fs.existsSync(path.join(ROOT, c)), `missing network logo for chain ${m.chain}`);
+  }
+  assert.ok(seen.size >= 8, 'expected at least 8 distinct token logos');
+  // files are real PNGs
+  for (const src of seen) {
+    const head = fs.readFileSync(path.join(ROOT, src)).subarray(0, 8);
+    assert.equal(head.toString('hex'), '89504e470d0a1a0a', `${src} is not a PNG`);
+  }
+  assert.equal(T.tokenLogo('NOPE'), null);
+  assert.equal(T.chainLogo(999), null);
+});
+
+test('logoHtml renders an <img> with an optional network badge, or initials when unknown', () => {
+  const html = T.logoHtml('ANET', { size: 24, chain: 56 });
+  assert.match(html, /<img src="assets\/img\/tokens\/anet\.png" alt="ANET logo" width="24" height="24"/);
+  assert.match(html, /tm-chain-badge" src="assets\/img\/chains\/bnb\.png" alt="BNB Chain"/);
+  const plain = T.logoHtml('USDC', { size: 20 });
+  assert.ok(!plain.includes('tm-chain-badge'));
+  const fb = T.logoHtml('<xyz>', { size: 20 });
+  assert.match(fb, /tm-logo-fallback/);
+  assert.ok(!fb.includes('<xyz>'), 'symbol must be escaped in the fallback');
+  assert.ok(fb.includes('&lt;x'));
+});
+
+test('minMoveFor picks a sensible tick size per price magnitude', () => {
+  assert.equal(T.minMoveFor(78000), 0.01);
+  assert.equal(T.minMoveFor(7.7), 0.0001);
+  assert.equal(T.minMoveFor(0.05), 0.000001);
+  assert.equal(T.minMoveFor(0.00002), 0.00000001);
+});

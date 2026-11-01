@@ -151,6 +151,12 @@
   function fmtUsd(n, dp = 2) { return (n == null || !isFinite(n)) ? '—' : '$' + fmtNum(n, dp); }
   const $ = (id) => document.getElementById(id);
   const shortId = (a) => a ? a.slice(0, 6) + '…' + a.slice(-4) : '';
+  /* Official logos come from dex-terminal.js (self-hosted PNGs); plain text if it is absent. */
+  const tokenLogoHtml = (sym, size = 20) => (window.AnetTerminal && typeof window.AnetTerminal.logoHtml === 'function') ? window.AnetTerminal.logoHtml(sym, { size }) : '';
+  const netLogo = (chain) => {
+    const src = window.AnetTerminal && typeof window.AnetTerminal.chainLogo === 'function' ? window.AnetTerminal.chainLogo(chain) : null;
+    return src ? `<img class="oc-net-logo" src="${src}" alt="" width="16" height="16">` : '<span class="oc-net-dot">●</span>';
+  };
 
   /* ═══════════════════════════════════════════════════════════════════
      JSON-RPC (via Ankr) — reads + confirmations
@@ -452,9 +458,9 @@
         </div>
         <div class="card-body onchain-body">
           <div class="onchain-net-row" id="onchain-net-row">
-            <button class="net-btn active" data-net="56"><span style="color:#F0B90B;">●</span> BNB Chain</button>
-            <button class="net-btn" data-net="1"><span style="color:#627EEA;">●</span> Ethereum</button>
-            <button class="net-btn" data-net="solana"><span style="color:#14F195;">●</span> Solana</button>
+            <button class="net-btn active" data-net="56">${netLogo(56)} BNB Chain</button>
+            <button class="net-btn" data-net="1">${netLogo(1)} Ethereum</button>
+            <button class="net-btn" data-net="solana">${netLogo('solana')} Solana</button>
           </div>
 
           <div class="onchain-mode-row" id="onchain-mode-row">
@@ -472,7 +478,7 @@
             <div class="token-field">
               <div class="token-field-label">YOU PAY</div>
               <div class="token-field-row">
-                <select class="oc-token-select" id="oc-from-select" aria-label="Token to pay"></select>
+                <span class="oc-select-wrap"><span class="oc-select-logo" id="oc-from-logo"></span><select class="oc-token-select has-logo" id="oc-from-select" aria-label="Token to pay"></select></span>
                 <input class="amount-input" id="oc-from-amount" type="number" placeholder="0.00" min="0" step="any" inputmode="decimal" aria-label="Amount to pay">
               </div>
               <div class="token-balance-row">
@@ -488,7 +494,7 @@
             <div class="token-field">
               <div class="token-field-label">YOU RECEIVE (est.)</div>
               <div class="token-field-row">
-                <select class="oc-token-select" id="oc-to-select" aria-label="Token to receive"></select>
+                <span class="oc-select-wrap"><span class="oc-select-logo" id="oc-to-logo"></span><select class="oc-token-select has-logo" id="oc-to-select" aria-label="Token to receive"></select></span>
                 <div class="amount-input" id="oc-to-amount" style="text-align:right;color:var(--accent-2);min-height:36px;display:flex;align-items:center;justify-content:flex-end;">—</div>
               </div>
             </div>
@@ -520,7 +526,7 @@
               <div class="token-field">
                 <div class="token-field-label">ANET AMOUNT</div>
                 <div class="token-field-row">
-                  <span class="oc-token-fixed" style="color:#1a73e8;">ANET</span>
+                  <span class="oc-token-fixed">${tokenLogoHtml('ANET', 18)} ANET</span>
                   <input class="amount-input" id="oc-liq-anet" type="number" placeholder="0.00" min="0" step="any" inputmode="decimal" aria-label="ANET amount">
                 </div>
                 <div class="token-balance-row"><span id="oc-liq-anet-bal" style="font-size:12px;color:var(--muted-2);">—</span><span class="balance-max" id="oc-liq-anet-max">MAX</span></div>
@@ -528,7 +534,7 @@
               <div class="token-field">
                 <div class="token-field-label">BNB REQUIRED (auto, at pool ratio)</div>
                 <div class="token-field-row">
-                  <span class="oc-token-fixed" style="color:#F0B90B;">BNB</span>
+                  <span class="oc-token-fixed">${tokenLogoHtml('BNB', 18)} BNB</span>
                   <div class="amount-input" id="oc-liq-bnb" style="text-align:right;color:var(--accent-2);min-height:36px;display:flex;align-items:center;justify-content:flex-end;">—</div>
                 </div>
                 <div class="token-balance-row"><span id="oc-liq-bnb-bal" style="font-size:12px;color:var(--muted-2);">—</span></div>
@@ -696,6 +702,9 @@
     toSel.innerHTML = opts(toks);
     fromSel.value = ui.fromSym;
     toSel.value = ui.toSym;
+    const fl = $('oc-from-logo'), tl = $('oc-to-logo');
+    if (fl) fl.innerHTML = tokenLogoHtml(ui.fromSym, 20);
+    if (tl) tl.innerHTML = tokenLogoHtml(ui.toSym, 20);
   }
 
   function setSide(side) {
@@ -854,7 +863,7 @@
     el.innerHTML = `
       <div class="tm-bal-head"><span>Asset</span><span>Balance</span><span>Value</span><span></span></div>
       ${rows.map(r => `<div class="tm-bal-row">
-          <span><b>${esc(r.sym)}</b></span>
+          <span class="tm-bal-asset">${tokenLogoHtml(r.sym, 20)}<b>${esc(r.sym)}</b></span>
           <span class="tm-mono">${fmtNum(r.bal, 6)}</span>
           <span class="tm-mono">${r.usd != null ? fmtUsd(r.usd) : '—'}</span>
           <span><button class="btn btn-ghost btn-sm" data-trade="${esc(r.sym)}">Trade</button></span>
