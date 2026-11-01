@@ -21,7 +21,8 @@
  *     }
  *   }
  *
- * Requires Node 18+ (global fetch).
+ * Requires Node 18+ (global fetch). Env: ANET_STATS_ENDPOINT, ANET_SNAPSHOT_RETRIES (6),
+ * ANET_SNAPSHOT_TIMEOUT_MS (90000), ANET_SNAPSHOT_RETRY_BASE_MS (5000), ANET_SNAPSHOT_DRY_RUN (0).
  */
 'use strict';
 
@@ -31,6 +32,70 @@ const path = require('path');
 const ENDPOINT = process.env.ANET_STATS_ENDPOINT
   || 'https://api.a-network.net/colony-rewards/leaderboard?limit=200';
 const DATA_DIR = path.join(__dirname, '..', 'data');
+
+// The upstream API runs on a cold-starting host behind a proxy and has answered
+// 502 for a single request at 00:30 UTC on most days. Retry with exponential
+// backoff instead of failing the whole run on one gateway error.
+const RETRY_ATTEMPTS = envInt('ANET_SNAPSHOT_RETRIES', 6);
+const REQUEST_TIMEOUT_MS = envInt('ANET_SNAPSHOT_TIMEOUT_MS', 90_000);
+const RETRY_BASE_DELAY_MS = envInt('ANET_SNAPSHOT_RETRY_BASE_MS', 5_000);
+const DRY_RUN = /^(1|true|yes)$/i.test(process.env.ANET_SNAPSHOT_DRY_RUN || '');
+
+function envInt(name, fallback) {
+  const n = Number(process.env[name]);
+  return Number.isFinite(n) && n > 0 ? Math.trunc(n) : fallback;
+}
+
+/** 5xx, rate limits and request timeouts are transient; 4xx (other than 408/425/429) are not. */
+function isRetryableStatus(status) {
+  return status >= 500 || status === 408 || status === 425 || status === 429;
+}
+
+class NonRetryableError extends Error {}
+
+/**
+ * fetch() with timeout + exponential backoff (5s, 10s, 20s, 40s, 60s, ...).
+ * Resolves with the first OK response; throws after `attempts` failures or on a
+ * non-retryable HTTP status. Injectable fetch/sleep/log for tests.
+ */
+async function fetchWithRetry(url, opts = {}) {
+  const {
+    attempts = RETRY_ATTEMPTS,
+    timeoutMs = REQUEST_TIMEOUT_MS,
+    baseDelayMs = RETRY_BASE_DELAY_MS,
+    maxDelayMs = 60_000,
+    fetchImpl = globalThis.fetch,
+    sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+    log = console,
+  } = opts;
+  let lastError = new Error('no attempts made');
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetchImpl(url, {
+        headers: { 'User-Agent': 'anet-colony-snapshot/1.1', Accept: 'application/json' },
+        signal: controller.signal,
+      });
+      if (res.ok) return res;
+      if (!isRetryableStatus(res.status)) throw new NonRetryableError(`Upstream HTTP ${res.status}`);
+      lastError = new Error(`Upstream HTTP ${res.status}`);
+    } catch (err) {
+      if (err instanceof NonRetryableError) throw err;
+      lastError = (err && err.name === 'AbortError')
+        ? new Error(`Upstream timeout after ${timeoutMs} ms`)
+        : (err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      clearTimeout(timer);
+    }
+    if (attempt < attempts) {
+      const delay = Math.min(maxDelayMs, baseDelayMs * 2 ** (attempt - 1));
+      log.warn(`Attempt ${attempt}/${attempts} failed (${lastError.message}); retrying in ${Math.round(delay / 1000)}s`);
+      await sleep(delay);
+    }
+  }
+  throw new Error(`${lastError.message} (after ${attempts} attempts)`);
+}
 
 function utcMonthKey(d) {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
@@ -77,12 +142,9 @@ async function main() {
     }
   }
 
-  // Fetch upstream
-  console.log(`Fetching ${ENDPOINT}`);
-  const res = await fetch(ENDPOINT, { headers: { 'User-Agent': 'anet-colony-snapshot/1.0' } });
-  if (!res.ok) {
-    throw new Error(`Upstream HTTP ${res.status}`);
-  }
+  // Fetch upstream (retrying through cold starts and gateway errors)
+  console.log(`Fetching ${ENDPOINT} (up to ${RETRY_ATTEMPTS} attempts, ${REQUEST_TIMEOUT_MS} ms each)`);
+  const res = await fetchWithRetry(ENDPOINT);
   const payload = await res.json();
   const rows = Array.isArray(payload?.leaderboard) ? payload.leaderboard
     : Array.isArray(payload?.rooms) ? payload.rooms
@@ -138,11 +200,19 @@ async function main() {
   todayBucket.lastSampleAt = now.toISOString();
   snapshot.days[today] = todayBucket;
 
+  if (DRY_RUN) {
+    console.log(`[dry-run] would write ${outFile}  (owners=${ownerCount}, days=${Object.keys(snapshot.days).length}, today=${today})`);
+    return;
+  }
   fs.writeFileSync(outFile, JSON.stringify(snapshot, null, 2) + '\n');
   console.log(`Wrote ${outFile}  (owners=${ownerCount}, days=${Object.keys(snapshot.days).length})`);
 }
 
-main().catch((err) => {
-  console.error(`Snapshot failed: ${err.message}`);
-  process.exit(1);
-});
+module.exports = { fetchWithRetry, isRetryableStatus, extractOwnerCode, utcMonthKey, utcDayKey };
+
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(`Snapshot failed: ${err.message}`);
+    process.exit(1);
+  });
+}
