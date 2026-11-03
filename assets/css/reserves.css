@@ -1,0 +1,69 @@
+/* =============================================
+   A Network Proof of Reserves (reserves.html)
+   Builds on dex.css tokens and components.
+   ============================================= */
+.por-section { margin-top: 22px; }
+.por-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.por-grid .card { margin: 0; }
+
+/* invariant checks */
+.por-check { padding: 14px 16px; border-left: 4px solid var(--line-strong); }
+.por-check.ok { border-left-color: var(--success); }
+.por-check.fail { border-left-color: var(--danger); }
+.por-check.pending { border-left-color: var(--line-strong); }
+.por-check-head { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
+.por-check-icon { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; background: var(--bg-2); color: var(--muted); flex: none; }
+.por-check.ok .por-check-icon { background: #e6f4ea; color: var(--success); }
+.por-check.fail .por-check-icon { background: #fce8e6; color: var(--danger); }
+.por-check-detail { margin-top: 6px; font-size: 12px; color: var(--muted); font-family: 'Roboto Mono', monospace; word-break: break-word; }
+
+/* treasury cards */
+.por-addr { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; margin-bottom: 10px; }
+.por-addr code { font-size: 11.5px; word-break: break-all; }
+.por-rows { display: flex; flex-direction: column; }
+.por-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.8fr); gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.por-row:last-child { border-bottom: 0; }
+.por-row-l { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.por-row-l small { font-weight: 400; color: var(--warn); font-size: 11px; }
+.por-row-v { text-align: right; }
+.por-row-usd { text-align: right; color: var(--muted); }
+.por-logo { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; flex: none; }
+.por-logo-btc { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #f7931a; color: #fff; font-size: 12px; font-weight: 700; }
+.por-total { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; margin-top: 4px; border-top: 1px solid var(--line-strong); font-size: 13px; color: var(--muted); }
+.por-total b { color: var(--text); font-family: 'Roboto Mono', monospace; font-size: 15px; }
+.por-note { margin: 10px 0 0; font-size: 11.5px; color: var(--muted); line-height: 1.55; }
+
+/* vault + supply grids */
+.por-vault-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 6px 28px; }
+.por-vault-grid .price-row { padding: 6px 0; }
+.por-rel-head, .por-rel-row { display: grid; grid-template-columns: 80px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 10px; padding: 7px 4px; border-bottom: 1px solid var(--line); font-size: 12px; }
+.por-rel-head { margin-top: 12px; font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; }
+
+/* ledger */
+.por-ledger-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 8px; }
+.por-ledger-summary > div { padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg-2); display: flex; flex-direction: column; gap: 4px; }
+.por-ledger-summary span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; }
+.por-ledger-summary b { font-size: 18px; font-family: 'Roboto Mono', monospace; }
+.por-ledger-token { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line-strong); }
+.por-ledger-token-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; margin-bottom: 6px; }
+.por-ledger-token-head b { font-size: 14px; }
+.por-sender-head, .por-sender-row { display: grid; grid-template-columns: minmax(0, 1.6fr) 80px minmax(0, 1fr) minmax(0, 1fr); gap: 10px; padding: 6px 4px; border-bottom: 1px solid var(--line); font-size: 12px; align-items: center; }
+.por-sender-head { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; }
+.por-sender-row small { display: block; color: var(--accent-2); font-size: 10.5px; font-family: Roboto, Arial, sans-serif; }
+
+.por-method p { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0 0 10px; }
+.por-method p:last-child { margin-bottom: 0; }
+.por-method code { font-size: 11.5px; }
+.por-footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 28px 0 20px; font-size: 12px; color: var(--muted); }
+.tm-mono { font-family: 'Roboto Mono', monospace; font-size: 11.5px; }
+.tm-muted { color: var(--muted); }
+.tm-empty { padding: 18px 14px; color: var(--muted); font-size: 12.5px; text-align: center; }
+
+@media (max-width: 640px) {
+  .por-row { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  .por-row-usd { display: none; }
+  .por-sender-head span:nth-child(4), .por-sender-row span:nth-child(4) { display: none; }
+  .por-sender-head, .por-sender-row { grid-template-columns: minmax(0, 1.6fr) 60px minmax(0, 1fr); }
+  .por-rel-head span:nth-child(3), .por-rel-row span:nth-child(3) { display: none; }
+  .por-rel-head, .por-rel-row { grid-template-columns: 70px minmax(0, 1fr) minmax(0, 1fr); }
+}

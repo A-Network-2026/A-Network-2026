@@ -63,6 +63,7 @@ export function loadModules(opts = {}) {
   vm.runInContext(read('assets/js/dex-terminal.js'), ctx, { filename: 'dex-terminal.js' });
   vm.runInContext(read('assets/js/dex-onchain.js'), ctx, { filename: 'dex-onchain.js' });
   if (opts.bridge !== false) vm.runInContext(read('assets/js/dex-bridge.js'), ctx, { filename: 'dex-bridge.js' });
+  if (opts.reserves) vm.runInContext(read('assets/js/reserves.js'), ctx, { filename: 'reserves.js' });
   return ctx;
 }
 

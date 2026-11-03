@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Network Proof of Reserves | Treasuries, Bridge Vault and Fee Revenue</title>
+  <meta name="description" content="Live, read-only proof of reserves for A Network: EVM and Solana treasury balances, the BNB Chain bridge vault against Layer 1 liabilities, the interface fee revenue ledger reconstructed from public chain history, the supply invariant and the whitepaper digest.">
+  <meta name="theme-color" content="#ffffff">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'">
+  <meta name="referrer" content="no-referrer">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="A Network">
+  <meta property="og:title" content="A Network Proof of Reserves">
+  <meta property="og:description" content="Every figure on this page is read from a public chain while you watch. Nothing is self-reported.">
+  <meta property="og:url" content="https://a-network.net/reserves.html">
+  <meta property="og:image" content="https://a-network.net/logo.png">
+  <link rel="canonical" href="https://a-network.net/reserves.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/dex.css?v=20261103-reserves">
+  <link rel="stylesheet" href="assets/css/reserves.css?v=20261103-reserves">
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div class="shell">
+
+    <div class="network-bar">
+      <div class="network-item"><span class="pill live green">LIVE</span><span>Read-only verification</span></div>
+      <div class="network-item">Last check: <span class="v" id="por-updated">loading…</span></div>
+      <div class="network-item">Sources: <span class="v">BNB Chain · Ethereum · Solana · Bitcoin · A Network L1</span></div>
+      <div class="network-item" style="margin-left: auto"><button class="btn btn-ghost btn-sm" id="por-refresh" type="button">Refresh ↻</button></div>
+    </div>
+
+    <header>
+      <a class="brand" href="index.html">
+        <img class="brand-mark" src="logo.png" alt="A Network logo">
+        <div>
+          <h1>A NETWORK</h1>
+          <p>Proof of Reserves</p>
+        </div>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="dex.html">DEX</a>
+        <a href="whitepaper.html">Whitepaper</a>
+        <a href="web5.html">Explorer</a>
+        <a href="reserves.html" class="active">Reserves</a>
+      </nav>
+    </header>
+
+    <div class="dex-hero">
+      <div class="dex-hero-copy">
+        <h2>Proof of Reserves and Transparency</h2>
+        <p>Every figure below is read from a public chain in your browser while you watch. Nothing is self-reported, cached by A Network, or signed by an operator. Addresses are the ones published in the whitepaper; click any of them to verify independently.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="stat-val" id="por-stat-checks">—</div><div class="stat-lbl">CHECKS PASSING</div></div>
+        <div class="hero-stat"><div class="stat-val" id="por-stat-vault">—</div><div class="stat-lbl">VAULT wANET</div></div>
+      </div>
+    </div>
+
+    <section class="por-grid" id="por-checks" aria-label="Invariant checks"></section>
+
+    <section class="por-section">
+      <div class="section-heading"><h3>TREASURIES</h3><div class="line"></div></div>
+      <div class="por-grid" id="por-treasuries"></div>
+    </section>
+
+    <section class="por-section">
+      <div class="section-heading"><h3>BRIDGE VAULT RECONCILIATION</h3><div class="line"></div></div>
+      <div class="card">
+        <div class="card-body" id="por-vault"></div>
+      </div>
+    </section>
+
+    <section class="por-section">
+      <div class="section-heading"><h3>INTERFACE FEE REVENUE LEDGER</h3><div class="line"></div></div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">INFLOWS TO THE EVM RESERVE TREASURY, RECONSTRUCTED FROM BNB CHAIN TRANSFER EVENTS</span>
+          <span class="pill" id="por-ledger-pill">loading…</span>
+        </div>
+        <div class="card-body" id="por-ledger"></div>
+      </div>
+    </section>
+
+    <section class="por-section">
+      <div class="section-heading"><h3>SUPPLY INVARIANT</h3><div class="line"></div></div>
+      <div class="card"><div class="card-body" id="por-supply"></div></div>
+    </section>
+
+    <section class="por-section">
+      <div class="section-heading"><h3>PUBLISHED DOCUMENT INTEGRITY</h3><div class="line"></div></div>
+      <div class="card"><div class="card-body" id="por-attest"></div></div>
+    </section>
+
+    <section class="por-section">
+      <div class="section-heading"><h3>METHOD AND LIMITS</h3><div class="line"></div></div>
+      <div class="card"><div class="card-body por-method">
+        <p><strong>How to read this page.</strong> Balances come from <code>eth_call</code> / <code>eth_getBalance</code> on BNB Chain and Ethereum, <code>getBalance</code> / <code>getTokenAccountsByOwner</code> on Solana, the Blockstream Esplora API for Bitcoin, and the public A Network Layer 1 API. Revenue is reconstructed from ERC-20 <code>Transfer</code> events whose recipient is the treasury; the sender of each transfer is shown so you can distinguish interface fees from other deposits. USD values use the live DexScreener and CoinGecko prices at the time you load the page, not historical prices.</p>
+        <p><strong>What this page proves and what it does not.</strong> It proves what the published addresses hold and what entered them, at the moment of your request. It does not prove who controls the keys, and it is not an audit opinion or a financial attestation. Native-coin (BNB, ETH) inflows cannot be enumerated from an RPC node without an indexer, so only the current native balances are shown. Operating expenses paid out of the treasury are visible as outflows on the explorers linked above.</p>
+        <p><strong>Layer 1 export liabilities.</strong> The Layer 1 export ledger (<code>/bridge/burns</code>) is behind the operator switch described in whitepaper Version 4.6. While it is switched off the page reconciles from the BNB Chain side only: vault balance plus total released equals the wANET escrowed, and the number of release events on BNB Chain is the number of exports ever honoured. When the switch is on, the page additionally compares pending Layer 1 burns with releases.</p>
+      </div></div>
+    </section>
+
+    <footer class="por-footer">
+      <span>A Network · Proof of Reserves · whitepaper Version 4.6, Phase 4: Auditable Native Markets</span>
+      <span>Open source: <a href="https://github.com/A-Network-2026/A-Network-2026/blob/main/assets/js/reserves.js" target="_blank" rel="noopener">reserves.js ↗</a></span>
+    </footer>
+  </div>
+
+  <script src="assets/js/vendor/anet-solana.bundle.js?v=20260706"></script>
+  <script src="assets/js/reserves.js?v=20261103-reserves"></script>
+</body>
+</html>

@@ -629,6 +629,7 @@
 
     <a class="nav-item" href="#v41-changelog">v4.1 Permissionless &amp; Revenue</a>
     <a class="nav-item" href="#v42-changelog">v4.2 Unlock Tiers &amp; Attestation</a>
+    <a class="nav-item" href="reserves.html">Proof of Reserves (live)</a>
     <a class="nav-item" href="#v46-changelog">v4.6 Trading Terminal &amp; Fees</a>
     <a class="nav-item" href="#v45-changelog">v4.5 Native Token Registry</a>
     <a class="nav-item" href="#v44-changelog">v4.4 One-Way Bridge</a>
@@ -894,6 +895,7 @@
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong>: Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>EVM Reserve Treasury</strong>: <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code></div>
         <div class="hero-meta-item"><strong>Solana Treasury</strong>: <code>7j33RFPkNvaKsPuz2qJ5SzwiwXA4iL12ujqM4g2tRLEz</code></div>
+        <div class="hero-meta-item"><strong>Bitcoin Reserve Treasury</strong>: <code>bc1qrqunzzv8dsr5dxdrlq5gcex93rh7w0tqawfhf4</code> (unfunded; BTC market disabled)</div>
         <div class="hero-meta-item"><strong>Market Separation</strong>: Native L1 &middot; Bitcoin reserve market &middot; EVM market accounted separately</div>
         <div class="hero-meta-item"><strong>Denomination</strong>: 1 ANET = 100,000,000 ANTS</div>
         <div class="hero-meta-item"><strong>Liquidity Rule</strong>: Wallet-funded &middot; reserve-backed &middot; independently auditable &middot; never bootstrap</div>
@@ -939,6 +941,9 @@
         <li><strong>Operator gate.</strong> The Layer&nbsp;1 export endpoint is behind the <code>ANET_BRIDGE_BURN_ENABLED</code> switch. At publication the production node reports the endpoint disabled, and the interface displays this state as <em>Gated</em> instead of presenting a form that cannot execute. The published cut-over runbook requires the vault signer set to be running and one canary export to complete before the switch is enabled. The interface requires no further release to become operational; it probes the endpoint and unlocks when the switch is on.</li>
         <li><strong>Boundaries.</strong> Inbound bridging from any chain to Layer&nbsp;1 remains permanently disabled. Exports to Ethereum or Solana are not offered; they would require the separately specified mint-burn portal and its independent audit.</li>
       </ul>
+
+      <h3>Proof of reserves (Phase 4, first deliverable)</h3>
+      <p>A read-only page, <a href="reserves.html">reserves.html</a>, reads the published addresses from the public chains in the visitor&apos;s own browser: the EVM reserve treasury on BNB Chain and Ethereum, the Solana treasury, the Bitcoin reserve treasury <code>bc1qrqunzzv8dsr5dxdrlq5gcex93rh7w0tqawfhf4</code> (published here for the first time; unfunded, so the ANET/BTC market remains disabled per Version 3.9), the bridge vault balance against its <code>totalReleased</code> counter and <code>Released</code> events, the interface fee revenue ledger reconstructed from every ERC-20 <code>Transfer</code> into the treasury with the sender of each transfer, the supply invariants (activated Layer&nbsp;1 supply under the cap, fixed wANET supply, inbound credits disabled), and the SHA-256 digest of this document. The page states what it proves and what it does not: it proves holdings and inflows at the moment of the request, not key control, and it is not an audit opinion. It satisfies the Version 3.9 requirement that reserve balances be independently queryable rather than asserted by configuration.</p>
 
       <h3>Verification</h3>
       <p>Contracts: 123 Hardhat tests, of which 18 cover <code>AnetFeeRouter</code> (atomic fee and swap, no fee on a failed swap, fee-on-transfer accounting, reentrancy, absence of privileged functions, sweep to the treasury only). Interface: 35 tests, including byte-for-byte equality of the browser&apos;s calldata with the compiled contract ABI, every function selector checked against keccak256, Solana fee token account derivation checked against mainnet, and canonical equality of the signed <code>bridge_burn</code> payload with the chain&apos;s canonical JSON. Each release of this version was verified in a browser against the production page before publication.</p>

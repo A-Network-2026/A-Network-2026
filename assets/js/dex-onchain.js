@@ -775,6 +775,7 @@
           ${row('Solana treasury', `<a href="https://solscan.io/account/${FEE.solTreasury}" target="_blank" rel="noopener">${shortId(FEE.solTreasury)} ↗</a>`)}
           ${row('Fee router · BSC', r56 ? `<a href="https://bscscan.com/address/${r56}" target="_blank" rel="noopener">${shortId(r56)} ↗</a>` : 'not deployed → two-step fee')}
           ${row('Fee router · ETH', r1 ? `<a href="https://etherscan.io/address/${r1}" target="_blank" rel="noopener">${shortId(r1)} ↗</a>` : 'not deployed → two-step fee')}
+          ${row('Live proof', '<a href="reserves.html">Proof of Reserves and fee revenue ledger</a>')}
         </div>
         <div>
           <h4>Pool fees (not ours)</h4>

@@ -682,6 +682,30 @@ Files:
   no setters, no admin withdraw; `sweep()` can only pay the treasury).
 - `tests/frontend/` — Node test harness for the browser modules (`node --test 'tests/frontend/*.test.mjs'`).
 
+## Proof of Reserves (reserves.html)
+
+Phase 4 first deliverable. `reserves.html` + `assets/js/reserves.js` read the published
+addresses from public chains in the visitor's browser (no backend, no self-reported numbers):
+
+- EVM reserve treasury `0x9C7C1058fdc9b710f688ECb7562924D9AE771417` on BNB Chain and Ethereum
+- Solana treasury `7j33RFPkNvaKsPuz2qJ5SzwiwXA4iL12ujqM4g2tRLEz` (shows which Jupiter fee token
+  accounts are initialized)
+- Bitcoin reserve treasury `bc1qrqunzzv8dsr5dxdrlq5gcex93rh7w0tqawfhf4` via Blockstream Esplora
+  (unfunded until a funding transaction is published; BTC market stays disabled)
+- Bridge vault `0x3143…8B49`: balance + `totalReleased` against the published founder escrow,
+  `Released` events, signer policy, caps, pause state
+- Interface fee revenue ledger: every ERC-20 `Transfer` into the treasury since the vault deploy
+  block, aggregated per sender (known fee origins labeled), valued at today's prices
+- Supply invariants from the L1 API and the BEP-20 contract; SHA-256 of the live whitepaper
+
+Invariant checks render green/red; an unreachable source renders as "unavailable", never as a
+failure. Tests: `tests/frontend/reserves.test.mjs` (selectors verified against keccak256, decoding
+against ethers-encoded logs, reconciliation semantics incl. the live mainnet figures).
+
+Operator follow-ups: publish the Bitcoin treasury on the L1 node as well (`/network/treasury`
+currently returns `null` for it; see the env vars in `anet-chain/src/rpc.rs`
+`get_treasury_configuration`: set `ANET_L1_BITCOIN_TREASURY_ADDRESS=bc1qrqunzzv8dsr5dxdrlq5gcex93rh7w0tqawfhf4` and, once funded, `ANET_L1_BITCOIN_PROOF_TXID`), and seal the whitepaper digest on L1 (see below).
+
 ## Bridge tab (export ANET L1 → wANET on BNB Chain)
 
 `dex.html → Bridge` is wired to the production L1 export API (one-way policy, whitepaper v4.4):
