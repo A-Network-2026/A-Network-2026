@@ -151,8 +151,11 @@
     };
   }
 
-  async function sha256Hex(text) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  /** SHA-256 of raw bytes (Uint8Array/ArrayBuffer) or of a UTF-8 string. Hash bytes, not
+   *  decoded text, when reproducibility with `shasum -a 256` matters (a BOM would be dropped by text()). */
+  async function sha256Hex(input) {
+    const bytes = typeof input === 'string' ? new TextEncoder().encode(input) : (input instanceof ArrayBuffer ? new Uint8Array(input) : input);
+    const buf = await crypto.subtle.digest('SHA-256', bytes);
     return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
@@ -401,12 +404,12 @@
   async function loadAttestation() {
     const el = $('por-attest'); if (!el) return;
     try {
-      const res = await fetch(PUB.whitepaper.url, { cache: 'no-store' }); const text = await res.text();
-      const digest = await sha256Hex(text);
+      const res = await fetch(PUB.whitepaper.url, { cache: 'no-store' }); const raw = new Uint8Array(await res.arrayBuffer());
+      const digest = await sha256Hex(raw);
       const row = (k, v) => `<div class="price-row"><span>${k}</span><span class="val tm-mono" style="word-break:break-all">${v}</span></div>`;
       el.innerHTML = `${row('Document', link(PUB.whitepaper.url, `whitepaper.html (Version ${PUB.whitepaper.version})`))}
         ${row('SHA-256 of the page you can download right now', digest)}
-        ${row('Bytes', fmtNum(new TextEncoder().encode(text).length, 0))}
+        ${row('Bytes', fmtNum(raw.length, 0))}
         <p class="por-note">Whitepaper Version 4.2 commits to sealing each published revision as a Layer 1 block event (<code>Protocol: v4.6 … (sha256 …)</code>). Compare this digest with the sealed event on the ${link('https://explorer.a-network.net/explorer', 'block explorer')}; if the sealed digest differs, the published document has changed since it was attested. Reproduce locally: <code>curl -s https://a-network.net/whitepaper.html | shasum -a 256</code>.</p>`;
       check('digest', 'Whitepaper digest computed from the live document', true, digest.slice(0, 16) + '…');
     } catch (e) { el.innerHTML = `<div class="tm-empty">Digest unavailable: ${esc(e.message)}</div>`; check('digest', 'Whitepaper digest computed from the live document', null, 'source unavailable: ' + esc(e.message)); }

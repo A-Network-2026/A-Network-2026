@@ -83,4 +83,7 @@ test('helpers: bech32 validation, topic padding, sha256', async () => {
   assert.equal(T.addrFromTopic(T.topicAddr(R.PUB.evmTreasury)).toLowerCase(), R.PUB.evmTreasury.toLowerCase());
   assert.equal(T.fromUnits(1_500_000n, 6), 1.5);
   assert.equal(await T.sha256Hex('abc'), 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+  assert.equal(await T.sha256Hex(new TextEncoder().encode('abc')), 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+  // a UTF-8 BOM must change the digest (hash raw bytes, as shasum does)
+  assert.notEqual(await T.sha256Hex(new Uint8Array([0xEF, 0xBB, 0xBF, 0x61, 0x62, 0x63])), await T.sha256Hex('abc'));
 });
