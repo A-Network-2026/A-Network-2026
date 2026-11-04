@@ -1,0 +1,43 @@
+# Render Blueprint for the read-only RPC relay (rpc-proxy/).
+#
+# This is a separate, stateless web service: no disk, so Render deploys it with
+# zero downtime (new instance passes /health before traffic moves) and it is
+# fully isolated from the L1 node (anet-chain) and the app backend (rmp-site).
+# The website keeps working without it: assets/js/anet-rpc.js falls back to the
+# providers directly whenever this service is unreachable.
+#
+# One-time setup (Render dashboard → New → Blueprint → this repo), then:
+#   1. set ANKR_KEY (the Ankr project key; it is the only secret)
+#   2. add the custom domain rpc.a-network.net and create the CNAME it shows
+#      (Google Domains: rpc → <service>.onrender.com)
+# Details and the no-outage rollout order: rpc-proxy/README.md
+services:
+  - type: web
+    name: anet-rpc-proxy
+    runtime: node
+    plan: starter            # always-on; the free plan sleeps after 15 min and cold starts would defeat the relay
+    region: oregon           # same region as the L1 node (gcp-us-west1) keeps latency to it irrelevant
+    rootDir: rpc-proxy
+    buildCommand: npm test   # zero dependencies; a failing test fails the deploy and the previous version keeps serving
+    startCommand: node server.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: ANKR_KEY
+        sync: false          # paste in the dashboard; never committed
+      - key: ALLOWED_ORIGINS
+        value: https://a-network.net,https://www.a-network.net
+      - key: RATE_LIMIT_PER_MIN
+        value: "240"
+      - key: MAX_CONCURRENCY
+        value: "24"
+      - key: CACHE_TTL_MS
+        value: "600000"
+      - key: CACHE_STALE_MS
+        value: "86400000"
+      - key: CACHE_MAX_BYTES
+        value: "67108864"
+      - key: LOG_REQUESTS
+        value: "false"

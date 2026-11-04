@@ -175,12 +175,14 @@
   const evmCall = (chain, to, data) => rpc(chain, 'eth_call', [{ to, data }, 'latest']);
   const evmBalance = (chain, a) => rpc(chain, 'eth_getBalance', [a, 'latest']).then(h => BigInt(h));
   const erc20Balance = (chain, token, owner) => evmCall(chain, token, SEL.balanceOf + pad32(owner)).then(h => BigInt(h || '0x0'));
-  /** Historical event scan: archive-capable endpoints only; throws when none is reachable. */
-  const getLogs = (chain, params, fromBlock, toBlock) => rpcClient().getLogs(chain, params, fromBlock, toBlock);
+  /** Historical event scan: archive-capable endpoints only; throws when none is reachable (unless opts.allowPartialTail). */
+  const getLogs = (chain, params, fromBlock, toBlock, opts) => rpcClient().getLogs(chain, params, fromBlock, toBlock, opts);
   const logsUnavailableMsg = (e) => {
     const detail = (e && e.cause && e.cause.message) || (e && e.message) || String(e);
     return `event history needs an archive RPC node (${(rpcClient().LOG_ENDPOINTS[56] || []).map(rpcClient().hostOf).join(', ')}), which could not be reached from your network (${detail})`;
   };
+  /** A scan that came back without its live tail: everything up to `partialFrom - 1` is real, newer blocks were not scanned. */
+  const partialNote = (logs, head) => logs && logs.partialFrom ? `Events from block #${fmtNum(logs.partialFrom, 0)} to #${fmtNum(head, 0)} (the most recent ${fmtNum(head - logs.partialFrom + 1, 0)} blocks) could not be scanned right now and are not included; the history up to #${fmtNum(logs.partialFrom - 1, 0)} is complete.` : '';
 
   /** Associated token account of `owner` for `mint` (vendored web3.js); null when the bundle is absent. */
   function deriveAta(owner, mint) {
@@ -321,8 +323,8 @@
         evmCall(56, PUB.vault, SEL.vaultBalance), evmCall(56, PUB.vault, SEL.totalReleased), evmCall(56, PUB.vault, SEL.threshold),
         evmCall(56, PUB.vault, SEL.maxPerTx), evmCall(56, PUB.vault, SEL.maxGlobal24h), evmCall(56, PUB.vault, SEL.paused), evmCall(56, PUB.vault, SEL.signers),
       ]);
-      let releases = null, logsError = null;
-      try { releases = decodeReleased(await getLogs(56, { address: PUB.vault, topics: [TOPIC_RELEASED] }, PUB.vaultDeployBlock, head)); }
+      let releases = null, logsError = null, releasesPartial = '', releasesPartialFrom = null;
+      try { const raw = await getLogs(56, { address: PUB.vault, topics: [TOPIC_RELEASED] }, PUB.vaultDeployBlock, head, { allowPartialTail: true }); releases = decodeReleased(raw); releasesPartial = partialNote(raw, head); releasesPartialFrom = raw.partialFrom || null; }
       catch (e) { logsError = e; }
       const balance = BigInt(balHex), totalReleased = BigInt(relHex), threshold = Number(BigInt(thrHex));
       const sigBody = signersHex.replace(/^0x/, ''); const nSigners = parseInt(sigBody.slice(64, 128), 16);
@@ -352,12 +354,14 @@
         </div>
         <p class="por-note">${esc(l1Note)}</p>
         ${logsError ? `<p class="por-note">Release ${esc(logsUnavailableMsg(logsError))}. The balance, counter and policy above were read from a public node; only the per-event list is missing.</p>` : ''}
+        ${releasesPartial ? `<p class="por-note">${esc(releasesPartial)} The counter above is live, so a release in that window would still show up as a mismatch below.</p>` : ''}
         ${releases && releases.length ? `<div class="por-rel-head"><span>Burn ID</span><span>Amount</span><span>Recipient</span><span>BNB tx</span></div>${releases.slice(-10).reverse().map(r => `<div class="por-rel-row tm-mono"><span>#${r.burnId}</span><span>${fmtNum(fromUnits(r.amount, 18), 6)} wANET</span><span>${esc(short(r.recipient))}</span><span>${link(`https://bscscan.com/tx/${r.tx}`, short(r.tx))}</span></div>`).join('')}` : ''}`;
       const v = $('por-stat-vault'); if (v) v.textContent = fmtNum(fromUnits(balance, 18), 0);
       check('vault-escrow', 'Vault holds at least the published founder allocation', rec.escrowMatchesPublished,
         `balance + released = ${fmtNum(fromUnits(rec.escrowed, 18), 6)} wANET vs published ${fmtNum(PUB.founderAllocationWanet, 6)}` +
         (rec.shortfall > 0n ? ` (SHORTFALL ${fmtNum(fromUnits(rec.shortfall, 18), 6)} wANET)` : rec.surplus > 0n ? ` (+${fmtNum(fromUnits(rec.surplus, 18), 6)} wANET above the published figure)` : ''));
-      if (releases) check('vault-events', 'Release events reconcile with totalReleased', rec.eventsMatchCounter, `${releases.length} Released event(s) sum to the contract counter`);
+      if (releases && (rec.eventsMatchCounter || !releasesPartial)) check('vault-events', 'Release events reconcile with totalReleased', rec.eventsMatchCounter, `${releases.length} Released event(s) sum to the contract counter` + (releasesPartial ? ' (most recent blocks not yet scanned)' : ''));
+      else if (releases) check('vault-events', 'Release events reconcile with totalReleased', null, `counter is ${fmtNum(fromUnits(totalReleased, 18), 6)} wANET but the ${releases.length} event(s) scanned sum to ${fmtNum(fromUnits(rec.eventSum, 18), 6)}; the difference may sit in blocks #${fmtNum(releasesPartialFrom, 0)}+ which could not be scanned yet`);
       else check('vault-events', 'Release events reconcile with totalReleased', null, 'source unavailable: ' + esc(logsUnavailableMsg(logsError)));
       check('vault-paused', 'Vault is live (not paused)', BigInt(pausedHex) === 0n, `${threshold}-of-${nSigners} signer policy`);
       st.data.vault = { balance, totalReleased, releases };
@@ -374,7 +378,9 @@
     try {
       const head = parseInt(await rpc(56, 'eth_blockNumber', []), 16);
       const toTopic = topicAddr(PUB.evmTreasury);
-      const results = await Promise.all(TOKENS[56].map(t => getLogs(56, { address: t.addr, topics: [TOPIC_TRANSFER, null, toTopic] }, PUB.vaultDeployBlock, head).then(l => ({ token: t, transfers: decodeTransfers(l) }))));
+      const results = await Promise.all(TOKENS[56].map(t => getLogs(56, { address: t.addr, topics: [TOPIC_TRANSFER, null, toTopic] }, PUB.vaultDeployBlock, head, { allowPartialTail: true }).then(l => ({ token: t, transfers: decodeTransfers(l), partialFrom: l.partialFrom || null }))));
+      const partialFrom = results.reduce((m, r) => (r.partialFrom && (!m || r.partialFrom < m) ? r.partialFrom : m), null);
+      const ledgerPartial = partialFrom ? partialNote(Object.assign([], { partialFrom }), head) : '';
       let totalUsd = 0, totalCount = 0;
       const sections = results.filter(r => r.transfers.length).map(({ token, transfers }) => {
         const sum = transfers.reduce((a, t) => a + t.value, 0n);
@@ -390,9 +396,10 @@
       });
       el.innerHTML = `<div class="por-ledger-summary"><div><span>Lifetime inbound (tokens, since vault deploy block ${PUB.vaultDeployBlock.toLocaleString()})</span><b>${fmtUsd(totalUsd)}</b></div><div><span>Inbound transfers</span><b>${totalCount}</b></div><div><span>Current token holdings</span><b>${fmtUsd((st.data.evmBsc || []).reduce((a, r) => a + (r.usd || 0), 0))}</b></div></div>
         <p class="por-note">Inflows are valued at today's prices. The difference between lifetime inflows and current holdings is what has been spent or converted (gas, relayer costs, operations); outflows are visible on ${link(`https://bscscan.com/address/${PUB.evmTreasury}#tokentxns`, 'BscScan')}. Native BNB inflows cannot be enumerated without an indexer and are excluded.</p>
+        ${ledgerPartial ? `<p class="por-note">${esc(ledgerPartial)}</p>` : ''}
         ${sections.join('') || '<div class="tm-empty">No inbound token transfers found.</div>'}`;
-      if (pill) { pill.className = 'pill green'; pill.textContent = `${totalCount} transfers`; }
-      check('ledger', 'Fee revenue ledger reconstructed from chain events', true, `${totalCount} inbound token transfers across ${results.filter(r => r.transfers.length).length} tokens`);
+      if (pill) { pill.className = ledgerPartial ? 'pill amber' : 'pill green'; pill.textContent = `${totalCount} transfers${ledgerPartial ? ' · recent blocks pending' : ''}`; }
+      check('ledger', 'Fee revenue ledger reconstructed from chain events', true, `${totalCount} inbound token transfers across ${results.filter(r => r.transfers.length).length} tokens` + (ledgerPartial ? ` (events after block #${fmtNum(partialFrom - 1, 0)} not yet scanned)` : ''));
     } catch (e) {
       const msg = e && e.allFailed ? logsUnavailableMsg(e) : e.message;
       el.innerHTML = `<div class="tm-empty">Ledger unavailable: ${esc(msg)}. Inbound token transfers remain verifiable on ${link(`https://bscscan.com/address/${PUB.evmTreasury}#tokentxns`, 'BscScan')}.</div>`;
@@ -460,7 +467,11 @@
       return `<span class="por-rpc-chain${fallback ? ' fallback' : ''}" title="${esc(fallback ? `${cs.endpoints[0]} unreachable, failed over` : 'primary endpoint')}">${esc(CHAIN_LABEL[c])}: <b>${esc(active || 'connecting…')}</b></span>`;
     });
     const logs = s.logs && s.logs[56];
-    if (logs && logs.endpoints && logs.endpoints.length && !logs.active && (s[56] || {}).active) parts.push(`<span class="por-rpc-chain fallback" title="Event history (ledger, release events) needs this archive node">history: <b>${esc(logs.endpoints[0])} unreachable</b></span>`);
+    if (logs && logs.endpoints && logs.endpoints.length) {
+      const primary = logs.endpoints[0];
+      if (logs.active) parts.push(`<span class="por-rpc-chain${logs.active !== primary ? ' fallback' : ''}" title="${esc(logs.active !== primary ? `${primary} unreachable, event history read from ${logs.active}` : 'archive node serving the event history (ledger, release events)')}">history: <b>${esc(logs.active)}</b></span>`);
+      else if ((s[56] || {}).active) parts.push(`<span class="por-rpc-chain fallback" title="Event history (ledger, release events) needs an archive node: ${esc(logs.endpoints.join(', '))}">history: <b>unavailable</b></span>`);
+    }
     el.innerHTML = parts.join('<span class="por-rpc-sep"> · </span>');
   }
 
@@ -482,7 +493,7 @@
     setInterval(refreshAll, 5 * 60_000);
   }
 
-  window.AnetReserves = { PUB, __test: { decodeTransfers, decodeReleased, aggregateBySender, reconcileVault, supplyChecks, isBech32Btc, topicAddr, addrFromTopic, fromUnits, SEL, SEL_SIG, TOPIC_TRANSFER, TOPIC_RELEASED, sha256Hex, deriveAta, solTokenBalances, SOL_MINTS, SOL_TOKEN_PROGRAM, SOL_ATA_PROGRAM } };
+  window.AnetReserves = { PUB, __test: { decodeTransfers, decodeReleased, aggregateBySender, reconcileVault, supplyChecks, isBech32Btc, topicAddr, addrFromTopic, fromUnits, SEL, SEL_SIG, TOPIC_TRANSFER, TOPIC_RELEASED, sha256Hex, deriveAta, solTokenBalances, getLogs, partialNote, SOL_MINTS, SOL_TOKEN_PROGRAM, SOL_ATA_PROGRAM } };
 
   if (typeof document !== 'undefined' && document.getElementById('por-checks')) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

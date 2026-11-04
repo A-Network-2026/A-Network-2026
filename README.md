@@ -681,6 +681,7 @@ Files:
 - `contracts/src/AnetFeeRouter.sol` — immutable, ownerless fee-on-top forwarder (no pause,
   no setters, no admin withdraw; `sweep()` can only pay the treasury).
 - `tests/frontend/` — Node test harness for the browser modules (`node --test 'tests/frontend/*.test.mjs'`).
+- `rpc-proxy/` — read-only JSON-RPC relay deployed as its own Render service (`cd rpc-proxy && npm test`).
 
 ## Proof of Reserves (reserves.html)
 
@@ -702,21 +703,40 @@ Invariant checks render green/red; an unreachable source renders as "unavailable
 failure. Tests: `tests/frontend/reserves.test.mjs` (selectors verified against keccak256, decoding
 against ethers-encoded logs, reconciliation semantics incl. the live mainnet figures).
 
-### RPC failover (assets/js/anet-rpc.js)
+### RPC failover (assets/js/anet-rpc.js) and the relay (rpc-proxy/)
 
 `reserves.js` and `dex-onchain.js` read chains through the shared client `assets/js/anet-rpc.js`
-instead of one hard-coded provider. Each chain has an ordered endpoint list: the project's Ankr key
-first (archive node, unbounded `eth_getLogs`), then public CORS-enabled nodes (bsc-dataseed,
-publicnode, dRPC, 1rpc, …). A node that cannot be reached from the visitor's network (regional TLS
-interception — `ERR_CERT_COMMON_NAME_INVALID` on `rpc.ankr.com` was the November 2026 incident —
-DNS blocks, rate limits, outages) is failed over and demoted for 60 s; a genuine call error such as
-an `eth_call` revert is surfaced at once. Solana falls back from the indexed
-`getTokenAccountsByOwner` (blocked on public nodes) to `getMultipleAccounts` on the treasury's
-associated token accounts. Only the archive node can serve the historical `eth_getLogs` scans
-behind the fee ledger and the release list; when it is unreachable those two items are shown as
-unavailable with BscScan links, and everything else (treasuries, vault state, supply) still renders.
-The reserves page prints the node that answered each chain in its network bar. Tests:
-`tests/frontend/anet-rpc.test.mjs`.
+instead of one hard-coded provider. Each chain has an ordered endpoint list:
+
+| | 1 | 2 | 3 |
+|---|---|---|---|
+| reads (`eth_call`, balances, Solana) | Ankr (project key) | **relay** `rpc.a-network.net` | public CORS nodes (bsc-dataseed, publicnode, dRPC, 1rpc, …) |
+| archive history (`eth_getLogs` over 32M blocks) | **relay** (cached, stale-while-error) | Ankr directly | — (public nodes cap ranges or refuse archive data) |
+
+A node that cannot be reached from the visitor's network (regional TLS interception —
+`ERR_CERT_COMMON_NAME_INVALID` on `rpc.ankr.com` was the November 2026 incident — DNS blocks, rate
+limits, outages) is failed over and demoted for 60 s; nodes in cooldown are re-probed with a 5 s
+budget so an outage costs seconds, not a minute per call. A genuine call error such as an
+`eth_call` revert is surfaced at once. Solana falls back from the indexed `getTokenAccountsByOwner`
+(blocked on public nodes) to `getMultipleAccounts` on the treasury's associated token accounts.
+
+**The relay** (`rpc-proxy/server.js`, zero dependencies, its own Render web service without a disk,
+see `rpc-proxy/README.md` and the root `render.yaml`) forwards the allow-listed read-only methods to
+the provider from our own domain and TLS, fails over across its upstreams server-side, and caches
+each immutable `eth_getLogs` range: fresh for 10 min, **served stale for up to 24 h when every
+upstream is down**. The client cuts long scans at a 20,000-block boundary (~2.5 h on BNB Chain) so
+every visitor shares one cache entry, and fetches the short live tail separately; if only the tail
+fails, the page still shows the complete history up to the cut and says which recent blocks are not
+scanned yet (`allowPartialTail`). The relay is never a dependency: when it is unreachable the page
+behaves exactly as before it existed, and a relay whose upstream is down (HTTP 502) is kept in
+rotation because it may still hold the cached history. Verified end to end in a browser with the
+real relay: Ankr blocked → 9/9 checks via the relay; Ankr blocked *and* the provider dead behind the
+relay → 9/9 checks with the ledger and release list from the stale cache plus the partial-tail note;
+relay and Ankr both blocked → the pre-relay behaviour (7/7, history unavailable, nothing red).
+
+The reserves page prints the node that answered each chain, and the history node, in its network
+bar. Tests: `tests/frontend/anet-rpc.test.mjs` (client), `cd rpc-proxy && npm test` (relay, mock
+upstreams, no network).
 
 ### App download links (assets/js/app-download.js)
 
