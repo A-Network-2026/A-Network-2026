@@ -702,6 +702,32 @@ Invariant checks render green/red; an unreachable source renders as "unavailable
 failure. Tests: `tests/frontend/reserves.test.mjs` (selectors verified against keccak256, decoding
 against ethers-encoded logs, reconciliation semantics incl. the live mainnet figures).
 
+### RPC failover (assets/js/anet-rpc.js)
+
+`reserves.js` and `dex-onchain.js` read chains through the shared client `assets/js/anet-rpc.js`
+instead of one hard-coded provider. Each chain has an ordered endpoint list: the project's Ankr key
+first (archive node, unbounded `eth_getLogs`), then public CORS-enabled nodes (bsc-dataseed,
+publicnode, dRPC, 1rpc, …). A node that cannot be reached from the visitor's network (regional TLS
+interception — `ERR_CERT_COMMON_NAME_INVALID` on `rpc.ankr.com` was the November 2026 incident —
+DNS blocks, rate limits, outages) is failed over and demoted for 60 s; a genuine call error such as
+an `eth_call` revert is surfaced at once. Solana falls back from the indexed
+`getTokenAccountsByOwner` (blocked on public nodes) to `getMultipleAccounts` on the treasury's
+associated token accounts. Only the archive node can serve the historical `eth_getLogs` scans
+behind the fee ledger and the release list; when it is unreachable those two items are shown as
+unavailable with BscScan links, and everything else (treasuries, vault state, supply) still renders.
+The reserves page prints the node that answered each chain in its network bar. Tests:
+`tests/frontend/anet-rpc.test.mjs`.
+
+### App download links (assets/js/app-download.js)
+
+Every public page carries the store listings — App Store
+`https://apps.apple.com/us/app/a-network/id6770665448` and Google Play `com.anetwork.app` — in one
+place: `assets/js/app-download.js`. A nav/CTA link marked `data-app-download="auto"` sends iPhone
+and iPad visitors to the App Store and Android visitors to Google Play; other devices get both
+links side by side. `data-app-open="anetwork://…"` tries the installed app first and falls back to
+the right store. Footers carry the two badges, every page has the `apple-itunes-app` Smart App
+Banner meta, and `site.webmanifest` lists the native apps as `related_applications`.
+
 Operator follow-ups: publish the Bitcoin treasury on the L1 node as well (`/network/treasury`
 currently returns `null` for it; see the env vars in `anet-chain/src/rpc.rs`
 `get_treasury_configuration`: set `ANET_L1_BITCOIN_TREASURY_ADDRESS=bc1qrqunzzv8dsr5dxdrlq5gcex93rh7w0tqawfhf4` and, once funded, `ANET_L1_BITCOIN_PROOF_TXID`), and seal the whitepaper digest on L1 (see below).

@@ -7,8 +7,11 @@
  * whitepaper (Version 4.6). CSP: script-src 'self'; no CDNs, no eval.
  *
  * Sources
- *   BNB Chain / Ethereum  JSON-RPC (Ankr): eth_getBalance, eth_call, eth_getLogs
- *   Solana                JSON-RPC (Ankr): getBalance, getTokenAccountsByOwner
+ *   BNB Chain / Ethereum  JSON-RPC via AnetRpc (assets/js/anet-rpc.js): Ankr archive key first,
+ *                         then public CORS nodes. eth_getBalance, eth_call; eth_getLogs needs the
+ *                         archive node and degrades to "unavailable" when it cannot be reached.
+ *   Solana                JSON-RPC via AnetRpc: getBalance, getTokenAccountsByOwner, falling back
+ *                         to getMultipleAccounts on the treasury's associated token accounts.
  *   Bitcoin               Blockstream Esplora (CORS-enabled, no key)
  *   A Network L1          /sync/head, /network/consensus, /stats/investor,
  *                         /network/treasury, /bridge/x/reconciliation,
@@ -24,10 +27,10 @@
   /* ═══════════════════════════════════════════════════════════════════
      Published facts (whitepaper v4.6). Change here = change in the paper.
      ═══════════════════════════════════════════════════════════════════ */
-  const ANKR_KEY = '3ce3cd9f0dfa278ed38509a065305c94912b7350a2c1e3b4714d0554b60db218';
-  const RPC = { 56: `https://rpc.ankr.com/bsc/${ANKR_KEY}`, 1: `https://rpc.ankr.com/eth/${ANKR_KEY}`, solana: `https://rpc.ankr.com/solana/${ANKR_KEY}` };
   const L1_API = 'https://explorer.a-network.net';
   const ESPLORA = 'https://blockstream.info/api';
+  const SOL_TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+  const SOL_ATA_PROGRAM = 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL';
 
   const PUB = {
     evmTreasury: '0x9C7C1058fdc9b710f688ECb7562924D9AE771417',
@@ -162,27 +165,52 @@
   /* ═══════════════════════════════════════════════════════════════════
      Fetch helpers
      ═══════════════════════════════════════════════════════════════════ */
-  let rpcId = 1;
-  async function rpc(url, method, params = []) {
-    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: rpcId++, method, params }) });
-    const j = await res.json().catch(() => ({}));
-    if (j.error) throw new Error(j.error.message || 'RPC error');
-    return j.result;
-  }
-  const evmCall = (chain, to, data) => rpc(RPC[chain], 'eth_call', [{ to, data }, 'latest']);
-  const evmBalance = (chain, a) => rpc(RPC[chain], 'eth_getBalance', [a, 'latest']).then(h => BigInt(h));
+  /** Shared failover client (assets/js/anet-rpc.js): Ankr archive key first, public CORS nodes next. */
+  const rpcClient = () => {
+    const c = (typeof window !== 'undefined' && window.AnetRpc) || null;
+    if (!c) throw new Error('RPC client (anet-rpc.js) not loaded');
+    return c;
+  };
+  const rpc = (chain, method, params = []) => rpcClient().call(chain, method, params);
+  const evmCall = (chain, to, data) => rpc(chain, 'eth_call', [{ to, data }, 'latest']);
+  const evmBalance = (chain, a) => rpc(chain, 'eth_getBalance', [a, 'latest']).then(h => BigInt(h));
   const erc20Balance = (chain, token, owner) => evmCall(chain, token, SEL.balanceOf + pad32(owner)).then(h => BigInt(h || '0x0'));
-  async function getLogsChunked(chain, params, fromBlock, toBlock, depth = 0) {
+  /** Historical event scan: archive-capable endpoints only; throws when none is reachable. */
+  const getLogs = (chain, params, fromBlock, toBlock) => rpcClient().getLogs(chain, params, fromBlock, toBlock);
+  const logsUnavailableMsg = (e) => {
+    const detail = (e && e.cause && e.cause.message) || (e && e.message) || String(e);
+    return `event history needs an archive RPC node (${(rpcClient().LOG_ENDPOINTS[56] || []).map(rpcClient().hostOf).join(', ')}), which could not be reached from your network (${detail})`;
+  };
+
+  /** Associated token account of `owner` for `mint` (vendored web3.js); null when the bundle is absent. */
+  function deriveAta(owner, mint) {
+    const S = (typeof window !== 'undefined' && window.AnetSolana) || null; if (!S) return null;
+    const [ata] = S.PublicKey.findProgramAddressSync(
+      [new S.PublicKey(owner).toBytes(), new S.PublicKey(SOL_TOKEN_PROGRAM).toBytes(), new S.PublicKey(mint).toBytes()],
+      new S.PublicKey(SOL_ATA_PROGRAM));
+    return ata.toBase58();
+  }
+
+  /**
+   * SPL balances of `owner` for `mints` → { byMint: { mint: uiAmount }, method }. A mint with no token
+   * account is absent from byMint. Prefers the owner-wide enumeration; public nodes block that indexed
+   * query, so it falls back to reading the deterministic associated token accounts directly.
+   */
+  async function solTokenBalances(owner, mints) {
+    const byMint = {};
     try {
-      const r = await rpc(RPC[chain], 'eth_getLogs', [{ ...params, fromBlock: '0x' + fromBlock.toString(16), toBlock: '0x' + toBlock.toString(16) }]);
-      return Array.isArray(r) ? r : [];
+      const accts = await rpc('solana', 'getTokenAccountsByOwner', [owner, { programId: SOL_TOKEN_PROGRAM }, { encoding: 'jsonParsed' }]);
+      for (const a of (accts?.value || [])) { const info = a.account?.data?.parsed?.info; if (info) byMint[info.mint] = Number(info.tokenAmount?.uiAmount || 0); }
+      return { byMint, method: 'getTokenAccountsByOwner' };
     } catch (e) {
-      if (depth >= 5 || toBlock - fromBlock < 10_000) throw e;
-      const mid = Math.floor((fromBlock + toBlock) / 2);
-      const [a, b] = await Promise.all([getLogsChunked(chain, params, fromBlock, mid, depth + 1), getLogsChunked(chain, params, mid + 1, toBlock, depth + 1)]);
-      return a.concat(b);
+      const atas = mints.map(m => deriveAta(owner, m.mint));
+      if (!atas.length || atas.some(a => !a)) throw e;
+      const res = await rpc('solana', 'getMultipleAccounts', [atas, { encoding: 'jsonParsed' }]);
+      (res?.value || []).forEach((acc, i) => { const info = acc?.data?.parsed?.info; if (info) byMint[mints[i].mint] = Number(info.tokenAmount?.uiAmount || 0); });
+      return { byMint, method: 'getMultipleAccounts (associated token accounts)' };
     }
   }
+
   async function l1(path) {
     const res = await fetch(L1_API + path, { headers: { Accept: 'application/json' } });
     const j = await res.json().catch(() => ({}));
@@ -260,14 +288,13 @@
     } catch (e) { check('eth-treasury', 'EVM treasury readable on Ethereum', null, 'source unavailable: ' + esc(e.message)); }
     // Solana treasury
     try {
-      const lam = await rpc(RPC.solana, 'getBalance', [PUB.solTreasury]);
-      const sol = (lam?.value ?? 0) / 1e9;
-      const accts = await rpc(RPC.solana, 'getTokenAccountsByOwner', [PUB.solTreasury, { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' }, { encoding: 'jsonParsed' }]);
-      const byMint = {}; for (const a of (accts?.value || [])) { const info = a.account?.data?.parsed?.info; if (info) byMint[info.mint] = Number(info.tokenAmount?.uiAmount || 0); }
+      const lam = await rpc('solana', 'getBalance', [PUB.solTreasury]);
+      const sol = (lam?.value ?? lam ?? 0) / 1e9;
+      const { byMint, method } = await solTokenBalances(PUB.solTreasury, SOL_MINTS);
       const rows = [{ symbol: 'SOL', amount: sol, usd: usdOf('SOL', sol) }, ...SOL_MINTS.map(m => ({ symbol: m.symbol, amount: byMint[m.mint] ?? 0, usd: usdOf(m.symbol, byMint[m.mint] ?? 0), sub: byMint[m.mint] == null ? 'fee account not initialized' : '' }))];
       const missing = SOL_MINTS.filter(m => byMint[m.mint] == null).length;
       cards.push(treasuryCard({ title: 'SOLANA TREASURY', chain: 'Solana', address: PUB.solTreasury, explorer: `https://solscan.io/account/${PUB.solTreasury}`, rows, note: missing ? `Receives the 0.87% Jupiter platform fee once its token accounts exist; ${missing} of ${SOL_MINTS.length} fee accounts are not initialized yet, so the fee is currently waived on those pairs (whitepaper v4.6).` : 'Receives the 0.87% Jupiter platform fee inside each swap transaction (whitepaper v4.6).' }));
-      check('sol-treasury', 'Solana treasury readable', true, missing ? `${missing} fee token account(s) not initialized; fee waived there` : 'all fee token accounts exist');
+      check('sol-treasury', 'Solana treasury readable', true, (missing ? `${missing} fee token account(s) not initialized; fee waived there` : 'all fee token accounts exist') + ` · via ${method}`);
     } catch (e) { check('sol-treasury', 'Solana treasury readable', null, 'source unavailable: ' + esc(e.message)); }
     // Bitcoin treasury
     try {
@@ -287,21 +314,24 @@
     const el = $('por-vault'); if (!el) return;
     el.innerHTML = '<div class="tm-empty"><span class="spinner"></span> Reading the bridge vault on BNB Chain…</div>';
     try {
-      const head = parseInt(await rpc(RPC[56], 'eth_blockNumber', []), 16);
-      const [balHex, relHex, thrHex, maxTxHex, maxDayHex, pausedHex, signersHex, releasedLogs] = await Promise.all([
+      // Contract state is a plain eth_call served by any node; the Released event history needs an
+      // archive node and must not take the whole section down when that node is unreachable.
+      const head = parseInt(await rpc(56, 'eth_blockNumber', []), 16);
+      const [balHex, relHex, thrHex, maxTxHex, maxDayHex, pausedHex, signersHex] = await Promise.all([
         evmCall(56, PUB.vault, SEL.vaultBalance), evmCall(56, PUB.vault, SEL.totalReleased), evmCall(56, PUB.vault, SEL.threshold),
         evmCall(56, PUB.vault, SEL.maxPerTx), evmCall(56, PUB.vault, SEL.maxGlobal24h), evmCall(56, PUB.vault, SEL.paused), evmCall(56, PUB.vault, SEL.signers),
-        getLogsChunked(56, { address: PUB.vault, topics: [TOPIC_RELEASED] }, PUB.vaultDeployBlock, head),
       ]);
+      let releases = null, logsError = null;
+      try { releases = decodeReleased(await getLogs(56, { address: PUB.vault, topics: [TOPIC_RELEASED] }, PUB.vaultDeployBlock, head)); }
+      catch (e) { logsError = e; }
       const balance = BigInt(balHex), totalReleased = BigInt(relHex), threshold = Number(BigInt(thrHex));
       const sigBody = signersHex.replace(/^0x/, ''); const nSigners = parseInt(sigBody.slice(64, 128), 16);
-      const releases = decodeReleased(releasedLogs);
       const publishedEscrowWei = BigInt(Math.round(PUB.founderAllocationWanet * 1e6)) * 10n ** 12n;
       // L1 side (gated unless ANET_BRIDGE_BURN_ENABLED)
       let l1Note = '', l1Released = null;
       try { await l1('/bridge/burns/by-sender/ANET000000000000000000000000000000000000'); l1Note = 'L1 export ledger is public: pending burns are compared with releases.'; }
       catch (e) { l1Note = e.status === 404 ? 'L1 export ledger is behind the operator switch (ANET_BRIDGE_BURN_ENABLED is off); reconciliation uses the BNB Chain side only.' : `L1 export ledger unavailable: ${e.message}`; }
-      const rec = reconcileVault({ balance, totalReleased, releasedEvents: releases, publishedEscrowWei, l1Released });
+      const rec = reconcileVault({ balance, totalReleased, releasedEvents: releases || [], publishedEscrowWei, l1Released });
       const row = (k, v) => `<div class="price-row"><span>${k}</span><span class="val tm-mono">${v}</span></div>`;
       el.innerHTML = `
         <div class="por-vault-grid">
@@ -313,7 +343,7 @@
             ${row('Published escrow (whitepaper v3.3)', fmtNum(PUB.founderAllocationWanet, 6) + ' wANET')}
           </div>
           <div>
-            ${row('Release events on BNB Chain', `${releases.length} (sum ${fmtNum(fromUnits(rec.eventSum, 18), 6)} wANET)`)}
+            ${row('Release events on BNB Chain', releases ? `${releases.length} (sum ${fmtNum(fromUnits(rec.eventSum, 18), 6)} wANET)` : `unavailable · ${link(`https://bscscan.com/address/${PUB.vault}#events`, 'BscScan events')}`)}
             ${row('Signer policy', `${threshold} of ${nSigners} (EIP-712)`)}
             ${row('Caps', `${fmtNum(fromUnits(BigInt(maxTxHex), 18), 0)} / tx · ${fmtNum(fromUnits(BigInt(maxDayHex), 18), 0)} / 24h`)}
             ${row('Paused', BigInt(pausedHex) === 0n ? 'no' : 'YES')}
@@ -321,12 +351,14 @@
           </div>
         </div>
         <p class="por-note">${esc(l1Note)}</p>
-        ${releases.length ? `<div class="por-rel-head"><span>Burn ID</span><span>Amount</span><span>Recipient</span><span>BNB tx</span></div>${releases.slice(-10).reverse().map(r => `<div class="por-rel-row tm-mono"><span>#${r.burnId}</span><span>${fmtNum(fromUnits(r.amount, 18), 6)} wANET</span><span>${esc(short(r.recipient))}</span><span>${link(`https://bscscan.com/tx/${r.tx}`, short(r.tx))}</span></div>`).join('')}` : ''}`;
+        ${logsError ? `<p class="por-note">Release ${esc(logsUnavailableMsg(logsError))}. The balance, counter and policy above were read from a public node; only the per-event list is missing.</p>` : ''}
+        ${releases && releases.length ? `<div class="por-rel-head"><span>Burn ID</span><span>Amount</span><span>Recipient</span><span>BNB tx</span></div>${releases.slice(-10).reverse().map(r => `<div class="por-rel-row tm-mono"><span>#${r.burnId}</span><span>${fmtNum(fromUnits(r.amount, 18), 6)} wANET</span><span>${esc(short(r.recipient))}</span><span>${link(`https://bscscan.com/tx/${r.tx}`, short(r.tx))}</span></div>`).join('')}` : ''}`;
       const v = $('por-stat-vault'); if (v) v.textContent = fmtNum(fromUnits(balance, 18), 0);
       check('vault-escrow', 'Vault holds at least the published founder allocation', rec.escrowMatchesPublished,
         `balance + released = ${fmtNum(fromUnits(rec.escrowed, 18), 6)} wANET vs published ${fmtNum(PUB.founderAllocationWanet, 6)}` +
         (rec.shortfall > 0n ? ` (SHORTFALL ${fmtNum(fromUnits(rec.shortfall, 18), 6)} wANET)` : rec.surplus > 0n ? ` (+${fmtNum(fromUnits(rec.surplus, 18), 6)} wANET above the published figure)` : ''));
-      check('vault-events', 'Release events reconcile with totalReleased', rec.eventsMatchCounter, `${releases.length} Released event(s) sum to the contract counter`);
+      if (releases) check('vault-events', 'Release events reconcile with totalReleased', rec.eventsMatchCounter, `${releases.length} Released event(s) sum to the contract counter`);
+      else check('vault-events', 'Release events reconcile with totalReleased', null, 'source unavailable: ' + esc(logsUnavailableMsg(logsError)));
       check('vault-paused', 'Vault is live (not paused)', BigInt(pausedHex) === 0n, `${threshold}-of-${nSigners} signer policy`);
       st.data.vault = { balance, totalReleased, releases };
     } catch (e) {
@@ -340,9 +372,9 @@
     const el = $('por-ledger'), pill = $('por-ledger-pill'); if (!el) return;
     el.innerHTML = '<div class="tm-empty"><span class="spinner"></span> Scanning BNB Chain transfer events to the treasury…</div>';
     try {
-      const head = parseInt(await rpc(RPC[56], 'eth_blockNumber', []), 16);
+      const head = parseInt(await rpc(56, 'eth_blockNumber', []), 16);
       const toTopic = topicAddr(PUB.evmTreasury);
-      const results = await Promise.all(TOKENS[56].map(t => getLogsChunked(56, { address: t.addr, topics: [TOPIC_TRANSFER, null, toTopic] }, PUB.vaultDeployBlock, head).then(l => ({ token: t, transfers: decodeTransfers(l) }))));
+      const results = await Promise.all(TOKENS[56].map(t => getLogs(56, { address: t.addr, topics: [TOPIC_TRANSFER, null, toTopic] }, PUB.vaultDeployBlock, head).then(l => ({ token: t, transfers: decodeTransfers(l) }))));
       let totalUsd = 0, totalCount = 0;
       const sections = results.filter(r => r.transfers.length).map(({ token, transfers }) => {
         const sum = transfers.reduce((a, t) => a + t.value, 0n);
@@ -362,9 +394,10 @@
       if (pill) { pill.className = 'pill green'; pill.textContent = `${totalCount} transfers`; }
       check('ledger', 'Fee revenue ledger reconstructed from chain events', true, `${totalCount} inbound token transfers across ${results.filter(r => r.transfers.length).length} tokens`);
     } catch (e) {
-      el.innerHTML = `<div class="tm-empty">Ledger unavailable: ${esc(e.message)}</div>`;
+      const msg = e && e.allFailed ? logsUnavailableMsg(e) : e.message;
+      el.innerHTML = `<div class="tm-empty">Ledger unavailable: ${esc(msg)}. Inbound token transfers remain verifiable on ${link(`https://bscscan.com/address/${PUB.evmTreasury}#tokentxns`, 'BscScan')}.</div>`;
       if (pill) { pill.className = 'pill'; pill.textContent = 'unavailable'; }
-      check('ledger', 'Fee revenue ledger reconstructed from chain events', null, 'source unavailable: ' + esc(e.message));
+      check('ledger', 'Fee revenue ledger reconstructed from chain events', null, 'source unavailable: ' + esc(msg));
     }
   }
 
@@ -373,10 +406,11 @@
     const el = $('por-supply'); if (!el) return;
     el.innerHTML = '<div class="tm-empty"><span class="spinner"></span> Reading supply…</div>';
     try {
+      // The BEP-20 supply read must not hide the L1 figures when every BNB Chain node is unreachable.
       const [bep20Hex, inv, cons, head, treas, recon] = await Promise.all([
-        evmCall(56, PUB.anetBsc, SEL.totalSupply), l1('/stats/investor'), l1('/network/consensus'), l1('/sync/head'), l1('/network/treasury'), l1('/bridge/x/reconciliation').catch(() => null),
+        evmCall(56, PUB.anetBsc, SEL.totalSupply).catch(() => null), l1('/stats/investor'), l1('/network/consensus'), l1('/sync/head'), l1('/network/treasury'), l1('/bridge/x/reconciliation').catch(() => null),
       ]);
-      const s = supplyChecks({ activatedAnts: inv.activated_supply_ants, bep20SupplyWei: BigInt(bep20Hex), maxSupplyAnet: PUB.maxSupplyAnet });
+      const s = supplyChecks({ activatedAnts: inv.activated_supply_ants, bep20SupplyWei: bep20Hex ? BigInt(bep20Hex) : 0n, maxSupplyAnet: PUB.maxSupplyAnet });
       const row = (k, v) => `<div class="price-row"><span>${k}</span><span class="val tm-mono">${v}</span></div>`;
       const treasuryMatches = String(treas.l1_reserve_treasury_evm_address || '').toLowerCase() === PUB.evmTreasury.toLowerCase();
       el.innerHTML = `<div class="por-vault-grid">
@@ -387,14 +421,14 @@
             ${row('Admin mint', esc(cons.issuance?.monetary_policy || 'fixed_capped_schedule_no_admin_mint'))}
           </div>
           <div>
-            ${row('wANET BEP-20 total supply', fmtNum(s.bep20, 6) + ' wANET')}
+            ${row('wANET BEP-20 total supply', bep20Hex ? fmtNum(s.bep20, 6) + ' wANET' : 'unavailable (no BNB Chain node reachable)')}
             ${row('BEP-20 owner', 'renounced (immutable)')}
             ${row('Inbound bridge credits (L1)', recon ? (recon.portal_credit_enabled ? 'ENABLED' : 'disabled, locked ' + fmtNum(Number(recon.locked_ants) / 1e8, 4) + ' ANET') : 'n/a')}
             ${row('L1 treasury config matches paper', treasuryMatches ? 'yes' : 'NO')}
           </div></div>
         <p class="por-note">Native L1 ANET and wANET are separate assets under separate accounting (whitepaper v3.9, v4.4). Native ANET only increases through the mining schedule and only decreases through one-way exports; wANET is a fixed 21,000,000 supply of which the founder allocation sits in the vault above.</p>`;
       check('cap', 'Activated L1 supply is under the 21,000,000 cap', s.activatedUnderCap, `${fmtNum(s.activatedAnet, 4)} ANET activated`);
-      check('bep20', 'wANET total supply equals the fixed 21,000,000', s.bep20EqualsCap, `${fmtNum(s.bep20, 6)} wANET`);
+      check('bep20', 'wANET total supply equals the fixed 21,000,000', bep20Hex ? s.bep20EqualsCap : null, bep20Hex ? `${fmtNum(s.bep20, 6)} wANET` : 'source unavailable: no BNB Chain RPC node reachable');
       check('no-inbound', 'Inbound bridge credits disabled (one-way policy)', recon ? !recon.portal_credit_enabled : null, recon ? 'portal_credit_enabled = false' : 'endpoint unavailable');
       check('treasury-config', 'L1 node publishes the same treasury address as the paper', treasuryMatches, esc(treas.l1_reserve_treasury_evm_address || ''));
     } catch (e) { el.innerHTML = `<div class="tm-empty">Supply data unavailable: ${esc(e.message)}</div>`; check('cap', 'Activated L1 supply is under the 21,000,000 cap', null, 'source unavailable: ' + esc(e.message)); }
@@ -415,22 +449,40 @@
     } catch (e) { el.innerHTML = `<div class="tm-empty">Digest unavailable: ${esc(e.message)}</div>`; check('digest', 'Whitepaper digest computed from the live document', null, 'source unavailable: ' + esc(e.message)); }
   }
 
+  /** Which node answered each chain, so a visitor can see the page failing over (network bar). */
+  const CHAIN_LABEL = { 56: 'BNB Chain', 1: 'Ethereum', solana: 'Solana' };
+  function renderRpcStatus() {
+    const el = $('por-rpc'); if (!el) return;
+    let s; try { s = rpcClient().status(); } catch (_) { el.textContent = 'RPC client not loaded'; return; }
+    const parts = Object.keys(CHAIN_LABEL).map(c => {
+      const cs = s[c] || {}; const active = cs.active;
+      const fallback = active && cs.endpoints && cs.endpoints[0] && active !== cs.endpoints[0];
+      return `<span class="por-rpc-chain${fallback ? ' fallback' : ''}" title="${esc(fallback ? `${cs.endpoints[0]} unreachable, failed over` : 'primary endpoint')}">${esc(CHAIN_LABEL[c])}: <b>${esc(active || 'connecting…')}</b></span>`;
+    });
+    const logs = s.logs && s.logs[56];
+    if (logs && logs.endpoints && logs.endpoints.length && !logs.active && (s[56] || {}).active) parts.push(`<span class="por-rpc-chain fallback" title="Event history (ledger, release events) needs this archive node">history: <b>${esc(logs.endpoints[0])} unreachable</b></span>`);
+    el.innerHTML = parts.join('<span class="por-rpc-sep"> · </span>');
+  }
+
   async function refreshAll() {
     st.checks = []; renderChecks();
     const t = $('por-updated'); if (t) t.textContent = 'checking…';
     await loadPrices();
     await Promise.all([loadTreasuries(), loadVault(), loadSupply(), loadAttestation()]);
     await loadLedger();
+    renderRpcStatus();
     if (t) t.textContent = new Date().toLocaleString();
   }
 
   function boot() {
     $('por-refresh')?.addEventListener('click', refreshAll);
+    window.addEventListener('anet-rpc-status', renderRpcStatus);
+    renderRpcStatus();
     refreshAll();
     setInterval(refreshAll, 5 * 60_000);
   }
 
-  window.AnetReserves = { PUB, __test: { decodeTransfers, decodeReleased, aggregateBySender, reconcileVault, supplyChecks, isBech32Btc, topicAddr, addrFromTopic, fromUnits, SEL, SEL_SIG, TOPIC_TRANSFER, TOPIC_RELEASED, sha256Hex } };
+  window.AnetReserves = { PUB, __test: { decodeTransfers, decodeReleased, aggregateBySender, reconcileVault, supplyChecks, isBech32Btc, topicAddr, addrFromTopic, fromUnits, SEL, SEL_SIG, TOPIC_TRANSFER, TOPIC_RELEASED, sha256Hex, deriveAta, solTokenBalances, SOL_MINTS, SOL_TOKEN_PROGRAM, SOL_ATA_PROGRAM } };
 
   if (typeof document !== 'undefined' && document.getElementById('por-checks')) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

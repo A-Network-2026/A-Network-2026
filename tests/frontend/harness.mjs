@@ -1,4 +1,4 @@
-// Loads the browser modules (dex-terminal.js, dex-onchain.js and the vendored
+// Loads the browser modules (anet-rpc.js, dex-terminal.js, dex-onchain.js and the vendored
 // Solana bundle) into a Node `vm` sandbox with minimal DOM/network stubs so
 // their pure functions can be unit-tested with `node --test`.
 import fs from 'node:fs';
@@ -23,6 +23,8 @@ function memoryStorage() {
 /**
  * @param {object} opts
  * @param {boolean} [opts.solana]  load the vendored @solana/web3.js bundle (default true)
+ * @param {boolean} [opts.rpc]     load the shared failover RPC client anet-rpc.js (default true)
+ * @param {boolean} [opts.dex]     load dex-terminal.js / dex-onchain.js (default true; they fetch prices on boot)
  * @param {Function} [opts.fetch]  fetch stub; defaults to "network disabled"
  */
 export function loadModules(opts = {}) {
@@ -33,6 +35,7 @@ export function loadModules(opts = {}) {
     setTimeout, clearTimeout,
     setInterval: () => 0, clearInterval: () => {},
     crypto: globalThis.crypto,
+    AbortController: globalThis.AbortController,
     navigator: {},
     atob: (s) => Buffer.from(s, 'base64').toString('binary'),
     btoa: (s) => Buffer.from(s, 'binary').toString('base64'),
@@ -56,13 +59,16 @@ export function loadModules(opts = {}) {
   ctx.devicePixelRatio = 1;
   vm.createContext(ctx);
   if (opts.solana !== false) vm.runInContext(read('assets/js/vendor/anet-solana.bundle.js'), ctx, { filename: 'anet-solana.bundle.js' });
+  if (opts.rpc !== false) vm.runInContext(read('assets/js/anet-rpc.js'), ctx, { filename: 'anet-rpc.js' });
   if (opts.wallet) {
     vm.runInContext(read('assets/js/vendor/anet-crypto.bundle.js'), ctx, { filename: 'anet-crypto.bundle.js' });
     vm.runInContext(read('assets/js/anet-wallet.js'), ctx, { filename: 'anet-wallet.js' });
   }
-  vm.runInContext(read('assets/js/dex-terminal.js'), ctx, { filename: 'dex-terminal.js' });
-  vm.runInContext(read('assets/js/dex-onchain.js'), ctx, { filename: 'dex-onchain.js' });
-  if (opts.bridge !== false) vm.runInContext(read('assets/js/dex-bridge.js'), ctx, { filename: 'dex-bridge.js' });
+  if (opts.dex !== false) {
+    vm.runInContext(read('assets/js/dex-terminal.js'), ctx, { filename: 'dex-terminal.js' });
+    vm.runInContext(read('assets/js/dex-onchain.js'), ctx, { filename: 'dex-onchain.js' });
+  }
+  if (opts.bridge !== false && opts.dex !== false) vm.runInContext(read('assets/js/dex-bridge.js'), ctx, { filename: 'dex-bridge.js' });
   if (opts.reserves) vm.runInContext(read('assets/js/reserves.js'), ctx, { filename: 'reserves.js' });
   return ctx;
 }

@@ -3,18 +3,30 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-itunes-app" content="app-id=6770665448" />
   <title>A Network Invite</title>
   <meta http-equiv="refresh" content="0; url=anetwork://invite" />
+  <script src="../assets/js/app-download.js?v=20261104-app"></script>
   <script>
-    // Try app deep link first, then fall back to website home.
-    window.location.replace("anetwork://invite");
-    setTimeout(function () {
-      window.location.replace("https://a-network.net/");
-    }, 1200);
+    // Try the app deep link first; when nothing opens, send the visitor to the store for
+    // their platform (App Store / Google Play) or to the website on a desktop.
+    (function () {
+      var app = window.AnetApp;
+      var platform = app ? app.platform() : 'other';
+      var fallback = (app && app.storeUrl(platform)) || 'https://a-network.net/';
+      document.addEventListener('DOMContentLoaded', function () {
+        var a = document.getElementById('fallback'); if (a) a.href = fallback;
+      });
+      var timer = setTimeout(function () { if (!document.hidden) window.location.replace(fallback); }, 1500);
+      var cancel = function () { clearTimeout(timer); };
+      window.addEventListener('pagehide', cancel, { once: true });
+      document.addEventListener('visibilitychange', function () { if (document.hidden) cancel(); }, { once: true });
+      window.location.replace(platform === 'android' && app ? app.intentUrl('anetwork://invite') : 'anetwork://invite');
+    })();
   </script>
 </head>
 <body>
   <p>Opening A Network app...</p>
-  <p>If it does not open, <a href="https://a-network.net/">tap here</a>.</p>
+  <p>If it does not open, <a id="fallback" href="https://a-network.net/">tap here</a>.</p>
 </body>
 </html>

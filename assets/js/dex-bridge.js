@@ -33,7 +33,8 @@
   const RELEASE_DEADLINE_H = 24;            // BRIDGE_DEADLINE_SECS default
   const VAULT = '0x31438362a7667ce5559500023D025c7c14168B49';
   const WANET = '0x791055A7d52AA392eaE8De04250497f33807E46A';
-  const BSC_RPCS = ['https://bsc-dataseed.binance.org', 'https://bsc-dataseed1.defibit.io', 'https://rpc.ankr.com/bsc'];
+  // Keyless rpc.ankr.com now answers "Unauthorized"; publicnode is the live last resort.
+  const BSC_RPCS = ['https://bsc-dataseed.binance.org', 'https://bsc-dataseed1.defibit.io', 'https://bsc-rpc.publicnode.com'];
   const PROBE_WALLET = 'ANET000000000000000000000000000000000000';
   const POLL_MS = 10_000, POLL_MAX = 6 * 60; // 60 min
 

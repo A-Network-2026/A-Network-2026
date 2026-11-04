@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-itunes-app" content="app-id=6770665448">
   <title>A Network | Web2 + Web3 + Web4 + Live Layer 1</title>
   <meta name="description" content="A Network combines Web2 6-hour mining sessions, a 21M Web3 utility token on BNB Chain, a separate ANTS-to-ANET Layer 1 mining economy, wallet recovery controls, and a Live Layer 1 Mainnet with event-driven settlement blocks.">
   <meta name="theme-color" content="#ffffff">
@@ -876,6 +877,7 @@
         <a href="support.html">Support</a>
         <a href="#market">Market</a>
         <a href="#social">Social</a>
+        <a href="https://apps.apple.com/us/app/a-network/id6770665448" data-app-download="auto">Download App</a>
       </nav>
     </header>
 
@@ -888,7 +890,8 @@
           <p><strong>Protocol Snapshot:</strong> Public Web3 investors can buy and sell ANET via standard BSC DEX swaps using compatible EVM wallets. In-app settlement (swap, transfer, cashout) remains policy-gated in authenticated A Network wallet flows, and first NFT profile activation requires a successful authenticated settlement event.</p>
         </div>
         <div class="cta-row">
-          <a class="btn" href="#dyor">Start DYOR</a>
+          <a class="btn" href="https://apps.apple.com/us/app/a-network/id6770665448" data-app-download="auto">Download App</a>
+          <a class="btn-secondary" href="#dyor">Start DYOR</a>
           <a class="btn-secondary" href="https://bscscan.com/token/0x791055A7d52AA392eaE8De04250497f33807E46A" target="_blank" rel="noopener noreferrer">View Contract</a>
           <a class="btn-secondary" href="https://github.com/A-Network-2026" target="_blank" rel="noopener noreferrer">Explore GitHub</a>
         </div>
@@ -1281,12 +1284,17 @@
         <a class="chip-link" href="terms.html">Terms</a>
         <a class="chip-link" href="support.html">Support</a>
       </div>
+      <div class="app-badges center" data-app-badges>
+        <a class="app-badge" data-app-download="ios" href="https://apps.apple.com/us/app/a-network/id6770665448" target="_blank" rel="noopener noreferrer"><small>Download on the</small><b>App Store</b></a>
+        <a class="app-badge" data-app-download="android" href="https://play.google.com/store/apps/details?id=com.anetwork.app" target="_blank" rel="noopener noreferrer"><small>Get it on</small><b>Google Play</b></a>
+      </div>
       <div class="footer-card">
         <p>&copy; 2026 A Network. Built for long-term ecosystem development across Web2 session mining, a 21M Web3 utility token, live Layer 1 settlement, and a mining-first Web4/Web5 migration path.</p>
       </div>
     </footer>
   </div>
 
+  <script src="assets/js/app-download.js?v=20261104-app"></script>
   <script>
 
     async function fetchJsonWithFallback(path) {
@@ -1854,9 +1862,11 @@
       }
 
       const src = (params.get('src') || 'google').toLowerCase();
-      const fallback = src === 'apk'
-        ? 'https://t.me/A_Network_Community/8189'
-        : 'https://play.google.com/apps/internaltest/4700891454305512527';
+      // Public store listing for the visitor's platform (assets/js/app-download.js); the Telegram
+      // channel stays the fallback only for the sideload (APK) campaign.
+      const app = window.AnetApp;
+      const store = app ? (app.storeUrl(app.platform()) || app.PLAY_STORE) : 'https://play.google.com/store/apps/details?id=com.anetwork.app';
+      const fallback = src === 'apk' ? 'https://t.me/A_Network_Community/8189' : store;
 
       const deepLink = `anetwork://invite?ref=${encodeURIComponent(antCode)}&src=${encodeURIComponent(src)}`;
 

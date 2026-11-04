@@ -1,0 +1,21 @@
+/* A Network app download badges and nav link (linked by assets/js/app-download.js on every page).
+   Uses the shared Material-style palette hard-coded so it renders the same on pages without the theme variables. */
+.app-badges { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.app-badges.center { justify-content: center; }
+.app-badge {
+  display: inline-flex; flex-direction: column; justify-content: center;
+  min-width: 136px; height: 42px; padding: 0 14px 0 12px; box-sizing: border-box;
+  border: 1px solid #dadce0; border-radius: 8px; background: #ffffff; color: #202124;
+  text-decoration: none; line-height: 1.1; font-family: Roboto, Arial, sans-serif; white-space: nowrap;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.app-badge:hover, .app-badge:focus-visible { border-color: #1967d2; background: #e8f0fe; text-decoration: none; outline: none; box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3); }
+.app-badge small { font-size: 9.5px; letter-spacing: 0.3px; text-transform: uppercase; color: #5f6368; }
+.app-badge b { font-size: 14px; font-weight: 600; color: inherit; }
+
+/* Nav / CTA links tagged data-app-download simply inherit the host page's link styles. */
+
+@media (max-width: 640px) {
+  .app-badges { gap: 8px; }
+  .app-badge { min-width: 124px; height: 40px; }
+}

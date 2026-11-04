@@ -37,13 +37,18 @@
      Configuration
      ═══════════════════════════════════════════════════════════════════ */
 
-  /* ── Ankr RPC (project key) ───────────────────────────────────────── */
+  /* ── Read-only RPC ────────────────────────────────────────────────
+     Reads go through the shared failover client (assets/js/anet-rpc.js:
+     Ankr project key first, public CORS nodes next) when it is loaded; the
+     direct Ankr URLs below are only the fallback for pages that do not
+     include it. Transactions never touch these: they go through the wallet. */
   const ANKR_KEY = '3ce3cd9f0dfa278ed38509a065305c94912b7350a2c1e3b4714d0554b60db218';
   const ANKR_RPC = {
     1:      `https://rpc.ankr.com/eth/${ANKR_KEY}`,
     56:     `https://rpc.ankr.com/bsc/${ANKR_KEY}`,
     solana: `https://rpc.ankr.com/solana/${ANKR_KEY}`,
   };
+  const sharedRpc = () => (typeof window !== 'undefined' && window.AnetRpc) || null;
 
   /* ── Interface fee → treasury ─────────────────────────────────────── */
   const FEE = {
@@ -159,7 +164,7 @@
   };
 
   /* ═══════════════════════════════════════════════════════════════════
-     JSON-RPC (via Ankr): reads + confirmations
+     JSON-RPC: reads + confirmations (shared failover client when loaded)
      ═══════════════════════════════════════════════════════════════════ */
   let _rpcId = 1;
   async function rpc(url, method, params = []) {
@@ -181,11 +186,11 @@
     const byId = new Map(data.map(d => [d.id, d]));
     return calls.map((_, i) => { const d = byId.get(i + 1); return d && !d.error ? d.result : null; });
   }
-  const evmRpc   = (chainId, method, params) => rpc(ANKR_RPC[chainId], method, params);
-  const rpcBatch = (chainId, calls) => rpcBatchUrl(ANKR_RPC[chainId], calls);
-  const solRpc   = (method, params) => rpc(ANKR_RPC.solana, method, params);
+  const evmRpc   = (chainId, method, params) => { const s = sharedRpc(); return s ? s.call(chainId, method, params) : rpc(ANKR_RPC[chainId], method, params); };
+  const rpcBatch = (chainId, calls) => { const s = sharedRpc(); return s ? s.batch(chainId, calls) : rpcBatchUrl(ANKR_RPC[chainId], calls); };
+  const solRpc   = (method, params) => { const s = sharedRpc(); return s ? s.call('solana', method, params) : rpc(ANKR_RPC.solana, method, params); };
 
-  /* Read-only eth_call routed through Ankr (independent of the wallet). */
+  /* Read-only eth_call (independent of the wallet). */
   function evmCall(chainId, to, data) {
     return evmRpc(chainId, 'eth_call', [{ to, data }, 'latest']);
   }

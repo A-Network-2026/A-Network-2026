@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-itunes-app" content="app-id=6770665448">
   <title>A Network Proof of Reserves | Treasuries, Bridge Vault and Fee Revenue</title>
   <meta name="description" content="Live, read-only proof of reserves for A Network: EVM and Solana treasury balances, the BNB Chain bridge vault against Layer 1 liabilities, the interface fee revenue ledger reconstructed from public chain history, the supply invariant and the whitepaper digest.">
   <meta name="theme-color" content="#ffffff">
@@ -20,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/dex.css?v=20261103-reserves">
-  <link rel="stylesheet" href="assets/css/reserves.css?v=20261103-reserves">
+  <link rel="stylesheet" href="assets/css/reserves.css?v=20261104-rpc">
 </head>
 <body>
   <div id="toast-container"></div>
@@ -30,6 +31,7 @@
       <div class="network-item"><span class="pill live green">LIVE</span><span>Read-only verification</span></div>
       <div class="network-item">Last check: <span class="v" id="por-updated">loading…</span></div>
       <div class="network-item">Sources: <span class="v">BNB Chain · Ethereum · Solana · Bitcoin · A Network L1</span></div>
+      <div class="network-item">RPC: <span class="v" id="por-rpc">connecting…</span></div>
       <div class="network-item" style="margin-left: auto"><button class="btn btn-ghost btn-sm" id="por-refresh" type="button">Refresh ↻</button></div>
     </div>
 
@@ -47,6 +49,7 @@
         <a href="whitepaper.html">Whitepaper</a>
         <a href="web5.html">Explorer</a>
         <a href="reserves.html" class="active">Reserves</a>
+        <a href="https://apps.apple.com/us/app/a-network/id6770665448" data-app-download="auto">Download App</a>
       </nav>
     </header>
 
@@ -100,6 +103,7 @@
       <div class="section-heading"><h3>METHOD AND LIMITS</h3><div class="line"></div></div>
       <div class="card"><div class="card-body por-method">
         <p><strong>How to read this page.</strong> Balances come from <code>eth_call</code> / <code>eth_getBalance</code> on BNB Chain and Ethereum, <code>getBalance</code> / <code>getTokenAccountsByOwner</code> on Solana, the Blockstream Esplora API for Bitcoin, and the public A Network Layer 1 API. Revenue is reconstructed from ERC-20 <code>Transfer</code> events whose recipient is the treasury; the sender of each transfer is shown so you can distinguish interface fees from other deposits. USD values use the live DexScreener and CoinGecko prices at the time you load the page, not historical prices.</p>
+        <p><strong>Which node answers.</strong> Reads go to the project's archive RPC endpoint first and fail over automatically to public BNB Chain, Ethereum and Solana nodes when a provider cannot be reached from your network (the RPC line at the top shows the node that actually answered). Current balances and contract state are served by any node. The event history behind the fee ledger and the release list needs an archive node; when none is reachable those two items are shown as unavailable rather than guessed, and the BscScan links let you verify them by hand.</p>
         <p><strong>What this page proves and what it does not.</strong> It proves what the published addresses hold and what entered them, at the moment of your request. It does not prove who controls the keys, and it is not an audit opinion or a financial attestation. Native-coin (BNB, ETH) inflows cannot be enumerated from an RPC node without an indexer, so only the current native balances are shown. Operating expenses paid out of the treasury are visible as outflows on the explorers linked above.</p>
         <p><strong>Layer 1 export liabilities.</strong> The Layer 1 export ledger (<code>/bridge/burns</code>) is behind the operator switch described in whitepaper Version 4.6. While it is switched off the page reconciles from the BNB Chain side only: vault balance plus total released equals the wANET escrowed, and the number of release events on BNB Chain is the number of exports ever honoured. When the switch is on, the page additionally compares pending Layer 1 burns with releases.</p>
       </div></div>
@@ -108,10 +112,13 @@
     <footer class="por-footer">
       <span>A Network · Proof of Reserves · whitepaper Version 4.6, Phase 4: Auditable Native Markets</span>
       <span>Open source: <a href="https://github.com/A-Network-2026/A-Network-2026/blob/main/assets/js/reserves.js" target="_blank" rel="noopener">reserves.js ↗</a></span>
+      <span>App: <a href="https://apps.apple.com/us/app/a-network/id6770665448" data-app-download="ios">App Store</a> · <a href="https://play.google.com/store/apps/details?id=com.anetwork.app" data-app-download="android">Google Play</a></span>
     </footer>
   </div>
 
   <script src="assets/js/vendor/anet-solana.bundle.js?v=20260706"></script>
-  <script src="assets/js/reserves.js?v=20261103-reserves2"></script>
+  <script src="assets/js/anet-rpc.js?v=20261104-rpc"></script>
+  <script src="assets/js/reserves.js?v=20261104-rpc"></script>
+  <script src="assets/js/app-download.js?v=20261104-app" defer></script>
 </body>
 </html>

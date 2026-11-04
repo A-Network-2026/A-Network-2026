@@ -130,7 +130,8 @@ const ANET_L1_CHAIN_ID = 'anet-private-mainnet-1';
 // on the A Network L1. Set true to fall back to the deep-link "open app" flow.
 const INVESTOR_WEB_VIEW_ONLY = false;
 const WALLET_APP_DEEPLINK = 'anetwork://invite';
-const WALLET_APP_FALLBACK_URL = 'https://play.google.com/store/apps/details?id=com.anetwork.app';
+// Store listing for the visitor's platform (assets/js/app-download.js); Google Play when unknown.
+const WALLET_APP_FALLBACK_URL = (window.AnetApp && (window.AnetApp.storeUrl(window.AnetApp.platform()) || window.AnetApp.PLAY_STORE)) || 'https://play.google.com/store/apps/details?id=com.anetwork.app';
 const APP_WALLET_CONNECTION_KEY = 'anet:walletConnection';
 
 function isEmbeddedWebView() {
@@ -1379,7 +1380,7 @@ function renderAnetWalletModal() {
     <button class="btn btn-outline btn-full" type="button" onclick="switchAnetWalletMode('create')" style="margin-top:12px;">+ Create a brand-new wallet</button>
     <div class="info-box" style="margin-top:10px;">
       Already have a wallet in the
-      <a href="https://play.google.com/store/apps/details?id=com.anetwork.app" target="_blank" rel="noopener">A Network app</a>?
+      <a href="${WALLET_APP_FALLBACK_URL}" target="_blank" rel="noopener">A Network app</a>?
       Reveal its seed phrase or private key there, then paste it above.
     </div>
     ${rpcAdvancedHtml()}`;

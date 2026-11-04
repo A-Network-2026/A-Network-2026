@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-itunes-app" content="app-id=6770665448">
   <title>A Network DEX | Native Layer 1 Decentralized Exchange</title>
   <meta name="description" content="Trade on the A Network native Layer 1 DEX. Swap ANET, provide liquidity, and use one-way native-to-external bridge workflows under the v4.4 policy.">
   <meta name="theme-color" content="#ffffff">
@@ -89,6 +90,7 @@
         <a href="nft.html">NFT</a>
         <a href="dex.html" class="active">DEX</a>
         <a href="reserves.html">Reserves</a>
+        <a href="https://apps.apple.com/us/app/a-network/id6770665448" data-app-download="auto">Download App</a>
       </nav>
 
       <div class="header-wallets">
@@ -1296,6 +1298,10 @@ Cash Out
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
       </div>
+      <div class="app-badges center" data-app-badges>
+        <a class="app-badge" data-app-download="ios" href="https://apps.apple.com/us/app/a-network/id6770665448" target="_blank" rel="noopener noreferrer"><small>Download on the</small><b>App Store</b></a>
+        <a class="app-badge" data-app-download="android" href="https://play.google.com/store/apps/details?id=com.anetwork.app" target="_blank" rel="noopener noreferrer"><small>Get it on</small><b>Google Play</b></a>
+      </div>
       <div class="copyright">© 2026 A Network. Native Layer 1 DEX.</div>
     </footer>
 
@@ -1303,13 +1309,15 @@ Cash Out
 
   <script src="assets/js/vendor/anet-crypto.bundle.js?v=20260628"></script>
   <script src="assets/js/vendor/anet-solana.bundle.js?v=20260706"></script>
+  <script src="assets/js/anet-rpc.js?v=20261104-rpc"></script>
+  <script src="assets/js/app-download.js?v=20261104-app"></script>
   <script src="assets/js/anet-wallet.js?v=20260628"></script>
   <script src="assets/js/dex.js?v=20261103-reserves"></script>
   <!-- TradingView Lightweight Charts™ (Apache-2.0, self-hosted — see assets/js/vendor/README-crypto.md) -->
   <script src="assets/js/vendor/lightweight-charts.standalone.production.js?v=5.2.1"></script>
   <script src="assets/js/dex-terminal.js?v=20261103-reserves"></script>
-  <script src="assets/js/dex-onchain.js?v=20261103-reserves"></script>
-  <script src="assets/js/dex-bridge.js?v=20261103-reserves"></script>
+  <script src="assets/js/dex-onchain.js?v=20261104-rpc"></script>
+  <script src="assets/js/dex-bridge.js?v=20261104-rpc"></script>
 
 </body>
 </html>
