@@ -12130,31 +12130,31 @@
     "2026-11-11": {
       "owners": {
         "ANETBX7": {
-          "mining": 1288,
-          "members": 2591,
-          "rooms": 2384,
+          "mining": 1293,
+          "members": 2592,
+          "rooms": 2385,
           "colonyName": "ANETBX7"
         },
         "ANETWIH": {
-          "mining": 736,
-          "members": 2600,
-          "rooms": 2394,
+          "mining": 741,
+          "members": 2601,
+          "rooms": 2395,
           "colonyName": "ANETWIH"
         },
         "ANET16IE": {
-          "mining": 516,
+          "mining": 517,
           "members": 1483,
           "rooms": 1360,
           "colonyName": "ANET16IE"
         },
         "ANETF4F": {
-          "mining": 433,
+          "mining": 434,
           "members": 990,
           "rooms": 973,
           "colonyName": "ANETF4F"
         },
         "ANET5WW": {
-          "mining": 412,
+          "mining": 413,
           "members": 752,
           "rooms": 701,
           "colonyName": "ANET5WW"
@@ -12208,7 +12208,7 @@
           "colonyName": "ANET3Y"
         },
         "ANETD24": {
-          "mining": 137,
+          "mining": 138,
           "members": 224,
           "rooms": 215,
           "colonyName": "ANETD24"
@@ -12370,7 +12370,7 @@
           "colonyName": "ANETHOC"
         },
         "ANET1GVC": {
-          "mining": 87,
+          "mining": 88,
           "members": 231,
           "rooms": 217,
           "colonyName": "ANET1GVC"
@@ -12382,7 +12382,7 @@
           "colonyName": "ANETB"
         },
         "ANETEN5": {
-          "mining": 82,
+          "mining": 83,
           "members": 200,
           "rooms": 187,
           "colonyName": "ANETEN5"
@@ -12598,7 +12598,7 @@
           "colonyName": "ANETM3I"
         },
         "ANET1011": {
-          "mining": 51,
+          "mining": 52,
           "members": 138,
           "rooms": 124,
           "colonyName": "ANET1011"
@@ -12652,7 +12652,7 @@
           "colonyName": "ANETMYG"
         },
         "ANETDOX": {
-          "mining": 48,
+          "mining": 49,
           "members": 150,
           "rooms": 142,
           "colonyName": "ANETDOX"
@@ -12712,7 +12712,7 @@
           "colonyName": "ANET6GZ"
         },
         "ANET2BV8": {
-          "mining": 42,
+          "mining": 43,
           "members": 207,
           "rooms": 173,
           "colonyName": "ANET2BV8"
@@ -12778,7 +12778,7 @@
           "colonyName": "ANET2WDX"
         },
         "ANET155": {
-          "mining": 38,
+          "mining": 39,
           "members": 91,
           "rooms": 84,
           "colonyName": "ANET155"
@@ -12874,7 +12874,7 @@
           "colonyName": "ANET3X8W"
         },
         "ANET3K19": {
-          "mining": 29,
+          "mining": 30,
           "members": 68,
           "rooms": 65,
           "colonyName": "ANET3K19"
@@ -13306,7 +13306,7 @@
           "colonyName": "ANETKSI"
         },
         "ANETEQ": {
-          "mining": 14,
+          "mining": 15,
           "members": 66,
           "rooms": 64,
           "colonyName": "ANETEQ"
@@ -13328,10 +13328,16 @@
           "members": 37,
           "rooms": 36,
           "colonyName": "ANETVXZ"
+        },
+        "ANET3X56": {
+          "mining": 15,
+          "members": 26,
+          "rooms": 26,
+          "colonyName": "ANET3X56"
         }
       },
-      "sampleCount": 1,
-      "lastSampleAt": "2026-11-11T00:44:04.801Z"
+      "sampleCount": 2,
+      "lastSampleAt": "2026-11-11T06:38:47.166Z"
     }
   }
 }
