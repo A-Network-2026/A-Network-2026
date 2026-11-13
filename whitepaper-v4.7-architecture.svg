@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="960" height="560" font-family="Roboto, Arial, sans-serif" font-size="13" role="img" aria-labelledby="title desc">
+  <title id="title">A-Network production architecture, release 0.2.0</title>
+  <desc id="desc">Web2 mining feeds the single operator producer; follower nodes on independent computers verify and replicate the chain; Web4 services are planned.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5f6368"/>
+    </marker>
+    <style>
+      .box { fill: #ffffff; stroke: #5f6368; stroke-width: 1.2; rx: 8; }
+      .web2 { fill: #fef7e0; stroke: #f9ab00; }
+      .web3 { fill: #e8f0fe; stroke: #1a73e8; }
+      .node { fill: #e6f4ea; stroke: #188038; }
+      .ext  { fill: #f1f3f4; stroke: #80868b; }
+      .plan { fill: #ffffff; stroke: #9aa0a6; stroke-dasharray: 6 4; }
+      .h { font-weight: 700; fill: #202124; }
+      .t { fill: #3c4043; }
+      .lane { font-size: 12px; font-weight: 700; fill: #5f6368; letter-spacing: 1px; }
+      .line { stroke: #5f6368; stroke-width: 1.4; fill: none; marker-end: url(#arrow); }
+      .dash { stroke-dasharray: 5 4; }
+    </style>
+  </defs>
+
+  <text class="lane" x="20" y="28">WEB2 · MOBILE MINING</text>
+  <text class="lane" x="20" y="198">WEB3 · LAYER 1 SETTLEMENT (OPERATOR)</text>
+  <text class="lane" x="250" y="368">WEB3 · INDEPENDENT COMPUTERS</text>
+  <text class="lane" x="700" y="368">WEB4 · PLANNED</text>
+
+  <rect class="box web2" x="20" y="40" width="200" height="110"/>
+  <text class="h" x="35" y="64">Mobile app</text>
+  <text class="t" x="35" y="86">6-hour mining sessions</text>
+  <text class="t" x="35" y="106">Local key, signs actions</text>
+  <text class="t" x="35" y="126">iOS / Android</text>
+
+  <rect class="box web2" x="300" y="40" width="270" height="110"/>
+  <text class="h" x="315" y="64">Web2 mining backend</text>
+  <text class="t" x="315" y="86">Sessions, halving schedule, fraud flags</text>
+  <text class="t" x="315" y="106">PostgreSQL Ant Ledger</text>
+  <text class="t" x="315" y="126">Session Merkle roots sealed on L1</text>
+
+  <rect class="box ext" x="650" y="40" width="290" height="110"/>
+  <text class="h" x="665" y="64">External EVM market (separate)</text>
+  <text class="t" x="665" y="86">wANET BEP-20 on BNB Chain</text>
+  <text class="t" x="665" y="106">Bridge vault releases on export only</text>
+  <text class="t" x="665" y="126">One-way: never mints native ANET</text>
+
+  <rect class="box web3" x="160" y="210" width="440" height="120"/>
+  <text class="h" x="175" y="234">L1 producer node (single operator node)</text>
+  <text class="t" x="175" y="256">Orders signed transfers, ANRC-20 and DEX actions; seals blocks</text>
+  <text class="t" x="175" y="276">Credits activation only to wallets with ≥ 1,000 sessions (cap 21M)</text>
+  <text class="t" x="175" y="296">Seals SessionActivation, signed ANRC-20 auth, NativeBurned</text>
+  <text class="t" x="175" y="316">Public RPC: explorer.a-network.net</text>
+
+  <rect class="box web3" x="650" y="210" width="290" height="120"/>
+  <text class="h" x="665" y="234">Wallets, explorer, apps</text>
+  <text class="t" x="665" y="256">TypeScript SDK, web wallet, extension</text>
+  <text class="t" x="665" y="276">Sign locally (secp256k1, low-s)</text>
+  <text class="t" x="665" y="296">Read from producer or followers</text>
+
+  <rect class="box node" x="20" y="380" width="200" height="130"/>
+  <text class="h" x="35" y="404">Follower node A</text>
+  <text class="t" x="35" y="426">Verifies hashes, roots,</text>
+  <text class="t" x="35" y="446">signatures, supply, tokens</text>
+  <text class="t" x="35" y="466">Local store, read-only RPC</text>
+  <text class="t" x="35" y="486">Cannot produce or mint</text>
+
+  <rect class="box node" x="250" y="380" width="180" height="130"/>
+  <text class="h" x="265" y="404">Follower node B</text>
+  <text class="t" x="265" y="426">Syncs from A and others</text>
+  <text class="t" x="265" y="446">Rejects invalid peers</text>
+  <text class="t" x="265" y="466">macOS · Linux · Windows</text>
+
+  <rect class="box node" x="460" y="380" width="180" height="130"/>
+  <text class="h" x="475" y="404">Follower node C …</text>
+  <text class="t" x="475" y="426">Multi-peer, divergence</text>
+  <text class="t" x="475" y="446">detection, peer discovery</text>
+
+  <rect class="box plan" x="700" y="380" width="240" height="130"/>
+  <text class="h" x="715" y="404">Open-network services</text>
+  <text class="t" x="715" y="426">Service hosting, identity,</text>
+  <text class="t" x="715" y="446">interoperable app APIs on</text>
+  <text class="t" x="715" y="466">verified follower RPC</text>
+  <text class="t" x="715" y="486">Not deployed</text>
+
+  <path class="line" d="M220,95 L298,95"/>
+  <text class="t" x="228" y="88" font-size="11">sessions</text>
+  <path class="line" d="M435,150 L435,208"/>
+  <text class="t" x="442" y="185" font-size="11">activation feed</text>
+  <path class="line" d="M600,250 L648,250" marker-start="url(#arrow)"/>
+  <path class="line" d="M560,210 L700,152"/>
+  <text class="t" x="708" y="198" font-size="11">export burn → release</text>
+  <path class="line" d="M200,330 L200,378"/>
+  <text class="t" x="208" y="352" font-size="11">blocks</text>
+  <path class="line" d="M250,445 L222,445" marker-start="url(#arrow)"/>
+  <path class="line" d="M460,445 L432,445" marker-start="url(#arrow)"/>
+  <path class="line dash" d="M700,445 L642,445"/>
+  <text class="t" x="20" y="540" font-size="12">Yellow, blue, grey: operator-run, deployed. Green: independent follower software (node 0.2.x), deployed. Dashed: planned.</text>
+</svg>

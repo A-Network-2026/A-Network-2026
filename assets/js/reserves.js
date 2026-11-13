@@ -4,7 +4,7 @@
  *
  * Read-only. Every number is fetched from a public chain in the visitor's
  * browser; nothing is self-reported. Addresses are the ones published in the
- * whitepaper (Version 4.6). CSP: script-src 'self'; no CDNs, no eval.
+ * whitepaper (Version 4.7). CSP: script-src 'self'; no CDNs, no eval.
  *
  * Sources
  *   BNB Chain / Ethereum  JSON-RPC via AnetRpc (assets/js/anet-rpc.js): Ankr archive key first,
@@ -25,7 +25,7 @@
   const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
 
   /* ═══════════════════════════════════════════════════════════════════
-     Published facts (whitepaper v4.6). Change here = change in the paper.
+     Published facts (whitepaper v4.7). Change here = change in the paper.
      ═══════════════════════════════════════════════════════════════════ */
   const L1_API = 'https://explorer.a-network.net';
   const ESPLORA = 'https://blockstream.info/api';
@@ -43,7 +43,7 @@
     maxSupplyAnet: 21_000_000,
     founderAllocationWanet: 10_499_798.020348,  // whitepaper v3.3: 50% founder allocation escrowed in the vault
     vaultDeployBlock: 99_500_000,
-    whitepaper: { version: '4.6', title: 'Self-Custody Trading Terminal and Verifiable Fee Collection', url: 'whitepaper.html' },
+    whitepaper: { version: '4.7', title: 'ANRC-20 and Open Network Infrastructure', url: 'whitepaper.html' },
   };
 
   const TOKENS = {
@@ -451,7 +451,7 @@
       el.innerHTML = `${row('Document', link(PUB.whitepaper.url, `whitepaper.html (Version ${PUB.whitepaper.version})`))}
         ${row('SHA-256 of the page you can download right now', digest)}
         ${row('Bytes', fmtNum(raw.length, 0))}
-        <p class="por-note">Whitepaper Version 4.2 commits to sealing each published revision as a Layer 1 block event (<code>Protocol: v4.6 … (sha256 …)</code>). Compare this digest with the sealed event on the ${link('https://explorer.a-network.net/explorer', 'block explorer')}; if the sealed digest differs, the published document has changed since it was attested. Reproduce locally: <code>curl -s https://a-network.net/whitepaper.html | shasum -a 256</code>.</p>`;
+        <p class="por-note">Whitepaper Version 4.2 commits to sealing each published revision as a Layer 1 block event (<code>Protocol: v4.7 … (sha256 …)</code>). Compare this digest with the sealed event on the ${link('https://explorer.a-network.net/explorer', 'block explorer')}; if the sealed digest differs, the published document has changed since it was attested. Reproduce locally: <code>curl -s https://a-network.net/whitepaper.html | shasum -a 256</code>.</p>`;
       check('digest', 'Whitepaper digest computed from the live document', true, digest.slice(0, 16) + '…');
     } catch (e) { el.innerHTML = `<div class="tm-empty">Digest unavailable: ${esc(e.message)}</div>`; check('digest', 'Whitepaper digest computed from the live document', null, 'source unavailable: ' + esc(e.message)); }
   }

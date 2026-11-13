@@ -282,7 +282,8 @@ A Network/
 │   └── pubspec.yaml
 ├── pi-backend/               # Pi DEX bridge backend
 ├── index.html                # Main website
-├── whitepaper.html           # Official whitepaper v4.6
+├── whitepaper.html           # Official whitepaper v4.7
+├── whitepaper-v4.7/          # v4.7 PDF, Markdown, change log and verification records
 ├── privacy.html
 ├── terms.html
 ├── delete-account.html
@@ -639,7 +640,7 @@ Public pages live in the repository root (served via GitHub Pages / CNAME):
 
 - `index.html` — Main website
 - `dex.html` — DEX: on-chain **Trade** terminal (BNB Chain / Ethereum / Solana) + native Layer 1 AMM tabs
-- `whitepaper.html` — Official Whitepaper v4.6 (November 2026)
+- `whitepaper.html` — Official Whitepaper v4.7 (November 2026)
 - `privacy.html` — Privacy Policy
 - `terms.html` — Terms of Service
 - `delete-account.html` — Account Deletion instructions
@@ -836,7 +837,7 @@ Avoid claiming:
 |----------|-------------|
 | [ROADMAP_2026.md](ROADMAP_2026.md) | Full 5-phase ecosystem roadmap (Web2 → Web3 → Web4 → Smart Contracts → ANET Core) |
 | [COMMUNITY_ARTICLE_ANET_WBNB.md](COMMUNITY_ARTICLE_ANET_WBNB.md) | Transparency article: ANET/WBNB vs Layer 1 coin, dual economy explanation |
-| [whitepaper.html](https://a-network.net/whitepaper.html) | Official Whitepaper v4.6 — full technical specification |
+| [whitepaper.html](https://a-network.net/whitepaper.html) | Official Whitepaper v4.7 — full technical specification |
 | [explorer.a-network.net](https://explorer.a-network.net) | Layer 1 block explorer (ANTS Mainnet live) |
 
 ## Summary

@@ -9,18 +9,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="apple-itunes-app" content="app-id=6770665448">
 
-  <title>A-Network Whitepaper v4.6 | Self-Custody Trading Terminal and Verifiable Fee Collection</title>
+  <title>A-Network Whitepaper v4.7 | ANRC-20 and Open Network Infrastructure</title>
 
-  <meta name="description" content="The official A-Network v4.6 whitepaper documents the self-custody on-chain trading terminal, verifiable interface fee collection to the published treasuries, the gated export bridge, the one-way bridge invariant, session-gated native token issuance, mined-coin vesting and the Layer 1 liquidity audit gates." />
+  <meta name="description" content="The official A-Network v4.7 whitepaper documents the ANRC-20 native token standard, independent follower nodes that verify Layer 1 supply and token rules, the activation rule, and the verified production status, alongside the one-way bridge, vesting and liquidity rules of earlier versions." />
 
   <meta name="theme-color" content="#ffffff" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
   <meta http-equiv="X-Frame-Options" content="DENY" />
   <meta name="referrer" content="no-referrer" />
 
-  <meta property="og:title" content="A-Network Whitepaper v4.6" />
+  <meta property="og:title" content="A-Network Whitepaper v4.7" />
 
-  <meta property="og:description" content="Technical specification for A-Network Layer 1, transparent unlock tiers, verified token identity, real-liquidity audit gates, treasury controls, separate Bitcoin and EVM markets, and compliance review requirements." />
+  <meta property="og:description" content="Technical specification for A-Network Layer 1, the ANRC-20 native token standard, independent follower nodes, transparent unlock tiers, verified token identity, real-liquidity audit gates, treasury controls, separate Bitcoin and EVM markets, and compliance review requirements." />
 
   <meta property="og:url" content="https://a-network.net/whitepaper.html" />
 
@@ -572,6 +572,7 @@
 
   </style>
 
+  <style>@media print { #anet-site-ai, .back-top { display: none !important; } }</style>
 </head>
 
 <body>
@@ -599,7 +600,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v4.6 · NOVEMBER 1, 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v4.7 · NOVEMBER 13, 2026</sub>
 
       </div>
 
@@ -632,6 +633,7 @@
     <a class="nav-item" href="#v42-changelog">v4.2 Unlock Tiers &amp; Attestation</a>
     <a class="nav-item" href="reserves.html">Proof of Reserves (live)</a>
     <a class="nav-item" href="https://apps.apple.com/us/app/a-network/id6770665448" data-app-download="auto">Download the app</a>
+    <a class="nav-item" href="#v47-changelog">v4.7 ANRC-20 &amp; Open Network</a>
     <a class="nav-item" href="#v46-changelog">v4.6 Trading Terminal &amp; Fees</a>
     <a class="nav-item" href="#v45-changelog">v4.5 Native Token Registry</a>
     <a class="nav-item" href="#v44-changelog">v4.4 One-Way Bridge</a>
@@ -888,12 +890,12 @@
         </div>
       </div>
 
-      <div class="hero-badge">Technical Paper v4.6 (Self-Custody Trading Terminal and Verifiable Fee Collection)</div>
+      <div class="hero-badge">Technical Paper v4.7 (ANRC-20 and Open Network Infrastructure)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
       <p class="hero-sub">A-Network operates a native Layer 1 settlement ledger and a separate EVM market. Version 3.9 defines the controls required before public Layer 1 liquidity can be described as real: every pool contribution must debit a named wallet, the paired reserve asset must be registered and externally verifiable, bootstrap or administrator-created balances cannot be presented as liquidity, and the mobile interface must fail closed when any audit gate is missing. The designated EVM reserve treasury is <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code>. A Bitcoin reserve may support a separately identified ANET/BTC market only after a Bitcoin treasury address and proof transaction are published. Bitcoin reserves, EVM reserves, and native Layer 1 balances are never merged in accounting or represented as interchangeable custody. Layer 1 currently uses fixed protocol operations and has no general-purpose smart-contract virtual machine; any future VM requires a separately specified consensus upgrade, public test environment, independent audit, and explicit activation decision.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong>: 4.6 (Self-Custody Trading Terminal and Verifiable Fee Collection)</div>
-        <div class="hero-meta-item"><strong>Published</strong>: November 1, 2026</div>
+        <div class="hero-meta-item"><strong>Version</strong>: 4.7 (ANRC-20 and Open Network Infrastructure)</div>
+        <div class="hero-meta-item"><strong>Published</strong>: November 13, 2026</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong>: Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>EVM Reserve Treasury</strong>: <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code></div>
         <div class="hero-meta-item"><strong>Solana Treasury</strong>: <code>7j33RFPkNvaKsPuz2qJ5SzwiwXA4iL12ujqM4g2tRLEz</code></div>
@@ -903,6 +905,161 @@
         <div class="hero-meta-item"><strong>Liquidity Rule</strong>: Wallet-funded &middot; reserve-backed &middot; independently auditable &middot; never bootstrap</div>
       </div>
     </div>
+
+    <section class="wp-section" id="v47-changelog">
+      <div class="section-label">v4.7 Changelog &middot; November 13, 2026</div>
+      <h2>Version 4.7: ANRC-20 and Open Network Infrastructure</h2>
+      <p>Version 4.7 documents the ANRC-20 native token standard as implemented, follower-node software that lets any computer independently verify and replicate Layer&nbsp;1, and the supply checks every such node performs. It changes no supply figure, issuance schedule, halving rule, eligibility threshold, vesting schedule, liquidity disclosure or bridge policy. The one-way bridge invariant of Version 4.4, the vesting schedule of Version 4.3 and the creator gate of Version 4.5 remain in force without modification.</p>
+
+      <h3>Status at publication</h3>
+      <table class="wp-table">
+        <thead><tr><th>Component</th><th>Status on November 13, 2026</th></tr></thead>
+        <tbody>
+          <tr><td>ANRC-20 create, mint, transfer and registry</td><td>Live on mainnet since October 22, 2026</td></tr>
+          <tr><td>Follower node: verify, store, serve</td><td>Released in node 0.2.0 (source published); verified against the full production history before and after deployment</td></tr>
+          <tr><td>Platforms</td><td>Build and tests pass on Linux, macOS and Windows (CI)</td></tr>
+          <tr><td>Signed ANRC-20 authorizations sealed in blocks</td><td>Live since November 13, 2026, 17:27 UTC (node 0.2.0)</td></tr>
+          <tr><td><code>NativeBurned</code> export records, full-digest document attestation</td><td>Live since node 0.2.0</td></tr>
+          <tr><td>Activation credits the Web2 ledger balance (owner decision)</td><td>Live since November 13, 2026, 17:41 UTC (node 0.2.1)</td></tr>
+          <tr><td>TypeScript SDK 0.1.0</td><td>Source published with the node (not yet on npm); signatures byte-identical with the node</td></tr>
+          <tr><td>Multi-validator block production</td><td>Not implemented</td></tr>
+          <tr><td>Web4 open-network services</td><td>Planned; not deployed</td></tr>
+        </tbody>
+      </table>
+
+      <h3>A. ANRC-20 native token standard</h3>
+      <p>ANRC-20 is a fixed-function token module in the Layer&nbsp;1 node, consistent with &sect;&nbsp;SC. It is not a smart-contract standard: there is no virtual machine, no user-deployed code, and no EVM or TRON compatibility.</p>
+      <ul>
+        <li><strong>Identity.</strong> A unique, immutable symbol (1&ndash;16 of A&ndash;Z, 0&ndash;9, <code>_</code>, <code>-</code>; <code>ANET</code> and <code>WANET</code> reserved) is the canonical identifier. Name (1&ndash;64 characters), decimals (0&ndash;18), owner and the mintable flag are fixed at creation. Supply is an unsigned 64-bit integer and always equals the sum of balances.</li>
+        <li><strong>Lifecycle.</strong> Create (wallet with at least 1,000 completed sessions, not a bootstrap seat; initial supply to the creator), mint (owner only, mintable tokens only), transfer (holder). There is no burn and no administrative override. Supply grows only through create and mint.</li>
+        <li><strong>Transaction rules.</strong> Each operation carries a signed authorization over <code>action-v1|action|wallet|nonce|timestamp|chain_id|canonical payload</code> with a low-s secp256k1 signature. The node rejects a different chain, a payload that differs from the request, and a nonce that is not strictly greater than the previous one for that wallet and action.</li>
+        <li><strong>Fees.</strong> ANRC-20 operations carry no fee. Any future fee requires a specified, versioned protocol rule (Version 4.5).</li>
+        <li><strong>Separation from native ANET.</strong> Token balances are recorded separately from ANET. No token operation creates, destroys or moves native ANET, and every follower node checks this independently (part C).</li>
+        <li><strong>On-chain record</strong> <em>(live since node 0.2.0)</em>. Each operation is sealed as a <code>TokenTransferred</code> event that includes the full signed authorization. Followers re-verify the signer, payload and nonce of every token operation from the first sealed authorization onward. The three tokens created on October 22, 2026 (<code>CJ</code>, <code>CJC</code>, <code>DG</code>) predate sealing. Their supply and balances are verified, but their signatures were not recorded on-chain.</li>
+      </ul>
+
+      <h3>B. Mobile mining and genesis integrity</h3>
+      <ul>
+        <li><strong>Canonical chain.</strong> Chain ID <code>anet-private-mainnet-1</code>; block&nbsp;0 hash <code>24f8723fe1ea0b186d28b5574979fdd91236328e6c1c733ae93989389bb9d49b</code>, sealed April 21, 2026. The genesis block is preserved. Mining sessions do not create blocks or genesis blocks; blocks are produced only when there is pending work.</li>
+        <li><strong>Revelation Block&nbsp;0.</strong> The signed snapshot of May 26, 2026 (SHA-256 <code>f8719ae3&hellip;d27a</code>, 81,763 wallets, 31,990.69 ANET) attests to the Web2 mining ledger. It is not Layer&nbsp;1 block&nbsp;0 and credits nothing on Layer&nbsp;1.</li>
+        <li><strong>From mining to Layer&nbsp;1.</strong> Sessions are recorded by the Web2 backend. Once a wallet reaches 1,000 completed sessions, the producer credits its activation and seals a <code>SessionActivation</code> receipt together with <code>activated_supply_ants</code>. Session counts of all miners are committed as Merkle roots (34,986 roots sealed so far).</li>
+        <li><strong>Reconciliation (verified).</strong> On November 13, 2026 an independent follower replayed every block. Its account balances total 239.59021715 ANET, exactly equal to the supply reported by the producer at the same height (39,601). No native ANET has yet entered Layer&nbsp;1 through mining activation: 0 wallets are eligible, and the highest session count recorded in on-chain milestones is 739.</li>
+      </ul>
+      <div class="panel panel-green">
+        <h4>Protocol decision (owner, November 13, 2026)</h4>
+        <p style="margin-bottom: 0">Activation credits each newly eligible wallet its Web2 ledger balance, which follows the halving schedule of Section 7. The previous rule, <code>max(stored balance, sessions &times; 4,882,812 ANTS)</code>, re-priced every session at the launch-era rate; on a local test network a wallet that earned 2.62 ANET for 1,000 sessions was activated with 48.83 ANET. No wallet had been activated, so no balance changed. The rule is published as <code>activation_credit</code> in <code>/network/consensus</code> and has been live since node 0.2.1 (November 13, 2026, 17:41 UTC).</p>
+      </div>
+
+      <h3>C. Native ANET supply protection</h3>
+      <ul>
+        <li><strong>Unchanged rules.</strong> 21,000,000 ANET maximum; 1 ANET = 100,000,000 ANTS; native ANET originates only from the mining and activation schedule; no premine, development, validator or computer allocation exists; no administrative mint route exists; wANET and native ANET remain separate, and purchased wANET never becomes native ANET.</li>
+        <li><strong>Computers cannot create ANET.</strong> Follower software has no block-production or credit path. Every follower rejects a block that pushes native ANET above the cap or that, after the issuance checkpoint, increases native ANET by more than its sealed activation credits. Native ANET is counted as account balances plus DEX pool reserves plus WANET. Exports and clawbacks are added back before the comparison, so a mint cannot hide behind a burn. Credits must go to eligible wallets and may not exceed 4,882,812 ANTS per session.</li>
+        <li><strong>Issuance checkpoint.</strong> Block position 4,777 (hash <code>26d0863f&hellip;5ae7</code>, June 28, 2026) closes the legacy era. Native ANET that entered Layer&nbsp;1 before it, without an activation receipt, is itemized below. All ~34,800 later blocks pass the strict rule.</li>
+      </ul>
+      <table class="wp-table">
+        <thead><tr><th>Block position</th><th>Origin</th><th>ANET</th></tr></thead>
+        <tbody>
+          <tr><td>169, 1809, 1813, 1816</td><td>EVM bridge credits before the one-way policy (purchases), including fees</td><td>241.89019714</td></tr>
+          <tr><td>44</td><td>Operator bootstrap reserve in the <code>ANET-USDC</code> pool (no wallet debit; excluded from markets by the Version 3.9 pool audit)</td><td>10.00000000</td></tr>
+          <tr><td>1, 10</td><td>Integration-test transfer and Pi settlement</td><td>0.00002001</td></tr>
+          <tr><td colspan="2"><strong>Total native ANET on Layer&nbsp;1 (accounts 239.59021715 + pool reserves 11.30 + WANET 1.00)</strong></td><td><strong>251.89021715</strong></td></tr>
+        </tbody>
+      </table>
+
+      <h3>D. Computer node infrastructure</h3>
+      <table class="wp-table">
+        <thead><tr><th>Node</th><th>Operated by</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>Producer</td><td>A-Network operator (one node)</td><td>Orders operations, seals blocks, credits activation from the Web2 ledger</td></tr>
+          <tr><td>Follower</td><td>Anyone</td><td>Downloads, verifies, stores and serves the chain; produces no blocks; cannot mint</td></tr>
+          <tr><td>Verifier</td><td>Anyone</td><td>One-shot audit of a peer's history and ledger</td></tr>
+          <tr><td>Validator seat</td><td>Wallets with &ge; 1,000 sessions (top 2,100)</td><td>Receives a share of transaction fees; does not sign or vote on blocks</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li><strong>Synchronization.</strong> A follower downloads blocks in pages of 256 from one or more peers (the producer or other followers). For each block it checks the hash, the commitment roots, the link to the previous block, every transaction signature and the ledger rules of parts A and C. It then stores the block in an embedded database. On restart it re-verifies the local store and resumes. Corrupted data is dropped and re-downloaded.</li>
+        <li><strong>Peers.</strong> Each node classifies its peers as in sync, behind, ahead, divergent, incompatible, unreachable or rejected, and syncs from the furthest-ahead peer whose data verifies. Peers are discovered through <code>/network/seeds</code>.</li>
+        <li><strong>Platforms and requirements.</strong> macOS, Linux and Windows; Rust 1.88; about 200&nbsp;MB of disk for mainnet; no database. The follower serves a read-only API: health, head, blocks, node status, accounts and tokens.</li>
+        <li><strong>Independent vs operator-controlled.</strong> Verification and replication are independent: any computer reaches the same verdict without trusting the operator. Block production, ordering, the activation feed and the public RPC remain operator-controlled.</li>
+      </ul>
+      <figure style="margin: 16px 0">
+        <img src="whitepaper-v4.7-architecture.svg" alt="Production architecture: Web2 mining feeds the operator producer; independent follower nodes verify and replicate Layer 1; Web4 services are planned" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px" />
+        <figcaption style="font-size: 0.85rem; color: #5f6368">Production architecture, release 0.2.0.</figcaption>
+      </figure>
+
+      <h3>E. Web2 &rarr; Web3 &rarr; Web4</h3>
+      <ul>
+        <li><strong>Web2: mobile mining.</strong> The app, six-hour sessions, mining records and fraud controls (Sections 6&ndash;8).</li>
+        <li><strong>Web3: blockchain and token infrastructure.</strong> The native Layer&nbsp;1, ANRC-20, wallets, developer interfaces and independent follower nodes, together with the separately accounted EVM market.</li>
+        <li><strong>Web4: A-Network open network (planned).</strong> Distributed services, identity integrations, interoperable application interfaces, network discovery and independent service hosting, built on verified follower APIs. These are proposed capabilities: none is deployed, and none introduces a new consensus mechanism or native supply.</li>
+      </ul>
+      <p><em>Terminology.</em> This version adopts the three-stage framing above. Earlier versions use <em>Web4</em> for the live Layer&nbsp;1 (Section 10) and <em>Web3</em> for the BNB Chain integration (Section 9), as in the comparison of Section 4. Those titles will be aligned in a later editorial revision. The ANET Core (Web5) material of Section 11 is preserved without modification.</p>
+
+      <h3>F. ANRC-20 developer documentation</h3>
+      <ul>
+        <li><strong>API.</strong> <code>GET /tokens/anrc20</code>, <code>GET /tokens/anrc20/{symbol}</code>, <code>POST /tokens/anrc20/create</code>, <code>/mint</code>, <code>/transfer</code>; native <code>POST /transactions</code> with <code>next_nonce</code> from <code>/accounts/{address}/activity</code>; chain status <code>/sync/head</code>, <code>/health</code>. Errors are reported as HTTP 400 (rule), 401 (signature or payload), 409 (replayed nonce).</li>
+        <li><strong>SDK.</strong> The TypeScript SDK signs locally with the audited <code>@noble</code> libraries already used by the web wallet. A shared test vector proves that its address, action hash and signature match the node byte for byte.</li>
+        <li><strong>References.</strong> The full specification, the developer guide and the node operator guide are published with the node source (<code>docs/ANRC20_SPEC.md</code>, <code>docs/DEVELOPER_GUIDE.md</code>, <code>docs/NODE_OPERATOR_GUIDE.md</code>).</li>
+      </ul>
+
+      <h3>G. Network security</h3>
+      <ul>
+        <li>Transactions and actions use low-s secp256k1 signatures bound to the chain ID, with strictly increasing nonces. Block hashes commit every consensus field, and the state and proof roots are re-derived by every node.</li>
+        <li>Supply, issuance and token invariants (parts A and C) are enforced by the producer and re-checked by every follower. A tampered block, and a fully re-hashed chain that mints ANET, were both rejected in testing.</li>
+        <li><em>Correction of record:</em> before release 0.2.0, a failed database write during a bridge export could restore the balance after the debit had already been sealed in a block. Release 0.2.0 performs the debit, the record and any rollback atomically. No such failure has occurred on mainnet.</li>
+        <li>Dependencies: the node's Rust advisories were reduced from 14 to 0 (two unmaintained transitive crates remain).</li>
+      </ul>
+
+      <h3>H. Decentralization status</h3>
+      <table class="wp-table">
+        <thead><tr><th>Independent today</th><th>Centralized or partially decentralized</th></tr></thead>
+        <tbody>
+          <tr><td>Chain verification and replication by any computer; wallet key custody and signing; the ownerless BEP-20 token contract</td><td>Block production (one operator node); transaction ordering; the Web2 activation feed and mining backend; the public RPC; the 2-of-3 bridge signer set; validator seats (fee share only)</td></tr>
+        </tbody>
+      </table>
+      <p>Followers make the producer auditable, not replaceable. A multi-node test environment is not evidence of a decentralized production network. Multi-producer consensus remains unimplemented and deferred by the feature freeze.</p>
+
+      <h3>I. Production verification</h3>
+      <table class="wp-table">
+        <thead><tr><th>Check</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Node unit and integration tests (release 0.2.0)</td><td>106 passed, 0 failed</td></tr>
+          <tr><td>SDK tests, including the cross-language signature vector</td><td>6 passed, 0 failed</td></tr>
+          <tr><td>Full production history replayed by the follower</td><td>39,609 blocks valid; supply reconciled exactly with the producer</td></tr>
+          <tr><td>Second implementation (independent Python) of v4 block hashes and state roots</td><td>All 37,731 v4 block hashes and their state roots reproduced</td></tr>
+          <tr><td>Local network: one producer and three followers on separate stores and ports</td><td>20 of 20 checks in four runs (0.2.0) and 21 of 21 with the activation check (0.2.1): agreement, signed token operations, refusals, restart, failover, hostile peers</td></tr>
+          <tr><td>Post-deployment audit of production</td><td>Passed after 0.2.0 (39,615 blocks) and after 0.2.1 (39,618 blocks); the chain resumed from the same tip after each restart</td></tr>
+          <tr><td>Continuous integration</td><td>Passed for 0.2.0 and 0.2.1 on Linux, macOS and Windows, and for the SDK</td></tr>
+          <tr><td>Dependency audit</td><td><code>cargo audit</code> 0 vulnerabilities; SDK <code>npm audit</code> 0</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Known limitations.</strong> Followers verify that activation credits are sealed, eligible and within the per-session maximum. They cannot verify the underlying Web2 session records. Followers trust the operator for transaction ordering and liveness. Each deployment of the disk-backed producer has caused about six to seven minutes of RPC downtime.</p>
+
+      <h3>J. Roadmap</h3>
+      <table class="wp-table">
+        <thead><tr><th>Completed</th><th>Pending</th><th>Planned (not started)</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>ANRC-20 registry; capped issuance; session commitments; one-way bridge; nodes 0.2.0 and 0.2.1 deployed; follower software, SDK and documentation published; activation rule decided</td>
+            <td>Align older section titles with the adopted framing; seal this document&apos;s SHA-256 digest on-chain (operator action)</td>
+            <td>Multi-producer consensus with validator signatures; on-chain session proofs for activation; Web4 open-network services; Web5 / ANET Core (Section 11)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Corrections of record</h3>
+      <ul>
+        <li>Version 4.2 described sealing the SHA-256 digest of each published version. The node recorded only its first 16 hexadecimal characters, and no version has yet been sealed. Node 0.2.0 (live) records the full digest. Attestation of this version follows its publication.</li>
+        <li>The node's <code>/network/consensus</code> descriptor listed TPoW proof re-verification among the verifier's checks, which the verifier did not perform. Node 0.2.0 (live) lists the checks actually performed.</li>
+        <li>The published seed node <code>anet-private-mainnet.onrender.com</code> was 102 blocks behind the primary node on November 13, 2026, and the default seed <code>node1.a-network.net</code> does not resolve.</li>
+        <li>Section 10 states that every miner with a completed session shares transaction fees, and Version 4.3 says validators seal transfers into blocks. In fact, blocks are sealed by the operator&apos;s producer. Fees are split among the validator seats recorded in each block (wallets with at least 1,000 sessions, top 2,100), as Version 4.5 states. Today those seats are the two operator bootstrap addresses, which have received all 10,000 ANTS (0.0001 ANET) of Layer&nbsp;1 fees paid to date.</li>
+      </ul>
+
+      <div class="panel panel-green">
+        <h4>What did NOT change</h4>
+        <p style="margin-bottom: 0">The 21,000,000 ANET cap, the ANTS denomination, the issuance and halving schedule, six-hour sessions, the 1,000-session threshold, mined-coin vesting, every historical balance, the separation of native ANET and wANET, the one-way bridge, the liquidity and reserve disclosures, and the governance and legal-review requirements are unchanged.</p>
+      </div>
+    </section>
 
     <section class="wp-section" id="v46-changelog">
       <div class="section-label">v4.6 Changelog &middot; November 1, 2026</div>
@@ -4806,7 +4963,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <div class="wp-footer">
 
-      <p style="margin-bottom: 8px"><strong style="color: var(--text);  font-family: Roboto, Arial, sans-serif;  font-size: 14px">A-NETWORK</strong> &middot; Official Whitepaper v4.6 &middot; November 1, 2026</p>
+      <p style="margin-bottom: 8px"><strong style="color: var(--text);  font-family: Roboto, Arial, sans-serif;  font-size: 14px">A-NETWORK</strong> &middot; Official Whitepaper v4.7 &middot; November 13, 2026</p>
 
       <p>Website: <a href="https://a-network.net">a-network.net</a> &middot; Contract: <a href="https://bscscan.com/address/0x791055A7d52AA392eaE8De04250497f33807E46A">0x791055A7...E46A</a> &middot; App: <a href="https://apps.apple.com/us/app/a-network/id6770665448" data-app-download="ios">App Store</a> &middot; <a href="https://play.google.com/store/apps/details?id=com.anetwork.app" data-app-download="android">Google Play</a></p>
 
