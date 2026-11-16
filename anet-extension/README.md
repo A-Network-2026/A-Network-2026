@@ -13,6 +13,10 @@ in the A Network app, the website, or this extension is the **same account**.
 - **View balance** — live ANET / ANTS balance (and a USD estimate) from the L1
   explorer API.
 - **Send / receive** native ANET (signs locally, broadcasts to `POST /transactions`).
+  The recipient may be an ANET address or a `.ant` name: the wallet resolves the name,
+  shows the name, resolved address, amount, fee and network for confirmation, re-checks
+  the name just before signing, and signs the transfer to the address. Your primary
+  `.ant` name is shown on the dashboard and the Receive screen.
 - **Connect to dapps** — injects a standard `window.anet` provider so any website
   can request your address, balance, and signatures, with an approval popup.
 - **Sell in MetaMask** — one‑click link to the DEX bridge flow (L1 ANET → wANET

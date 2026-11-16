@@ -102,3 +102,4 @@ textarea { resize: vertical; }
 }
 .toast.ok { border-color: var(--accent-2); color: var(--accent-2); }
 .toast.err { border-color: var(--danger); color: var(--danger); }
+.ant-name { font-size: 12.5px; color: var(--accent-2); margin: -4px 0 8px; }

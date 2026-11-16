@@ -883,6 +883,7 @@
         <a href="web4.html">Web4</a>
         <a href="whitepaper.html">Whitepaper</a>
         <a href="nft.html" class="active">NFT</a>
+        <a href="domains.html">Names (.ant)</a>
         <a href="https://apps.apple.com/us/app/a-network/id6770665448" data-app-download="auto">Download App</a>
       </nav>
     </header>
@@ -1173,7 +1174,7 @@
 
       <article class="studio-card" style="grid-column: 1 / -1">
         <h3>ANET Marketplace - List NFT</h3>
-        <p class="muted">Submit your designed NFT to the market as fixed price, timed auction, or .ant domain auction (minimum bid 10000 ANTS).</p>
+        <p class="muted">Submit your designed NFT to the market as fixed price or timed auction.</p>
 
         <div class="row">
           <div class="field">
@@ -1192,7 +1193,6 @@
             <select id="market-listing-type" class="select">
               <option value="fixed">fixed</option>
               <option value="auction">auction</option>
-              <option value="domain-auction">domain-auction (.ant only)</option>
             </select>
           </div>
           <div class="field">
@@ -1251,14 +1251,9 @@
             <label for="market-filter-type">Board View</label>
             <select id="market-filter-type" class="select">
               <option value="all">all listings</option>
-              <option value="domain-auction">domain auction board (.ant)</option>
               <option value="auction">auction only</option>
               <option value="fixed">fixed only</option>
             </select>
-          </div>
-          <div class="field">
-            <label>Domain Rule</label>
-            <div class="status info" style="margin-top: 0">Domain board enforces .ant and minimum bid of 10000 ANTS.</div>
           </div>
         </div>
 
@@ -1279,65 +1274,10 @@
       </article>
 
       <article class="studio-card" style="grid-column: 1 / -1">
-        <h3>Colony Domain Studio — Build Your .ant Base</h3>
-        <p class="muted">Register your own <strong>.ant</strong> colony domain as an NFT. Full authority: customize your base, set your logo, banner, theme, links — then buy, sell, or auction it on the marketplace.</p>
-
-        <div class="row">
-          <div class="field">
-            <label for="domain-uid">Your ANET Profile ID</label>
-            <input id="domain-uid" class="input" type="text" placeholder="your ANET profile id">
-          </div>
-          <div class="field">
-            <label for="domain-name">Colony Domain Name</label>
-            <input id="domain-name" class="input" type="text" placeholder="mycolony (or mycolony.ant)">
-          </div>
-        </div>
-
-        <div class="row-1 field">
-          <label for="domain-description">Colony Mission / Description</label>
-          <textarea id="domain-description" class="textarea" placeholder="What is your colony about? What's your mission?"></textarea>
-        </div>
-
-        <div class="row">
-          <div class="field">
-            <label for="domain-logo-uri">Colony Logo URI</label>
-            <input id="domain-logo-uri" class="input" type="text" placeholder="https://...">
-          </div>
-          <div class="field">
-            <label for="domain-banner-uri">Colony Banner URI</label>
-            <input id="domain-banner-uri" class="input" type="text" placeholder="https://...">
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="field">
-            <label for="domain-image-uri">NFT Image URI (marketplace thumbnail)</label>
-            <input id="domain-image-uri" class="input" type="text" placeholder="https://...">
-          </div>
-          <div class="field">
-            <label for="domain-ants-stake">ANTS Stake</label>
-            <input id="domain-ants-stake" class="input" type="number" min="0" step="1" placeholder="0">
-          </div>
-        </div>
-
-        <div class="row-1 field">
-          <label for="domain-theme">Colony Theme JSON (colors, mode)</label>
-          <textarea id="domain-theme" class="textarea" placeholder='{"accent":"#22e7b8","mode":"dark"}'></textarea>
-        </div>
-
-        <div class="row-1 field">
-          <label for="domain-links">Social Links JSON (twitter, discord, website…)</label>
-          <textarea id="domain-links" class="textarea" placeholder='{"website":"https://...","twitter":"@handle"}'></textarea>
-        </div>
-
+        <h3>Colony Domain Studio — .ant Names</h3>
+        <p class="muted">Register, manage and trade .ant names on A Network Layer 1.</p>
         <div class="asset-actions">
-          <button class="btn btn-main" id="domain-create-btn" type="button">Register Colony Domain</button>
-          <button class="btn btn-alt" id="domain-load-btn" type="button">Load Colony Domains</button>
-        </div>
-        <div id="domain-status" class="status info">Register your .ant domain — your base in the colony.</div>
-
-        <div id="domain-list" class="domain-list">
-          <div class="status info">No colony domains loaded yet.</div>
+          <a class="btn btn-main" href="domains.html">Open ANET Names (.ant)</a>
         </div>
       </article>
 

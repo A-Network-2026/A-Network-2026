@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ANET Names (.ant) | A Network</title>
+  <meta name="description" content="Register, manage and trade .ant names on the A Network Layer 1. No fees, permanent ownership.">
+  <meta name="theme-color" content="#ffffff">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta name="referrer" content="no-referrer">
+  <link rel="canonical" href="https://a-network.net/domains.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://explorer.a-network.net" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/domains.css?v=20261117">
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="index.html">
+        <img src="logo.png" alt="" width="40" height="40">
+        <span><strong>A NETWORK</strong><small>ANET Names (.ant)</small></span>
+      </a>
+      <nav aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="nft-marketplace.html">Marketplace</a>
+        <a href="dex.html">DEX</a>
+      </nav>
+    </header>
+
+    <main>
+      <h1>ANET Names (.ant)</h1>
+      <p class="notice"><strong>.ant names are an A Network Layer 1 naming system, not internet domains; browsers do not open them.</strong></p>
+      <p class="muted">Register, manage and trade names on the A Network Layer 1. There is no registration fee, no commission and no network fee, and ownership is permanent. Registering, buying, bidding and receiving a name need at least 1,000 completed mining sessions and a sealed Layer 1 settlement.</p>
+
+      <section class="card" aria-labelledby="dn-wallet-title">
+        <h2 id="dn-wallet-title">Wallet</h2>
+        <div id="dn-wallet-on" hidden>
+          <div class="kv"><b>Address: </b><code id="dn-addr"></code></div>
+          <div class="kv"><b>Signer: </b><span id="dn-via"></span></div>
+          <div class="kv"><b>Completed sessions: </b><span id="dn-sessions"></span></div>
+          <div class="kv"><b>Balance: </b><span id="dn-balance"></span></div>
+          <button type="button" id="dn-lock-btn" class="btn btn-alt">Lock</button>
+        </div>
+        <div id="dn-wallet-off">
+          <p class="muted">Your key stays in this browser (encrypted with your password) or in the ANET Wallet extension; only signatures are sent. The saved wallet is shared with the <a href="dex.html">DEX</a>.</p>
+          <button type="button" id="dn-ext-btn" class="btn" hidden>Connect ANET Wallet extension</button>
+          <form id="dn-unlock-form" hidden>
+            <div class="kv"><b>Saved wallet: </b><code id="dn-vault-addr"></code></div>
+            <label for="dn-unlock-pw">Password</label>
+            <div class="row">
+              <input id="dn-unlock-pw" type="password" autocomplete="current-password" required>
+              <button type="submit" class="btn">Unlock</button>
+            </div>
+          </form>
+          <details id="dn-import">
+            <summary>Import a wallet (seed phrase or private key)</summary>
+            <form id="dn-import-form">
+              <label for="dn-secret">Seed phrase or private key</label>
+              <textarea id="dn-secret" rows="2" autocomplete="off" spellcheck="false" required></textarea>
+              <label for="dn-import-pw">Password (at least 8 characters)</label>
+              <input id="dn-import-pw" type="password" autocomplete="new-password" minlength="8" required>
+              <label for="dn-import-pw2">Confirm password</label>
+              <input id="dn-import-pw2" type="password" autocomplete="new-password" minlength="8" required>
+              <p class="hint">The key is encrypted with this password and saved only in this browser, replacing any wallet saved here.</p>
+              <button type="submit" class="btn">Import and unlock</button>
+            </form>
+          </details>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="dn-search-title">
+        <h2 id="dn-search-title">Search a name</h2>
+        <form id="dn-search-form" role="search">
+          <label for="dn-search-input">Name</label>
+          <div class="row">
+            <input id="dn-search-input" type="text" placeholder="yourname.ant" autocomplete="off" autocapitalize="none" spellcheck="false" required>
+            <button type="submit" class="btn">Search</button>
+          </div>
+        </form>
+        <div id="dn-search-result"></div>
+      </section>
+
+      <section class="card" id="dn-details" aria-labelledby="dn-details-title" hidden>
+        <h2 id="dn-details-title" tabindex="-1">Details: <span id="dn-details-name"></span></h2>
+        <dl id="dn-record" class="record"></dl>
+        <p><a id="dn-verify" href="https://explorer.a-network.net/explorer/domains" target="_blank" rel="noopener noreferrer">Verify on explorer ↗</a></p>
+        <h3>History</h3>
+        <ol id="dn-history" class="list"></ol>
+      </section>
+
+      <section class="card" aria-labelledby="dn-my-title">
+        <h2 id="dn-my-title">My names</h2>
+        <ul id="dn-my-list" class="list"></ul>
+      </section>
+
+      <section class="card" id="dn-manage" aria-labelledby="dn-manage-title" hidden>
+        <h2 id="dn-manage-title" tabindex="-1">Manage <span id="dn-manage-name"></span></h2>
+        <form id="dn-resolver-form">
+          <label for="dn-resolver-input">Resolves to (wallet address)</label>
+          <div class="row">
+            <input id="dn-resolver-input" type="text" autocomplete="off" spellcheck="false" required>
+            <button type="submit" class="btn">Set resolver</button>
+          </div>
+        </form>
+        <div class="row actions">
+          <button type="button" id="dn-primary-btn" class="btn btn-alt">Set as my primary name</button>
+          <button type="button" id="dn-clear-primary-btn" class="btn btn-alt">Clear my primary name</button>
+        </div>
+        <form id="dn-transfer-form">
+          <label for="dn-transfer-input">Transfer to (wallet address)</label>
+          <div class="row">
+            <input id="dn-transfer-input" type="text" autocomplete="off" spellcheck="false" required>
+            <button type="submit" class="btn">Transfer</button>
+          </div>
+          <p class="hint">The recipient must be eligible. The resolver resets to the new owner.</p>
+        </form>
+        <form id="dn-list-form">
+          <fieldset>
+            <legend>List for sale</legend>
+            <label for="dn-list-kind">Type</label>
+            <select id="dn-list-kind">
+              <option value="fixed">Fixed price</option>
+              <option value="auction">Auction</option>
+              <option value="domain-auction">Domain auction (minimum bid 0.0001 ANET)</option>
+            </select>
+            <label for="dn-list-price" id="dn-list-price-label">Price (ANET)</label>
+            <input id="dn-list-price" type="text" inputmode="decimal" autocomplete="off" placeholder="1.5" required>
+            <label for="dn-list-hours">Auction duration (hours, 1–168)</label>
+            <input id="dn-list-hours" type="number" min="1" max="168" step="1" value="24">
+            <button type="submit" class="btn">List for sale</button>
+          </fieldset>
+        </form>
+        <div id="dn-cancel-box" hidden>
+          <div class="kv"><b>Listed: </b><span id="dn-listing-info"></span></div>
+          <button type="button" id="dn-cancel-btn" class="btn btn-alt">Cancel listing</button>
+          <p class="hint">An auction that already has a bid cannot be cancelled.</p>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="dn-market-title">
+        <h2 id="dn-market-title">Market</h2>
+        <div class="row">
+          <label for="dn-market-kind" class="inline">Show</label>
+          <select id="dn-market-kind">
+            <option value="">All listings</option>
+            <option value="fixed">Fixed price</option>
+            <option value="auction">Auctions</option>
+            <option value="domain-auction">Domain auctions</option>
+          </select>
+          <button type="button" id="dn-market-refresh" class="btn btn-alt">Refresh</button>
+        </div>
+        <ul id="dn-market-list" class="list"></ul>
+      </section>
+    </main>
+  </div>
+
+  <div id="dn-status" class="status" role="status" aria-live="polite"></div>
+
+  <script src="assets/js/vendor/anet-crypto.bundle.js?v=20260628"></script>
+  <script src="assets/js/anet-wallet.js?v=20260628"></script>
+  <script src="assets/js/domains.js?v=20261117"></script>
+</body>
+</html>

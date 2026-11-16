@@ -1481,6 +1481,9 @@
   }
 
   async function onCreateColonyDomain() {
+    if (!els.domainName) {
+      return; // .ant names are registered on Layer 1 now (domains.html)
+    }
     if (!state.apiReady) {
       setStatus(els.domainStatus, "bad", "Connect NFT API first.");
       return;
@@ -1515,6 +1518,9 @@
   }
 
   async function onLoadColonyDomains() {
+    if (!els.domainList) {
+      return; // the off-chain Colony Domain Studio was replaced by domains.html
+    }
     if (!state.apiReady) {
       setStatus(els.domainStatus, "bad", "Connect NFT API first.");
       return;

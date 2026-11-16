@@ -668,6 +668,18 @@ function isDomainAsset(assetRow) {
   return slug.endsWith('.ant') || name.endsWith('.ant');
 }
 
+// .ant names are owned on A Network Layer 1 (anet-chain docs/ANT_DOMAINS_SPEC.md).
+// This backend never creates or trades them, so a name can never have two owners.
+const ANT_NAMES_ON_CHAIN = 'ANET .ant names are registered and traded on A Network Layer 1: https://a-network.net/domains.html';
+
+function rejectOffChainAntName(res, ...names) {
+  if (names.some((value) => String(value || '').trim().toLowerCase().endsWith('.ant'))) {
+    res.status(410).json({ ok: false, error: ANT_NAMES_ON_CHAIN });
+    return true;
+  }
+  return false;
+}
+
 async function getMarketListingById(listingId) {
   const row = await dbGet(
     nftDb,
@@ -1960,6 +1972,9 @@ app.post('/api/nft/assets/create', async (req, res) => {
 
     const assetId = `nft_asset_${crypto.randomUUID()}`;
     const slug = normalizeShortText(req.body?.slug, 80).toLowerCase();
+    if (rejectOffChainAntName(res, name, slug)) {
+      return;
+    }
     const description = normalizeShortText(req.body?.description, 600);
     const imageUri = normalizeUri(req.body?.image_uri, 500);
     const metadataUri = normalizeUri(req.body?.metadata_uri, 500);
@@ -2042,6 +2057,9 @@ app.patch('/api/nft/assets/:assetId', async (req, res) => {
 
     const now = new Date().toISOString();
     const nextName = normalizeShortText(req.body?.name || existing.name, 100);
+    if (rejectOffChainAntName(res, nextName)) {
+      return;
+    }
     const nextDescription = normalizeShortText(req.body?.description || existing.description, 600);
     const nextImageUri = normalizeUri(req.body?.image_uri || existing.image_uri, 500);
     const nextMetadataUri = normalizeUri(req.body?.metadata_uri || existing.metadata_uri, 500);
@@ -2259,8 +2277,8 @@ app.post('/api/nft/market/listings/create', async (req, res) => {
       return res.status(403).json({ ok: false, error: 'Only current owner can list this NFT' });
     }
 
-    if (listingType === 'domain-auction' && !isDomainAsset(asset)) {
-      return res.status(400).json({ ok: false, error: 'domain-auction requires NFT name or slug ending with .ant' });
+    if (listingType === 'domain-auction' || isDomainAsset(asset)) {
+      return res.status(410).json({ ok: false, error: ANT_NAMES_ON_CHAIN });
     }
 
     const activeListing = await dbGet(
@@ -2277,9 +2295,6 @@ app.post('/api/nft/market/listings/create', async (req, res) => {
     }
     if (listingType === 'auction' && minBidAnts <= 0) {
       return res.status(400).json({ ok: false, error: 'min_bid_ants must be greater than 0 for auction listing' });
-    }
-    if (listingType === 'domain-auction' && minBidAnts < NFT_DOMAIN_MIN_BID_ANTS) {
-      return res.status(400).json({ ok: false, error: `domain-auction minimum bid is ${NFT_DOMAIN_MIN_BID_ANTS} ANTS` });
     }
 
     const now = new Date();
@@ -2610,93 +2625,9 @@ app.post('/api/nft/collections/create', async (req, res) => {
 
 // ─── Colony Domain Endpoints ───────────────────────────────────────────────
 
-// Create a .ant colony domain NFT
-app.post('/api/nft/domains/create', async (req, res) => {
-  if (!requireNftDatabase(res)) {
-    return;
-  }
-  const minerSession = requireNftMinerSession(req, res);
-  if (!minerSession) {
-    return;
-  }
-
-  try {
-    const uid = getAnetProfileIdFromBody(req.body);
-    if (!uid) {
-      return res.status(400).json({ ok: false, error: 'anet profile id is required' });
-    }
-    if (!requireSessionUidMatch(res, minerSession, uid)) {
-      return;
-    }
-
-    const profile = await getNftProfile(uid);
-    if (!profile) {
-      return res.status(404).json({ ok: false, error: 'NFT profile not found. Create profile first.' });
-    }
-
-    const rawDomain = normalizeShortText(req.body?.domain_name || req.body?.name, 80).toLowerCase().trim();
-    if (!rawDomain) {
-      return res.status(400).json({ ok: false, error: 'domain_name is required (must end in .ant)' });
-    }
-    const domainName = rawDomain.endsWith('.ant') ? rawDomain : `${rawDomain}.ant`;
-
-    // Domain name format: lowercase alphanumeric + hyphens + .ant
-    if (!/^[a-z0-9][a-z0-9-]{0,61}\.ant$/.test(domainName)) {
-      return res.status(400).json({ ok: false, error: 'Domain name must be lowercase alphanumeric with hyphens, ending in .ant (max 62 chars before .ant)' });
-    }
-
-    // Uniqueness check
-    const existing = await dbGet(nftDb, 'SELECT id FROM nft_assets WHERE domain_name = ?', [domainName]);
-    if (existing) {
-      return res.status(409).json({ ok: false, error: `Domain ${domainName} is already registered` });
-    }
-
-    const colonyDescription = normalizeShortText(req.body?.colony_description, 600);
-    const colonyLogoUri = normalizeUri(req.body?.colony_logo_uri, 500);
-    const colonyBannerUri = normalizeUri(req.body?.colony_banner_uri, 500);
-    const colonyLinksJson = normalizeThemeJson(req.body?.colony_links);
-    const colonyThemeJson = normalizeThemeJson(req.body?.colony_theme);
-    const imageUri = normalizeUri(req.body?.image_uri || colonyLogoUri || colonyBannerUri, 500);
-    const description = normalizeShortText(req.body?.description || `Colony domain ${domainName}`, 600);
-    const antsStake = normalizeNonNegativeInteger(req.body?.ants_stake, 0);
-    const traitsJson = normalizeTraitsJson([
-      { trait_type: 'domain', value: domainName },
-      { trait_type: 'asset_type', value: 'colony-domain' },
-      ...(Array.isArray(req.body?.traits) ? req.body.traits : [])
-    ]);
-    const now = new Date().toISOString();
-    const assetId = `nft_asset_${crypto.randomUUID()}`;
-    const slug = domainName.replace(/\./g, '-');
-
-    await dbRun(nftDb,
-      `INSERT INTO nft_assets (
-         id, uid, slug, name, description, image_uri, metadata_uri, traits_json,
-         status, ants_stake, created_at, updated_at,
-         asset_type, domain_name, colony_description, colony_logo_uri,
-         colony_banner_uri, colony_links_json, colony_theme_json, holder_tier, utility_flags_json
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        assetId, uid, slug, domainName, description, imageUri,
-        normalizeUri(req.body?.metadata_uri, 500), traitsJson,
-        'active', antsStake, now, now,
-        'domain', domainName, colonyDescription, colonyLogoUri,
-        colonyBannerUri, colonyLinksJson, colonyThemeJson, 'worker', '{}'
-      ]
-    );
-
-    const antsBalance = normalizeNonNegativeInteger(req.body?.ants_balance, profile.antsBalance || 0);
-    await dbRun(nftDb, 'UPDATE nft_profiles SET ants_balance = ?, updated_at = ? WHERE uid = ?', [antsBalance, now, uid]);
-    await appendNftActivity(uid, 'COLONY_DOMAIN_CREATED', { id: assetId, domainName });
-
-    const created = await dbGet(nftDb, 'SELECT * FROM nft_assets WHERE id = ?', [assetId]);
-    return res.status(201).json({
-      ok: true,
-      asset: mapNftAssetRow(created),
-      domainName
-    });
-  } catch (error) {
-    return res.status(500).json({ ok: false, error: error.message });
-  }
+// .ant names moved to Layer 1; this route no longer creates off-chain names.
+app.post('/api/nft/domains/create', (_req, res) => {
+  res.status(410).json({ ok: false, error: ANT_NAMES_ON_CHAIN });
 });
 
 // Customize a colony domain base (owner only)
