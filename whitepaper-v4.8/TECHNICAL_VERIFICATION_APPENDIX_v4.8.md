@@ -1,32 +1,37 @@
 # Whitepaper v4.8 — Technical Verification Appendix
 
-Everything in the v4.8 section can be checked without trusting the operator. This appendix lists the released code, how to verify it, the production evidence gathered at release, and the publication hash.
+Sealed `.ant` operations can be checked from public block data and the published specifications, without trusting the operator. Building and running the node's own verifier needs the node source, which is not public yet (section 1). This appendix lists the released code, how to verify it, the production evidence gathered at release, and the publication hash.
 
 ## 1. Released code
 
-| Component | Repository | Commit | Version |
-|---|---|---|---|
-| Layer 1 node (producer and follower), `.ant` module, SDK | `A-Network-2026/anet-chain` | `8af1f55` | node 0.3.0, SDK 0.2.0 |
-| Website `domains.html`, ANET Wallet extension, pi-backend | `A-Network-2026/A-Network-2026` | `0489d2b` | extension 1.1.0 |
-| Mobile app | `A-Network-2026/anet-mobile-app` | `de2ef74` | 1.0.127+192 |
+| Component | Repository | Public | Commit | Version |
+|---|---|---|---|---|
+| Layer 1 node (producer and follower), `.ant` module, SDK | `A-Network-2026/anet-chain` | Not yet | `8af1f55` | node 0.3.0, SDK 0.2.0 |
+| Website `domains.html`, ANET Wallet extension, pi-backend | `A-Network-2026/A-Network-2026` | Yes | `0489d2b` | extension 1.1.0 |
+| Mobile app | `A-Network-2026/anet-mobile-app` | No | `de2ef74` | 1.0.127+192 |
 
-Specification: `anet-chain/docs/ANT_DOMAINS_SPEC.md`. Rule engine: `anet-chain/src/domain.rs`. Follower verification: `anet-chain/src/ledger.rs` (`check_domains`, escrow check in `apply`).
+The owner plans to make the node repository public. Until then, its documentation at node 0.3.0 is published in this folder: [ANT_DOMAINS_SPEC.md](ANT_DOMAINS_SPEC.md) (the `.ant` rules), [ANRC20_SPEC.md](ANRC20_SPEC.md) (§4 defines the `action-v1` signature scheme) and [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md). In the node source, the rule engine is `src/domain.rs` and follower verification is in `src/ledger.rs` (`check_domains`, escrow check in `apply`).
 
 ## 2. How to verify
 
-1. **Run an independent check of the whole chain** (Rust 1.88, no database):
+With public data only:
+
+1. **Check every sealed operation.** `GET https://explorer.a-network.net/sync/head` gives `block_count`. Download the chain by position in pages of up to 256 blocks: `GET /blocks?from=0&to=255&position=true`, then `from=256&to=511`, and so on up to `block_count − 1`. For each event whose `event_type` is `AntDomain`, parse `attributes.auth`, the signed envelope (`wallet`, `nonce`, `timestamp`, `chain_id`, `payload`, `signature`, `action_hash`). Rebuild the `action-v1` preimage as in [ANRC20_SPEC.md](ANRC20_SPEC.md) §4, using the payload's `route` as the action, and check `action_hash`. Recover the public key from `signature` and confirm that it derives `wallet`. Confirm that nonces increase for each wallet and action. Then apply the rules in [ANT_DOMAINS_SPEC.md](ANT_DOMAINS_SPEC.md) to the events in block order.
+2. **Read the published rules:** `GET https://explorer.a-network.net/network/consensus` → `ant_domains`, and `/network/capabilities` → `native_l1_modules` contains `ant_domains`.
+3. **Inspect a name:** `https://explorer.a-network.net/explorer/domains/{name}` or `/domains/name/{name}/history`. Each entry carries the owner's signed authorization (`auth`), which can be checked as in step 1.
+
+With the node source (until the repository is public, this needs access to it):
+
+4. **Run the node's verifier over the whole chain** (Rust 1.88, no database), from a checkout of `anet-chain`:
 
    ```bash
-   git clone https://github.com/A-Network-2026/anet-chain && cd anet-chain
    cargo run --release -- --verify-peer https://explorer.a-network.net \
      --expect-chain-id anet-private-mainnet-1 --verify-once
    ```
 
-   From 0.3.0 the verifier also replays every `AntDomain` event: signature, nonce, naming, ownership and eligibility rules, the sealed attributes, and the escrow balance.
-2. **Run a follower** (`docs/NODE_OPERATOR_GUIDE.md`) and compare `GET /domains/name/{name}`, `/domains/reverse/{address}` and `/domains/market` with the producer.
-3. **Read the published rules:** `GET https://explorer.a-network.net/network/consensus` → `ant_domains`, and `/network/capabilities` → `native_l1_modules` contains `ant_domains`.
-4. **Inspect a name:** `https://explorer.a-network.net/explorer/domains/{name}` or `/domains/name/{name}/history`; each entry carries the owner's signed authorization (`auth`), which `verifyAction` in the SDK checks.
-5. **Reproduce the test network:** `PG_BIN=/path/to/postgresql/bin scripts/devnet/multinode-test.sh` (set `DEVNET_SETTLE_AUCTION=1` to wait out a one-hour auction and settle it).
+   From 0.3.0 the verifier also replays every `AntDomain` event: signature, nonce, naming, ownership and eligibility rules, the sealed attributes, and the escrow balance. The SDK's `verifyAction` performs the signature check of step 1.
+5. **Run a follower** (`docs/NODE_OPERATOR_GUIDE.md`) and compare `GET /domains/name/{name}`, `/domains/reverse/{address}` and `/domains/market` with the producer.
+6. **Reproduce the test network:** `PG_BIN=/path/to/postgresql/bin scripts/devnet/multinode-test.sh` (set `DEVNET_SETTLE_AUCTION=1` to wait out a one-hour auction and settle it).
 
 ## 3. Publication hash and on-chain attestation
 
@@ -34,15 +39,17 @@ Published files (SHA-256 of the raw bytes):
 
 | File | SHA-256 |
 |---|---|
-| `whitepaper.html` | `a5ecd287a140642f9bce2716c2143c0cbdd439cee6cc08107e4bb30b1aa33744` |
+| `whitepaper.html` | `6275ecbb3a74d1e80b145fdba4e1947964dd1bb5fe2359c64341826dd99b5ccf` |
 | `whitepaper-v4.8-ant-names.svg` | `71b073bfe2e558e4f5a39dc7f4024215c38e40ddb3fb16540f40bb6ccc8f06f9` |
-| `whitepaper-v4.8/WHITEPAPER_v4.8.md` | `8e4b723ff3e3e9628260ad7f177686524ffbf29df15aa027cb0dbe6aab39b6b2` |
-| `whitepaper-v4.8/WHITEPAPER_v4.8.pdf` | `1c0ef6e28651088072495d251175a5ab1a2eae3ad13d80e1f6b68f53364df0d1` |
+| `whitepaper-v4.8/WHITEPAPER_v4.8.md` | `35d08f77a07eea9709c3730649b2b82b4f7fbd9ebde3ae1d97d4cfdf86b993d6` |
+| `whitepaper-v4.8/WHITEPAPER_v4.8.pdf` | `24a5ed490ea8a5c3fd1c676ad84496b7d61e37f01b1879523618d761e4fd236e` |
+
+The file first published on November 16, 2026 had SHA-256 `a5ecd287a140642f9bce2716c2143c0cbdd439cee6cc08107e4bb30b1aa33744`. It was revised the same day because it linked documentation in the node repository, which is not public, and described the SDK source as published ([change log](CHANGELOG_v4.8.md)). Attest the revised digest above. Neither digest has been sealed on-chain.
 
 Attestation procedure:
 
-1. Done on November 16, 2026: `whitepaper.html` was published. Anyone can reproduce its digest with `curl -s https://a-network.net/whitepaper.html | shasum -a 256`, as `reserves.html` does.
-2. The operator submits `POST /admin/protocol/update` with `{"version":"4.8","title":"A Network .ant Blockchain Domain Name System","document_sha256":"a5ecd287a140642f9bce2716c2143c0cbdd439cee6cc08107e4bb30b1aa33744"}` and the admin key. The admin key is never published or committed.
+1. Done on November 16, 2026: `whitepaper.html` was published and then revised the same day. Anyone can reproduce its digest with `curl -s https://a-network.net/whitepaper.html | shasum -a 256`, as `reserves.html` does.
+2. The operator submits `POST /admin/protocol/update` with `{"version":"4.8","title":"A Network .ant Blockchain Domain Name System","document_sha256":"6275ecbb3a74d1e80b145fdba4e1947964dd1bb5fe2359c64341826dd99b5ccf"}` and the admin key. The admin key is never published or committed.
 3. Wait for the next block. On an independent follower, find the `ProtocolUpdate` event whose `document_sha256` equals the digest, and record its block height and hash.
 4. Anyone can then download `whitepaper.html`, hash it, and compare the result with the sealed event.
 
@@ -79,7 +86,7 @@ chain ID and genesis unchanged; `ant_domains` in capabilities; published rules (
   - a producer restart that rebuilt identical `.ant` state;
   - the security regressions.
 - Compatibility: a node 0.2.4 follower accepted a test chain that carries sealed `.ant` operations, a sale and escrowed bids (12 blocks, same tip as a 0.3.0 follower), confirming that older followers keep working.
-- CI on Linux, macOS and Windows: <https://github.com/A-Network-2026/anet-chain/actions/runs/43915860365> (success).
+- CI on Linux, macOS and Windows: `anet-chain` Actions run 43915860365 (success). The run page becomes visible when the repository is public.
 
 **Security review before release.** An independent review of the `.ant` changes found two issues, both fixed and re-tested before deployment:
 

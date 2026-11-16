@@ -283,7 +283,7 @@ A Network/
 ├── pi-backend/               # Pi DEX bridge backend
 ├── index.html                # Main website
 ├── whitepaper.html           # Official whitepaper v4.8
-├── whitepaper-v4.8/          # v4.8 PDF, Markdown, change log and verification records
+├── whitepaper-v4.8/          # v4.8 PDF, Markdown, change log, verification records and published node specs
 ├── whitepaper-v4.7/          # v4.7 PDF, Markdown, change log and verification records
 ├── privacy.html
 ├── terms.html
@@ -632,7 +632,7 @@ NFT policy knowledge (production):
 - Miner-only access: NFT and marketplace routes require a valid miner session token from `POST /api/nft/auth/miner-login`
 - Session ownership enforced: session uid must match request uid for profile, asset, and market actions
 - NFT activation rule: first successful cashout or swap activates NFT profile creation (no pre-cashout NFT requirement)
-- `.ant` names live on A Network Layer 1 (`domains.html`; spec in anet-chain `docs/ANT_DOMAINS_SPEC.md`). The pi-backend no longer creates `.ant` names or `domain-auction` listings and returns HTTP 410 for them
+- `.ant` names live on A Network Layer 1 (`domains.html`; spec published at `whitepaper-v4.8/ANT_DOMAINS_SPEC.md`). The pi-backend no longer creates `.ant` names or `domain-auction` listings and returns HTTP 410 for them
 - No-burn model: profile and marketplace activity use closed-loop utility accounting
 
 ## Website And Legal Pages

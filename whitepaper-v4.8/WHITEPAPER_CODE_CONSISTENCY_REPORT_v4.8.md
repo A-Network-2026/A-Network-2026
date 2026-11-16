@@ -24,9 +24,11 @@ Each technical claim in the v4.8 section, the code that implements it, and the e
 | Wallets resolve, confirm, re-resolve and sign to the address (H) | Extension `anet-extension/popup.js` `doSend`; mobile `main.dart` send dialog; SDK `resolveDomain` | Devnet "ANET sent to a .ant name reaches the resolved wallet"; code review of both flows |
 | Extension used a timestamp nonce (correction 3) | `popup.js` now reads `next_nonce` | The node requires `nonce == next_nonce` (`state.rs` `queue_transaction`) |
 | pi-backend no longer creates `.ant` names (I) | `A-Network-2026/pi-backend/src/server.js` `rejectOffChainAntName`, `/api/nft/domains/create` | Production returns HTTP 410 |
+| Node source, follower software and SDK are not public yet (T, correction 4) | Visibility of the `anet-chain` repository | `https://github.com/A-Network-2026/anet-chain` returns HTTP 404 to visitors who are not signed in (checked November 16, 2026); the specifications and developer guide are published in `whitepaper-v4.8/` |
 
 ## Statements that are deliberately limited
 
 - "No name is registered yet" and "registration is not yet possible for any user": on November 16, 2026 the network had 0 organic wallets with 1,000 completed sessions (`/validators`: `organic_count: 0`). Successful registrations, transfers, sales and auctions were therefore demonstrated on the test network, not on mainnet.
 - Mobile 1.0.127+192 is committed; it is not described as released in the stores.
 - Followers do not check the bootstrap-seat exclusion, and they accept per-account balances as sealed (part T).
+- The code paths above are in repositories that are not public yet (`anet-chain`, `anet-mobile-app`). The public can check the published specifications and the block data (appendix, section 2).

@@ -922,12 +922,12 @@
         <tbody>
           <tr><td><code>.ant</code> registry, forward and reverse resolution</td><td>Live on mainnet since November 16, 2026, 17:18 UTC (node 0.3.0, commit <code>8af1f55</code>). No name is registered yet, because no organic wallet meets the eligibility rule (part N)</td></tr>
           <tr><td>Marketplace: fixed price, auction, domain-auction, on-chain escrow</td><td>Live since node 0.3.0; no listings yet</td></tr>
-          <tr><td>Follower verification of <code>.ant</code> operations</td><td>Released in node 0.3.0; the full production history (40,334 blocks) verified after deployment</td></tr>
+          <tr><td>Follower verification of <code>.ant</code> operations</td><td>In node 0.3.0 (deployed); the full production history (40,334 blocks) verified after deployment. The follower software is not publicly downloadable until the node repository is opened</td></tr>
           <tr><td><code>a-network.net/domains.html</code> (search, register, manage, trade, history)</td><td>Live</td></tr>
           <tr><td>ANET Wallet extension 1.1.0 (send to a <code>.ant</code> name, primary name)</td><td>Source published in <code>anet-extension/</code>; installed unpacked (no store listing)</td></tr>
           <tr><td>Mobile app 1.0.127+192 (send to a <code>.ant</code> name, ANET Names screen)</td><td>In the app source; not yet released in the App Store or Google Play</td></tr>
           <tr><td>Off-chain colony domains (pi-backend)</td><td>Retired; requests return HTTP&nbsp;410. No records existed</td></tr>
-          <tr><td>TypeScript SDK 0.2.0 with <code>.ant</code> helpers</td><td>Source published with the node (not on npm)</td></tr>
+          <tr><td>TypeScript SDK 0.2.0 with <code>.ant</code> helpers</td><td>In the node repository, which is not public yet; not on npm</td></tr>
           <tr><td>Multi-validator block production</td><td>Not implemented (single producer, unchanged)</td></tr>
         </tbody>
       </table>
@@ -1037,7 +1037,7 @@
       </ul>
 
       <h3>Q. Explorer verification</h3>
-      <p>The explorer resolves a <code>.ant</code> search to <code>/explorer/domains/{name}</code>. The page shows the owner, the resolver, the primary-name status, the listing and bids, and the full operation history. Each history entry shows its block, its confirmations (or <em>Pending</em> while it waits for a block) and the hash of the owner&apos;s signed action. JSON views of the same data are linked from the page. To verify independently, run a follower node and compare its <code>/domains/name/{name}</code> answer, or replay the <code>AntDomain</code> events with their signatures.</p>
+      <p>The explorer resolves a <code>.ant</code> search to <code>/explorer/domains/{name}</code>. The page shows the owner, the resolver, the primary-name status, the listing and bids, and the full operation history. Each history entry shows its block, its confirmations (or <em>Pending</em> while it waits for a block) and the hash of the owner&apos;s signed action. JSON views of the same data are linked from the page. To verify independently, download the blocks (<code>GET /blocks?from=&amp;to=&amp;position=true</code>) and replay the <code>AntDomain</code> events, checking each signature with the published <code>action-v1</code> scheme. Once the node source is public, a follower node does this automatically and can be compared with the producer.</p>
 
       <h3>R. Public APIs and integration requirements</h3>
       <ul>
@@ -1045,7 +1045,7 @@
         <li><strong>Write</strong> (signed): <code>POST /domains/register</code>, <code>/transfer</code>, <code>/resolver</code>, <code>/primary</code>, <code>/domains/market/list</code>, <code>/cancel</code>, <code>/buy</code>, <code>/bid</code>, <code>/settle</code>.</li>
         <li><strong>Published rules:</strong> <code>ant_domains</code> in <code>/network/consensus</code> and <code>/network/capabilities</code>.</li>
         <li><strong>Integration requirements:</strong> sign locally; resolve before every payment and confirm the resolved address with the user; sign transfers to addresses, not names; treat a result as confirmed only once it is sealed (<code>pending: false</code>).</li>
-        <li><strong>Documentation:</strong> <a href="https://github.com/A-Network-2026/anet-chain/blob/main/docs/ANT_DOMAINS_SPEC.md" target="_blank" rel="noopener">ANT_DOMAINS_SPEC.md</a>, <a href="https://github.com/A-Network-2026/anet-chain/blob/main/docs/DEVELOPER_GUIDE.md" target="_blank" rel="noopener">DEVELOPER_GUIDE.md</a>, TypeScript SDK 0.2.0 in <code>anet-chain/sdk/typescript</code>.</li>
+        <li><strong>Documentation:</strong> <a href="whitepaper-v4.8/ANT_DOMAINS_SPEC.md">ANT_DOMAINS_SPEC.md</a> (with <a href="whitepaper-v4.8/ANRC20_SPEC.md">ANRC20_SPEC.md</a> for the signature scheme) and <a href="whitepaper-v4.8/DEVELOPER_GUIDE.md">DEVELOPER_GUIDE.md</a>, published copies at node 0.3.0. The TypeScript SDK 0.2.0 is in the node repository, which is not public yet.</li>
       </ul>
 
       <h3>S. Transfer and renewal policies</h3>
@@ -1058,6 +1058,7 @@
         <li>Followers do not check the bootstrap-seat exclusion, because the operator's seat list is not on chain.</li>
         <li>Auctions do not extend when a bid arrives near the end. An ended auction stays open, with its bid in escrow, until the seller or the highest bidder settles it.</li>
         <li>General (non-<code>.ant</code>) NFTs remain off-chain in the pi-backend and are not settled on Layer&nbsp;1.</li>
+        <li>The node repository (source, follower software and SDK) is not public yet. The specification and developer guide are published in <code>whitepaper-v4.8/</code>.</li>
         <li><code>.ant</code> names do not work in web browsers or ICANN DNS.</li>
       </ul>
 
@@ -1079,6 +1080,7 @@
         <li>Version 2.3 described fixed, auction and domain-auction marketplace listings. They were implemented only in the pi-backend database: a &ldquo;sale&rdquo; changed the recorded owner without moving any ANET, miner login required no password or signature, and records were stored on an ephemeral server disk. In production that system held no colony domains and no listings. It no longer creates <code>.ant</code> names or domain-auction listings; <code>.ant</code> sales now settle on Layer&nbsp;1 (parts J&ndash;L).</li>
         <li>The explorer search page was vulnerable to reflected cross-site scripting (part P). Fixed in node 0.3.0.</li>
         <li>The ANET Wallet extension&apos;s Send screen used a timestamp as the transfer nonce, which the node rejects. Fixed in extension 1.1.0 (part H).</li>
+        <li>Version 4.7 describes the node source, the follower software, the SDK and the documentation as published. At publication of v4.8 the <code>anet-chain</code> repository is not public, so the node source, the follower software and the SDK cannot be downloaded yet. The owner plans to open it. Until then, the ANRC-20 and <code>.ant</code> specifications and the developer guide are published with this version, and anyone can check sealed operations from the public block data.</li>
       </ol>
 
       <h3>What did NOT change</h3>
