@@ -9,18 +9,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="apple-itunes-app" content="app-id=6770665448">
 
-  <title>A-Network Whitepaper v4.7 | ANRC-20 and Open Network Infrastructure</title>
+  <title>A-Network Whitepaper v4.8 | A Network .ant Blockchain Domain Name System</title>
 
-  <meta name="description" content="The official A-Network v4.7 whitepaper documents the ANRC-20 native token standard, independent follower nodes that verify Layer 1 supply and token rules, the activation rule, and the verified production status, alongside the one-way bridge, vesting and liquidity rules of earlier versions." />
+  <meta name="description" content="The official A-Network v4.8 whitepaper documents .ant names, a native Layer 1 naming system with registration, resolution, transfer and a domain marketplace, alongside the ANRC-20 standard, follower nodes, and the one-way bridge, vesting and liquidity rules of earlier versions." />
 
   <meta name="theme-color" content="#ffffff" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" />
   <meta http-equiv="X-Frame-Options" content="DENY" />
   <meta name="referrer" content="no-referrer" />
 
-  <meta property="og:title" content="A-Network Whitepaper v4.7" />
+  <meta property="og:title" content="A-Network Whitepaper v4.8" />
 
-  <meta property="og:description" content="Technical specification for A-Network Layer 1, the ANRC-20 native token standard, independent follower nodes, transparent unlock tiers, verified token identity, real-liquidity audit gates, treasury controls, separate Bitcoin and EVM markets, and compliance review requirements." />
+  <meta property="og:description" content="Technical specification for A-Network Layer 1, .ant names, the ANRC-20 native token standard, independent follower nodes, transparent unlock tiers, verified token identity, real-liquidity audit gates, treasury controls, separate Bitcoin and EVM markets, and compliance review requirements." />
 
   <meta property="og:url" content="https://a-network.net/whitepaper.html" />
 
@@ -600,7 +600,7 @@
 
         <span>A-NETWORK</span>
 
-        <sub>OFFICIAL WHITEPAPER v4.7 · NOVEMBER 13, 2026</sub>
+        <sub>OFFICIAL WHITEPAPER v4.8 · NOVEMBER 16, 2026</sub>
 
       </div>
 
@@ -633,6 +633,7 @@
     <a class="nav-item" href="#v42-changelog">v4.2 Unlock Tiers &amp; Attestation</a>
     <a class="nav-item" href="reserves.html">Proof of Reserves (live)</a>
     <a class="nav-item" href="https://apps.apple.com/us/app/a-network/id6770665448" data-app-download="auto">Download the app</a>
+    <a class="nav-item" href="#v48-changelog">v4.8 .ant Names</a>
     <a class="nav-item" href="#v47-changelog">v4.7 ANRC-20 &amp; Open Network</a>
     <a class="nav-item" href="#v46-changelog">v4.6 Trading Terminal &amp; Fees</a>
     <a class="nav-item" href="#v45-changelog">v4.5 Native Token Registry</a>
@@ -890,12 +891,12 @@
         </div>
       </div>
 
-      <div class="hero-badge">Technical Paper v4.7 (ANRC-20 and Open Network Infrastructure)</div>
+      <div class="hero-badge">Technical Paper v4.8 (A Network .ant Blockchain Domain Name System)</div>
       <h1>A-Network<br/>Technical Whitepaper</h1>
       <p class="hero-sub">A-Network operates a native Layer 1 settlement ledger and a separate EVM market. Version 3.9 defines the controls required before public Layer 1 liquidity can be described as real: every pool contribution must debit a named wallet, the paired reserve asset must be registered and externally verifiable, bootstrap or administrator-created balances cannot be presented as liquidity, and the mobile interface must fail closed when any audit gate is missing. The designated EVM reserve treasury is <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code>. A Bitcoin reserve may support a separately identified ANET/BTC market only after a Bitcoin treasury address and proof transaction are published. Bitcoin reserves, EVM reserves, and native Layer 1 balances are never merged in accounting or represented as interchangeable custody. Layer 1 currently uses fixed protocol operations and has no general-purpose smart-contract virtual machine; any future VM requires a separately specified consensus upgrade, public test environment, independent audit, and explicit activation decision.</p>
       <div class="hero-meta">
-        <div class="hero-meta-item"><strong>Version</strong>: 4.7 (ANRC-20 and Open Network Infrastructure)</div>
-        <div class="hero-meta-item"><strong>Published</strong>: November 13, 2026</div>
+        <div class="hero-meta-item"><strong>Version</strong>: 4.8 (A Network .ant Blockchain Domain Name System)</div>
+        <div class="hero-meta-item"><strong>Published</strong>: November 16, 2026</div>
         <div class="hero-meta-item"><strong>Layer 1 Economy</strong>: Closed-loop &middot; Utility-driven &middot; ANTS-denominated</div>
         <div class="hero-meta-item"><strong>EVM Reserve Treasury</strong>: <code>0x9C7C1058fdc9b710f688ECb7562924D9AE771417</code></div>
         <div class="hero-meta-item"><strong>Solana Treasury</strong>: <code>7j33RFPkNvaKsPuz2qJ5SzwiwXA4iL12ujqM4g2tRLEz</code></div>
@@ -905,6 +906,184 @@
         <div class="hero-meta-item"><strong>Liquidity Rule</strong>: Wallet-funded &middot; reserve-backed &middot; independently auditable &middot; never bootstrap</div>
       </div>
     </div>
+
+    <section class="wp-section" id="v48-changelog">
+      <div class="section-label">v4.8 Changelog &middot; November 16, 2026</div>
+      <h2>Version 4.8: A Network <code>.ant</code> Blockchain Domain Name System</h2>
+      <p>Version 4.8 documents <code>.ant</code> names as implemented in node release 0.3.0: a native naming module on A-Network Layer&nbsp;1 with registration, forward and reverse resolution, ownership transfer and a domain marketplace. It changes no supply figure, issuance schedule, halving rule, eligibility threshold, vesting schedule, liquidity disclosure or bridge policy. The one-way bridge invariant of Version 4.4, the vesting schedule of Version 4.3, the creator gate of Version 4.5 and the ANRC-20 standard of Version 4.7 remain in force without modification.</p>
+      <div class="panel panel-amber">
+        <h4>Not an internet domain</h4>
+        <p style="margin-bottom: 0"><code>.ant</code> is a blockchain naming system recorded on A-Network Layer&nbsp;1. It is not an ICANN top-level domain, and browsers and DNS resolvers do not resolve it. A <code>.ant</code> name resolves only through the A-Network RPC and the wallets, explorers and applications that use it. No gateway, browser extension or DNS integration for opening <code>.ant</code> names in a browser exists or is claimed.</p>
+      </div>
+
+      <h3>Status at publication</h3>
+      <table class="wp-table">
+        <thead><tr><th>Component</th><th>Status on November 16, 2026</th></tr></thead>
+        <tbody>
+          <tr><td><code>.ant</code> registry, forward and reverse resolution</td><td>Live on mainnet since November 16, 2026, 17:18 UTC (node 0.3.0, commit <code>8af1f55</code>). No name is registered yet, because no organic wallet meets the eligibility rule (part N)</td></tr>
+          <tr><td>Marketplace: fixed price, auction, domain-auction, on-chain escrow</td><td>Live since node 0.3.0; no listings yet</td></tr>
+          <tr><td>Follower verification of <code>.ant</code> operations</td><td>Released in node 0.3.0; the full production history (40,334 blocks) verified after deployment</td></tr>
+          <tr><td><code>a-network.net/domains.html</code> (search, register, manage, trade, history)</td><td>Live</td></tr>
+          <tr><td>ANET Wallet extension 1.1.0 (send to a <code>.ant</code> name, primary name)</td><td>Source published in <code>anet-extension/</code>; installed unpacked (no store listing)</td></tr>
+          <tr><td>Mobile app 1.0.127+192 (send to a <code>.ant</code> name, ANET Names screen)</td><td>In the app source; not yet released in the App Store or Google Play</td></tr>
+          <tr><td>Off-chain colony domains (pi-backend)</td><td>Retired; requests return HTTP&nbsp;410. No records existed</td></tr>
+          <tr><td>TypeScript SDK 0.2.0 with <code>.ant</code> helpers</td><td>Source published with the node (not on npm)</td></tr>
+          <tr><td>Multi-validator block production</td><td>Not implemented (single producer, unchanged)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>A. Overview and purpose</h3>
+      <p>A <code>.ant</code> name gives a Layer&nbsp;1 wallet a readable identity, for example <code>digitalgold.ant</code>. The name resolves to a native ANET address for payments, can be named as a wallet's primary identity, and can be transferred or traded. Ownership exists only in sealed blocks: no database, API or administrator can assign, move or revoke a name.</p>
+
+      <h3>B. Native registry architecture</h3>
+      <ul>
+        <li><strong>Fixed-function module.</strong> The registry is built into the node like ANRC-20 (&sect;&nbsp;SC). There is no virtual machine and no user code; Ethereum smart contracts do not run on Layer&nbsp;1.</li>
+        <li><strong>Event-sourced state.</strong> Each operation is sealed as one <code>AntDomain</code> event, committed to the block hash. The registry (names, resolvers, primary names, listings, escrowed bids) is rebuilt from these events on every node; there is no separate registry snapshot.</li>
+        <li><strong>One rule engine.</strong> The producer applies an operation with the same function that every follower uses to replay it. A follower accepts a block only if replaying each signed payload produces exactly the sealed event.</li>
+        <li><strong>Compatibility.</strong> The module adds an event type and RPC routes. The block format, the block hash and every existing rule are unchanged. Nodes older than 0.3.0 still accept these blocks, because domain payments only move ANET between accounts, but they do not check domain rules.</li>
+      </ul>
+      <figure style="margin: 16px 0">
+        <img src="whitepaper-v4.8-ant-names.svg" alt="Wallets sign .ant actions; the producer's rule engine seals AntDomain events; follower nodes replay every operation; wallets resolve names to addresses before signing transfers" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px" />
+        <figcaption style="font-size: 0.85rem; color: #5f6368">.ant names, node release 0.3.0.</figcaption>
+      </figure>
+
+      <h3>C. Naming and normalization rules</h3>
+      <table class="wp-table">
+        <thead><tr><th>Rule</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Canonical form</td><td><code>&lt;label&gt;.ant</code>, stored lowercase; one label, no subdomains</td></tr>
+          <tr><td>Label</td><td>1&ndash;62 characters from <code>a&ndash;z</code>, <code>0&ndash;9</code> and <code>-</code></td></tr>
+          <tr><td>Hyphens</td><td>Not first, not last, never two in a row (which also excludes <code>xn--</code> punycode)</td></tr>
+          <tr><td>Input</td><td>Trimmed and ASCII-lowercased; the <code>.ant</code> suffix is optional</td></tr>
+          <tr><td>Rejected</td><td>Any non-ASCII character, so look-alike Unicode names such as a Cyrillic &ldquo;&#1110;&rdquo; cannot be registered</td></tr>
+          <tr><td>Reserved</td><td><code>anet.ant</code> and <code>wanet.ant</code> (owner decision, mirroring the reserved ANRC-20 symbols)</td></tr>
+          <tr><td>Uniqueness</td><td>One owner per name across the whole namespace</td></tr>
+        </tbody>
+      </table>
+      <p>The 1&ndash;62 character limit and the character set are the rules the earlier off-chain colony domains used; the hyphen and ASCII-only rules were added for safety.</p>
+
+      <h3>D. Registration</h3>
+      <p>An eligible wallet (part N) signs <code>{route: "ant_register", name}</code> and submits it to <code>POST /domains/register</code>. The node rejects invalid, reserved and already registered names. On success the registrant becomes the owner and the name resolves to it. The record is sealed in the next block, normally within seconds. Concurrent attempts for the same name are ordered by the producer: the first is accepted and every later one is refused as a duplicate.</p>
+
+      <h3>E. Ownership and authorization</h3>
+      <ul>
+        <li>Every operation carries an <code>action-v1</code> authorization signed with the acting wallet's secp256k1 key, the same scheme as ANRC-20. The node rejects a different chain, a payload that differs from the request (HTTP&nbsp;401) and a nonce that is not strictly greater than the wallet's previous nonce for that action (HTTP&nbsp;409).</li>
+        <li>Only the owner can transfer a name, change its resolver, list it or cancel its listing. A caller cannot act for a wallet by naming its address; only that wallet's signature counts.</li>
+        <li>There is no administrator path: no operator key can register, reassign or revoke a name, and editing a database cannot change ownership, because ownership is rebuilt from sealed blocks.</li>
+      </ul>
+
+      <h3>F. Forward resolution</h3>
+      <p><code>GET /domains/name/{name}</code> returns the owner, the resolver (the wallet the name pays to), the listing, if any, and whether an accepted operation is still waiting for a block. A name resolves to its owner at registration; the owner can point it to any valid ANET address. Producer and follower nodes answer from their own state, so a client can compare independent nodes, which return the same result for the same chain tip. Unknown names report <code>registered: false</code>; invalid names return HTTP&nbsp;400 with the reason.</p>
+
+      <h3>G. Reverse resolution</h3>
+      <p>A wallet may name one <code>.ant</code> name as its primary name, but only a name that currently resolves to it. Reverse resolution (<code>GET /domains/reverse/{address}</code>) is forward-confirmed: when the name is transferred or pointed elsewhere, the old reverse record is removed, so a wallet can never display a name it no longer controls.</p>
+
+      <h3>H. Wallet integration</h3>
+      <ul>
+        <li><strong>Send to a name.</strong> The ANET Wallet extension and the mobile app accept <code>name.ant</code> as a recipient. The wallet resolves the name and shows the name, the resolved address, the amount, the network and the fee for explicit confirmation. Just before signing it resolves the name again and stops if the address changed. It then signs an ordinary native transfer to the <em>address</em>, never to the name. A later resolver change cannot redirect a signed transfer.</li>
+        <li><strong>Receive with a name.</strong> The extension shows the wallet's primary name on its dashboard and Receive screen.</li>
+        <li><strong>Manage names.</strong> <code>a-network.net/domains.html</code> searches, registers, transfers, sets resolver and primary names, lists, buys, bids and settles, and shows each name's history. It signs locally with the browser wallet or through the ANET Wallet extension; keys never leave the device. The mobile app (1.0.127+192, pending store release) shows owned and primary names and can register a name and set the primary name.</li>
+        <li><strong>Fix shipped with this version.</strong> The extension signed native transfers with a timestamp as the nonce, which the node rejects (nonces are sequential); it now reads <code>next_nonce</code> first.</li>
+      </ul>
+
+      <h3>I. Domain identity and NFTs</h3>
+      <p>The on-chain name record is the identity asset: it is unique, has exactly one owner and moves only through signed, sealed operations. No separate NFT token is issued, so the identity can never be separated from the name or show a different owner. Off-chain profile material (logos, banners, descriptions) is not part of the record and confers no ownership. The pi-backend no longer creates <code>.ant</code> names or domain-auction listings: those requests return HTTP&nbsp;410 with a pointer to the on-chain registry, and off-chain NFT assets may no longer use names ending in <code>.ant</code>. In production it held no colony domains and no listings, so nothing had to be migrated.</p>
+
+      <h3>J. Fixed-price marketplace</h3>
+      <p>The owner lists a name at a fixed price (at least 1 ANTS). A buyer signs the listing id and the exact price; the node moves the price from buyer to seller and the name to the buyer in one operation, and resets the resolver to the buyer. A changed price, a cancelled and re-listed name, or a second purchase of the same listing is refused, so a signature cannot be reused against different terms.</p>
+
+      <h3>K. Auction marketplace</h3>
+      <ul>
+        <li><strong>Terms.</strong> Minimum bid of at least 1 ANTS; duration 1&ndash;168 hours, fixed at listing.</li>
+        <li><strong>Bids.</strong> Each bid must be at least the minimum bid and at least 1 ANTS above the highest bid. The bid is moved into the keyless escrow account <code>__ant_market_escrow__</code>, and the previous highest bid is refunded in the same operation, so only the highest bid is ever escrowed. The seller cannot bid. Bids close at the end time.</li>
+        <li><strong>Settlement.</strong> After the end time the seller or the highest bidder settles: the escrowed bid goes to the seller and the name to the winner. Without bids, settlement closes the listing and the seller keeps the name.</li>
+        <li><strong>Cancellation.</strong> A seller can cancel an auction only while it has no bid.</li>
+      </ul>
+
+      <h3>L. Domain-auction marketplace</h3>
+      <p>The domain-auction class keeps the policy of Version 2.3 (Invariant&nbsp;5): <code>.ant</code> identity assets only and a minimum bid floor of 10,000 ANTS. It follows the auction rules of part K. Every on-chain listing is a <code>.ant</code> name, so the asset rule holds by construction.</p>
+
+      <h3>M. Fees</h3>
+      <p>There is no registration fee, no renewal fee, no marketplace commission and no network fee for name operations (owner decision). Marketplace payments move only the agreed price between the parties. Native ANET transfers to a name pay the ordinary transfer fee. Any future fee needs a published, versioned protocol rule (&sect;&nbsp;SC, Version 4.5).</p>
+
+      <h3>N. Eligibility and activation rules</h3>
+      <p>The participant lifecycle of Version 2.3 is preserved and enforced on Layer&nbsp;1 for registering, buying, bidding and receiving a transfer:</p>
+      <table class="wp-table">
+        <thead><tr><th>Lifecycle step</th><th>Layer 1 rule</th></tr></thead>
+        <tbody>
+          <tr><td>1. At least 1,000 verified mining sessions</td><td><code>sessions &ge; 1,000</code> in the last sealed state</td></tr>
+          <tr><td>2. Authenticated wallet execution</td><td>Every operation is signed by the acting wallet</td></tr>
+          <tr><td>3. First successful settlement</td><td>A sealed <code>SessionActivation</code> credit or a signed native transfer by the wallet in an earlier block</td></tr>
+          <tr><td>4&ndash;5. Identity and marketplace access</td><td>Only wallets meeting 1&ndash;3 can acquire a name; operator bootstrap seats are excluded, as for ANRC-20</td></tr>
+        </tbody>
+      </table>
+      <p>Owners can always transfer, update and list their names. Ordinary P2P transfers keep their existing rules. On November 16, 2026 no organic wallet had reached 1,000 sessions, so registration on mainnet opens as miners reach the threshold.</p>
+
+      <h3>O. Blockchain settlement</h3>
+      <ul>
+        <li>Each operation is atomic: the producer applies the ownership change and its payments together under one state lock, or rejects the whole operation. It is final once sealed in a block.</li>
+        <li>Auction deadlines use the producer-sealed event time at millisecond precision, which followers re-check.</li>
+        <li>The current network has a single producer, so there are no competing forks or reorganizations. The producer orders simultaneous requests; a refused request changes nothing.</li>
+        <li>Name operations never create or destroy ANET. The supply rules of Version 4.7, part C still apply to every block.</li>
+      </ul>
+
+      <h3>P. Security architecture</h3>
+      <ul>
+        <li><strong>Signature binding.</strong> The signature covers the action, wallet, nonce, chain ID and the exact payload, including the name, recipient, listing id and price. A signature cannot be replayed, used on another chain or applied to different terms.</li>
+        <li><strong>Independent verification.</strong> Every follower re-verifies each name operation: signature, nonce, naming, ownership and eligibility rules, the sealed attributes, and an escrow balance equal to the open highest bids.</li>
+        <li><strong>Input safety.</strong> Names are ASCII-only, amounts are unsigned 64-bit integers with checked arithmetic, and payloads must have exactly the expected fields.</li>
+        <li><strong>Explorer.</strong> The explorer search page displayed the search text without escaping it, a reflected cross-site scripting flaw. It is escaped from node 0.3.0, and the new name pages escape all values.</li>
+        <li><strong>Testing.</strong> Before release: 115 node unit tests (naming, ownership, market, escrow, signature and nonce-ordering cases); a multi-node devnet test with one producer and three independent followers that ran every operation and every refusal, a full one-hour auction through to settlement, and a producer restart; plus SDK, website and mobile tests. An independent security review found two issues, both fixed before release. Concurrent signed actions could be sealed out of nonce order, which would have stopped every follower; the producer now re-checks nonces under its state lock, for ANRC-20 as well. A payment could spend ANET already committed to a queued transfer, which would have stopped block production; payments now leave queued transfers covered. After deployment, 18 production checks passed, including refusal of ineligible, tampered, replayed and wrong-chain requests.</li>
+      </ul>
+
+      <h3>Q. Explorer verification</h3>
+      <p>The explorer resolves a <code>.ant</code> search to <code>/explorer/domains/{name}</code>. The page shows the owner, the resolver, the primary-name status, the listing and bids, and the full operation history. Each history entry shows its block, its confirmations (or <em>Pending</em> while it waits for a block) and the hash of the owner&apos;s signed action. JSON views of the same data are linked from the page. To verify independently, run a follower node and compare its <code>/domains/name/{name}</code> answer, or replay the <code>AntDomain</code> events with their signatures.</p>
+
+      <h3>R. Public APIs and integration requirements</h3>
+      <ul>
+        <li><strong>Read</strong> (producer and followers): <code>GET /domains/name/{name}</code>, <code>/domains/reverse/{address}</code>, <code>/domains/owner/{address}</code>, <code>/domains/market</code> (listings, escrow balance and open bids); producer only: <code>/domains/name/{name}/history</code>.</li>
+        <li><strong>Write</strong> (signed): <code>POST /domains/register</code>, <code>/transfer</code>, <code>/resolver</code>, <code>/primary</code>, <code>/domains/market/list</code>, <code>/cancel</code>, <code>/buy</code>, <code>/bid</code>, <code>/settle</code>.</li>
+        <li><strong>Published rules:</strong> <code>ant_domains</code> in <code>/network/consensus</code> and <code>/network/capabilities</code>.</li>
+        <li><strong>Integration requirements:</strong> sign locally; resolve before every payment and confirm the resolved address with the user; sign transfers to addresses, not names; treat a result as confirmed only once it is sealed (<code>pending: false</code>).</li>
+        <li><strong>Documentation:</strong> <a href="https://github.com/A-Network-2026/anet-chain/blob/main/docs/ANT_DOMAINS_SPEC.md" target="_blank" rel="noopener">ANT_DOMAINS_SPEC.md</a>, <a href="https://github.com/A-Network-2026/anet-chain/blob/main/docs/DEVELOPER_GUIDE.md" target="_blank" rel="noopener">DEVELOPER_GUIDE.md</a>, TypeScript SDK 0.2.0 in <code>anet-chain/sdk/typescript</code>.</li>
+      </ul>
+
+      <h3>S. Transfer and renewal policies</h3>
+      <p>Ownership is permanent: names do not expire and need no renewal (owner decision; no expiry policy had been approved). An owner can transfer a name to any eligible wallet at no cost, unless the name is listed. A transfer or sale resets the resolver to the new owner and removes reverse records that no longer match.</p>
+
+      <h3>T. Technical limitations</h3>
+      <ul>
+        <li>Single producer: the operator orders operations and can delay or refuse them, but cannot forge a signature or change a sealed record without followers rejecting the block.</li>
+        <li>Followers check that each payment was authorized for the exact amount, that escrow is fully backed and that supply is conserved. Like DEX operations, they accept the block's per-account balances rather than attributing every balance change to an operation.</li>
+        <li>Followers do not check the bootstrap-seat exclusion, because the operator's seat list is not on chain.</li>
+        <li>Auctions do not extend when a bid arrives near the end. An ended auction stays open, with its bid in escrow, until the seller or the highest bidder settles it.</li>
+        <li>General (non-<code>.ant</code>) NFTs remain off-chain in the pi-backend and are not settled on Layer&nbsp;1.</li>
+        <li><code>.ant</code> names do not work in web browsers or ICANN DNS.</li>
+      </ul>
+
+      <h3>U. Deployment and network activation status</h3>
+      <table class="wp-table">
+        <thead><tr><th>Item</th><th>Status on November 16, 2026</th></tr></thead>
+        <tbody>
+          <tr><td>Approval</td><td>Approved by the owner as an exception to the L1 feature freeze and logged in <code>anet-chain/FREEZE.md</code>, with the policy decisions above: lifecycle eligibility, no fees, permanent ownership, reserved names</td></tr>
+          <tr><td>Activation</td><td>Node 0.3.0 deployed to the producer through the usual release procedure (CI on Linux, macOS and Windows; push to <code>main</code>). Serving since 17:18 UTC after about three minutes of downtime. The block format and hash did not change, so no activation height was needed. Follower rules apply from the first <code>AntDomain</code> event</td></tr>
+          <tr><td>Chain continuity</td><td>Same chain ID and genesis. Production resumed at the same tip (height 40,326). An independent verification of all 40,334 blocks with the 0.3.0 binary passed, and native supply is unchanged at 251.89021715 ANET</td></tr>
+          <tr><td>Production checks</td><td>18 of 18 passed: published rules, lookups, explorer pages, reflected-XSS fix, and refusal of ineligible, tampered, replayed and wrong-chain requests</td></tr>
+          <tr><td>First registration on mainnet</td><td>Not yet possible for any user: no organic wallet has reached 1,000 completed sessions</td></tr>
+          <tr><td>Follower operators</td><td>Upgrade to 0.3.0 to verify <code>.ant</code> rules. Older followers keep accepting blocks without checking them. No validator coordination is needed: the producer is the only block producer</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Corrections of record</h3>
+      <ol>
+        <li>Version 2.3 described fixed, auction and domain-auction marketplace listings. They were implemented only in the pi-backend database: a &ldquo;sale&rdquo; changed the recorded owner without moving any ANET, miner login required no password or signature, and records were stored on an ephemeral server disk. In production that system held no colony domains and no listings. It no longer creates <code>.ant</code> names or domain-auction listings; <code>.ant</code> sales now settle on Layer&nbsp;1 (parts J&ndash;L).</li>
+        <li>The explorer search page was vulnerable to reflected cross-site scripting (part P). Fixed in node 0.3.0.</li>
+        <li>The ANET Wallet extension&apos;s Send screen used a timestamp as the transfer nonce, which the node rejects. Fixed in extension 1.1.0 (part H).</li>
+      </ol>
+
+      <h3>What did NOT change</h3>
+      <p>The 21,000,000 ANET maximum supply, 1 ANET = 100,000,000 ANTS, the mining and activation schedule, eligibility thresholds, the vesting schedule, the one-way bridge policy, the separation of wANET from native ANET, existing balances and every earlier changelog.</p>
+    </section>
 
     <section class="wp-section" id="v47-changelog">
       <div class="section-label">v4.7 Changelog &middot; November 13, 2026</div>
@@ -4963,7 +5142,7 @@ ORDER BY updated_at DESC   <span class="comment">// most recently active first</
 
     <div class="wp-footer">
 
-      <p style="margin-bottom: 8px"><strong style="color: var(--text);  font-family: Roboto, Arial, sans-serif;  font-size: 14px">A-NETWORK</strong> &middot; Official Whitepaper v4.7 &middot; November 13, 2026</p>
+      <p style="margin-bottom: 8px"><strong style="color: var(--text);  font-family: Roboto, Arial, sans-serif;  font-size: 14px">A-NETWORK</strong> &middot; Official Whitepaper v4.8 &middot; November 16, 2026</p>
 
       <p>Website: <a href="https://a-network.net">a-network.net</a> &middot; Contract: <a href="https://bscscan.com/address/0x791055A7d52AA392eaE8De04250497f33807E46A">0x791055A7...E46A</a> &middot; App: <a href="https://apps.apple.com/us/app/a-network/id6770665448" data-app-download="ios">App Store</a> &middot; <a href="https://play.google.com/store/apps/details?id=com.anetwork.app" data-app-download="android">Google Play</a></p>
 

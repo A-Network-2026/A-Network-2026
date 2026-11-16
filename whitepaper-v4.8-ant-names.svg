@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 470" width="960" height="470" font-family="Roboto, Arial, sans-serif" font-size="13" role="img" aria-labelledby="title desc">
+  <title id="title">A Network .ant names, node release 0.3.0</title>
+  <desc id="desc">Wallets sign .ant actions; the producer's rule engine seals AntDomain events and payments in a block; independent follower nodes replay every operation with the same rules; wallets resolve a name to an address and sign transfers to that address.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5f6368"/>
+    </marker>
+    <style>
+      .box { fill: #ffffff; stroke: #5f6368; stroke-width: 1.2; rx: 8; }
+      .wallet { fill: #fef7e0; stroke: #f9ab00; }
+      .web3 { fill: #e8f0fe; stroke: #1a73e8; }
+      .node { fill: #e6f4ea; stroke: #188038; }
+      .ext  { fill: #f1f3f4; stroke: #80868b; }
+      .h { font-weight: 700; fill: #202124; }
+      .t { fill: #3c4043; }
+      .lane { font-size: 12px; font-weight: 700; fill: #5f6368; letter-spacing: 1px; }
+      .line { stroke: #5f6368; stroke-width: 1.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <text class="lane" x="20" y="28">WALLETS · KEYS NEVER LEAVE THE DEVICE</text>
+  <text class="lane" x="20" y="198">LAYER 1 PRODUCER (OPERATOR)</text>
+  <text class="lane" x="520" y="198">INDEPENDENT COMPUTERS</text>
+  <text class="lane" x="20" y="368">PAYING A NAME</text>
+
+  <rect class="box wallet" x="20" y="40" width="420" height="110"/>
+  <text class="h" x="35" y="64">ANET Wallet extension · mobile app · domains.html</text>
+  <text class="t" x="35" y="86">Register, transfer, set resolver or primary name</text>
+  <text class="t" x="35" y="106">List, buy, bid, settle (fixed / auction / domain-auction)</text>
+  <text class="t" x="35" y="126">Each action signed: action-v1 · secp256k1 · per-action nonce</text>
+
+  <rect class="box ext" x="520" y="40" width="420" height="110"/>
+  <text class="h" x="535" y="64">Not internet DNS</text>
+  <text class="t" x="535" y="86">.ant is an A Network Layer 1 naming system</text>
+  <text class="t" x="535" y="106">Browsers and ICANN resolvers do not resolve it</text>
+  <text class="t" x="535" y="126">Only wallets, explorers and apps using the RPC</text>
+
+  <rect class="box web3" x="20" y="210" width="420" height="120"/>
+  <text class="h" x="35" y="234">Producer node · rule engine (domain.rs)</text>
+  <text class="t" x="35" y="256">Name rules, ownership, eligibility, listings, deadlines</text>
+  <text class="t" x="35" y="276">Moves ANET buyer → seller, bidder → escrow → seller</text>
+  <text class="t" x="35" y="296">Seals one AntDomain event per operation in the block</text>
+  <text class="t" x="35" y="316">No fees · no admin override · permanent ownership</text>
+
+  <rect class="box node" x="520" y="210" width="420" height="120"/>
+  <text class="h" x="535" y="234">Follower nodes (anyone)</text>
+  <text class="t" x="535" y="256">Replay every AntDomain event with the same rules</text>
+  <text class="t" x="535" y="276">Check signature, nonce, eligibility, sealed attributes</text>
+  <text class="t" x="535" y="296">Escrow balance = sum of open highest bids</text>
+  <text class="t" x="535" y="316">Serve /domains/* from their own verified copy</text>
+
+  <rect class="box wallet" x="20" y="380" width="920" height="70"/>
+  <text class="h" x="35" y="404">Send to digitalgold.ant</text>
+  <text class="t" x="35" y="426">GET /domains/name/digitalgold.ant → resolver address → show name, address, amount, fee, network → user confirms →</text>
+  <text class="t" x="35" y="444">re-resolve (abort if changed) → sign a normal transfer to the address. A later resolver change cannot redirect it.</text>
+
+  <path class="line" d="M230,150 L230,208"/>
+  <path class="line" d="M440,270 L518,270"/>
+  <path class="line" d="M730,330 L730,378"/>
+</svg>
