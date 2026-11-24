@@ -256,7 +256,11 @@
 
   function onSearch() {
     try {
-      lookup(normalizeName($('dn-search-input').value));
+      const name = normalizeName($('dn-search-input').value);
+      const url = new URL(window.location.href);
+      url.searchParams.set('name', name);
+      window.history.replaceState(null, '', url);
+      lookup(name);
     } catch (e) {
       state.searched = '';
       fill($('dn-search-result'), [el('p', { class: 'bad', text: 'Invalid name: ' + e.message })]);
@@ -502,5 +506,10 @@
   loadMine();
   loadMarket();
   watchExtension();
+  const initialName = new URL(window.location.href).searchParams.get('name');
+  if (initialName) {
+    $('dn-search-input').value = initialName;
+    onSearch();
+  }
   api('/sync/head').then((head) => { if (head && head.chain_id) state.chainId = String(head.chain_id); }, (e) => setStatus(e.message, 'bad'));
 })(typeof window !== 'undefined' ? window : globalThis);
