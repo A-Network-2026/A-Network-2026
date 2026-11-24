@@ -14,11 +14,23 @@
   <main>
     <header><img src="logo.png" width="42" height="42" alt=""> A Network</header>
     <h1>Pi Order Book</h1>
-    <p>Keep a private record of Pi-priced purchases, sales and deliveries on this device. Orders are manual records. This app never moves funds or verifies payments.</p>
+    <p>Agree on Pi-priced orders and track delivery together. This app does not move funds or verify payments.</p>
     <button id="connect">Connect with Pi</button>
     <p id="status" role="status" aria-live="polite">Open in Pi Browser to connect your account.</p>
     <section id="workspace" hidden aria-label="Order workspace">
-      <h2>Record an order</h2>
+      <h2>Shared orders</h2>
+      <p>Share an invite privately. The first signed-in Pioneer who accepts becomes the buyer.</p>
+      <form id="shared-order">
+        <label>Deliverable <input name="title" required maxlength="100"></label>
+        <label>Agreed amount in Pi <input name="amount" inputmode="decimal" required maxlength="17"></label>
+        <label>Due date <input type="date" name="due" required></label>
+        <button>Create buyer invite</button>
+      </form>
+      <p id="shared-status" role="status"></p>
+      <div id="incoming-invite"></div>
+      <button id="refresh-orders" type="button">Refresh shared orders</button>
+      <ul id="shared-orders"></ul>
+      <h2>Personal orders on this device</h2>
       <form id="order">
         <label>Order name <input name="title" required maxlength="100"></label>
         <label>Direction <select name="direction"><option>Purchase</option><option>Sale</option></select></label>

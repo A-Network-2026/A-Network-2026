@@ -50,6 +50,7 @@ connect.addEventListener('click', async () => {
     orders = [];
     list.replaceChildren();
     form.reset();
+    clearSharedSession();
     workspace.hidden = true;
     connect.textContent = 'Connect with Pi';
     status.textContent = 'Order book closed.';
@@ -67,7 +68,7 @@ connect.addEventListener('click', async () => {
       window.Pi.init({ version: '2.0', sandbox: false });
       initialized = true;
     }
-    const { user } = await window.Pi.authenticate(['username'], () => {});
+    const { user, accessToken } = await window.Pi.authenticate(['username'], () => {});
     if (!user?.uid || !user.username) throw new Error('Missing Pi identity');
     const key = `a-network-pi-orders:v1:${user.uid}`;
     const saved = JSON.parse(localStorage.getItem(key) ?? '[]');
@@ -76,10 +77,12 @@ connect.addEventListener('click', async () => {
     accountKey = key;
     renderOrders();
     workspace.hidden = false;
+    startSharedSession(accessToken);
     connect.textContent = 'Close order book';
     status.textContent = `Connected as @${user.username}.`;
   } catch {
     accountKey = null;
+    clearSharedSession();
     workspace.hidden = true;
     status.textContent = 'Could not open your order book. Check Pi Browser and local storage, then retry.';
   } finally {
@@ -102,3 +105,131 @@ form.addEventListener('submit', event => {
     form.reset();
   }
 });
+
+const sharedForm = document.querySelector('#shared-order');
+const sharedStatus = document.querySelector('#shared-status');
+const sharedList = document.querySelector('#shared-orders');
+const incomingInvite = document.querySelector('#incoming-invite');
+const refreshButton = document.querySelector('#refresh-orders');
+let sharedSession = null;
+
+function clearSharedSession() {
+  sharedSession?.controller.abort();
+  sharedSession = null;
+  sharedForm.reset();
+  sharedStatus.textContent = '';
+  sharedList.replaceChildren();
+  incomingInvite.replaceChildren();
+}
+
+function startSharedSession(token) {
+  if (!token) {
+    sharedStatus.textContent = 'Reconnect with Pi to use shared orders.';
+    return;
+  }
+  sharedSession = { token, controller: new AbortController(), pending: false, draft: null };
+  runSharedAction(refreshShared);
+}
+
+async function ordersApi(session, body, inviteId) {
+  const url = new URL('/api/orders', location.origin);
+  if (inviteId) url.searchParams.set('invite', inviteId);
+  const response = await fetch(url, {
+    method: body ? 'POST' : 'GET',
+    headers: { Authorization: `Bearer ${session.token}`, ...(body && { 'Content-Type': 'application/json' }) },
+    body: body && JSON.stringify(body),
+    signal: session.controller.signal
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'Could not load shared orders.');
+  return result;
+}
+
+async function runSharedAction(action) {
+  const session = sharedSession;
+  if (!session || session.pending) return;
+  session.pending = true;
+  sharedStatus.textContent = 'Updating shared orders…';
+  try {
+    const message = await action(session);
+    if (sharedSession === session) sharedStatus.textContent = message || '';
+  } catch (error) {
+    if (sharedSession === session) sharedStatus.textContent = error.message;
+  } finally {
+    session.pending = false;
+  }
+}
+
+function actionButton(label, onClick) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = label;
+  button.addEventListener('click', onClick);
+  return button;
+}
+
+function transition(action, id) {
+  runSharedAction(async session => {
+    await ordersApi(session, { action, id });
+    if (action === 'accept' && sharedSession === session) history.replaceState(null, '', location.pathname + location.search);
+    return refreshShared(session);
+  });
+}
+
+function renderSharedOrders(orders) {
+  sharedList.replaceChildren();
+  for (const order of orders) {
+    const row = document.createElement('li');
+    const details = document.createElement('span');
+    details.textContent = `${order.title} · ${order.amount} Pi · due ${order.due} · ${order.role} · ${order.state}`;
+    row.append(details);
+    if (order.state === 'Invited') {
+      const url = new URL(location.href);
+      url.hash = `invite=${order.id}`;
+      const link = document.createElement('input');
+      link.readOnly = true;
+      link.value = url.href;
+      link.setAttribute('aria-label', 'Buyer invitation URL');
+      link.addEventListener('focus', () => link.select());
+      row.append(link);
+    }
+    if (order.role === 'Seller' && order.state === 'Accepted') {
+      row.append(actionButton('Mark sent', () => transition('ship', order.id)));
+    }
+    if (order.role === 'Buyer' && order.state === 'Shipped') {
+      row.append(actionButton('Confirm delivery', () => transition('deliver', order.id)));
+    }
+    sharedList.append(row);
+  }
+}
+
+async function refreshShared(session) {
+  const result = await ordersApi(session);
+  if (sharedSession !== session) return;
+  renderSharedOrders(result.orders);
+  incomingInvite.replaceChildren();
+  const inviteId = new URLSearchParams(location.hash.slice(1)).get('invite');
+  if (!inviteId) return result.orders.length ? '' : 'No shared orders yet.';
+  const { invite } = await ordersApi(session, undefined, inviteId);
+  if (sharedSession !== session) return;
+  const summary = document.createElement('p');
+  summary.textContent = `Invitation: ${invite.title} · ${invite.amount} Pi · due ${invite.due}`;
+  incomingInvite.append(summary, actionButton('Accept order', () => transition('accept', invite.id)));
+}
+
+sharedForm.addEventListener('submit', event => {
+  event.preventDefault();
+  runSharedAction(async session => {
+    const data = Object.fromEntries(new FormData(sharedForm));
+    const signature = JSON.stringify(data);
+    if (session.draft?.signature !== signature) session.draft = { signature, id: crypto.randomUUID() };
+    await ordersApi(session, { action: 'create', id: session.draft.id, ...data });
+    if (sharedSession !== session) return;
+    session.draft = null;
+    sharedForm.reset();
+    return refreshShared(session);
+  });
+});
+
+refreshButton.addEventListener('click', () => runSharedAction(refreshShared));
+window.addEventListener('hashchange', () => runSharedAction(refreshShared));
