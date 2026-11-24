@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Network | Pi Order Book</title>
+  <meta name="description" content="Track your Pi-priced orders and deliveries in Pi Browser.">
+  <link rel="icon" href="logo.png">
+  <link rel="stylesheet" href="assets/css/pi-orders.css">
+  <script defer src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <script defer src="assets/js/pi-orders.js"></script>
+</head>
+<body>
+  <main>
+    <header><img src="logo.png" width="42" height="42" alt=""> A Network</header>
+    <h1>Pi Order Book</h1>
+    <p>Keep a private record of Pi-priced purchases, sales and deliveries on this device. Orders are manual records. This app never moves funds or verifies payments.</p>
+    <button id="connect">Connect with Pi</button>
+    <p id="status" role="status" aria-live="polite">Open in Pi Browser to connect your account.</p>
+    <section id="workspace" hidden aria-label="Order workspace">
+      <h2>Record an order</h2>
+      <form id="order">
+        <label>Order name <input name="title" required maxlength="100"></label>
+        <label>Direction <select name="direction"><option>Purchase</option><option>Sale</option></select></label>
+        <label>Agreed amount in Pi <input name="amount" inputmode="decimal" pattern="[0-9]{1,9}(\.[0-9]{1,7})?" required maxlength="17"></label>
+        <button>Add order</button>
+      </form>
+      <h2>Saved orders</h2>
+      <ul id="orders"></ul>
+    </section>
+  </main>
+</body>
+</html>
