@@ -24,9 +24,16 @@ form, li { background: #182336; border-radius: 12px; padding: 1rem; }
 form, label { display: grid; gap: .4rem; }
 form { gap: .9rem; }
 input, select, button { font: inherit; border-radius: 8px; padding: .55rem .8rem; }
+button, input, select { min-height: 44px; box-sizing: border-box; }
 input, select { min-width: 0; border: 1px solid #71819e; background: #0e1420; color: inherit; }
 button { border: 0; background: #add4ff; color: #101827; font-weight: 650; cursor: pointer; }
 button:disabled { opacity: .65; cursor: default; }
 :focus-visible { outline: 3px solid #f0c46b; outline-offset: 3px; }
 ul { padding: 0; }
 li { margin-bottom: .6rem; justify-content: space-between; flex-wrap: wrap; overflow-wrap: anywhere; }
+.invite-controls { display: flex; flex-wrap: wrap; gap: .6rem; width: 100%; }
+.invite-controls input { flex: 1 1 15rem; max-width: 100%; }
+#incoming-invite:not(:empty) { border: 1px solid #add4ff; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; background: #182336; }
+#incoming-invite p { margin-top: 0; }
+footer { margin-top: 2rem; }
+footer a { color: #add4ff; }

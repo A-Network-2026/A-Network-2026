@@ -193,7 +193,20 @@ function renderSharedOrders(orders) {
       link.value = url.href;
       link.setAttribute('aria-label', 'Buyer invitation URL');
       link.addEventListener('focus', () => link.select());
-      row.append(link);
+      const controls = document.createElement('div');
+      controls.className = 'invite-controls';
+      controls.append(link, actionButton('Copy invite', async () => {
+        try {
+          await navigator.clipboard.writeText(link.value);
+          if (link.isConnected) sharedStatus.textContent = 'Invite copied. Share it privately with your buyer.';
+        } catch {
+          if (!link.isConnected) return;
+          link.focus();
+          link.select();
+          sharedStatus.textContent = 'Copy the selected invitation link.';
+        }
+      }));
+      row.append(controls);
     }
     if (order.role === 'Seller' && order.state === 'Accepted') {
       row.append(actionButton('Mark sent', () => transition('ship', order.id)));

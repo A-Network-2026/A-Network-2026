@@ -18,6 +18,7 @@
     <button id="connect">Connect with Pi</button>
     <p id="status" role="status" aria-live="polite">Open in Pi Browser to connect your account.</p>
     <section id="workspace" hidden aria-label="Order workspace">
+      <div id="incoming-invite" aria-live="polite"></div>
       <button id="export-orders" type="button">Export visible orders (CSV)</button>
       <h2>Shared orders</h2>
       <p>Share an invite privately. The first signed-in Pioneer who accepts becomes the buyer.</p>
@@ -28,7 +29,6 @@
         <button>Create buyer invite</button>
       </form>
       <p id="shared-status" role="status"></p>
-      <div id="incoming-invite"></div>
       <button id="refresh-orders" type="button">Refresh shared orders</button>
       <ul id="shared-orders"></ul>
       <h2>Personal orders on this device</h2>
