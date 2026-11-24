@@ -5,9 +5,13 @@
 
 ---
 
-### Pi DEX Access App
+### Pi Order Book
 
-A Pi Browser-ready starter page is now included at `pi-testnet.html`.
+The [Pi Order Book](https://orders.a-network.net/) is a commerce utility for Pioneers. Buyers and sellers can agree on Pi-priced orders, track delivery, and export visible records. See the [Pi integration note](whitepaper-v4.8/PI_INTEGRATION.md) for deployment status and how the app relates to the A Network protocol.
+
+### Pi DEX Sandbox
+
+`pi-testnet.html` is the separate experimental DEX sandbox. The deployed Pi Order Book uses its own backend and has no DEX or payment routes.
 
 What it includes:
 
