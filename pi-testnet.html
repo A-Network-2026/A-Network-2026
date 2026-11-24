@@ -50,9 +50,9 @@
       <div class="hero-card">
         <h3>App Checklist Bridge</h3>
         <ul>
-          <li>App setup completed</li>
-          <li>Wallet connected</li>
-          <li>Production URL configured</li>
+          <li>Pi sign-in</li>
+          <li>Test payment when a Testnet backend is available</li>
+          <li>Local signing tests</li>
           <li class="active">Lifetime DEX unlock + swap flow</li>
         </ul>
       </div>
@@ -72,7 +72,7 @@
         backend <strong>/approve</strong> and <strong>/complete</strong> endpoints.
       </p>
       <div class="row">
-        <button id="payWithPiBtn" class="primary">Pay with Pi</button>
+        <button id="payWithPiBtn" class="primary" disabled>Pay with Pi</button>
       </div>
       <pre id="payWithPiResult" class="log">Click "Pay with Pi" to run a sandbox user-to-app transaction.</pre>
     </section>
@@ -108,7 +108,7 @@
           Backend Base URL
           <input id="backendBaseUrl" type="url" value="https://pi-backend-q2ye.onrender.com" placeholder="https://your-domain.com" required>
         </label>
-        <button type="submit" class="primary">Pay 1 Pi Once For Lifetime DEX Access</button>
+        <button type="submit" class="primary" disabled>Pay 1 Pi Once For Lifetime DEX Access</button>
       </form>
 
       <pre id="paymentResult" class="log">Payment not started.</pre>
@@ -124,9 +124,9 @@
           ANET Wallet
           <input id="traderWallet" type="text" placeholder="ANET..." maxlength="40" required>
         </label>
-        <label>
-          Signing Secret (Sandbox Only)
-          <input id="senderSeed" type="password" placeholder="Sandbox-only test signing value" required>
+        <label id="signingSecretField" hidden>
+          Disposable local test signing value
+          <input id="senderSeed" type="password" autocomplete="off">
         </label>
         <label>
           Token Symbol
@@ -144,9 +144,9 @@
           </select>
         </label>
         <div class="row action-row">
-          <button id="bootstrapBtn" type="button" class="ghost">Bootstrap 2k ANTS Pool</button>
-          <button id="quoteBtn" type="button" class="ghost">Get Quote</button>
-          <button type="submit" class="primary">Execute Swap</button>
+          <button id="bootstrapBtn" type="button" class="ghost" disabled>Bootstrap 2k ANTS Pool</button>
+          <button id="quoteBtn" type="button" class="ghost" disabled>Get Quote</button>
+          <button type="submit" class="primary" disabled>Execute Swap</button>
         </div>
       </form>
 

@@ -21,11 +21,12 @@ const quoteBtn = document.getElementById('quoteBtn');
 const DEFAULT_BACKEND_BASE_URL = 'https://pi-backend-q2ye.onrender.com';
 const NETWORK_TIMEOUT_MS = 15000;
 
-const urlParams = new URLSearchParams(window.location.search);
-const modeParam = String(urlParams.get('mode') || '').toLowerCase();
-const initialSandboxMode = modeParam !== 'prod';
+const localPage = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+let verifiedSandboxBackend = '';
+let configRevision = 0;
 
 let piUser = null;
+let paymentScopeGranted = false;
 let piInitialized = false;
 let requiredAmount = 1;
 let lifetimeDexUnlocked = false;
@@ -56,6 +57,7 @@ async function postJson(url, payload) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      redirect: 'error',
       signal: controller.signal
     });
   } catch (error) {
@@ -104,10 +106,7 @@ async function getJson(url) {
 }
 
 async function handleIncompletePayment(payment) {
-  setLog(paymentResult, `Incomplete payment found: ${JSON.stringify(payment, null, 2)}`);
-  if (payWithPiResult) {
-    setLog(payWithPiResult, `Incomplete payment found: ${JSON.stringify(payment, null, 2)}`);
-  }
+  setLog(paymentResult, 'Pi reported an incomplete test payment.');
 
   const paymentId = payment?.identifier || payment?.paymentId || payment?.id;
   if (!paymentId) {
@@ -115,11 +114,10 @@ async function handleIncompletePayment(payment) {
   }
 
   const backendBaseUrl = getBackendBaseUrl();
-  if (!backendBaseUrl) {
-    return;
-  }
+  if (!sandboxReady(backendBaseUrl)) return;
 
   try {
+    await warmBackend(backendBaseUrl);
     setLog(paymentResult, `Attempting to resolve pending payment ${paymentId} on backend...`);
     const resolved = await postJson(`${backendBaseUrl}/resolve-incomplete`, { paymentId });
 
@@ -143,47 +141,20 @@ async function handleIncompletePayment(payment) {
   }
 }
 
-function dexStorageKey(uid) {
-  return `anet_dex_unlock:${String(uid || 'guest').trim() || 'guest'}`;
-}
-
-function persistLocalUnlock(record) {
-  const uid = record?.uid || piUser?.uid || 'guest';
-  try {
-    localStorage.setItem(dexStorageKey(uid), JSON.stringify(record));
-  } catch {
-    // Ignore storage errors.
-  }
-}
-
-function readLocalUnlock(uid) {
-  try {
-    const raw = localStorage.getItem(dexStorageKey(uid));
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
 function setDexUnlocked(record) {
   lifetimeDexUnlocked = Boolean(record?.unlocked || record?.paymentId);
   dexUnlockRecord = lifetimeDexUnlocked ? record : null;
-
-  if (lifetimeDexUnlocked) {
-    persistLocalUnlock({
-      uid: record?.uid || piUser?.uid || '',
-      username: record?.username || piUser?.username || '',
-      paymentId: record?.paymentId || 'unknown',
-      unlocked: true,
-      unlockedAt: record?.unlockedAt || new Date().toISOString()
-    });
-  }
 
   renderDexAccessState();
 }
 
 function renderDexAccessState() {
-  if (lifetimeDexUnlocked) {
+  const ready = sandboxReady(getBackendBaseUrl());
+  payWithPiBtn.disabled = !ready;
+  if (!ready) {
+    setLog(dexAccessResult, 'Test payments are unavailable until a Testnet backend is configured.');
+    paymentSubmitBtn.disabled = true;
+  } else if (lifetimeDexUnlocked) {
     const paymentId = dexUnlockRecord?.paymentId || 'stored';
     const unlockedAt = dexUnlockRecord?.unlockedAt || dexUnlockRecord?.at || 'unknown time';
     setLog(dexAccessResult, `Lifetime DEX access: active. Payment id: ${paymentId}. Unlocked at: ${unlockedAt}`);
@@ -195,9 +166,11 @@ function renderDexAccessState() {
     paymentSubmitBtn.textContent = 'Pay 1 Pi Once For Lifetime DEX Access';
   }
 
-  dexSubmitBtn.disabled = !piUser || !lifetimeDexUnlocked;
-  bootstrapBtn.disabled = !piUser || !lifetimeDexUnlocked;
-  quoteBtn.disabled = !piUser || !lifetimeDexUnlocked;
+  const canQuote = ready && Boolean(piUser) && lifetimeDexUnlocked;
+  const canExecute = canQuote && localPage && looksLikeLocalhostUrl(verifiedSandboxBackend);
+  dexSubmitBtn.disabled = !canExecute;
+  bootstrapBtn.disabled = !canExecute;
+  quoteBtn.disabled = !canQuote;
 }
 
 function updatePaymentMetadataDefaults() {
@@ -249,101 +222,88 @@ function looksLikeLocalhostUrl(urlValue) {
 
 function getBackendBaseUrl() {
   const value = backendBaseUrlInput.value.trim().replace(/\/$/, '');
-  if (value === 'https://a-network.net') {
-    backendBaseUrlInput.value = DEFAULT_BACKEND_BASE_URL;
-    return DEFAULT_BACKEND_BASE_URL;
+  if (!value || value === 'https://a-network.net') return DEFAULT_BACKEND_BASE_URL;
+  try {
+    const parsed = new URL(value);
+    if (parsed.username || parsed.password || parsed.pathname !== '/' || parsed.search || parsed.hash)
+      return '';
+    return parsed.protocol === 'https:' || (localPage && looksLikeLocalhostUrl(value) && parsed.protocol === 'http:')
+      ? parsed.origin
+      : '';
+  } catch {
+    return '';
   }
-  return value;
 }
 
-function initPiSdk(sandboxMode) {
-  if (!window.Pi) {
-    sdkStatus.textContent = 'SDK: Pi SDK not available. Open this page in Pi Browser.';
-    sdkStatus.style.color = '#c5221f';
-    return false;
-  }
-
-  Pi.init({ version: '2.0', sandbox: sandboxMode });
-  sdkStatus.textContent = `SDK: Ready in ${sandboxMode ? 'sandbox' : 'production'} mode`;
-  return true;
+function sandboxReady(backendBaseUrl) {
+  return Boolean(piInitialized && backendBaseUrl && verifiedSandboxBackend === backendBaseUrl);
 }
 
 async function warmBackend(backendBaseUrl) {
-  await Promise.all([
+  if (!sandboxReady(backendBaseUrl)) throw new Error('A verified Testnet backend is required.');
+  const [, config] = await Promise.all([
     getJson(`${backendBaseUrl}/health`),
-    getJson(`${backendBaseUrl}/api/pi/config`)
+    fetchSdkConfig(backendBaseUrl)
   ]);
+  if (config?.sdk?.sandbox !== true || !sandboxReady(backendBaseUrl)) {
+    if (verifiedSandboxBackend === backendBaseUrl) verifiedSandboxBackend = '';
+    renderDexAccessState();
+    throw new Error('The backend is not in Testnet mode. No payment was started.');
+  }
 }
 
 async function initializePiFromBackendConfig() {
+  const revision = ++configRevision;
+  if (!piInitialized && window.Pi) {
+    Pi.init({ version: '2.0', sandbox: true });
+    piInitialized = true;
+  }
+  verifiedSandboxBackend = '';
+  setDexUnlocked(null);
   if (!piInitialized) {
-    piInitialized = initPiSdk(initialSandboxMode);
-    if (!piInitialized) {
-      return;
-    }
+    sdkStatus.textContent = 'Pi SDK not available. Open the Pi Sandbox to connect.';
+    return;
   }
 
   const backendBaseUrl = getBackendBaseUrl();
-
-  if (!backendBaseUrl) {
-    sdkStatus.textContent = `SDK: Ready in ${initialSandboxMode ? 'sandbox' : 'production'} mode (backend URL missing).`;
-    sdkStatus.style.color = '#c5221f';
-    return;
-  }
-
-  if (looksLikeLocalhostUrl(backendBaseUrl) && window.location.hostname !== 'localhost') {
-    sdkStatus.textContent = 'SDK: Localhost backend not reachable from Pi Browser. Using sandbox mode.';
-    sdkStatus.style.color = '#c5221f';
-    renderDexAccessState();
-    return;
-  }
-
+  sdkStatus.textContent = 'Checking Testnet backend…';
   try {
+    if (!backendBaseUrl) throw new Error('Enter a valid HTTPS backend address.');
     const config = await fetchSdkConfig(backendBaseUrl);
-    const backendSandboxMode = Boolean(config?.sdk?.sandbox);
-    requiredAmount = Number(config?.policy?.requiredAmount || 1);
-    dexMetadataPurpose = String(config?.policy?.metadataPurpose || dexMetadataPurpose);
-    sandboxMetadataPurpose = String(config?.policy?.sandboxMetadataPurpose || sandboxMetadataPurpose);
-
+    if (revision !== configRevision) return;
+    if (config?.sdk?.sandbox !== true)
+      throw new Error('The configured backend is in production mode.');
+    const amount = Number(config?.policy?.requiredAmount || 1);
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('Invalid test payment amount.');
+    requiredAmount = amount;
+    dexMetadataPurpose = String(config?.policy?.metadataPurpose || 'dex-lifetime-unlock');
+    sandboxMetadataPurpose = String(config?.policy?.sandboxMetadataPurpose || 'sandbox-test-payment');
     const amountInput = document.getElementById('amount');
-    amountInput.value = String(requiredAmount);
-    amountInput.min = String(requiredAmount);
-    amountInput.max = String(requiredAmount);
-
-    if (backendSandboxMode !== initialSandboxMode) {
-      sdkStatus.textContent = `SDK: Running in ${initialSandboxMode ? 'sandbox' : 'production'} mode (backend config suggests ${backendSandboxMode ? 'sandbox' : 'production'}).`;
-      sdkStatus.style.color = '#b06000';
-    }
+    amountInput.value = amountInput.min = amountInput.max = String(requiredAmount);
+    verifiedSandboxBackend = backendBaseUrl;
+    sdkStatus.textContent = 'Pi Sandbox · Testnet backend verified';
   } catch (error) {
-    sdkStatus.textContent = `SDK: Config fetch failed (${error.message}). Running in ${initialSandboxMode ? 'sandbox' : 'production'} mode.`;
-    sdkStatus.style.color = '#c5221f';
+    if (revision !== configRevision) return;
+    sdkStatus.textContent = `Pi Sandbox · Test payments disabled. ${error.message}`;
   }
-
   updatePaymentMetadataDefaults();
   renderDexAccessState();
 }
 
 async function refreshDexStatus() {
-  if (!piUser?.uid) {
-    setDexUnlocked(readLocalUnlock('guest'));
-    return;
-  }
-
+  const uid = piUser?.uid;
   const backendBaseUrl = getBackendBaseUrl();
-  if (!backendBaseUrl || (looksLikeLocalhostUrl(backendBaseUrl) && window.location.hostname !== 'localhost')) {
-    setDexUnlocked(readLocalUnlock(piUser.uid));
+  if (!uid || !sandboxReady(backendBaseUrl)) {
+    setDexUnlocked(null);
     return;
   }
-
+  const revision = configRevision;
   try {
-    const status = await getJson(`${backendBaseUrl}/api/pi/dex/status/${encodeURIComponent(piUser.uid)}`);
-    if (status?.unlocked) {
-      setDexUnlocked(status);
-      return;
-    }
-    setDexUnlocked(readLocalUnlock(piUser.uid));
+    const status = await getJson(`${backendBaseUrl}/api/pi/dex/status/${encodeURIComponent(uid)}`);
+    if (revision === configRevision && piUser?.uid === uid && sandboxReady(backendBaseUrl))
+      setDexUnlocked(status?.unlocked === true ? status : null);
   } catch {
-    setDexUnlocked(readLocalUnlock(piUser.uid));
+    if (revision === configRevision && piUser?.uid === uid) setDexUnlocked(null);
   }
 }
 
@@ -359,10 +319,11 @@ async function authenticatePiUser() {
   }
 
   try {
-    const scopes = ['username', 'payments'];
+    const scopes = sandboxReady(getBackendBaseUrl()) ? ['username', 'payments'] : ['username'];
     const auth = await Pi.authenticate(scopes, handleIncompletePayment);
     piUser = auth.user;
-    setLog(authResult, JSON.stringify(auth, null, 2));
+    paymentScopeGranted = scopes.includes('payments');
+    setLog(authResult, `Signed in as @${piUser.username}.`);
     updatePaymentMetadataDefaults();
     await refreshDexStatus();
   } catch (error) {
@@ -394,6 +355,7 @@ async function completePaymentOnBackend(backendBaseUrl, paymentId, txid) {
 
 function clearSession() {
   piUser = null;
+  paymentScopeGranted = false;
   lifetimeDexUnlocked = false;
   dexUnlockRecord = null;
   setLog(authResult, 'Session cleared.');
@@ -439,7 +401,7 @@ async function startPayment(event) {
     return;
   }
 
-  if (Math.abs(amount - requiredAmount) > 0.000001) {
+  if (!Number.isFinite(amount) || Math.abs(amount - requiredAmount) > 0.000001) {
     setLog(paymentResult, `Amount must be exactly ${requiredAmount} Pi for lifetime DEX access.`, true);
     return;
   }
@@ -455,7 +417,7 @@ async function startPayment(event) {
     setLog(paymentResult, 'Opening Pi payment sheet...');
 
     let completionResponse = null;
-    const createdPayment = await Pi.createPayment({ amount, memo, metadata }, {
+    await Pi.createPayment({ amount, memo, metadata }, {
       onReadyForServerApproval: async (paymentId) => {
         setLog(paymentResult, `Payment created. Awaiting server approval for paymentId ${paymentId}...`);
         try {
@@ -468,8 +430,7 @@ async function startPayment(event) {
       onReadyForServerCompletion: async (paymentId, txid) => {
         setLog(paymentResult, `Approved. Completing paymentId ${paymentId} with txid ${txid}...`);
         try {
-          completionResponse = await completePaymentOnBackend(backendBaseUrl, paymentId, txid);
-          return completionResponse;
+          return await completePaymentOnBackend(backendBaseUrl, paymentId, txid);
         } catch (error) {
           setLog(paymentResult, `Completion failed for ${paymentId}: ${error.message}`, true);
           throw error;
@@ -483,16 +444,10 @@ async function startPayment(event) {
       }
     });
 
-    const paymentId = createdPayment?.identifier || createdPayment?.paymentId || createdPayment?.id || completionResponse?.paymentId || 'unknown';
-    setDexUnlocked(completionResponse?.unlock || {
-      uid: piUser.uid,
-      username: piUser.username,
-      paymentId,
-      unlocked: true,
-      unlockedAt: new Date().toISOString()
-    });
-    setLog(paymentResult, '1 Pi payment completed. Lifetime DEX access is now unlocked for this Pi user.');
     await refreshDexStatus();
+    setLog(paymentResult, lifetimeDexUnlocked
+      ? 'Test payment confirmed. DEX access is active.'
+      : 'Waiting for the backend to confirm this test payment.');
   } catch (error) {
     setLog(paymentResult, `Failed to create payment: ${error.message}`, true);
   }
@@ -576,7 +531,6 @@ function getDexPayload() {
     uid: piUser?.uid || '',
     username: piUser?.username || '',
     trader: document.getElementById('traderWallet').value.trim().toUpperCase(),
-    sender_seed: document.getElementById('senderSeed').value.trim(),
     token_symbol: document.getElementById('tokenSymbol').value.trim().toUpperCase(),
     amount_in: Number(document.getElementById('amountIn').value),
     anet_to_token: direction === 'anet-to-token'
@@ -602,6 +556,7 @@ async function requestDexQuote() {
   }
 
   try {
+    await warmBackend(backendBaseUrl);
     setLog(dexQuoteResult, 'Requesting DEX quote...');
     const response = await postJson(`${backendBaseUrl}/api/pi/dex/quote`, payload);
     setLog(dexQuoteResult, JSON.stringify(response, null, 2));
@@ -622,7 +577,12 @@ async function bootstrapDexPool() {
   }
 
   const payload = getDexPayload();
-  if (!payload.trader || !payload.sender_seed) {
+  const senderSeed = document.getElementById('senderSeed').value.trim();
+  if (!localPage || !looksLikeLocalhostUrl(getBackendBaseUrl())) {
+    setLog(dexBootstrapResult, 'Signing is available only in a local test environment.', true);
+    return;
+  }
+  if (!payload.trader || !senderSeed) {
     setLog(dexBootstrapResult, 'ANET wallet and seed phrase are required to bootstrap pool.', true);
     return;
   }
@@ -630,12 +590,13 @@ async function bootstrapDexPool() {
   const backendBaseUrl = getBackendBaseUrl();
 
   try {
-    setLog(dexBootstrapResult, 'Bootstrapping DEX pool on ANET L1...');
+    await warmBackend(backendBaseUrl);
+    setLog(dexBootstrapResult, 'Bootstrapping a local test pool…');
     const response = await postJson(`${backendBaseUrl}/api/pi/dex/bootstrap`, {
       uid: piUser.uid,
       username: piUser.username,
       provider: payload.trader,
-      sender_seed: payload.sender_seed,
+      sender_seed: senderSeed,
       token_symbol: payload.token_symbol,
       anet_amount_ants: payload.amount_in,
       token_amount_units: payload.amount_in,
@@ -665,7 +626,12 @@ async function submitDexSwap(event) {
   const backendBaseUrl = getBackendBaseUrl();
   const payload = getDexPayload();
 
-  if (!payload.trader || !payload.sender_seed) {
+  const senderSeed = document.getElementById('senderSeed').value.trim();
+  if (!localPage || !looksLikeLocalhostUrl(backendBaseUrl)) {
+    setLog(dexExecuteResult, 'Signing is available only in a local test environment.', true);
+    return;
+  }
+  if (!payload.trader || !senderSeed) {
     setLog(dexExecuteResult, 'ANET wallet and seed phrase are required to execute a swap.', true);
     return;
   }
@@ -676,8 +642,9 @@ async function submitDexSwap(event) {
   }
 
   try {
-    setLog(dexExecuteResult, 'Submitting DEX swap to backend...');
-    const response = await postJson(`${backendBaseUrl}/api/pi/dex/execute`, payload);
+    await warmBackend(backendBaseUrl);
+    setLog(dexExecuteResult, 'Submitting a local test swap…');
+    const response = await postJson(`${backendBaseUrl}/api/pi/dex/execute`, { ...payload, sender_seed: senderSeed });
     setLog(dexExecuteResult, JSON.stringify(response, null, 2));
   } catch (error) {
     setLog(dexExecuteResult, `Swap execution failed: ${error.message}`, true);
@@ -696,6 +663,7 @@ backendBaseUrlInput.addEventListener('change', async () => {
   await refreshDexStatus();
 });
 
+document.getElementById('signingSecretField').hidden = !localPage;
 updatePaymentMetadataDefaults();
 if (!backendBaseUrlInput.value.trim() || backendBaseUrlInput.value.trim() === 'https://a-network.net') {
   backendBaseUrlInput.value = DEFAULT_BACKEND_BASE_URL;
