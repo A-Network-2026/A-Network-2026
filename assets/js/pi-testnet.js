@@ -245,10 +245,10 @@ async function warmBackend(backendBaseUrl) {
     getJson(`${backendBaseUrl}/health`),
     fetchSdkConfig(backendBaseUrl)
   ]);
-  if (config?.sdk?.sandbox !== true || !sandboxReady(backendBaseUrl)) {
+  if (config?.sdk?.sandbox !== true || config?.policy?.testPaymentsReady !== true || !sandboxReady(backendBaseUrl)) {
     if (verifiedSandboxBackend === backendBaseUrl) verifiedSandboxBackend = '';
     renderDexAccessState();
-    throw new Error('The backend is not in Testnet mode. No payment was started.');
+    throw new Error('The backend must have Testnet enabled and a Testnet API key and app wallet configured.');
   }
 }
 
@@ -273,6 +273,8 @@ async function initializePiFromBackendConfig() {
     if (revision !== configRevision) return;
     if (config?.sdk?.sandbox !== true)
       throw new Error('The configured backend is in production mode.');
+    if (config?.policy?.testPaymentsReady !== true)
+      throw new Error('The backend needs a Testnet API key and app wallet.');
     const amount = Number(config?.policy?.requiredAmount || 1);
     if (!Number.isFinite(amount) || amount <= 0) throw new Error('Invalid test payment amount.');
     requiredAmount = amount;

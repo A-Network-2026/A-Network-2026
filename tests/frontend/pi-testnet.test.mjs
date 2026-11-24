@@ -3,7 +3,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { read } from './harness.mjs';
 
-function page({ sandbox = false, hostname = 'a-network.net' } = {}) {
+function page({ sandbox = false, credentials = true, hostname = 'a-network.net' } = {}) {
   const elements = new Map();
   const requests = [];
   const setup = [];
@@ -26,7 +26,7 @@ function page({ sandbox = false, hostname = 'a-network.net' } = {}) {
     fetch: async (url, options) => {
       requests.push({url, options});
       const body = url.endsWith('/config')
-        ? {sdk:{sandbox:mode},policy:{requiredAmount:1}}
+        ? {sdk:{sandbox:mode},policy:{requiredAmount:1,testPaymentsReady:credentials}}
         : url.includes('/status/') ? {unlocked:true,paymentId:'test-unlock'} : {ok:true};
       return Response.json(body);
     }
@@ -86,4 +86,15 @@ test('public quotes never send a signing secret and public execution stays disab
   assert.equal(JSON.parse(quote.options.body).sender_seed,undefined);
   await app.ctx.submitDexSwap({preventDefault(){}});
   assert.equal(app.requests.some(item=>item.url.endsWith('/execute')),false);
+});
+
+test('allows username-only sign-in while Testnet payment credentials are missing', async () => {
+  const app = page({sandbox:true,credentials:false});
+  await app.ctx.initializePiFromBackendConfig();
+  assert.equal(app.get('payWithPiBtn').disabled,true);
+  assert.match(app.get('sdkStatus').textContent,/needs a Testnet API key and app wallet/);
+  await app.ctx.authenticatePiUser();
+  assert.deepEqual(app.scopes,[['username']]);
+  await app.ctx.runSimplePiPayment();
+  assert.equal(app.payments(),0);
 });

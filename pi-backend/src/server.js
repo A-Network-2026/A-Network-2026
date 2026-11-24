@@ -1500,6 +1500,7 @@ app.get('/api/pi/config', (_req, res) => {
       sandboxMetadataPurpose: PI_ALLOWED_SANDBOX_METADATA_PURPOSE,
       lifetimeDexUnlockEnabled: true,
       appWalletCheckEnabled: Boolean(PI_APP_WALLET),
+      testPaymentsReady: Boolean(PI_SANDBOX && PI_API_KEY.trim() && PI_APP_WALLET.trim()),
       testAdminEnabled: PI_ENABLE_TEST_ADMIN,
       testAssetMintEnabled: PI_ALLOW_TEST_ASSET_MINT,
       coinAccess: {
