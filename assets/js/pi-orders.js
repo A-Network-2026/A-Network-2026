@@ -6,6 +6,7 @@ const list = document.querySelector('#orders');
 let initialized = false;
 let accountKey = null;
 let orders = [];
+let visibleSharedOrders = [];
 
 function renderOrders() {
   list.replaceChildren();
@@ -120,6 +121,7 @@ function clearSharedSession() {
   sharedStatus.textContent = '';
   sharedList.replaceChildren();
   incomingInvite.replaceChildren();
+  visibleSharedOrders = [];
 }
 
 function startSharedSession(token) {
@@ -206,7 +208,8 @@ function renderSharedOrders(orders) {
 async function refreshShared(session) {
   const result = await ordersApi(session);
   if (sharedSession !== session) return;
-  renderSharedOrders(result.orders);
+  visibleSharedOrders = result.orders;
+  renderSharedOrders(visibleSharedOrders);
   incomingInvite.replaceChildren();
   const inviteId = new URLSearchParams(location.hash.slice(1)).get('invite');
   if (!inviteId) return result.orders.length ? '' : 'No shared orders yet.';
@@ -233,3 +236,31 @@ sharedForm.addEventListener('submit', event => {
 
 refreshButton.addEventListener('click', () => runSharedAction(refreshShared));
 window.addEventListener('hashchange', () => runSharedAction(refreshShared));
+
+function orderCsvCell(value) {
+  const text = String(value ?? '');
+  const safe = /^[\s\uFEFF]*[=+@-]|^[\t\r\n]/.test(text) ? "'" + text : text;
+  return '"' + safe.replaceAll('"', '""') + '"';
+}
+
+document.querySelector('#export-orders').addEventListener('click', () => {
+  if (!accountKey) return;
+  const shared = visibleSharedOrders.map(({ title, role, amount, due, state }) => ['Shared', title, role, amount, due, state]);
+  const personal = orders.map(({ title, direction, amount, state }) => ['Personal', title, direction, amount, '', state]);
+  if (!shared.length && !personal.length) {
+    status.textContent = 'Add or refresh an order before exporting.';
+    return;
+  }
+
+  const rows = [['Type', 'Order', 'Role', 'Amount (Pi)', 'Due date', 'Status'], ...shared, ...personal];
+  const csv = rows.map(row => row.map(orderCsvCell).join(',')).join('\r\n');
+  const url = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'a-network-orders.csv';
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  status.textContent = 'Exported the orders currently shown.';
+});
