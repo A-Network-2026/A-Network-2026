@@ -27850,19 +27850,19 @@
     "2026-11-24": {
       "owners": {
         "ANETBX7": {
-          "mining": 1360,
-          "members": 2600,
-          "rooms": 2390,
+          "mining": 1363,
+          "members": 2601,
+          "rooms": 2392,
           "colonyName": "ANETBX7"
         },
         "ANETWIH": {
-          "mining": 831,
-          "members": 2652,
-          "rooms": 2440,
+          "mining": 832,
+          "members": 2653,
+          "rooms": 2442,
           "colonyName": "ANETWIH"
         },
         "ANET16IE": {
-          "mining": 547,
+          "mining": 548,
           "members": 1481,
           "rooms": 1358,
           "colonyName": "ANET16IE"
@@ -27886,13 +27886,13 @@
           "colonyName": "ANETF5P"
         },
         "ANETPI": {
-          "mining": 278,
+          "mining": 279,
           "members": 524,
           "rooms": 489,
           "colonyName": "ANETPI"
         },
         "ANET101I": {
-          "mining": 254,
+          "mining": 255,
           "members": 781,
           "rooms": 723,
           "colonyName": "ANET101I"
@@ -27904,7 +27904,7 @@
           "colonyName": "ANETA"
         },
         "ANETF11": {
-          "mining": 173,
+          "mining": 174,
           "members": 311,
           "rooms": 284,
           "colonyName": "ANETF11"
@@ -27934,7 +27934,7 @@
           "colonyName": "ANETD24"
         },
         "ANET8J": {
-          "mining": 136,
+          "mining": 137,
           "members": 309,
           "rooms": 291,
           "colonyName": "ANET8J"
@@ -28174,7 +28174,7 @@
           "colonyName": "ANET14AL"
         },
         "ANET3KI9": {
-          "mining": 62,
+          "mining": 63,
           "members": 206,
           "rooms": 201,
           "colonyName": "ANET3KI9"
@@ -28840,9 +28840,9 @@
           "colonyName": "ANET157F"
         },
         "ANETEAZ": {
-          "mining": 20,
-          "members": 37,
-          "rooms": 35,
+          "mining": 21,
+          "members": 38,
+          "rooms": 36,
           "colonyName": "ANETEAZ"
         },
         "ANETEFH": {
@@ -29048,10 +29048,16 @@
           "members": 29,
           "rooms": 27,
           "colonyName": "ANETDD5"
+        },
+        "ANET82": {
+          "mining": 16,
+          "members": 28,
+          "rooms": 27,
+          "colonyName": "ANET82"
         }
       },
-      "sampleCount": 1,
-      "lastSampleAt": "2026-11-24T10:11:58.816Z"
+      "sampleCount": 2,
+      "lastSampleAt": "2026-11-24T18:05:40.925Z"
     }
   }
 }
