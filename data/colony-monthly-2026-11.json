@@ -30268,15 +30268,15 @@
     "2026-11-26": {
       "owners": {
         "ANETBX7": {
-          "mining": 1369,
+          "mining": 1370,
           "members": 2604,
           "rooms": 2395,
           "colonyName": "ANETBX7"
         },
         "ANETWIH": {
-          "mining": 847,
-          "members": 2663,
-          "rooms": 2451,
+          "mining": 850,
+          "members": 2665,
+          "rooms": 2453,
           "colonyName": "ANETWIH"
         },
         "ANET16IE": {
@@ -30304,7 +30304,7 @@
           "colonyName": "ANETF5P"
         },
         "ANETPI": {
-          "mining": 280,
+          "mining": 281,
           "members": 524,
           "rooms": 489,
           "colonyName": "ANETPI"
@@ -30394,7 +30394,7 @@
           "colonyName": "ANETBRS"
         },
         "ANET75": {
-          "mining": 106,
+          "mining": 108,
           "members": 402,
           "rooms": 385,
           "colonyName": "ANET75"
@@ -30514,7 +30514,7 @@
           "colonyName": "ANETUOR"
         },
         "ANET1GVC": {
-          "mining": 93,
+          "mining": 95,
           "members": 231,
           "rooms": 217,
           "colonyName": "ANET1GVC"
@@ -30916,7 +30916,7 @@
           "colonyName": "ANETNUD"
         },
         "ANET1": {
-          "mining": 39,
+          "mining": 40,
           "members": 71,
           "rooms": 70,
           "colonyName": "ANET1"
@@ -31132,7 +31132,7 @@
           "colonyName": "ANETH0C"
         },
         "ANETEF3": {
-          "mining": 24,
+          "mining": 25,
           "members": 49,
           "rooms": 43,
           "colonyName": "ANETEF3"
@@ -31366,7 +31366,7 @@
           "colonyName": "ANET5QG"
         },
         "ANETGE5": {
-          "mining": 17,
+          "mining": 18,
           "members": 44,
           "rooms": 43,
           "colonyName": "ANETGE5"
@@ -31468,8 +31468,8 @@
           "colonyName": "ANET82"
         }
       },
-      "sampleCount": 1,
-      "lastSampleAt": "2026-11-26T08:42:52.200Z"
+      "sampleCount": 2,
+      "lastSampleAt": "2026-11-26T17:11:57.761Z"
     }
   }
 }
